@@ -1,0 +1,32 @@
+[gd_scene load_steps=4 format=3 uid="uid://b4us3gnnhjwep"]
+
+[ext_resource type="Script" path="res://MatchManager.gd" id="1_blowy"]
+[ext_resource type="Texture2D" uid="uid://c0dlecvp86dxf" path="res://icon.svg" id="1_hihoq"]
+[ext_resource type="Script" path="res://Match_Pitcher.gd" id="2_lkmwo"]
+
+[node name="MatchScene" type="Node2D"]
+script = ExtResource("1_blowy")
+
+[node name="Pitcher" type="CharacterBody2D" parent="."]
+script = ExtResource("2_lkmwo")
+
+[node name="Sprite2D" type="Sprite2D" parent="Pitcher"]
+texture = ExtResource("1_hihoq")
+
+[node name="Catcher" type="CharacterBody2D" parent="."]
+
+[node name="Sprite2D" type="Sprite2D" parent="Catcher"]
+position = Vector2(6, 808)
+texture = ExtResource("1_hihoq")
+
+[node name="Batter" type="CharacterBody2D" parent="."]
+
+[node name="Sprite2D" type="Sprite2D" parent="Batter"]
+position = Vector2(151, 632)
+texture = ExtResource("1_hihoq")
+
+[node name="Ball" type="CharacterBody2D" parent="."]
+
+[node name="Sprite2D" type="Sprite2D" parent="Ball"]
+position = Vector2(-42, 107)
+texture = ExtResource("1_hihoq")
