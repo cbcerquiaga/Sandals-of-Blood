@@ -13,6 +13,8 @@ script = ExtResource("2_lkmwo")
 [node name="Sprite2D" type="Sprite2D" parent="Pitcher"]
 texture = ExtResource("1_hihoq")
 
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="Pitcher"]
+
 [node name="Catcher" type="CharacterBody2D" parent="."]
 
 [node name="Sprite2D" type="Sprite2D" parent="Catcher"]

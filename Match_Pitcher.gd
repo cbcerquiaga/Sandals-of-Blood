@@ -17,10 +17,12 @@ func _ready() -> void:
 	pass # Replace with function body.
 
 func _on_Human_Pitching(value):
+	print("Whose turn is it?")
 	isHumanPitching = value
 
 func _input(ev):
 	if (isHumanPitching):
+		print("It's my turn!")
 		if	Input.is_key_pressed(KEY_LEFT) && !Input.is_key_pressed(KEY_RIGHT):
 			if (pitch_state == 0):
 				rotation += rotationSpeed

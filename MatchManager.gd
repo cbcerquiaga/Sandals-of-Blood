@@ -14,6 +14,12 @@ var isHumanPitching: bool
 var ballPitched: bool
 var ball_state: String
 
+
+#positions
+var pitcher
+var catcher
+var batter
+
 signal Human_Pitching
 signal Ball_Pitched
 
@@ -25,6 +31,7 @@ func _ready() -> void:
 	matchPhase = "Pitching"
 	pitchCount = 0
 	
+	pitcher = $Pitcher
 	pass # Replace with function body.
 
 		
@@ -32,6 +39,8 @@ func _ready() -> void:
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta: float) -> void:
 	if (matchPhase == "Pitching" && ((isHomePitching && isHomeHuman) or (!isHomePitching && !isHomeHuman))):
+		#print("I'm going to tell you whose turn it is")
 		isHumanPitching = true
 		Human_Pitching.emit(true)
+		pitcher.isHumanPitching = true #this is the one actually doing the work
 	pass
