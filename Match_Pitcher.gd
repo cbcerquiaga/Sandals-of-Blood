@@ -5,10 +5,10 @@ var isHumanPitching: bool
 const matchManager = preload("MatchManager.gd")
 var pitch_state = 0 #0 rotate, 1 slide, 2 power
 var max_pitch_state = 2
-var max_rotation = 15
+var max_rotation = 0.5
 var max_slide = 50
-var rotationSpeed = 0.5
-var slideSpeed = 2
+var rotationSpeed = 0.1
+var slideSpeed = 2.0
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
@@ -16,27 +16,29 @@ func _ready() -> void:
 	isHumanPitching = false
 	pass # Replace with function body.
 
-func _on_Human_Pitching(value):
-	print("Whose turn is it?")
-	isHumanPitching = value
+#func _on_Human_Pitching(value):
+	#print("Whose turn is it?")
+	#isHumanPitching = value
 
 func _input(ev):
 	if (isHumanPitching):
-		print("It's my turn!")
+		#print("It's my turn!")
 		if	Input.is_key_pressed(KEY_LEFT) && !Input.is_key_pressed(KEY_RIGHT):
-			if (pitch_state == 0):
+			if (pitch_state == 0 && rotation <= max_rotation):
 				rotation += rotationSpeed
 			elif (pitch_state == 1):
-				transform.x += slideSpeed
+				velocity.x = slideSpeed
 			pass
 		elif Input.is_key_pressed(KEY_RIGHT) && !Input.is_key_pressed(KEY_LEFT):
-			if (pitch_state == 0):
+			if (pitch_state == 0 && rotation >= 0-max_rotation):
 				rotation -= rotationSpeed
 			elif (pitch_state == 1):
-				transform.x -= slideSpeed
+				velocity.x = 0-slideSpeed
 		elif Input.is_key_pressed(KEY_SPACE):
 			if (pitch_state < 2):
 				pitch_state += 1
+		else:
+			velocity.x = 0
 			pass
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.

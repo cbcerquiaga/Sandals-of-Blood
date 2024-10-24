@@ -32,3 +32,6 @@ texture = ExtResource("1_hihoq")
 [node name="Sprite2D" type="Sprite2D" parent="Ball"]
 position = Vector2(-42, 107)
 texture = ExtResource("1_hihoq")
+
+[node name="Camera2D" type="Camera2D" parent="."]
+zoom = Vector2(0.25, 0.25)
