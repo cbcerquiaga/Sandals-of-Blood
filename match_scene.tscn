@@ -35,3 +35,5 @@ texture = ExtResource("1_hihoq")
 
 [node name="Camera2D" type="Camera2D" parent="."]
 zoom = Vector2(0.25, 0.25)
+
+[node name="Charge-Up Bar" type="Polygon2D" parent="."]
