@@ -11,12 +11,26 @@ var current_slide = 0
 var rotationSpeed = 0.1
 var slideSpeed = 200.0
 var pitcher_power = 100
+var pitcher_spin = 100
 var ball_power = 0
+var ball_spin = 0
+var pitch_power_done = false
+var pitch_spin_done = false
+
+var min_power := 0
+var power_increment := 10
+var increasing := true
+var active := false
+var timer : Timer
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
 	set_process_input(true)
 	isHumanPitching = false
+	timer = Timer.new()
+	timer.wait_time = 2.0
+	timer.connect("timeout", Callable(self, "_on_timer_timeout"))
+	add_child(timer)
 	pass # Replace with function body.
 
 #func _on_Human_Pitching(value):
@@ -45,6 +59,7 @@ func _input(ev):
 				#emit a signal for the charge-up bar
 				emit_signal("pitch_charge")
 				chargePitch()
+				#spinPitch()
 				pass
 		else:
 			velocity.x = 0
@@ -54,33 +69,39 @@ func _input(ev):
 			velocity.x = 0
 		pass
 		
-		
-		
 func chargePitch():
-	var cooldown = 100
-	var increment = 10
-	var isGoingUp = true
-	while (!Input.is_key_pressed(KEY_B) && cooldown > 0):
-		print ("looping")
-		if (cooldown > 0):
-			cooldown = cooldown - 1
-		if (isGoingUp):
-			if (ball_power <= pitcher_power - increment):
-				ball_power = ball_power + increment
-			else:
-				isGoingUp = false
-				print ("max ball power")
-		else:
-			if (ball_power >= 0 + increment):
-				ball_power = ball_power - increment
-			else:
-				isGoingUp = true
-				print ("min ball power")
-	print("Throw power is " + str(ball_power)  + " and cooldown is " + str(cooldown))
-	pass
+	if active:
+		# Stop the timer and return the current power when button is pressed again
+		timer.stop()
+		active = false
+		print("Final Power:", ball_power)
+		return ball_power
+	else: # Start the power scaling process
+		ball_power = min_power
+		increasing = true
+		active = true
+		timer.start()
+		print("Scaling power...")
+
+func _on_timer_timeout(): # Scale the power up or down based on the direction
+	if increasing:
+		ball_power += power_increment
+		if ball_power >= pitcher_power:
+			ball_power = pitcher_power
+			increasing = false
+	else:
+		ball_power -= power_increment
+		if ball_power <= min_power:
+			ball_power = min_power
+			increasing = true
+
+	print("Current Power:", ball_power)
+
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta: float) -> void:
 	move_and_slide()
 	current_slide = current_slide + (velocity.x * delta)
+	if (pitch_power_done && pitch_spin_done):
+		print("huck that sucka")
 	pass
