@@ -17,6 +17,7 @@ var ball_power = 0
 var ball_spin = 0
 var pitch_power_done = false
 var pitch_spin_done = false
+var ball_thrown = false
 
 var min_power := 0
 var power_increment := 10
@@ -26,6 +27,8 @@ var power_timer : Timer
 
 var spin_increment := 10
 var spin_timer : Timer
+
+signal throw_ball(ball_power, ball_spin)
 
 
 # Called when the node enters the scene tree for the first time.
@@ -147,6 +150,8 @@ func _on_spin_timer_timeout(): #scale the spin left and right based on timing
 func _process(delta: float) -> void:
 	move_and_slide()
 	current_slide = current_slide + (velocity.x * delta)
-	if (pitch_power_done && pitch_spin_done):
+	if (pitch_power_done && pitch_spin_done && !ball_thrown):
+		ball_thrown = true
 		print("huck that sucka")
+		throw_ball.emit(ball_power, ball_spin)
 	pass
