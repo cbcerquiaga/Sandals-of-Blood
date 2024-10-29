@@ -1,16 +1,16 @@
 extends CharacterBody2D
 
-var base_speed = 50
-var speed = 500.0
+var base_speed = 100
+var speed = 0
 var english = 0
 var linear_drag = 0.998
-var rotational_drag = 0.999
+var rotational_drag = 0.995
 var pitcher: Node
 var thrown = false
 var pitcher_found = false
 
 func _ready():
-	pitcher = get_node_or_null("./Pitcher")
+	pitcher = get_node_or_null("../Pitcher")
 	if pitcher:
 		pitcher.connect("ball_thrown", Callable(self, "_on_ball_thrown"))
 	else:
@@ -21,6 +21,7 @@ func _on_ball_thrown(power, spin):
 	print("ball thrown")
 	speed = power
 	english = spin * 0.001
+	english = english / 2
 	thrown = true
 	pass
 	
@@ -43,6 +44,8 @@ func _physics_process(delta: float) -> void:
 		move_and_slide()
 
 
-func _on_pitcher_throw_ball(ball_power: Variant, ball_spin: Variant) -> void:
+func _on_pitcher_throw_ball(ball_power: Variant, ball_spin: Variant, start_angle: Variant, start_position: Variant) -> void:
+	rotation = start_angle
+	position = start_position
 	_on_ball_thrown(ball_power, ball_spin)
 	pass # Replace with function body.

@@ -28,7 +28,7 @@ var power_timer : Timer
 var spin_increment := 10
 var spin_timer : Timer
 
-signal throw_ball(ball_power, ball_spin)
+signal throw_ball(ball_power, ball_spin, start_angle, start_position)
 
 
 # Called when the node enters the scene tree for the first time.
@@ -36,11 +36,11 @@ func _ready() -> void:
 	set_process_input(true)
 	isHumanPitching = false
 	power_timer = Timer.new()
-	power_timer.wait_time = 2.0
+	power_timer.wait_time = 0.12
 	power_timer.connect("timeout", Callable(self, "_on_power_timer_timeout"))
 	add_child(power_timer)
 	spin_timer = Timer.new()
-	spin_timer.wait_time = 4.0
+	spin_timer.wait_time = 0.06
 	spin_timer.connect("timeout", Callable(self, "_on_spin_timer_timeout"))
 	add_child(spin_timer)
 	pass # Replace with function body.
@@ -129,7 +129,6 @@ func _on_power_timer_timeout(): # Scale the power up or down based on timing
 		if ball_power <= min_power:
 			ball_power = min_power
 			increasing = true
-
 	print("Current Power:", ball_power)
 	
 func _on_spin_timer_timeout(): #scale the spin left and right based on timing
@@ -153,5 +152,5 @@ func _process(delta: float) -> void:
 	if (pitch_power_done && pitch_spin_done && !ball_thrown):
 		ball_thrown = true
 		print("huck that sucka")
-		throw_ball.emit(ball_power, ball_spin)
+		throw_ball.emit(ball_power, ball_spin, rotation, position)
 	pass
