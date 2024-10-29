@@ -32,13 +32,13 @@ func _process(delta: float) -> void:
 	elif pitcher_found == false:
 		pitcher.connect("ball_thrown", Callable(self, "_on_ball_thrown"))
 		pitcher_found = true
-		print("there's the pitcher. who's a happy ball?")
+		#print("there's the pitcher. who's a happy ball?")
 	
 func _physics_process(delta: float) -> void:
 	if thrown:
 		velocity.y = (base_speed + speed)
 		speed = speed * linear_drag
-		print("Spin effect: " + str(english/180 * PI))
+		#print("Spin effect: " + str(english/180 * PI))
 		rotation += english/180 * PI
 		english = english * rotational_drag
 		move_and_slide()

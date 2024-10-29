@@ -1,8 +1,9 @@
-[gd_scene load_steps=5 format=3 uid="uid://b4us3gnnhjwep"]
+[gd_scene load_steps=6 format=3 uid="uid://b4us3gnnhjwep"]
 
 [ext_resource type="Script" path="res://MatchManager.gd" id="1_blowy"]
 [ext_resource type="Texture2D" uid="uid://c0dlecvp86dxf" path="res://icon.svg" id="1_hihoq"]
 [ext_resource type="Script" path="res://Match_Pitcher.gd" id="2_lkmwo"]
+[ext_resource type="Script" path="res://Match_Catcher.gd" id="4_fdyrg"]
 [ext_resource type="Script" path="res://ball.gd" id="4_sv5sn"]
 
 [node name="MatchScene" type="Node2D"]
@@ -17,6 +18,7 @@ texture = ExtResource("1_hihoq")
 [node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="Pitcher"]
 
 [node name="Catcher" type="CharacterBody2D" parent="."]
+script = ExtResource("4_fdyrg")
 
 [node name="Sprite2D" type="Sprite2D" parent="Catcher"]
 position = Vector2(6, 808)
@@ -40,4 +42,5 @@ zoom = Vector2(0.25, 0.25)
 
 [node name="Charge-Up Bar" type="Polygon2D" parent="."]
 
+[connection signal="throw_ball" from="Pitcher" to="Catcher" method="_on_pitcher_throw_ball"]
 [connection signal="throw_ball" from="Pitcher" to="Ball" method="_on_pitcher_throw_ball"]
