@@ -38,7 +38,7 @@ func _ready() -> void:
 	add_child(power_timer)
 	spin_timer = Timer.new()
 	spin_timer.wait_time = 4.0
-	power_timer.connect("timeout", Callable(self, "_on_spin_timer_timeout"))
+	spin_timer.connect("timeout", Callable(self, "_on_spin_timer_timeout"))
 	add_child(spin_timer)
 	pass # Replace with function body.
 
@@ -68,6 +68,7 @@ func _input(ev):
 				#emit a signal for the charge-up bar
 				if (pitch_power_done):
 					pitch_state += 1
+					active = false
 				else:
 					chargePitch()
 			if (pitch_state == 3):
@@ -139,6 +140,7 @@ func _on_spin_timer_timeout(): #scale the spin left and right based on timing
 		if ball_spin <= 0 - pitcher_spin + pitcher_spin_offset:
 			ball_spin = 0 - pitcher_spin + pitcher_spin_offset
 			increasing = true
+	print("Spin: " + str(ball_spin))
 
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
