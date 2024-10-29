@@ -4,7 +4,7 @@ var base_speed = 100
 var speed = 0
 var english = 0
 var linear_drag = 0.998
-var rotational_drag = 0.995
+var rotational_drag = 0.999
 var pitcher: Node
 var thrown = false
 var pitcher_found = false
@@ -20,8 +20,7 @@ pass
 func _on_ball_thrown(power, spin):
 	print("ball thrown")
 	speed = power
-	english = spin * 0.001
-	english = english / 2
+	english = spin * 0.01
 	thrown = true
 	pass
 	
@@ -39,7 +38,8 @@ func _physics_process(delta: float) -> void:
 	if thrown:
 		velocity.y = (base_speed + speed)
 		speed = speed * linear_drag
-		rotation += english
+		print("Spin effect: " + str(english/180 * PI))
+		rotation += english/180 * PI
 		english = english * rotational_drag
 		move_and_slide()
 
