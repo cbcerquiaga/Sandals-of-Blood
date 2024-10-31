@@ -1,10 +1,18 @@
-[gd_scene load_steps=6 format=3 uid="uid://b4us3gnnhjwep"]
+[gd_scene load_steps=10 format=3 uid="uid://b4us3gnnhjwep"]
 
 [ext_resource type="Script" path="res://MatchManager.gd" id="1_blowy"]
 [ext_resource type="Texture2D" uid="uid://c0dlecvp86dxf" path="res://icon.svg" id="1_hihoq"]
 [ext_resource type="Script" path="res://Match_Pitcher.gd" id="2_lkmwo"]
 [ext_resource type="Script" path="res://Match_Catcher.gd" id="4_fdyrg"]
 [ext_resource type="Script" path="res://ball.gd" id="4_sv5sn"]
+[ext_resource type="Script" path="res://catch_collision.gd" id="5_s2kjx"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_ihbd2"]
+size = Vector2(124, 65)
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_i335y"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_3p88q"]
 
 [node name="MatchScene" type="Node2D"]
 script = ExtResource("1_blowy")
@@ -18,11 +26,20 @@ texture = ExtResource("1_hihoq")
 [node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="Pitcher"]
 
 [node name="Catcher" type="CharacterBody2D" parent="."]
+position = Vector2(0, 808)
 script = ExtResource("4_fdyrg")
 
 [node name="Sprite2D" type="Sprite2D" parent="Catcher"]
-position = Vector2(6, 808)
 texture = ExtResource("1_hihoq")
+
+[node name="BodyCollision" type="CollisionShape2D" parent="Catcher"]
+position = Vector2(0, -7)
+shape = SubResource("RectangleShape2D_ihbd2")
+
+[node name="CatchCollision" type="ShapeCast2D" parent="Catcher"]
+shape = SubResource("CapsuleShape2D_i335y")
+target_position = Vector2(0, -49)
+script = ExtResource("5_s2kjx")
 
 [node name="Batter" type="CharacterBody2D" parent="."]
 
@@ -31,11 +48,15 @@ position = Vector2(151, 632)
 texture = ExtResource("1_hihoq")
 
 [node name="Ball" type="CharacterBody2D" parent="."]
+position = Vector2(-46, 107)
 script = ExtResource("4_sv5sn")
 
 [node name="Sprite2D" type="Sprite2D" parent="Ball"]
-position = Vector2(-42, 107)
 texture = ExtResource("1_hihoq")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Ball"]
+scale = Vector2(3, 3)
+shape = SubResource("CircleShape2D_3p88q")
 
 [node name="Camera2D" type="Camera2D" parent="."]
 zoom = Vector2(0.25, 0.25)
