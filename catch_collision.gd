@@ -1,48 +1,143 @@
-extends ShapeCast2D
+extends Area2D
 
+var previousPosition
+var oldPosition
+var isStationary = false
 var isLeftHand = false
 var catchChance = 0
 var catchSolidity = 0 #measures how long the catcher is in contact with the ball. Longer = better chance to catch
-var catchSkill = 0 #flat modifier to catching based on player attributes
+var catchSkill = 20 #player attribute, 0-25
+
+var hasTouched = false #if the catcher has already touched the ball, used for catch solidity check
+var rng
+var isPitch = true# catch mechanics calulated differently for pitches and passes
+
+#for pass catches
+var oppTackle = 0 #opposing player attribute that impacts catching
+var catchAngle = 0 #easier to catch the ball when facing it
 
 var ball: Node 
 
 # Called when the node enters the scene tree for the first time.
-func _ready() -> void:
-	enabled = true
-	ball = get_node_or_null("../Ball")
-	if ball:
-		ball.connect("area_entered", Callable(self, "_on_contact"))
-		print("I am become one with the ball")
-	else:
-		print("my hands do not know about the ball")
-	pass # Replace with function body.
+func _ready():
+	#if ball == null:
+		#print("looking for ball...")
+		#ball = get_node_or_null("../Ball")
+		#print(str(ball))
+	oldPosition = position
+	previousPosition = position
+	rng = RandomNumberGenerator.new()
+	pass
 
-func _on_contact():
+func on_contact():
+	catchChance = 0 #prevent garbage from previous catch attempt
 	print("I got the ball")
-	#TODO: calculate catch chance
-	#get ball speed
-	#get ball spin
-	#is the catcher stationary?
-	#determine contact time
+	if (isPitch):
+		pitchCatchChance()
+	else:
+		passCatchChance()
+	#get ball speed. speed only seriously affects catch chance at higher speeds
 	
-	#if caught
-		#send signal to ball for it to follow
-	#else
-		#send ball in random direction away from catcher
-		#attempt second catch
-		#if second catch fails, kill the play
 	pass
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta: float) -> void:
-	if ball == null:
-		ball = get_node_or_null("../Ball")
-		if ball != null:
-			print("eyes on ball")
-	if is_colliding():
+	#if ball == null:
+		#print("looking for ball...")
+		#ball = get_node_or_null("../Ball")
+		#print(str(ball))
+	checkStationary()
+	updatePositions()
+	if has_overlapping_bodies():
 		#print("contact!")
-		var collider = self.get_collider(0)
-		if collider == ball:
-			_on_contact()
+		var colliders = self.get_overlapping_bodies()
+		#for hit in colliders:
+			#print(str(hit))
+		var collider = colliders[0]
+		if collider is Ball:
+			#print("it's a ball!")
+			if (hasTouched):
+				catchSolidity = catchSolidity + 1
+			ball = collider as Ball
+			#print(str(ball))
+			on_contact()
 	pass
+
+#check the last 3 frames' positions to see if the catcher is stationary
+func checkStationary():
+	if (oldPosition == previousPosition && previousPosition == position):
+		isStationary = true
+	else:
+		isStationary = false
+	pass
+
+#update the oldPosition and previousPosition for stationary check
+func updatePositions():
+	oldPosition = previousPosition #2 frames ago
+	previousPosition = position #1 frame ago
+	
+func pitchCatchChance():
+	var speed = ball.getSpeed()
+	if (speed > 92):
+		catchChance = catchChance - 8
+	elif (speed > 86):
+		catchChance = catchChance - 6
+	elif (speed > 80):
+		catchChance = catchChance - 4
+	elif (speed > 68):
+		catchChance = catchChance - 2
+	#get ball spin. spin heavily impacts catch chance
+	var spin = ball.getSpin()
+	if (absi(spin) > 110):
+		catchChance = catchChance - 15
+	elif (absi(spin) > 100):
+		catchChance = catchChance - 13
+	elif (absi(spin) > 89):
+		catchChance = catchChance - 11
+	elif (absi(spin) > 77):
+		catchChance = catchChance - 9
+	elif (absi(spin) > 64):
+		catchChance = catchChance - 7
+	elif (absi(spin) > 50):
+		catchChance = catchChance - 5
+	elif (absi(spin) > 35):
+		catchChance = catchChance - 3
+	elif (absi(spin) > 19):
+		catchChance = catchChance - 1
+	#handedness gives an advantage for same-side spin
+	if (isLeftHand && spin < 0):
+		catchChance = catchChance + 2
+	elif (!isLeftHand && spin > 0):
+		catchChance = catchChance + 2
+	#is the catcher stationary?
+	if (isStationary):
+		catchChance = catchChance + 5
+	print("Catch Chance: " + str(catchChance))
+	#determine if the ball is caught
+	var random = rng.randi_range(catchChance, catchSkill)
+	print("Random result: " + str(random))
+	if (random > (10)):#always 10
+		print("gimme that!")
+		#send signal to ball for it to follow
+	else:
+		print("butter fingers!")
+		#send ball in random direction away from catcher
+		#attempt second catch
+		#if second catch fails, kill the play
+		
+func passCatchChance():
+	catchChance = 75 + catchSkill #base catching percentage
+	var speed = ball.getSpeed()
+	catchChance = catchChance - int(catchAngle/10) #TODO: calculate catchAngle
+	if (speed > 100):
+		catchChance = catchChance - (speed - 100)
+	if (oppTackle > 0):
+		catchChance = catchChance - (oppTackle * 3)#best hope you're not getting tackled by someone with 25 tackling
+	var random = rng.randi(0,100)
+	if (random < catchChance):
+		print("gimme that!")
+		#TODO: tell the ball it's caught
+	else:
+		print("butter fingers!")
+		#TODO: bounce the ball away, chance it just goes to ground
+		

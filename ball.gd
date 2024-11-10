@@ -1,3 +1,4 @@
+class_name Ball
 extends CharacterBody2D
 
 var base_speed = 100
@@ -49,3 +50,9 @@ func _on_pitcher_throw_ball(ball_power: Variant, ball_spin: Variant, start_angle
 	position = start_position
 	_on_ball_thrown(ball_power, ball_spin)
 	pass # Replace with function body.
+	
+func getSpin():
+	return english
+
+func getSpeed():
+	return speed
