@@ -1,5 +1,6 @@
 extends Area2D
 
+var isDoneCatching = false
 var previousPosition
 var oldPosition
 var isStationary = false
@@ -17,6 +18,8 @@ var oppTackle = 0 #opposing player attribute that impacts catching
 var catchAngle = 0 #easier to catch the ball when facing it
 
 var ball: Node 
+signal caught_ball(player)
+signal fumbled_ball(player)
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
@@ -42,25 +45,26 @@ func on_contact():
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta: float) -> void:
-	#if ball == null:
-		#print("looking for ball...")
-		#ball = get_node_or_null("../Ball")
-		#print(str(ball))
-	checkStationary()
-	updatePositions()
-	if has_overlapping_bodies():
-		#print("contact!")
-		var colliders = self.get_overlapping_bodies()
-		#for hit in colliders:
-			#print(str(hit))
-		var collider = colliders[0]
-		if collider is Ball:
-			#print("it's a ball!")
-			if (hasTouched):
-				catchSolidity = catchSolidity + 1
-			ball = collider as Ball
+	if (!isDoneCatching):
+		#if ball == null:
+			#print("looking for ball...")
+			#ball = get_node_or_null("../Ball")
 			#print(str(ball))
-			on_contact()
+		checkStationary()
+		updatePositions()
+		if has_overlapping_bodies():
+			#print("contact!")
+			var colliders = self.get_overlapping_bodies()
+			#for hit in colliders:
+				#print(str(hit))
+			var collider = colliders[0]
+			if collider is Ball:
+				#print("it's a ball!")
+				if (hasTouched):
+					catchSolidity = catchSolidity + 1
+				ball = collider as Ball
+				#print(str(ball))
+				on_contact()
 	pass
 
 #check the last 3 frames' positions to see if the catcher is stationary
@@ -116,11 +120,14 @@ func pitchCatchChance():
 	#determine if the ball is caught
 	var random = rng.randi_range(catchChance, catchSkill)
 	print("Random result: " + str(random))
+	var parent = get_parent()
 	if (random > (10)):#always 10
 		print("gimme that!")
-		#send signal to ball for it to follow
+		caught_ball.emit(parent)
+		isDoneCatching = true
 	else:
 		print("butter fingers!")
+		fumbled_ball.emit(parent)
 		#send ball in random direction away from catcher
 		#attempt second catch
 		#if second catch fails, kill the play
@@ -136,6 +143,7 @@ func passCatchChance():
 	var random = rng.randi(0,100)
 	if (random < catchChance):
 		print("gimme that!")
+		isDoneCatching = true
 		#TODO: tell the ball it's caught
 	else:
 		print("butter fingers!")

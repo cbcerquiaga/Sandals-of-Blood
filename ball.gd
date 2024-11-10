@@ -10,7 +10,14 @@ var pitcher: Node
 var thrown = false
 var pitcher_found = false
 
+var ball_carrier
+var isPitched #has the ball been thrown to start play yet?
+var isHeld #is a player holding the ball?
+
+var dropCount = 0 #the more the ball gets fumbled, the more likely it is to end up on the ground
+
 func _ready():
+	thrown = false
 	pitcher = get_node_or_null("../Pitcher")
 	if pitcher:
 		pitcher.connect("ball_thrown", Callable(self, "_on_ball_thrown"))
@@ -26,14 +33,25 @@ func _on_ball_thrown(power, spin):
 	pass
 	
 func _process(delta: float) -> void:
-	if pitcher == null:
-		print("looking for pitcher...")
-		pitcher = get_node_or_null("../Pitcher")
-		print(str(pitcher))
-	elif pitcher_found == false:
-		pitcher.connect("ball_thrown", Callable(self, "_on_ball_thrown"))
-		pitcher_found = true
-		#print("there's the pitcher. who's a happy ball?")
+	if (thrown == false):
+		if pitcher == null:
+			print("looking for pitcher...")
+			pitcher = get_node_or_null("../Pitcher")
+			print(str(pitcher))
+		elif pitcher_found == false:
+			pitcher.connect("ball_thrown", Callable(self, "_on_ball_thrown"))
+			pitcher_found = true
+			#print("there's the pitcher. who's a happy ball?")
+	else:
+		if (isHeld):
+			position.x = ball_carrier.position.x
+			position.y = ball_carrier.position.y
+			rotation = ball_carrier.rotation
+			velocity = ball_carrier.velocity
+			$CollisionShape2D.disabled = true
+			#move_and_slide()
+		else:
+			$CollisionShape2D.disabled = false
 	
 func _physics_process(delta: float) -> void:
 	if thrown:
@@ -56,3 +74,26 @@ func getSpin():
 
 func getSpeed():
 	return speed
+
+
+func _on_caught_ball(player: Variant) -> void:
+	#get rid of all individual movement and rotation
+	speed = 0
+	english = 0
+	
+	#cast the player into a usable class
+	player = player as Match_OffensivePlayer
+	#follow the player
+	ball_carrier = player
+	isHeld = true
+	print("Hold onto that ball now")
+	pass # Replace with function body.
+
+
+func _on_fumbled_ball(player: Variant) -> void:
+	#cast player into usable class
+	#figure out if the ball should drop to the ground
+	#if it's already been fumbled once, ground chance goes up
+	#if not, figure out if it should deflect past, bounce off, or bounce randomly
+	#apply movement to the ball
+	pass # Replace with function body.
