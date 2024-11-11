@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3 uid="uid://b4us3gnnhjwep"]
+[gd_scene load_steps=11 format=3 uid="uid://b4us3gnnhjwep"]
 
 [ext_resource type="Script" path="res://MatchManager.gd" id="1_blowy"]
 [ext_resource type="Texture2D" uid="uid://c0dlecvp86dxf" path="res://icon.svg" id="1_hihoq"]
@@ -6,6 +6,7 @@
 [ext_resource type="Script" path="res://Match_Catcher.gd" id="4_fdyrg"]
 [ext_resource type="Script" path="res://ball.gd" id="4_sv5sn"]
 [ext_resource type="Script" path="res://catch_collision.gd" id="5_s2kjx"]
+[ext_resource type="Script" path="res://receiver.gd" id="7_e1vmn"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_3p88q"]
 
@@ -61,6 +62,25 @@ position = Vector2(0, -60)
 scale = Vector2(3, 1)
 shape = SubResource("CircleShape2D_5echk")
 
+[node name="Receiver" type="CharacterBody2D" parent="."]
+position = Vector2(1508, 808)
+script = ExtResource("7_e1vmn")
+
+[node name="Sprite2D" type="Sprite2D" parent="Receiver"]
+texture = ExtResource("1_hihoq")
+
+[node name="BodyCollision" type="CollisionShape2D" parent="Receiver"]
+position = Vector2(0, -7)
+shape = SubResource("RectangleShape2D_ihbd2")
+
+[node name="CatchCollision" type="Area2D" parent="Receiver"]
+script = ExtResource("5_s2kjx")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Receiver/CatchCollision"]
+position = Vector2(0, -60)
+scale = Vector2(3, 1)
+shape = SubResource("CircleShape2D_5echk")
+
 [node name="Camera2D" type="Camera2D" parent="."]
 zoom = Vector2(0.25, 0.25)
 
@@ -70,3 +90,5 @@ zoom = Vector2(0.25, 0.25)
 [connection signal="throw_ball" from="Pitcher" to="Catcher" method="_on_pitcher_throw_ball"]
 [connection signal="caught_ball" from="Catcher/CatchCollision" to="Ball" method="_on_caught_ball"]
 [connection signal="fumbled_ball" from="Catcher/CatchCollision" to="Ball" method="_on_fumbled_ball"]
+[connection signal="caught_ball" from="Receiver/CatchCollision" to="Ball" method="_on_caught_ball"]
+[connection signal="fumbled_ball" from="Receiver/CatchCollision" to="Ball" method="_on_fumbled_ball"]
