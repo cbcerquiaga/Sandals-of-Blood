@@ -16,7 +16,7 @@ func _ready() -> void:
 	
 
 func nextMove():
-	print("current move: " + str(currentMove))
+	#print("current move: " + str(currentMove))
 	var dir = nextDirection()
 	var tempo = nextTempo()
 	var move = [dir, tempo]
