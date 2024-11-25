@@ -21,7 +21,7 @@ func nextMove():
 	var tempo = nextTempo()
 	var move = [dir, tempo]
 	currentMove = currentMove + 1
-	print(str(currentMove))
+	#print(str(currentMove))
 	return move
 
 func nextDirection():

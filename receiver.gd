@@ -6,6 +6,7 @@ var route
 var move
 var move_dir: Vector2
 var playerSpeed = 300
+var running = false
 
 
 func _ready():
@@ -18,38 +19,45 @@ func _ready():
 
 func _physics_process(delta: float) -> void:
 	#print("("+str(move[0])+", "+str(move[1])+")" + str(frame))
-	frame = frame + 1
-	if (frame >= rate):
-		move = route.nextMove()
-		frame = 0
-	#get the direction
-	if (move[0] == "N"):
-		rotation = 0
-		move_dir = Vector2(0,-1)
-	elif (move[0] == "NW"):
-		move_dir = Vector2(-1,-1)
-		rotation = 7*PI/4
-	elif (move[0] == "W"):
-		move_dir = Vector2(-1,0)
-		rotation = 3*PI/2
-	elif (move[0] == "SW"):
-		move_dir = Vector2(-1,1)
-		rotation = 5*PI/4
-	elif (move[0] == "S"):
-		move_dir = Vector2(0,1)
-		rotation = PI
-	elif (move[0] == "SE"):
-		move_dir = Vector2(1,1)
-		rotation = 3*PI/4
-	elif (move[0] == "E"):
-		move_dir = Vector2(0,1)
-		rotation = PI/2
-	elif (move[0] == "NE"):
-		move_dir = Vector2(1,-1)
-		rotation = PI/4
-		#calculate the speed
-	var realSpeed = speed * (move[1])/2
-	velocity = realSpeed * move_dir #0=stop, 1 = half speed, 2 = max speed
-	print(str(move[0] + str(move_dir)))
-	move_and_slide()
+	if running:
+		frame = frame + 1
+		if (frame >= rate):
+			move = route.nextMove()
+			frame = 0
+		#get the direction
+		if (move[0] == "N"):
+			rotation = 0
+			move_dir = Vector2(0,-1)
+		elif (move[0] == "NW"):
+			move_dir = Vector2(-1,-1)
+			rotation = 7*PI/4
+		elif (move[0] == "W"):
+			move_dir = Vector2(-1,0)
+			rotation = 3*PI/2
+		elif (move[0] == "SW"):
+			move_dir = Vector2(-1,1)
+			rotation = 5*PI/4
+		elif (move[0] == "S"):
+			move_dir = Vector2(0,1)
+			rotation = PI
+		elif (move[0] == "SE"):
+			move_dir = Vector2(1,1)
+			rotation = 3*PI/4
+		elif (move[0] == "E"):
+			move_dir = Vector2(0,1)
+			rotation = PI/2
+		elif (move[0] == "NE"):
+			move_dir = Vector2(1,-1)
+			rotation = PI/4
+			#calculate the speed
+		var realSpeed = speed * (move[1])/2
+		velocity = realSpeed * move_dir #0=stop, 1 = half speed, 2 = max speed
+		#print(str(move[0] + str(move_dir)))
+		move_and_slide()
 		
+
+#triggers route running
+func _on_catch_collision_caught_ball(player: Variant) -> void:
+	if !running:
+		running = true
+	pass
