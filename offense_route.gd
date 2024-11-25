@@ -1,17 +1,17 @@
 class_name Offense_Route
 extends Node
 
-var directions = ["N", "N", "W", "W", "W", "NW", "NW", "SW"] #array of move directions
+var directions #array of move directions
 #N, NW, W, SW, NE, E, SE
-var tempos = [1,2,2,2,2,2,0,1] #array of int speeds
+var tempos #array of int speeds
 #0 = stop, 1 = slow, 2 = fast
 var currentMove = 0 #int which tracks the part of the route
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
-	currentMove =0
-	directions = ["N", "N", "W", "W", "W", "NW", "NW", "SW"]
-	tempos = [1,2,2,2,2,2,0,1]
+	currentMove = 0
+	directions = ["NW", "N", "W", "W", "W", "NW", "NW", "SW"]
+	tempos = [1,2,2,2,0,2,1,0]
 	pass # Replace with function body.
 	
 
@@ -21,6 +21,7 @@ func nextMove():
 	var tempo = nextTempo()
 	var move = [dir, tempo]
 	currentMove = currentMove + 1
+	print(str(currentMove))
 	return move
 
 func nextDirection():
