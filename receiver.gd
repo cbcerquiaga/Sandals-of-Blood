@@ -6,10 +6,10 @@ var route
 var move
 var move_dir: Vector2
 var playerSpeed = 300
-var running = false
 
 
 func _ready():
+	state = "waiting"
 	move_dir = Vector2(0,0)
 	route = Offense_Route.new()
 	route._ready()
@@ -19,7 +19,7 @@ func _ready():
 
 func _physics_process(delta: float) -> void:
 	#print("("+str(move[0])+", "+str(move[1])+")" + str(frame))
-	if running:
+	if state == "running":
 		frame = frame + 1
 		if (frame >= rate):
 			move = route.nextMove()
@@ -58,6 +58,6 @@ func _physics_process(delta: float) -> void:
 
 #triggers route running
 func _on_catch_collision_caught_ball(player: Variant) -> void:
-	if !running:
-		running = true
+	if state != "running":
+		state = "running"
 	pass

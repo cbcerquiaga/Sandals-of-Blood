@@ -7,6 +7,7 @@ var isCatcher
 var isPlayerControlled = false
 var pitcher
 const speed = 300.0
+var state
 
 func _ready():
 	pitcher = get_node_or_null("../Pitcher")
