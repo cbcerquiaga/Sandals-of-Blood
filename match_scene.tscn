@@ -1,7 +1,8 @@
-[gd_scene load_steps=11 format=3 uid="uid://b4us3gnnhjwep"]
+[gd_scene load_steps=12 format=3 uid="uid://b4us3gnnhjwep"]
 
 [ext_resource type="Script" path="res://MatchManager.gd" id="1_blowy"]
 [ext_resource type="Texture2D" uid="uid://c0dlecvp86dxf" path="res://icon.svg" id="1_hihoq"]
+[ext_resource type="PackedScene" uid="uid://c1xq7irx66iwj" path="res://cursor.tscn" id="2_43qk0"]
 [ext_resource type="Script" path="res://Match_Pitcher.gd" id="2_lkmwo"]
 [ext_resource type="Script" path="res://Match_Catcher.gd" id="4_fdyrg"]
 [ext_resource type="Script" path="res://ball.gd" id="4_sv5sn"]
@@ -17,6 +18,9 @@ size = Vector2(124, 65)
 
 [node name="MatchScene" type="Node2D"]
 script = ExtResource("1_blowy")
+
+[node name="Cursor" parent="." instance=ExtResource("2_43qk0")]
+scale = Vector2(100, 100)
 
 [node name="Pitcher" type="CharacterBody2D" parent="."]
 script = ExtResource("2_lkmwo")
@@ -90,6 +94,7 @@ zoom = Vector2(0.25, 0.25)
 [connection signal="throw_ball" from="Pitcher" to="Catcher" method="_on_pitcher_throw_ball"]
 [connection signal="caught_ball" from="Catcher/CatchCollision" to="Ball" method="_on_caught_ball"]
 [connection signal="caught_ball" from="Catcher/CatchCollision" to="Receiver" method="_on_catch_collision_caught_ball"]
+[connection signal="caught_ball" from="Catcher/CatchCollision" to="Cursor" method="_on_catch_collision_caught_ball"]
 [connection signal="fumbled_ball" from="Catcher/CatchCollision" to="Ball" method="_on_fumbled_ball"]
 [connection signal="caught_ball" from="Receiver/CatchCollision" to="Ball" method="_on_caught_ball"]
 [connection signal="fumbled_ball" from="Receiver/CatchCollision" to="Ball" method="_on_fumbled_ball"]
