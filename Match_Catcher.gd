@@ -22,6 +22,8 @@ func _physics_process(delta: float) -> void:
 				throwPower = throwPower + 20
 		if (Input.is_action_just_released("attack_ball")):
 			state = "rover"
+			var cursor = get_node_or_null("../Cursor")
+			var throw_angle = get_angle_to(cursor)
 			#find the angle to the bullseye
 			#launch the ball towards the bullseye
 
