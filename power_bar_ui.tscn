@@ -1,0 +1,28 @@
+[gd_scene load_steps=3 format=3 uid="uid://k7exyu5ib5c2"]
+
+[ext_resource type="Script" path="res://PowerBarUI/texture_progress_bar.gd" id="1_qrnen"]
+[ext_resource type="Script" path="res://texture_progress_bar_2.gd" id="2_0a5dj"]
+
+[node name="PowerBarUI" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="TextureProgressBar" type="TextureProgressBar" parent="."]
+visible = false
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+fill_mode = 3
+nine_patch_stretch = true
+script = ExtResource("1_qrnen")
+
+[node name="TextureProgressBar2" type="TextureProgressBar" parent="."]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+script = ExtResource("2_0a5dj")
+fill_speed = null
