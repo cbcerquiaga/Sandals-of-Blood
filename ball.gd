@@ -83,6 +83,7 @@ func _on_caught_ball(player: Variant) -> void:
 	
 	#cast the player into a usable class
 	player = player as Match_OffensivePlayer
+	player.state = "carrying"
 	#follow the player
 	ball_carrier = player
 	isHeld = true
@@ -97,3 +98,15 @@ func _on_fumbled_ball(player: Variant) -> void:
 	#if not, figure out if it should deflect past, bounce off, or bounce randomly
 	#apply movement to the ball
 	pass # Replace with function body.
+
+
+func _on_pass_ball(ball_power: Variant, ball_target: Variant) -> void:
+	print("share now")
+	look_at(ball_target)
+	isHeld = false
+	var direction = Vector2.RIGHT.rotated(rotation)
+	#can_be_caught_counter = 20 #frames to allow the ball to get away from the thrower
+	while (isHeld == false):
+		velocity = direction * ball_power
+		
+	pass
