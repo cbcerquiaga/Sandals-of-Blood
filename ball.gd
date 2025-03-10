@@ -117,7 +117,7 @@ func _on_pass_ball(ball_power: Variant, ball_target: Variant) -> void:
 		print("something went wrong passing ball_power")
 	else:
 		pass_power = ball_power
-	print("share now")
+	print("share now: " + str(ball_target.x) + ", " + str(ball_target.y))
 	look_at(ball_target)
 	ball_carrier = null
 	isHeld = false

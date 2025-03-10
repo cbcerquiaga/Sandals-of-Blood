@@ -28,7 +28,10 @@ func _physics_process(delta: float) -> void:
 		if (Input.is_action_just_released("pass_ball")):
 			state = "rover"
 			var cursor = get_node_or_null("../Cursor")
-			var throw_point = cursor.position
+			var throw_point = cursor.global_position
+			#var x = throw_point.y
+			#throw_point.y = throw_point.x
+			#throw_point.x = x
 			pass_ball.emit(throwPower, throw_point)
 			#var throw_angle = get_angle_to(throw_point)
 
