@@ -17,6 +17,7 @@ var isHeld #is a player holding the ball?
 var can_be_caught_counter = 0#keeps the player who passes the ball from catching it themself
 var pass_direction = 0 #for throwing passes
 var pass_power = 0 #for throwing passes
+var aim_target
 
 var dropCount = 0 #the more the ball gets fumbled, the more likely it is to end up on the ground
 
@@ -57,8 +58,12 @@ func _process(delta: float) -> void:
 		else:
 			if (isPassed && can_be_caught_counter > 0):
 				$CollisionShape2D.disabled = true
-				velocity = pass_direction * pass_power
+				position += aim_target * pass_power * delta
+				#velocity = pass_direction * pass_power
 				can_be_caught_counter = can_be_caught_counter - 1
+			elif (isPassed):
+				$CollisionShape2D.disabled = false
+				position += aim_target * pass_power * delta
 			else:
 				$CollisionShape2D.disabled = false
 			
@@ -111,7 +116,7 @@ func _on_fumbled_ball(player: Variant) -> void:
 
 
 func _on_pass_ball(ball_power: Variant, ball_target: Variant) -> void:
-	isPassed = true
+	aim_target = position.direction_to(ball_target)
 	if (ball_power == null):
 		pass_power = 100
 		print("something went wrong passing ball_power")
@@ -121,6 +126,7 @@ func _on_pass_ball(ball_power: Variant, ball_target: Variant) -> void:
 	look_at(ball_target)
 	ball_carrier = null
 	isHeld = false
-	pass_direction = Vector2.RIGHT.rotated(rotation)
+	#pass_direction = Vector2.RIGHT.rotated(rotation)
 	can_be_caught_counter = 50 #frames to allow the ball to get away from the thrower
+	isPassed = true
 	pass
