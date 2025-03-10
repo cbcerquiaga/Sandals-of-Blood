@@ -9,10 +9,14 @@ var rotational_drag = 0.999
 var pitcher: Node
 var thrown = false
 var pitcher_found = false
+var isPassed = false
 
 var ball_carrier
 var isPitched #has the ball been thrown to start play yet?
 var isHeld #is a player holding the ball?
+var can_be_caught_counter = 0#keeps the player who passes the ball from catching it themself
+var pass_direction = 0 #for throwing passes
+var pass_power = 0 #for throwing passes
 
 var dropCount = 0 #the more the ball gets fumbled, the more likely it is to end up on the ground
 
@@ -51,7 +55,13 @@ func _process(delta: float) -> void:
 			$CollisionShape2D.disabled = true
 			#move_and_slide()
 		else:
-			$CollisionShape2D.disabled = false
+			if (isPassed && can_be_caught_counter > 0):
+				$CollisionShape2D.disabled = true
+				velocity = pass_direction * pass_power
+				can_be_caught_counter = can_be_caught_counter - 1
+			else:
+				$CollisionShape2D.disabled = false
+			
 	
 func _physics_process(delta: float) -> void:
 	if thrown:
@@ -101,12 +111,16 @@ func _on_fumbled_ball(player: Variant) -> void:
 
 
 func _on_pass_ball(ball_power: Variant, ball_target: Variant) -> void:
+	isPassed = true
+	if (ball_power == null):
+		pass_power = 100
+		print("something went wrong passing ball_power")
+	else:
+		pass_power = ball_power
 	print("share now")
 	look_at(ball_target)
+	ball_carrier = null
 	isHeld = false
-	var direction = Vector2.RIGHT.rotated(rotation)
-	#can_be_caught_counter = 20 #frames to allow the ball to get away from the thrower
-	while (isHeld == false):
-		velocity = direction * ball_power
-		
+	pass_direction = Vector2.RIGHT.rotated(rotation)
+	can_be_caught_counter = 50 #frames to allow the ball to get away from the thrower
 	pass
