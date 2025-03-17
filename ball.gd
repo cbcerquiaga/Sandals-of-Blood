@@ -127,6 +127,6 @@ func _on_pass_ball(ball_power: Variant, ball_target: Variant) -> void:
 	ball_carrier = null
 	isHeld = false
 	#pass_direction = Vector2.RIGHT.rotated(rotation)
-	can_be_caught_counter = 50 #frames to allow the ball to get away from the thrower
+	can_be_caught_counter = 5 #frames to allow the ball to get away from the thrower
 	isPassed = true
 	pass

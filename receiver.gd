@@ -55,9 +55,16 @@ func _physics_process(delta: float) -> void:
 		#print(str(move[0] + str(move_dir)))
 		move_and_slide()
 		
+		
 
 #triggers route running
 func _on_catch_collision_caught_ball(player: Variant) -> void:
 	if state != "running":
 		state = "running"
+	elif state == "running":
+		print(str(player) + " has it and is that me?")
+		if (player == self):
+			print("yeah that's me")
+			state = "carrying"
+			isPlayerControlled = true
 	pass

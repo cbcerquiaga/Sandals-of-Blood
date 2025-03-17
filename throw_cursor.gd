@@ -23,3 +23,8 @@ func _process(delta: float) -> void:
 func _on_catch_collision_caught_ball(player: Variant) -> void:
 	visible = true
 	pass # Replace with function body.
+
+
+func _on_pass_ball(ball_power: Variant, ball_target: Variant) -> void:
+	visible = false
+	pass # Replace with function body.

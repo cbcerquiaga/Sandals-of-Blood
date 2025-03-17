@@ -91,6 +91,7 @@ zoom = Vector2(0.25, 0.25)
 
 [connection signal="throw_ball" from="Pitcher" to="Ball" method="_on_pitcher_throw_ball"]
 [connection signal="throw_ball" from="Pitcher" to="Catcher" method="_on_pitcher_throw_ball"]
+[connection signal="pass_ball" from="Catcher" to="Cursor" method="_on_pass_ball"]
 [connection signal="pass_ball" from="Catcher" to="Ball" method="_on_pass_ball"]
 [connection signal="caught_ball" from="Catcher/CatchCollision" to="Cursor" method="_on_catch_collision_caught_ball"]
 [connection signal="caught_ball" from="Catcher/CatchCollision" to="Ball" method="_on_caught_ball"]
