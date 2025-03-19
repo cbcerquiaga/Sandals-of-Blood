@@ -140,7 +140,7 @@ func passCatchChance():
 		catchChance = catchChance - (speed - 100)
 	if (oppTackle > 0):
 		catchChance = catchChance - (oppTackle * 3)#best hope you're not getting tackled by someone with 25 tackling
-	var random = rng.randi(0,100)
+	var random = int(rng.randf_range(0,100))
 	if (random < catchChance):
 		print("gimme that!")
 		isDoneCatching = true
@@ -149,3 +149,14 @@ func passCatchChance():
 		print("butter fingers!")
 		#TODO: bounce the ball away, chance it just goes to ground
 		
+
+
+#TODO: make this signal unified for all offensive players
+func _on_receiver_pass_ball(ball_power: Variant, ball_target: Variant) -> void:
+	isPitch = false
+	pass # Replace with function body.
+
+
+func _on_catcher_pass_ball(ball_power: Variant, ball_target: Variant) -> void:
+	isPitch = false
+	pass # Replace with function body.

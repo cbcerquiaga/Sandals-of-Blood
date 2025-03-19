@@ -61,7 +61,7 @@ func _physics_process(delta: float) -> void:
 func _on_catch_collision_caught_ball(player: Variant) -> void:
 	if state != "running":
 		state = "running"
-	elif state == "running":
+	if state == "running":
 		print(str(player) + " has it and is that me?")
 		if (player == self):
 			print("yeah that's me")

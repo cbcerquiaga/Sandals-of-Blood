@@ -11,6 +11,8 @@ func _ready():
 func _physics_process(delta: float) -> void:
 	super._physics_process(delta)
 	if state == "waiting":
+		isPlayerControlled = true
+		velocity.y = 0
 		waiting_state()
 		
 
@@ -21,9 +23,9 @@ func _on_pitcher_throw_ball(ball_power: Variant, ball_spin: Variant, start_angle
 	
 func waiting_state():
 	var ball = get_node_or_null("../Ball")
-	if (ball != null):
-		if abs(ball.position.x - position.x) > 10:
-				if ball.position.x > position.x:
-					velocity.x = speed/4
-				else: #must be less
-					velocity.x = 0 - speed/4
+	#if (ball != null):
+		#if abs(ball.position.x - position.x) > 20:
+				#if ball.position.x > position.x:
+					#velocity.x = 0 - speed/4
+				#else: #must be less
+					#velocity.x = speed/4
