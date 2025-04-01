@@ -1,132 +1,142 @@
 class_name Ball
-extends CharacterBody2D
+extends RigidBody2D
 
-var base_speed = 100
-var speed = 0
-var english = 0
-var linear_drag = 0.998
-var rotational_drag = 0.999
-var pitcher: Node
-var thrown = false
-var pitcher_found = false
-var isPassed = false
+enum BallMode { PITCHING, FIELDING, AIR_HOCKEY }
 
-var ball_carrier
-var isPitched #has the ball been thrown to start play yet?
-var isHeld #is a player holding the ball?
-var can_be_caught_counter = 0#keeps the player who passes the ball from catching it themself
-var pass_direction = 0 #for throwing passes
-var pass_power = 0 #for throwing passes
-var aim_target
+signal caught_by_player(player: Node2D)
+signal hit_by_batter(power: float)
+signal entered_air_hockey_mode()
 
-var dropCount = 0 #the more the ball gets fumbled, the more likely it is to end up on the ground
+@export_group("Physics Properties")
+@export var drag_coefficient: float = 0.05
+@export var spin_curve_factor: float = 0.3
+@export var max_speed: float = 2000.0
+@export var min_speed_air_hockey: float = 300.0
+
+var current_mode: BallMode = BallMode.PITCHING
+var current_holder: Node2D = null
+var spin: float = 0.0
+var initial_pitch_velocity: Vector2 = Vector2.ZERO
+var air_hockey_physics: bool = false
 
 func _ready():
-	thrown = false
-	pitcher = get_node_or_null("../Pitcher")
-	if pitcher:
-		pitcher.connect("ball_thrown", Callable(self, "_on_ball_thrown"))
-	else:
-		print("the ball does not know about the pitcher yet")
-pass
+	contact_monitor = true
+	max_contacts_reported = 10
+	#body_entered.connect(_on_body_entered)
 
-func _on_ball_thrown(power, spin):
-	print("ball thrown")
-	speed = power
-	english = spin * 0.01
-	thrown = true
-	pass
+func _physics_process(delta):
+	match current_mode:
+		BallMode.PITCHING:
+			_process_pitching_physics(delta)
+		BallMode.FIELDING:
+			_process_fielding_physics(delta)
+		BallMode.AIR_HOCKEY:
+			_process_air_hockey_physics(delta)
+
+	# Enforce maximum speed
+	if linear_velocity.length() > max_speed:
+		linear_velocity = linear_velocity.normalized() * max_speed
+
+func _process_pitching_physics(delta):
+	# Apply spin-induced curve
+	if spin != 0.0:
+		var curve_force = Vector2(-linear_velocity.y, linear_velocity.x).normalized() * spin * spin_curve_factor
+		apply_central_force(curve_force)
 	
-func _process(delta: float) -> void:
-	if (thrown == false):
-		if pitcher == null:
-			print("looking for pitcher...")
-			pitcher = get_node_or_null("../Pitcher")
-			print(str(pitcher))
-		elif pitcher_found == false:
-			pitcher.connect("ball_thrown", Callable(self, "_on_ball_thrown"))
-			pitcher_found = true
-			#print("there's the pitcher. who's a happy ball?")
-	else:
-		if (isHeld):
-			position.x = ball_carrier.position.x
-			position.y = ball_carrier.position.y
-			rotation = ball_carrier.rotation
-			velocity = ball_carrier.velocity
-			$CollisionShape2D.disabled = true
-			#move_and_slide()
-		else:
-			if (isPassed && can_be_caught_counter > 0):
-				$CollisionShape2D.disabled = true
-				position += aim_target * pass_power * delta
-				#velocity = pass_direction * pass_power
-				can_be_caught_counter = can_be_caught_counter - 1
-			elif (isPassed):
-				$CollisionShape2D.disabled = false
-				position += aim_target * pass_power * delta
-			else:
-				$CollisionShape2D.disabled = false
-			
+	# Apply air resistance
+	var drag_force = -linear_velocity * linear_velocity.length() * drag_coefficient
+	apply_central_force(drag_force)
+
+func _process_fielding_physics(delta):
+	# Follow the holder's position when caught
+	if current_holder:
+		global_position = current_holder.global_position + Vector2(0, -20)  # Offset above player
+
+func _process_air_hockey_physics(delta):
+	# Maintain minimum speed in air hockey mode
+	if linear_velocity.length() < min_speed_air_hockey:
+		var direction = linear_velocity.normalized() if linear_velocity.length() > 0 else Vector2.RIGHT
+		linear_velocity = direction * min_speed_air_hockey
 	
-func _physics_process(delta: float) -> void:
-	if thrown:
-		velocity.y = (base_speed + speed)
-		speed = speed * linear_drag
-		#print("Spin effect: " + str(english/180 * PI))
-		rotation += english/180 * PI
-		english = english * rotational_drag
-		move_and_slide()
+	# Apply simplified physics
+	var drag_force = -linear_velocity * linear_velocity.length() * (drag_coefficient * 0.5)
+	apply_central_force(drag_force)
 
+func be_pitched(velocity: Vector2, ball_spin: float):
+	current_mode = BallMode.PITCHING
+	current_holder = null
+	spin = ball_spin
+	initial_pitch_velocity = velocity
+	linear_velocity = velocity
+	freeze = false
 
-func _on_pitcher_throw_ball(ball_power: Variant, ball_spin: Variant, start_angle: Variant, start_position: Variant) -> void:
-	rotation = start_angle
-	position = start_position
-	_on_ball_thrown(ball_power, ball_spin)
-	pass # Replace with function body.
+func be_caught(by_player: Node2D):
+	current_mode = BallMode.FIELDING
+	current_holder = by_player
+	linear_velocity = Vector2.ZERO
+	freeze = true
+	caught_by_player.emit(by_player)
+
+func be_hit(power_vector: Vector2):
+	current_mode = BallMode.AIR_HOCKEY
+	current_holder = null
+	spin = 0.0
+	linear_velocity = power_vector
+	freeze = false
+	hit_by_batter.emit(power_vector.length())
+	entered_air_hockey_mode.emit()
+
+func be_passed(target_position: Vector2, power: float):
+	if current_mode != BallMode.FIELDING or not current_holder:
+		return
 	
-func getSpin():
-	return english
-
-func getSpeed():
-	return speed
-
-
-func _on_caught_ball(player: Variant) -> void:
-	#get rid of all individual movement and rotation
-	speed = 0
-	english = 0
+	current_mode = BallMode.PITCHING
+	current_holder = null
+	freeze = false
 	
-	#cast the player into a usable class
-	player = player as Match_OffensivePlayer
-	player.state = "carrying"
-	#follow the player
-	ball_carrier = player
-	isHeld = true
-	print("Hold onto that ball now")
-	pass # Replace with function body.
+	var direction = (target_position - global_position).normalized()
+	linear_velocity = direction * power
+	spin = power * 0.05 * (1.0 if randf() > 0.5 else -1.0)
 
+#func _on_body_entered(body: Node):
+	## Handle collisions based on current mode
+	#match current_mode:
+		#BallMode.PITCHING:
+			#if body is Catcher:
+				#be_caught(body)
+			#elif body is Batter:
+				#if body.is_swinging:
+					#be_hit(-linear_velocity * 1.5)  # Basic hit reflection
+		#
+		#BallMode.AIR_HOCKEY:
+			##TODO: goals
+			##TODO: out of bounds
+			##if body is GoalArea:
+				##_score_goal(body.team)
+				##el
+			#if body is Player:
+				## Basic bounce physics
+				#var bounce_direction = (global_position - body.global_position).normalized()
+				#linear_velocity = bounce_direction * linear_velocity.length() * 0.9
 
-func _on_fumbled_ball(player: Variant) -> void:
-	#cast player into usable class
-	#figure out if the ball should drop to the ground
-	#if it's already been fumbled once, ground chance goes up
-	#if not, figure out if it should deflect past, bounce off, or bounce randomly
-	#apply movement to the ball
-	pass # Replace with function body.
+func _score_goal(team: int):
+	# Handle goal scoring
+	queue_free()  # Or respawn at pitcher
+	print("Goal scored by team ", team)
+	
+func _score_td(team:int):
+	#handle td scoring
+	queue_free()  # Or respawn at pitcher
+	print("TD scored by team ", team)
 
+func enter_air_hockey_mode():
+	current_mode = BallMode.AIR_HOCKEY
+	air_hockey_physics = true
+	entered_air_hockey_mode.emit()
 
-func _on_pass_ball(ball_power: Variant, ball_target: Variant) -> void:
-	aim_target = position.direction_to(ball_target)
-	if (ball_power == null):
-		pass_power = 100
-		print("something went wrong passing ball_power")
-	else:
-		pass_power = ball_power
-	print("share now: " + str(ball_target.x) + ", " + str(ball_target.y))
-	look_at(ball_target)
-	ball_carrier = null
-	isHeld = false
-	#pass_direction = Vector2.RIGHT.rotated(rotation)
-	can_be_caught_counter = 5 #frames to allow the ball to get away from the thrower
-	isPassed = true
-	pass
+func _integrate_forces(state):
+	# Special handling for air hockey bounces
+	if air_hockey_physics:
+		for i in range(state.get_contact_count()):
+			var normal = state.get_contact_local_normal(i)
+			state.linear_velocity = state.linear_velocity.bounce(normal) * 0.9

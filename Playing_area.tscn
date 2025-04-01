@@ -1,0 +1,186 @@
+[gd_scene load_steps=7 format=3 uid="uid://btoxcaggormqj"]
+
+[ext_resource type="Script" path="res://field.gd" id="1_1m20k"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_u7vpv"]
+radius = 23.0
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_uhsoh"]
+size = Vector2(33, 152.5)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_o16o2"]
+size = Vector2(1014, 399)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_0b0t0"]
+size = Vector2(122.75, 401)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_aqhut"]
+size = Vector2(94.5, 155.5)
+
+[node name="Field" type="Node"]
+script = ExtResource("1_1m20k")
+
+[node name="Positions" type="Node" parent="."]
+
+[node name="PitcherSpot" type="Area2D" parent="Positions"]
+position = Vector2(1661, 369)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Positions/PitcherSpot"]
+position = Vector2(-2, 0)
+shape = SubResource("CircleShape2D_u7vpv")
+
+[node name="L_Bat_spot" type="Area2D" parent="Positions"]
+position = Vector2(1666, 368)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Positions/L_Bat_spot"]
+position = Vector2(-493, 54)
+shape = SubResource("CircleShape2D_u7vpv")
+
+[node name="R_Bat_spot" type="Area2D" parent="Positions"]
+position = Vector2(1166, 297)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Positions/R_Bat_spot"]
+position = Vector2(0, 2)
+shape = SubResource("CircleShape2D_u7vpv")
+
+[node name="ROFL_Spot" type="Area2D" parent="Positions"]
+position = Vector2(1166, 297)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Positions/ROFL_Spot"]
+position = Vector2(3, -107)
+shape = SubResource("CircleShape2D_u7vpv")
+
+[node name="LOFL_Spot" type="Area2D" parent="Positions"]
+position = Vector2(1166, 556)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Positions/LOFL_Spot"]
+position = Vector2(-37, -5)
+shape = SubResource("CircleShape2D_u7vpv")
+
+[node name="LDFL_Spot" type="Area2D" parent="Positions"]
+position = Vector2(1166, 556)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Positions/LDFL_Spot"]
+position = Vector2(-42, -365)
+shape = SubResource("CircleShape2D_u7vpv")
+
+[node name="RDFL_Spot" type="Area2D" parent="Positions"]
+position = Vector2(1166, 556)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Positions/RDFL_Spot"]
+position = Vector2(-42, -365)
+shape = SubResource("CircleShape2D_u7vpv")
+
+[node name="Catcher_spot" type="Area2D" parent="Positions"]
+position = Vector2(1176, 363)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Positions/Catcher_spot"]
+position = Vector2(-45, 0)
+shape = SubResource("CircleShape2D_u7vpv")
+
+[node name="OF_Spot_LHB" type="Area2D" parent="Positions"]
+position = Vector2(1660, 551)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Positions/OF_Spot_LHB"]
+position = Vector2(-4, 1)
+shape = SubResource("CircleShape2D_u7vpv")
+
+[node name="DF_Spot_LHB" type="Area2D" parent="Positions"]
+position = Vector2(1711, 369)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Positions/DF_Spot_LHB"]
+position = Vector2(-9, 183)
+shape = SubResource("CircleShape2D_u7vpv")
+
+[node name="DF_Spot_RHB" type="Area2D" parent="Positions"]
+position = Vector2(1716, 179)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Positions/DF_Spot_RHB"]
+shape = SubResource("CircleShape2D_u7vpv")
+
+[node name="OF_Spot_RHB" type="Area2D" parent="Positions"]
+position = Vector2(1716, 179)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Positions/OF_Spot_RHB"]
+position = Vector2(-62, 2)
+shape = SubResource("CircleShape2D_u7vpv")
+
+[node name="G_Spot" type="Area2D" parent="Positions"]
+position = Vector2(2155, 362)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Positions/G_Spot"]
+position = Vector2(-1, 3)
+shape = SubResource("CircleShape2D_u7vpv")
+
+[node name="LS_Spot" type="Area2D" parent="Positions"]
+position = Vector2(2155, 362)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Positions/LS_Spot"]
+position = Vector2(-1630, -105)
+shape = SubResource("CircleShape2D_u7vpv")
+
+[node name="RS_Spot" type="Area2D" parent="Positions"]
+position = Vector2(525, 453)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Positions/RS_Spot"]
+shape = SubResource("CircleShape2D_u7vpv")
+
+[node name="Field Parts" type="Node" parent="."]
+
+[node name="Goal1" type="Area2D" parent="Field Parts"]
+position = Vector2(1130, 354)
+metadata/_edit_lock_ = true
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Field Parts/Goal1"]
+position = Vector2(3, 0)
+shape = SubResource("RectangleShape2D_uhsoh")
+debug_color = Color(0.569984, 0.55496, 0.0895256, 0.42)
+metadata/_edit_lock_ = true
+
+[node name="RunningField" type="Area2D" parent="Field Parts"]
+position = Vector2(145, 180)
+metadata/_edit_lock_ = true
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Field Parts/RunningField"]
+position = Vector2(497, 189.5)
+shape = SubResource("RectangleShape2D_o16o2")
+debug_color = Color(0, 0.651253, 0.0171401, 0.42)
+metadata/_edit_lock_ = true
+
+[node name="PitchingField" type="Area2D" parent="Field Parts"]
+position = Vector2(290, 360)
+metadata/_edit_lock_ = true
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Field Parts/PitchingField"]
+position = Vector2(1367, 9)
+shape = SubResource("RectangleShape2D_o16o2")
+metadata/_edit_lock_ = true
+
+[node name="Endzone" type="Area2D" parent="Field Parts"]
+position = Vector2(580, 720)
+metadata/_edit_lock_ = true
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Field Parts/Endzone"]
+position = Vector2(-506.625, -350.5)
+shape = SubResource("RectangleShape2D_0b0t0")
+debug_color = Color(0.936873, 0.25197, 0, 0.42)
+metadata/_edit_lock_ = true
+
+[node name="BonusPointZone" type="Area2D" parent="Field Parts"]
+position = Vector2(580, 720)
+metadata/_edit_lock_ = true
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Field Parts/BonusPointZone"]
+position = Vector2(-398, -346)
+shape = SubResource("RectangleShape2D_aqhut")
+metadata/_edit_lock_ = true
+
+[node name="Goal2" type="Area2D" parent="Field Parts"]
+position = Vector2(2163, 366)
+metadata/_edit_lock_ = true
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Field Parts/Goal2"]
+position = Vector2(18, 0)
+shape = SubResource("RectangleShape2D_uhsoh")
+debug_color = Color(0.566146, 0.55636, 0.0962686, 0.42)
+metadata/_edit_lock_ = true

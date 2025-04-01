@@ -1,0 +1,110 @@
+[gd_scene load_steps=10 format=3 uid="uid://bqv7vw1a7sv0d"]
+
+[ext_resource type="Script" path="res://teamHandler.gd" id="1_4t2s5"]
+[ext_resource type="Script" path="res://Pitcher.gd" id="2_68qeh"]
+[ext_resource type="Script" path="res://Catcher.gd" id="3_7ta1j"]
+[ext_resource type="Script" path="res://BallPlayer.gd" id="4_uampp"]
+[ext_resource type="Script" path="res://Goalie.gd" id="5_2bffy"]
+[ext_resource type="Script" path="res://Batter.gd" id="6_bcnam"]
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_25jn1"]
+radius = 2.0
+height = 6.0
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_wv1so"]
+radius = 2.0
+height = 6.0
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_levo3"]
+radius = 2.0
+height = 6.0
+
+[node name="Team" type="Node2D"]
+script = ExtResource("1_4t2s5")
+
+[node name="Defense" type="Node" parent="."]
+
+[node name="Batter" type="CharacterBody2D" parent="Defense"]
+script = ExtResource("6_bcnam")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Defense/Batter"]
+shape = SubResource("CapsuleShape2D_25jn1")
+
+[node name="Polygon2D" type="Polygon2D" parent="Defense/Batter"]
+polygon = PackedVector2Array(0, -3, 2, -1, 2, 1, 0, 3, -2, 2, 0, 1, -2, 0, 0, -1, -2, -2)
+
+[node name="Left Safety" type="CharacterBody2D" parent="Defense"]
+script = ExtResource("4_uampp")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Defense/Left Safety"]
+shape = SubResource("CapsuleShape2D_wv1so")
+
+[node name="Polygon2D" type="Polygon2D" parent="Defense/Left Safety"]
+polygon = PackedVector2Array(0, -3, 2, -1, 2, 1, 0, 3, -2, 2, 0, 1, -2, 0, 0, -1, -2, -2)
+
+[node name="Right Safety" type="CharacterBody2D" parent="Defense"]
+script = ExtResource("4_uampp")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Defense/Right Safety"]
+shape = SubResource("CapsuleShape2D_wv1so")
+
+[node name="Polygon2D" type="Polygon2D" parent="Defense/Right Safety"]
+polygon = PackedVector2Array(0, -3, 2, -1, 2, 1, 0, 3, -2, 2, 0, 1, -2, 0, 0, -1, -2, -2)
+
+[node name="Offense" type="Node" parent="."]
+
+[node name="Pitcher" type="CharacterBody2D" parent="Offense"]
+script = ExtResource("2_68qeh")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Offense/Pitcher"]
+shape = SubResource("CapsuleShape2D_levo3")
+
+[node name="Polygon2D" type="Polygon2D" parent="Offense/Pitcher"]
+polygon = PackedVector2Array(0, -3, 2, -1, 2, 1, 0, 3, -2, 2, 0, 1, -2, 0, 0, -1, -2, -2)
+
+[node name="Catcher" type="CharacterBody2D" parent="Offense"]
+script = ExtResource("3_7ta1j")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Offense/Catcher"]
+shape = SubResource("CapsuleShape2D_levo3")
+
+[node name="Polygon2D" type="Polygon2D" parent="Offense/Catcher"]
+polygon = PackedVector2Array(0, -3, 2, -1, 2, 1, 0, 3, -2, 2, 0, 1, -2, 0, 0, -1, -2, -2)
+
+[node name="Goalie" type="CharacterBody2D" parent="Offense"]
+script = ExtResource("5_2bffy")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Offense/Goalie"]
+shape = SubResource("CapsuleShape2D_levo3")
+
+[node name="Polygon2D" type="Polygon2D" parent="Offense/Goalie"]
+polygon = PackedVector2Array(0, -3, 2, -1, 2, 1, 0, 3, -2, 2, 0, 1, -2, 0, 0, -1, -2, -2)
+
+[node name="Ironman" type="Node" parent="."]
+
+[node name="Left_Flanker" type="CharacterBody2D" parent="Ironman"]
+script = ExtResource("4_uampp")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Ironman/Left_Flanker"]
+shape = SubResource("CapsuleShape2D_levo3")
+
+[node name="Polygon2D" type="Polygon2D" parent="Ironman/Left_Flanker"]
+polygon = PackedVector2Array(0, -3, 2, -1, 2, 1, 0, 3, -2, 2, 0, 1, -2, 0, 0, -1, -2, -2)
+
+[node name="Right_Flanker" type="CharacterBody2D" parent="Ironman"]
+script = ExtResource("4_uampp")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Ironman/Right_Flanker"]
+shape = SubResource("CapsuleShape2D_levo3")
+
+[node name="Polygon2D" type="Polygon2D" parent="Ironman/Right_Flanker"]
+polygon = PackedVector2Array(0, -3, 2, -1, 2, 1, 0, 3, -2, 2, 0, 1, -2, 0, 0, -1, -2, -2)
+
+[node name="Forward" type="CharacterBody2D" parent="Ironman"]
+script = ExtResource("5_2bffy")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Ironman/Forward"]
+shape = SubResource("CapsuleShape2D_levo3")
+
+[node name="Polygon2D" type="Polygon2D" parent="Ironman/Forward"]
+polygon = PackedVector2Array(0, -3, 2, -1, 2, 1, 0, 3, -2, 2, 0, 1, -2, 0, 0, -1, -2, -2)
