@@ -1,0 +1,16 @@
+[gd_scene load_steps=3 format=3 uid="uid://crrsal1xqbxor"]
+
+[ext_resource type="Script" path="res://Batter.gd" id="1_obc5g"]
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_25jn1"]
+radius = 2.0
+height = 6.0
+
+[node name="Batter" type="CharacterBody2D"]
+script = ExtResource("1_obc5g")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CapsuleShape2D_25jn1")
+
+[node name="Polygon2D" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(0, -3, 2, -1, 2, 1, 0, 3, -2, 2, 0, 1, -2, 0, 0, -1, -2, -2)

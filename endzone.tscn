@@ -1,0 +1,14 @@
+[gd_scene load_steps=2 format=3 uid="uid://bl52uv4gdgbtn"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_0b0t0"]
+size = Vector2(122.75, 401)
+
+[node name="Endzone" type="Area2D"]
+position = Vector2(580, 720)
+metadata/_edit_lock_ = true
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(-506.625, -350.5)
+shape = SubResource("RectangleShape2D_0b0t0")
+debug_color = Color(0.936873, 0.25197, 0, 0.42)
+metadata/_edit_lock_ = true

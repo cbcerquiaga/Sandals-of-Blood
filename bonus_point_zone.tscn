@@ -1,0 +1,13 @@
+[gd_scene load_steps=2 format=3 uid="uid://dduii1mgjdn8r"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_aqhut"]
+size = Vector2(94.5, 155.5)
+
+[node name="BonusPointZone" type="Area2D"]
+position = Vector2(580, 720)
+metadata/_edit_lock_ = true
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(-398, -346)
+shape = SubResource("RectangleShape2D_aqhut")
+metadata/_edit_lock_ = true

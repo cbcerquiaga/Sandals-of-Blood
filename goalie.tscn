@@ -1,0 +1,16 @@
+[gd_scene load_steps=3 format=3 uid="uid://ddw5b7ts08u62"]
+
+[ext_resource type="Script" path="res://Goalie.gd" id="1_6cg7n"]
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_levo3"]
+radius = 2.0
+height = 6.0
+
+[node name="Goalie" type="CharacterBody2D"]
+script = ExtResource("1_6cg7n")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CapsuleShape2D_levo3")
+
+[node name="Polygon2D" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(0, -3, 2, -1, 2, 1, 0, 3, -2, 2, 0, 1, -2, 0, 0, -1, -2, -2)

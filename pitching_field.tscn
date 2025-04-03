@@ -1,0 +1,13 @@
+[gd_scene load_steps=2 format=3 uid="uid://i5e4sfcuywns"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_o16o2"]
+size = Vector2(1014, 399)
+
+[node name="PitchingField" type="Area2D"]
+position = Vector2(290, 360)
+metadata/_edit_lock_ = true
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(1367, 9)
+shape = SubResource("RectangleShape2D_o16o2")
+metadata/_edit_lock_ = true

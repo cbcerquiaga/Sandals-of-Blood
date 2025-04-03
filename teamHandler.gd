@@ -27,16 +27,27 @@ var substitutes: Array[Dictionary] = []  # Stores {role: String, stats: Dictiona
 var active_players: Dictionary = {}      # role: BallPlayer
 var allPlayers: Array[BallPlayer]
 
-func _ready():
-	forward = $Ironman/Forward
-	right_flanker = $Ironman/Right_Flanker
-	left_flanker = $Ironman/Left_Flanker
-	batter = $Defense/Batter
-	left_safety = $"Defense/Left Safety"
-	right_safety = $"Defense/Right Safety"
-	pitcher = $Offense/Pitcher
-	catcher = $Offense/Catcher
-	goalie = $Offense/Goalie
+#func _ready():
+	#forward = $Ironman/Forward
+	#right_flanker = $Ironman/Right_Flanker
+	#left_flanker = $Ironman/Left_Flanker
+	#batter = $Defense/Batter
+	#left_safety = $"Defense/Left Safety"
+	#right_safety = $"Defense/Right Safety"
+	#pitcher = $Offense/Pitcher
+	#catcher = $Offense/Catcher
+	#goalie = $Offense/Goalie
+	
+func _assign_players(p, c, g, ls, rs, b, lf, rf, f):
+	pitcher = p
+	catcher = c
+	goalie = g
+	left_safety = ls
+	right_safety = rs
+	batter = b
+	left_flanker = lf
+	right_flanker = rf
+	forward = f
 
 
 func set_offense():
