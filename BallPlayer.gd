@@ -64,12 +64,18 @@ var is_tackle_cooldown := false
 var spin_move_timer := 0.0
 var tackle_target: BallPlayer = null
 
-@onready var navigation_agent: NavigationAgent2D = $NavigationAgent2D
-@onready var positioning_timer: Timer = $PositioningTimer
-@onready var tackle_cooldown_timer: Timer = $TackleCooldownTimer
+var navigation_agent: NavigationAgent2D
+var positioning_timer: Timer
+var tackle_cooldown_timer: Timer
 #@onready var sprite: Sprite2D = $Sprite2D
 
 func _ready():
+	navigation_agent = NavigationAgent2D.new()
+	add_child(navigation_agent)
+	var positioning_timer = Timer.new()
+	add_child(positioning_timer)
+	var tackle_cooldown_timer = Timer.new()
+	add_child(tackle_cooldown_timer)
 	positioning_timer.wait_time = 0.0#positioning_update_interval
 	positioning_timer.timeout.connect(_update_positioning)
 	positioning_timer.start()

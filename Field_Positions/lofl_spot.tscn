@@ -7,5 +7,4 @@ radius = 23.0
 position = Vector2(1166, 556)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-position = Vector2(-37, -5)
 shape = SubResource("CircleShape2D_u7vpv")

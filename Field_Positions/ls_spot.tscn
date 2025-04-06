@@ -4,8 +4,7 @@
 radius = 23.0
 
 [node name="LS_Spot" type="Area2D"]
-position = Vector2(2155, 362)
+position = Vector2(527, 266)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-position = Vector2(-1630, -105)
 shape = SubResource("CircleShape2D_u7vpv")

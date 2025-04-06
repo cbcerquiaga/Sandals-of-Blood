@@ -16,29 +16,6 @@ const GOALIE := preload("res://goalie.tscn") #jersey 8
 
 #field scenes
 const FIELD := preload("res://Playing_area.tscn")
-#field components
-const RUNFIELD := preload("res://running_field.tscn")
-const PITCHFIELD := preload("res://pitching_field.tscn")
-const ENDSZONE := preload("res://endzone.tscn")
-const BONUSZONE := preload("res://bonus_point_zone.tscn")
-const GOAL1 := preload("res://goal_1.tscn")#goal defended by batting team
-const GOAL2 := preload("res://goal_2.tscn")#goal defendeed by pitching team
-#player starting positions
-const PSPOT := preload("res://Field_Positions/pitcher_spot.tscn")
-const GSPOT := preload("res://Field_Positions/g_spot.tscn")
-const CSPOT := preload("res://Field_Positions/catcher_spot.tscn")
-const LDFL_SPOT := preload("res://Field_Positions/ldfl_spot.tscn")
-const RDFL_SPOT := preload("res://Field_Positions/rdfl_spot.tscn")
-const LOFL_SPOT := preload("res://Field_Positions/lofl_spot.tscn")
-const ROFL_SPOT := preload("res://Field_Positions/rofl_spot.tscn")
-const LS_SPOT := preload("res://Field_Positions/ls_spot.tscn")
-const RS_SPOT := preload("res://Field_Positions/rs_spot.tscn")
-const OFLB_SPOT := preload("res://Field_Positions/of_spot_lhb.tscn")
-const OFRB_SPOT := preload("res://Field_Positions/of_spot_rhb.tscn")
-const DFLB_SPOT := preload("res://Field_Positions/df_spot_lhb.tscn")
-const DFRB_SPOT := preload("res://Field_Positions/df_spot_rhb.tscn")
-const LHB_SPOT := preload("res://Field_Positions/l_bat_spot.tscn")
-const RHB_SPOT := preload("res://Field_Positions/r_bat_spot.tscn")
 
 
 #globals
@@ -60,73 +37,56 @@ func _ready() -> void:
 	ball = BALL.instantiate()
 	field = FIELD.instantiate()
 	assembleField()
-	createTeam(homeTeam)
-	createTeam(awayTeam)
+	createHomeTeam()
+	createAwayTeam()
 	pass # Replace with function body.
 
 func assembleField():
-	field.spot_pitcher = PSPOT.instantiate()
-	field.spot_catcher = CSPOT.instantiate()
-	field.spot_goalie = GSPOT.instantiate()
-	field.spot_off_left_flanker = LOFL_SPOT.instantiate()
-	field.spot_off_right_flanker = ROFL_SPOT.instantiate()
-	field.spot_L_off_forward = OFLB_SPOT.instantiate()
-	field.spot_R_off_forward = OFRB_SPOT.instantiate()
-	field.spot_def_left_safety = LS_SPOT.instantiate()
-	field.spot_def_right_safety = RS_SPOT.instantiate()
-	field.spot_def_left_flanker = LDFL_SPOT.instantiate()
-	field.spot_def_right_flanker = RDFL_SPOT.instantiate()
-	field.spot_R_def_forward = DFRB_SPOT.instantiate()
-	field.spot_L_def_forward = DFLB_SPOT.instantiate()
-	field.spot_R_Batter = RHB_SPOT.instantiate()
-	field.spot_L_Batter = LHB_SPOT.instantiate()
-	field.endZone = ENDSZONE.instantiate()
-	field.bonusZone = BONUSZONE.instantiate()
-	field.runningField = RUNFIELD.instantiate()
-	field.goal_batting = GOAL1.instantiate()
-	field.pitchingField = PITCHFIELD.instantiate()
-	field.goal_pitching = GOAL2.instantiate()
+	var screen_size = get_viewport_rect().size
+	field.spot_pitcher = $Field/Positions/PitcherSpot
+	field.spot_catcher = $Field/Positions/Catcher_spot
+	field.spot_goalie = $Field/Positions/G_Spot
+	field.spot_off_left_flanker = $Field/Positions/LOFL_Spot
+	field.spot_off_right_flanker = $Field/Positions/ROFL_Spot
+	field.spot_L_off_forward = $Field/Positions/OF_Spot_LHB
+	field.spot_R_off_forward = $Field/Positions/OF_Spot_RHB
+	field.spot_def_left_safety = $Field/Positions/LS_Spot
+	field.spot_def_right_safety = $Field/Positions/RS_Spot
+	field.spot_def_left_flanker = $Field/Positions/LDFL_Spot
+	field.spot_def_right_flanker = $Field/Positions/RDFL_Spot
+	field.spot_R_def_forward = $Field/Positions/DF_Spot_RHB
+	field.spot_L_def_forward = $Field/Positions/DF_Spot_LHB
+	field.spot_R_Batter = $Field/Positions/R_Bat_spot
+	field.spot_L_Batter = $Field/Positions/L_Bat_spot
+	field.endZone = $Field/Endzone
+	field.bonusZone = $Field/BonusPointZone
+	field.runningField = $Field/RunningField
+	field.goal_batting = $Field/Goal1
+	field.pitchingField = $Field/PitchingField
+	field.goal_pitching = $Field/Goal2
 
-func createTeam(team):
-	var player
-	var positions = ["g", "f", "p", "b", "c", "lf", "rf", "ls", "rs"]
-	for character in positions:
-		player = null
-		match character:
-			"g":
-				player = GOALIE.instantiate()
-				team.goalie = player
-			"f":
-				player = FORWARD.instantiate()
-				team.forward = player
-			"p":
-				player = PITCHER.instantiate()
-				team.pitcher = player
-			"b":
-				player = BATTER.instantiate()
-				team.batter = player
-				#TODO: batter handedness test
-			"c":
-				player = CATCHER.instantiate()
-				player.positional_preference = "Center"
-				team.catcher = player
-			"lf":
-				player = FLANKER.instantiate()
-				player.positional_preference = "Left"
-				team.left_flanker = player
-			"rf":
-				player = FLANKER.instantiate()
-				player.positional_preference = "Right"
-				team.right_flanker = player
-			"ls":
-				player = SAFETY.instantiate()
-				player.positional_preference = "Left"
-				team.left_safety = player
-			"rs":
-				player = SAFETY.instantiate()
-				player.positional_preference = "Right"
-				team.right_safety = player
-				
+func createHomeTeam():
+	homeTeam.pitcher = $"Home Team/Pitcher"
+	homeTeam.catcher = $"Home Team/Catcher"
+	homeTeam.goalie = $"Home Team/Goalie"
+	homeTeam.left_safety = $"Home Team/Left Safety"
+	homeTeam.right_safety = $"Home Team/Right Safety"
+	homeTeam.batter = $"Home Team/Batter"
+	homeTeam.left_flanker = $"Home Team/Left_Flanker"
+	homeTeam.right_flanker = $"Home Team/Right_Flanker"
+	homeTeam.forward = $"Home Team/Forward"
+	
+func createAwayTeam():
+	awayTeam.pitcher = $"Away Team/Pitcher"
+	awayTeam.catcher = $"Away Team/Catcher"
+	awayTeam.goalie = $"Away Team/Goalie"
+	awayTeam.left_safety = $"Away Team/Left Safety"
+	awayTeam.right_safety = $"Away Team/Right Safety"
+	awayTeam.batter = $"Away Team/Batter"
+	awayTeam.left_flanker = $"Away Team/Left_Flanker"
+	awayTeam.right_flanker = $"Away Team/Right_Flanker"
+	awayTeam.forward = $"Away Team/Forward"
+	
 
 func positionPlayers(team, isOffense):
 	team.is_on_offense = isOffense
