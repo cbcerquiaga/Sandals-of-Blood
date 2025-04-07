@@ -17,6 +17,8 @@ var can_dive: bool
 var spin_timer: float
 var is_spinning
 var goalie_state
+var can_shoot: bool = true
+var shot_power: float = 900.0
 
 func _ready():
 	is_spinning = false
@@ -91,13 +93,14 @@ func _perform_attack(target: Node2D):
 func _manual_control(delta):
 	var input_dir = Input.get_vector("move_left", "move_right", "move_up", "move_down")
 	velocity = delta * input_dir * (sprint_speed if Input.is_action_pressed("sprint") else move_speed)
-	move_and_slide()
-	
+	move_and_slide() #TODO: if sprinting, ball will phase past player instead of blocking
+	if Input.is_action_just_pressed("attack_ball") and ball and can_shoot:
+		_take_shot()
 	if Input.is_action_just_pressed("dive") and can_dive:
 		_attempt_dive(input_dir)
 	if Input.is_action_just_pressed("spin"):
 		_spin_move(delta)
-	if Input.is_action_just_pressed("attack"):
+	if Input.is_action_just_pressed("attack_player"):
 		_attack_nearest()
 
 func _attempt_dive(direction: Vector2):
@@ -114,6 +117,16 @@ func _attempt_dive(direction: Vector2):
 	
 	await get_tree().create_timer(dive_cooldown).timeout
 	can_dive = true
+
+func _take_shot():
+	if not ball or not can_shoot: return
+	
+	var goal_pos = Vector2(get_viewport_rect().size.x - 50, get_viewport_rect().size.y/2)
+	var shot_dir = (goal_pos - ball.global_position).normalized()
+	ball.apply_impulse(shot_dir * shot_power)
+	can_shoot = false
+	await get_tree().create_timer(1.5).timeout
+	can_shoot = true
 
 func _process_spin(delta):
 	spin_timer -= delta

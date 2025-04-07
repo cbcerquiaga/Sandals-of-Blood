@@ -76,7 +76,7 @@ func _ready():
 	add_child(positioning_timer)
 	var tackle_cooldown_timer = Timer.new()
 	add_child(tackle_cooldown_timer)
-	positioning_timer.wait_time = 0.0#positioning_update_interval
+	positioning_timer.wait_time = 0.1#positioning_update_interval
 	positioning_timer.timeout.connect(_update_positioning)
 	positioning_timer.start()
 	ball = null
@@ -164,6 +164,21 @@ func _spin_move(delta):
 	rotation += rotation_speed * delta * 10  # Faster rotation during spin
 	velocity = Vector2.RIGHT.rotated(rotation) * (movement_speed + spin_move_speed_boost)
 	move_and_slide()
+
+#TODO
+func attempt_steal(target: BallPlayer = null):
+	if is_tackle_cooldown or current_state == PlayerState.TACKLING:
+		return
+	
+	# If no target specified, try to find one
+	if target == null:
+		if current_state == PlayerState.DEFENDING_MAN and assigned_opponent:
+			target = assigned_opponent
+		elif current_state == PlayerState.DEFENDING_ZONE:
+			target = _find_nearest_ball_carrier()
+	
+	if target and target.has_ball  and global_position.distance_to(target.global_position) <= tackle_range and (target.velocity.length() == target.sprint_speed or target.current_state == PlayerState.SPIN_MOVE):
+		print("don't mind if I do")
 
 func attempt_tackle(target: BallPlayer = null):
 	if is_tackle_cooldown or current_state == PlayerState.TACKLING:
@@ -312,7 +327,7 @@ func _handle_player_movement():
 		return
 	
 	var input_dir = Input.get_vector("move_left", "move_right", "move_forward", "move_back")
-	var current_speed = sprint_speed if Input.is_action_pressed("sprint") else movement_speed
+	var current_speed = sprint_speed if Input.is_action_pressed("sprint") else movement_speed #TODO: if sprinting, defense can steal ball with "attack ball"
 	velocity = input_dir * current_speed
 	
 	if input_dir.length() > 0:
@@ -395,6 +410,9 @@ func _unhandled_input(event):
 	
 	if event.is_action_pressed("tackle") and current_state == PlayerState.MANUAL_DEFENSE:
 		attempt_tackle()
+		
+	if event.is_action_pressed() and current_state == PlayerState.MANUAL_DEFENSE:
+		attempt_steal()
 
 ## Route Management ##
 func set_route_points(points: Array[Vector2]):

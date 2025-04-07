@@ -57,14 +57,17 @@ func _manual_control(delta):
 	var input_dir = Input.get_vector("move_left", "move_right", "move_up", "move_down")
 	velocity = input_dir * (sprint_speed if Input.is_action_pressed("sprint") else move_speed)
 	
-	if Input.is_action_just_pressed("shoot") and ball and can_shoot:
+	if Input.is_action_just_pressed("attack_ball") and ball and can_shoot:
 		_take_shot()
 	if Input.is_action_just_pressed("dive"):
 		_attempt_dive()
 	if Input.is_action_just_pressed("spin"):
 		_start_spin()
-	if Input.is_action_just_pressed("attack"):
+	if Input.is_action_just_pressed("attack_player"):
 		_attack_nearest()
+	if Input.is_action_just_pressed("pass_ball"):
+		#_switch_player()
+		pass
 	
 	move_and_slide()
 	
