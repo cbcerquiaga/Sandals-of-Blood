@@ -98,26 +98,26 @@ func be_passed(target_position: Vector2, power: float):
 	linear_velocity = direction * power
 	spin = power * 0.05 * (1.0 if randf() > 0.5 else -1.0)
 
-#func _on_body_entered(body: Node):
-	## Handle collisions based on current mode
-	#match current_mode:
-		#BallMode.PITCHING:
-			#if body is Catcher:
-				#be_caught(body)
-			#elif body is Batter:
-				#if body.is_swinging:
-					#be_hit(-linear_velocity * 1.5)  # Basic hit reflection
-		#
-		#BallMode.AIR_HOCKEY:
-			##TODO: goals
-			##TODO: out of bounds
-			##if body is GoalArea:
-				##_score_goal(body.team)
-				##el
-			#if body is Player:
-				## Basic bounce physics
-				#var bounce_direction = (global_position - body.global_position).normalized()
-				#linear_velocity = bounce_direction * linear_velocity.length() * 0.9
+func _on_body_entered(body: Node):
+	# Handle collisions based on current mode
+	match current_mode:
+		BallMode.PITCHING:
+			if body is Catcher:
+				be_caught(body)
+			elif body is Batter:
+				if body.is_swinging:
+					be_hit(-linear_velocity * 1.5)  # Basic hit reflection
+		
+		BallMode.AIR_HOCKEY:
+			#TODO: goals
+			#TODO: out of bounds
+			#if body is GoalArea:
+				#_score_goal(body.team)
+				#el
+			if body is Player:
+				# Basic bounce physics
+				var bounce_direction = (global_position - body.global_position).normalized()
+				linear_velocity = bounce_direction * linear_velocity.length() * 0.9
 
 func _score_goal(team: int):
 	# Handle goal scoring

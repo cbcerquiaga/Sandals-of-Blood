@@ -2,7 +2,7 @@ class_name Pitcher
 extends BallPlayer
 
 ## Signals
-signal ball_pitched(ball: Ball)
+signal ball_pitched(power: float, spin: float, direction: Vector2, position: Vector2)
 signal pitch_started
 signal pitch_parameters_changed(power: float, spin: float, direction: Vector2)
 
@@ -18,7 +18,11 @@ var current_power: float = 0.0
 var current_spin: float = 0.0
 var current_direction: Vector2 = Vector2.RIGHT
 var is_winding_up: bool = false
-var windup_timer: float = 0.0
+var min_power := 400
+var power_increment := 10
+var increasing := true
+var active := false
+var power_timer : Timer
 
 func _physics_process(delta):
 	if not can_move:
@@ -26,9 +30,14 @@ func _physics_process(delta):
 	
 	if is_player_controlled:
 		_handle_pitch_controls()
+		if (is_winding_up):
+			_process_windup()
+			if Input.is_action_just_pressed("pitch"):
+				print("huck that sucka")
+				ball_pitched.emit(current_power, current_spin, current_direction, position)
 	
 	if is_winding_up:
-		_process_windup(delta)
+		_process_windup()
 	
 	super._physics_process(delta)
 
@@ -36,55 +45,63 @@ func _handle_pitch_controls():
 	if is_winding_up:
 		return
 	
-	# Power control (e.g., hold button to increase power)
-	if Input.is_action_pressed("increase_power"):
-		current_power = min(current_power + 10.0, max_power)
-		emit_pitch_parameters()
-	
-	if Input.is_action_pressed("decrease_power"):
-		current_power = max(current_power - 10.0, 0.0)
-		emit_pitch_parameters()
-	
 	# Spin control
 	if Input.is_action_pressed("increase_spin"):
 		current_spin = min(current_spin + 1.0, max_spin)
-		emit_pitch_parameters()
 	
 	if Input.is_action_pressed("decrease_spin"):
 		current_spin = max(current_spin - 1.0, -max_spin)
-		emit_pitch_parameters()
 	
 	# Direction control (aim with stick/mouse)
 	var input_dir = Input.get_vector("aim_left", "aim_right", "aim_up", "aim_down")
+	input_dir.x = 0 #up and down only
 	if input_dir.length() > 0.1:
 		current_direction = input_dir.normalized()
-		emit_pitch_parameters()
 	
-	# Initiate pitch
+	# Initiate pitch powering
 	if Input.is_action_just_pressed("pitch_ball") and has_ball:
 		start_pitch_windup()
-
-func emit_pitch_parameters():
-	pitch_parameters_changed.emit(current_power/max_power, current_spin/max_spin, current_direction)
 
 func start_pitch_windup():
 	if not has_ball or is_winding_up:
 		return
 	
 	is_winding_up = true
-	windup_timer = windup_time
 	pitch_started.emit()
 	
 	# TODO:Play windup animation
 	#if animation_player:
 		#animation_player.play(pitch_animation)
 
-func _process_windup(delta):
-	windup_timer -= delta
-	
-	if windup_timer <= 0.0:
-		execute_pitch()
-		is_winding_up = false
+func _process_windup():
+	if increasing:
+		if current_power < max_power:
+			current_power += power_increment
+		else:
+			#TODO: use stats to determine if player can throw over max power on this pitch
+			current_power = max_power
+			increasing = false
+	else:
+		if current_power > min_power:
+			current_power -= power_increment
+		else:
+			#TODO: use stats to determine if player flubs it and throws under max power on this pitch
+			current_power = min_power
+			increasing = true
+			
+
+func charge_Pitch():
+	if active:
+		# Stop the timer and return the current power when button is pressed again
+		power_timer.stop()
+		active = false
+		print("Final Power:", current_power)
+	else: # Start the power scaling process
+		current_power = min_power
+		increasing = true
+		active = true
+		power_timer.start()
+		print("Scaling power...")
 
 func execute_pitch():
 	if not has_ball:

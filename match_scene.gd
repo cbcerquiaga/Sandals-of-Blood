@@ -39,6 +39,9 @@ func _ready() -> void:
 	assembleField()
 	createHomeTeam()
 	createAwayTeam()
+	positionPlayers(homeTeam, true)
+	positionPlayers(awayTeam, false)
+	prepareForPitch()	
 	pass # Replace with function body.
 
 func assembleField():
@@ -119,7 +122,18 @@ func positionPlayers(team, isOffense):
 			team.forward.position = field.spot_R_def_forward.position
 		defSetUp = true
 
-		
+func prepareForPitch():
+	if homeTeam.is_on_offense:
+		positionPlayers(homeTeam, true)
+		positionPlayers(awayTeam, false)
+		ball.position = homeTeam.pitcher.position
+		homeTeam.pitcher.is_player_controlled = true
+	else:
+		positionPlayers(awayTeam, true)
+		positionPlayers(homeTeam, false)
+		ball.position = awayTeam.pitcher.position
+		awayTeam.pitcher.is_player_controlled = true
+
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta: float) -> void:

@@ -10,7 +10,8 @@ enum PlayerState {
 	RUN_ROUTE,          # Running a predetermined route
 	GET_OPEN,           # Finding open space
 	SPIN_MOVE,          # Performing spin move to evade
-	TACKLING            # Performing tackle animation
+	TACKLING,		 # Performing tackle animation
+	HAS_BALL				#player controlled on offense  
 }
 
 ## Signals ##
@@ -165,7 +166,12 @@ func _spin_move(delta):
 	velocity = Vector2.RIGHT.rotated(rotation) * (movement_speed + spin_move_speed_boost)
 	move_and_slide()
 
-#TODO
+#TODO: check if opponent is in steal_ball animation or is sprinting at off-angle, truck the defender
+func attempt_truck(target: BallPlayer = null):
+	if is_tackle_cooldown or current_state == PlayerState.TACKLING:
+		return
+
+#TODO: check if opponent is in spin animation or is sprinting, steal the ball
 func attempt_steal(target: BallPlayer = null):
 	if is_tackle_cooldown or current_state == PlayerState.TACKLING:
 		return
@@ -259,6 +265,9 @@ func _manual_defense():
 	# Manual tackle input
 	if Input.is_action_just_pressed("tackle"):
 		attempt_tackle()
+		
+	if Input.is_action_just_pressed("attack_ball"):
+		attempt_steal()
 
 func _find_nearest_ball_carrier() -> BallPlayer:
 	var nearest = null
@@ -411,8 +420,11 @@ func _unhandled_input(event):
 	if event.is_action_pressed("tackle") and current_state == PlayerState.MANUAL_DEFENSE:
 		attempt_tackle()
 		
-	if event.is_action_pressed() and current_state == PlayerState.MANUAL_DEFENSE:
+	if event.is_action_pressed("attack_ball") and current_state == PlayerState.MANUAL_DEFENSE:
 		attempt_steal()
+		
+	if event.is_action_pressed("attack_player") and current_state == PlayerState.HAS_BALL:
+		attempt_truck()
 
 ## Route Management ##
 func set_route_points(points: Array[Vector2]):
