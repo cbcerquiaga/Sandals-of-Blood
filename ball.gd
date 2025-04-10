@@ -140,3 +140,11 @@ func _integrate_forces(state):
 		for i in range(state.get_contact_count()):
 			var normal = state.get_contact_local_normal(i)
 			state.linear_velocity = state.linear_velocity.bounce(normal) * 0.9
+
+
+func _on_pitcher_ball_pitched(power: float, spin: float, direction: Vector2, position: Vector2) -> void:
+	print("whoosh!")
+	position = position
+	var vector = direction * power
+	be_pitched(vector, spin)
+	pass # Replace with function body.

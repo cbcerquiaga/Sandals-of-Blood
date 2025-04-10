@@ -123,3 +123,6 @@ position = Vector2(2163, 354)
 [node name="Left Safety" parent="Away Team" instance=ExtResource("31_meqhg")]
 
 [node name="Right Safety" parent="Away Team" instance=ExtResource("31_meqhg")]
+
+[connection signal="ball_pitched" from="Home Team/Pitcher" to="Ball" method="_on_pitcher_ball_pitched"]
+[connection signal="ball_pitched" from="Away Team/Pitcher" to="Ball" method="_on_pitcher_ball_pitched"]
