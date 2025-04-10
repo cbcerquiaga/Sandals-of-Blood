@@ -26,6 +26,21 @@ var offSetUp = false #if the offense is in position
 var ballInPlay = false
 var homeTeam
 var awayTeam
+var isPlayerHome = true #if the player controls the home team or not
+var gameState
+
+enum GameState {
+	PITCHER, #pitcher has the ball
+	PITCHED, #ball in air
+	OFFENSE, #catcher has the ball
+	INTERCEPTED, #defense stole the ball
+	AIR_HOCKEY, #batter hit the ball
+	FIGHT, #TODO
+	CELEBRATE, #somebody scored
+	SWITCHING_SIDES, #play animation to switch sides
+	INTERMISSION, #chilling
+	PAUSED
+}
 
 
 
@@ -42,7 +57,6 @@ func _ready() -> void:
 	positionPlayers(homeTeam, true)
 	positionPlayers(awayTeam, false)
 	prepareForPitch()	
-	pass # Replace with function body.
 
 func assembleField():
 	var screen_size = get_viewport_rect().size
@@ -123,12 +137,15 @@ func positionPlayers(team, isOffense):
 		defSetUp = true
 
 func prepareForPitch():
+	gameState = GameState.PITCHER
 	if homeTeam.is_on_offense:
+		print("We get ball first")
 		positionPlayers(homeTeam, true)
 		positionPlayers(awayTeam, false)
 		ball.position = homeTeam.pitcher.position
 		homeTeam.pitcher.is_player_controlled = true
 	else:
+		print("Fine, you get ball")
 		positionPlayers(awayTeam, true)
 		positionPlayers(homeTeam, false)
 		ball.position = awayTeam.pitcher.position

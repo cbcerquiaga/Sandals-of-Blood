@@ -16,30 +16,39 @@ signal pitch_parameters_changed(power: float, spin: float, direction: Vector2)
 ## Current pitch values
 var current_power: float = 0.0
 var current_spin: float = 0.0
-var current_direction: Vector2 = Vector2.RIGHT
+var current_direction: Vector2 = Vector2(-1, 0)
 var is_winding_up: bool = false
 var min_power := 400
 var power_increment := 10
 var increasing := true
 var active := false
 var power_timer : Timer
+var aim_max_angle : float = 0.5
+var aim_increment = 0.05
+var chill_timer
+var can_throw := false
+
+func _ready():
+	can_throw = false
+	power_timer = Timer.new()
+	chill_timer =10#number of chilling frames
 
 func _physics_process(delta):
-	if not can_move:
-		return
-	
 	if is_player_controlled:
 		_handle_pitch_controls()
 		if (is_winding_up):
+			print("and here's the windup..." + str(current_power))
 			_process_windup()
-			if Input.is_action_just_pressed("pitch"):
+			if Input.is_action_just_pressed("pitch") and can_throw:
 				print("huck that sucka")
+				release_ball()
 				ball_pitched.emit(current_power, current_spin, current_direction, position)
-	
-	if is_winding_up:
-		_process_windup()
-	
-	super._physics_process(delta)
+			if !can_throw:
+				if chill_timer > 0:
+					chill_timer-= 1
+				else:
+					can_throw = true
+	#super._physics_process(delta)
 
 func _handle_pitch_controls():
 	if is_winding_up:
@@ -48,32 +57,38 @@ func _handle_pitch_controls():
 	# Spin control
 	if Input.is_action_pressed("increase_spin"):
 		current_spin = min(current_spin + 1.0, max_spin)
+		print("more cowbell! " + str(current_spin))
 	
 	if Input.is_action_pressed("decrease_spin"):
 		current_spin = max(current_spin - 1.0, -max_spin)
+		print("actually, too much cowbell... " + str(current_spin))
+		
+	if Input.is_action_just_pressed("move_up"):
+		print("a littler higher")
+		current_direction.y += aim_increment
+		if current_direction.y > aim_max_angle:
+			current_direction.y = aim_max_angle
+			
+	if Input.is_action_just_pressed("move_down"):
+		print("a little lower")
+		current_direction.y -= aim_increment
+		if current_direction.y < (0-aim_max_angle):
+			current_direction.y = 0-aim_max_angle
 	
-	# Direction control (aim with stick/mouse)
-	var input_dir = Input.get_vector("aim_left", "aim_right", "aim_up", "aim_down")
-	input_dir.x = 0 #up and down only
-	if input_dir.length() > 0.1:
-		current_direction = input_dir.normalized()
-	
-	# Initiate pitch powering
-	if Input.is_action_just_pressed("pitch_ball") and has_ball:
+	if Input.is_action_just_pressed("pitch"):
+		charge_Pitch()
 		start_pitch_windup()
-
-func start_pitch_windup():
-	if not has_ball or is_winding_up:
-		return
 	
+
+func start_pitch_windup():	
 	is_winding_up = true
 	pitch_started.emit()
-	
 	# TODO:Play windup animation
 	#if animation_player:
 		#animation_player.play(pitch_animation)
 
 func _process_windup():
+	print("winding up")
 	if increasing:
 		if current_power < max_power:
 			current_power += power_increment
@@ -139,3 +154,11 @@ func _on_animation_finished(anim_name):
 		# In case animation ends before timer
 		execute_pitch()
 		is_winding_up = false
+
+func _on_chill_timer_timeout():
+	can_throw = true
+
+func release_ball():
+	has_ball = false
+	is_player_controlled = false
+	
