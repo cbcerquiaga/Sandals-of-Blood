@@ -50,12 +50,15 @@ func _ready() -> void:
 	homeTeam = HOME.instantiate()
 	awayTeam = AWAY.instantiate()
 	ball = BALL.instantiate()
+	#ball.scale = Vector2(5,5)
 	field = FIELD.instantiate()
 	assembleField()
 	createHomeTeam()
 	createAwayTeam()
 	positionPlayers(homeTeam, true)
 	positionPlayers(awayTeam, false)
+	ball.position = field.spot_pitcher.position
+	ball.position += Vector2(-10,0)
 	prepareForPitch()	
 
 func assembleField():
@@ -138,17 +141,18 @@ func positionPlayers(team, isOffense):
 
 func prepareForPitch():
 	gameState = GameState.PITCHER
+	ball.position = field.spot_pitcher.position + Vector2(-10,0)
 	if homeTeam.is_on_offense:
 		print("We get ball first")
 		positionPlayers(homeTeam, true)
 		positionPlayers(awayTeam, false)
-		ball.position = homeTeam.pitcher.position
+		ball.current_holder = homeTeam.pitcher
 		homeTeam.pitcher.is_player_controlled = true
 	else:
 		print("Fine, you get ball")
 		positionPlayers(awayTeam, true)
 		positionPlayers(homeTeam, false)
-		ball.position = awayTeam.pitcher.position
+		ball.current_holder = awayTeam.pitcher
 		awayTeam.pitcher.is_player_controlled = true
 
 
@@ -160,3 +164,15 @@ func _process(delta: float) -> void:
 				positionPlayers(homeTeam, true)
 				positionPlayers(awayTeam, false)
 	pass
+
+
+func _on_ball_entered_air_hockey_mode() -> void:
+	pass # Replace with function body.
+
+
+func _on_ball_hit_by_batter(power: float) -> void:
+	pass # Replace with function body.
+
+
+func _on_ball_caught_by_player(player: Node2D) -> void:
+	pass # Replace with function body.

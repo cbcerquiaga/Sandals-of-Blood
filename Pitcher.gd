@@ -8,7 +8,7 @@ signal pitch_parameters_changed(power: float, spin: float, direction: Vector2)
 
 ## Pitching parameters
 @export_group("Pitching Controls")
-@export var max_power: float = 1000.0
+@export var max_power: float = 106.0
 @export var max_spin: float = 50.0
 @export var pitch_animation: String = "pitch"
 @export var windup_time: float = 0.5
@@ -18,8 +18,9 @@ var current_power: float = 0.0
 var current_spin: float = 0.0
 var current_direction: Vector2 = Vector2(-1, 0)
 var is_winding_up: bool = false
-var min_power := 400
+var min_power := 40
 var power_increment := 10
+var power_increment_rand := 3
 var increasing := true
 var active := false
 var power_timer : Timer
@@ -89,16 +90,18 @@ func start_pitch_windup():
 
 func _process_windup():
 	print("winding up")
+	var rng = RandomNumberGenerator.new()
+	var variance = rng.randi_range(0-power_increment_rand, power_increment_rand)
 	if increasing:
 		if current_power < max_power:
-			current_power += power_increment
+			current_power += power_increment + variance
 		else:
 			#TODO: use stats to determine if player can throw over max power on this pitch
 			current_power = max_power
 			increasing = false
-	else:
+	else: 
 		if current_power > min_power:
-			current_power -= power_increment
+			current_power -= power_increment - variance
 		else:
 			#TODO: use stats to determine if player flubs it and throws under max power on this pitch
 			current_power = min_power

@@ -39,13 +39,14 @@ func _physics_process(delta):
 
 func _process_pitching_physics(delta):
 	# Apply spin-induced curve
+	position = position + linear_velocity
 	if spin != 0.0:
 		var curve_force = Vector2(-linear_velocity.y, linear_velocity.x).normalized() * spin * spin_curve_factor
 		apply_central_force(curve_force)
 	
 	# Apply air resistance
-	var drag_force = -linear_velocity * linear_velocity.length() * drag_coefficient
-	apply_central_force(drag_force)
+	#var drag_force = -linear_velocity * linear_velocity.length() * drag_coefficient
+	#apply_central_force(drag_force)
 
 func _process_fielding_physics(delta):
 	# Follow the holder's position when caught
@@ -69,6 +70,7 @@ func be_pitched(velocity: Vector2, ball_spin: float):
 	initial_pitch_velocity = velocity
 	linear_velocity = velocity
 	freeze = false
+	print("I am be pitched " + str(linear_velocity))
 
 func be_caught(by_player: Node2D):
 	current_mode = BallMode.FIELDING

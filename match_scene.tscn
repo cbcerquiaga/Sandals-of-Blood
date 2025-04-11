@@ -83,6 +83,7 @@ position = Vector2(2163, 354)
 [node name="L_Bat_spot" parent="Field/Positions" instance=ExtResource("15_62nyo")]
 
 [node name="Ball" parent="." instance=ExtResource("8_vsbuk")]
+gravity_scale = 0.0
 
 [node name="Home Team" parent="." instance=ExtResource("24_4f5ep")]
 
@@ -124,5 +125,8 @@ position = Vector2(2163, 354)
 
 [node name="Right Safety" parent="Away Team" instance=ExtResource("31_meqhg")]
 
+[connection signal="caught_by_player" from="Ball" to="." method="_on_ball_caught_by_player"]
+[connection signal="entered_air_hockey_mode" from="Ball" to="." method="_on_ball_entered_air_hockey_mode"]
+[connection signal="hit_by_batter" from="Ball" to="." method="_on_ball_hit_by_batter"]
 [connection signal="ball_pitched" from="Home Team/Pitcher" to="Ball" method="_on_pitcher_ball_pitched"]
 [connection signal="ball_pitched" from="Away Team/Pitcher" to="Ball" method="_on_pitcher_ball_pitched"]
