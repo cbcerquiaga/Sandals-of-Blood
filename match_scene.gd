@@ -26,6 +26,7 @@ var offSetUp = false #if the offense is in position
 var ballInPlay = false
 var homeTeam
 var awayTeam
+var isHomeOffense #if the home team is on offense
 var isPlayerHome = true #if the player controls the home team or not
 var gameState
 
@@ -47,6 +48,8 @@ enum GameState {
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
+	isHomeOffense = true
+	isPlayerHome = true
 	homeTeam = HOME.instantiate()
 	awayTeam = AWAY.instantiate()
 	ball = BALL.instantiate()
@@ -57,8 +60,7 @@ func _ready() -> void:
 	createAwayTeam()
 	positionPlayers(homeTeam, true)
 	positionPlayers(awayTeam, false)
-	ball.position = field.spot_pitcher.position
-	ball.position += Vector2(-10,0)
+	prepareBall()
 	prepareForPitch()	
 
 func assembleField():
@@ -108,6 +110,32 @@ func createAwayTeam():
 	awayTeam.forward = $"Away Team/Forward"
 	
 
+func prepareBall():
+	#TODO: positioning at runtime doesn't work
+	ball.position = field.spot_pitcher.position
+	ball.position += Vector2(-10,0)
+	#connect listener to every player on field
+	#home team
+	homeTeam.pitcher.ball = ball
+	homeTeam.catcher.ball = ball
+	homeTeam.goalie.ball = ball
+	homeTeam.left_safety.ball = ball
+	homeTeam.right_safety.ball = ball
+	homeTeam.batter.ball = ball
+	homeTeam.left_flanker.ball = ball
+	homeTeam.right_flanker.ball = ball
+	homeTeam.forward.ball = ball
+	#away
+	awayTeam.pitcher.ball = ball
+	awayTeam.catcher.ball = ball
+	awayTeam.goalie.ball = ball
+	awayTeam.left_safety.ball = ball
+	awayTeam.right_safety.ball = ball
+	awayTeam.batter.ball = ball
+	awayTeam.left_flanker.ball = ball
+	awayTeam.right_flanker.ball = ball
+	awayTeam.forward.ball = ball
+
 func positionPlayers(team, isOffense):
 	team.is_on_offense = isOffense
 	team._update_team_visibility()
@@ -148,12 +176,14 @@ func prepareForPitch():
 		positionPlayers(awayTeam, false)
 		ball.current_holder = homeTeam.pitcher
 		homeTeam.pitcher.is_player_controlled = true
+		homeTeam.pitcher.ball_pitched.connect(on_ball_pitched)
 	else:
 		print("Fine, you get ball")
 		positionPlayers(awayTeam, true)
 		positionPlayers(homeTeam, false)
 		ball.current_holder = awayTeam.pitcher
 		awayTeam.pitcher.is_player_controlled = true
+		awayTeam.pitcher.ball_pitched.connect(on_ball_pitched)
 
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -176,3 +206,10 @@ func _on_ball_hit_by_batter(power: float) -> void:
 
 func _on_ball_caught_by_player(player: Node2D) -> void:
 	pass # Replace with function body.
+
+func on_ball_pitched() -> void:
+	print("Everyone knows the ball has been pitched")
+	if (isHomeOffense):
+		homeTeam.catcher.start_catching()
+	else:
+		awayTeam.catcher.start_catching()

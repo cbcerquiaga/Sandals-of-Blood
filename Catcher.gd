@@ -54,6 +54,7 @@ func attempt_catch():
 		start_catching()
 
 func start_catching():
+	print("I got it! I got it!")
 	current_catcher_state = CatcherState.CATCHING
 	navigation_agent.target_position = projected_ball_position
 	_move_to_position()

@@ -24,8 +24,8 @@ var power_increment_rand := 3
 var increasing := true
 var active := false
 var power_timer : Timer
-var aim_max_angle : float = 0.5
-var aim_increment = 0.05
+var aim_max_angle : float = 0.36
+var aim_increment = 0.02
 var chill_timer
 var can_throw := false
 
@@ -62,18 +62,20 @@ func _handle_pitch_controls():
 	
 	if Input.is_action_pressed("decrease_spin"):
 		current_spin = max(current_spin - 1.0, -max_spin)
-		print("actually, too much cowbell... " + str(current_spin))
+		print("less cowbell... " + str(current_spin))
 		
-	if Input.is_action_just_pressed("move_up"):
-		print("a littler higher")
+	if Input.is_action_just_pressed("move_down"):
+		print("a littler lower")
 		current_direction.y += aim_increment
 		if current_direction.y > aim_max_angle:
+			print("min angle")
 			current_direction.y = aim_max_angle
 			
-	if Input.is_action_just_pressed("move_down"):
-		print("a little lower")
+	if Input.is_action_just_pressed("move_up"):
+		print("a little higher")
 		current_direction.y -= aim_increment
 		if current_direction.y < (0-aim_max_angle):
+			print("max angle")
 			current_direction.y = 0-aim_max_angle
 	
 	if Input.is_action_just_pressed("pitch"):
