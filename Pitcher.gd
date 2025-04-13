@@ -28,6 +28,7 @@ var aim_max_angle : float = 0.36
 var aim_increment = 0.02
 var chill_timer
 var can_throw := false
+var has_thrown := false
 
 func _ready():
 	can_throw = false
@@ -38,7 +39,7 @@ func _physics_process(delta):
 	if is_player_controlled:
 		_handle_pitch_controls()
 		if (is_winding_up):
-			print("and here's the windup..." + str(current_power))
+			#print("and here's the windup..." + str(current_power))
 			_process_windup()
 			if Input.is_action_just_pressed("pitch") and can_throw:
 				print("huck that sucka")
@@ -165,5 +166,6 @@ func _on_chill_timer_timeout():
 
 func release_ball():
 	has_ball = false
+	has_thrown = true
 	is_player_controlled = false
 	

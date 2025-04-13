@@ -188,13 +188,35 @@ func prepareForPitch():
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta: float) -> void:
+	resetPlayerCheck()
+	match gameState:
+		GameState.PITCHER:
+			pitchProcess()
+		GameState.PITCHED:
+			midPitchProcess()
+	pass
+
+func resetPlayerCheck():
 	if (!defSetUp || !offSetUp) && !ballInPlay:
 		if (field):
 			if (homeTeam && awayTeam):
+				print("reseting player positions")
 				positionPlayers(homeTeam, true)
 				positionPlayers(awayTeam, false)
-	pass
+				
+func pitchProcess():
+	var pitcher
+	if (isHomeOffense):
+		pitcher = homeTeam.pitcher
+	else:
+		pitcher = awayTeam.pitcher
+	if (pitcher.has_thrown):
+		gameState = GameState.PITCHED
+		on_ball_pitched()
 
+func midPitchProcess():
+	if ball.been_hit:
+		gameState = GameState.AIR_HOCKEY
 
 func _on_ball_entered_air_hockey_mode() -> void:
 	pass # Replace with function body.

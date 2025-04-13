@@ -19,6 +19,9 @@ var spin: float = 0.0
 var initial_pitch_velocity: Vector2 = Vector2.ZERO
 var air_hockey_physics: bool = false
 
+var been_hit := false
+var hit_power_vector: Vector2
+
 func _ready():
 	contact_monitor = true
 	max_contacts_reported = 10
@@ -80,6 +83,8 @@ func be_caught(by_player: Node2D):
 	caught_by_player.emit(by_player)
 
 func be_hit(power_vector: Vector2):
+	hit_power_vector = power_vector
+	been_hit = true
 	current_mode = BallMode.AIR_HOCKEY
 	current_holder = null
 	spin = 0.0
