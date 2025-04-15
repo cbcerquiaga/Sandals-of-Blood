@@ -352,7 +352,7 @@ func _handle_player_movement():
 func _move_to_position():
 	if navigation_agent.is_navigation_finished():
 		return
-	
+	print("character is moving to position")
 	var next_path_position = navigation_agent.get_next_path_position()
 	var direction = (next_path_position - global_position).normalized()
 	velocity = direction * movement_speed

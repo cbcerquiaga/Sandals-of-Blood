@@ -185,8 +185,6 @@ func prepareForPitch():
 		awayTeam.pitcher.is_player_controlled = true
 		awayTeam.pitcher.ball_pitched.connect(on_ball_pitched)
 
-
-# Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta: float) -> void:
 	resetPlayerCheck()
 	match gameState:
@@ -232,6 +230,8 @@ func _on_ball_caught_by_player(player: Node2D) -> void:
 func on_ball_pitched() -> void:
 	print("Everyone knows the ball has been pitched")
 	if (isHomeOffense):
+		homeTeam.catcher.ball = ball
 		homeTeam.catcher.start_catching()
 	else:
+		awayTeam.catcher.ball = ball
 		awayTeam.catcher.start_catching()

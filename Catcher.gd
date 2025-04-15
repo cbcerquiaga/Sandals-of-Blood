@@ -15,6 +15,8 @@ signal dive_completed
 
 @export_group("Catching Attributes")
 @export var catching_skill: float = 0.8          # 0-1 rating of catching ability
+@export var anticipation: float = 0.8
+@export var reactions: float = 0.2 
 @export var catch_area_radius: float = 150.0     # Area where they can attempt catches
 @export var max_dive_distance: float = 200.0         # How far they can dive
 @export var dive_duration: float = 0.4          # How long dive animation takes
@@ -24,6 +26,7 @@ var current_catcher_state: CatcherState = CatcherState.NONE
 var projected_ball_position: Vector2
 var dive_start_position: Vector2
 var dive_timer: float = 0.0
+var going_up = null
 
 func _physics_process(delta):
 	if not can_move:
@@ -45,6 +48,7 @@ func attempt_catch():
 	
 	# Calculate projected ball position
 	projected_ball_position = _calculate_ball_projection()
+	print("catcher believes the ball will arrive at " + str(projected_ball_position))
 	var distance_to_ball = global_position.distance_to(ball.global_position)
 	
 	# Determine if we should dive or move to catch
@@ -73,12 +77,33 @@ func start_dive():
 	_attempt_catch_with_ball(true)
 
 func _process_catching():
-	# Move toward projected ball position
-	if not navigation_agent.is_navigation_finished():
-		_move_to_position()
+	#use anticipation
+	var random = randf_range(0, 1)
+	if anticipation > random:
+		var target = _calculate_ball_projection()
+		if target.y > position.y:
+			if (going_up == null or going_up == true):
+				velocity.y = movement_speed
+			else:
+				print("have to react to the curve")
+				velocity.y = movement_speed - reactions
+				going_up = true
+		elif target.y < position.y:
+			if (going_up == null or going_up == false):
+				velocity.y = 0 - movement_speed
+			else:
+				print("have to react to the curve")
+				velocity.y = 0 - movement_speed + reactions
+				going_up = false
+	else:
+		if ball.position.y > position.y:
+			velocity.y = movement_speed
+		elif ball.position.y < position.y:
+			velocity.y = 0 - movement_speed
 	
+	move_and_slide()
 	# Check if we're close enough to attempt catch
-	if global_position.distance_to(projected_ball_position) < 20.0:
+	if global_position.distance_to(ball.position) < 20.0:
 		var near_ball = _get_nearby_ball()
 		if near_ball:
 			_attempt_catch_with_ball(false)
@@ -134,8 +159,9 @@ func _attempt_catch_with_ball(is_diving: bool):
 func _calculate_ball_projection() -> Vector2:
 	# Simple linear projection - could be enhanced with actual trajectory prediction
 	var ball_direction = ball.velocity.normalized()
+	var ball_english = ball.spin * ball.spin_curve_factor
 	var time_to_reach = global_position.distance_to(ball.global_position) / max(ball.velocity.length(), 1.0)
-	return ball.global_position + ball_direction * ball.velocity.length() * time_to_reach
+	return ball.global_position + ball_direction * ball.velocity.length() * time_to_reach + ball_english
 
 func _get_nearby_ball() -> Ball:
 	# Implement your actual ball detection logic here
