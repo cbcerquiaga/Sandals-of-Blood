@@ -21,6 +21,7 @@ var air_hockey_physics: bool = false
 
 var been_hit := false
 var hit_power_vector: Vector2
+var curve_force
 
 func _ready():
 	contact_monitor = true
@@ -44,7 +45,7 @@ func _process_pitching_physics(delta):
 	# Apply spin-induced curve
 	position = position + linear_velocity
 	if spin != 0.0:
-		var curve_force = Vector2(-linear_velocity.y, linear_velocity.x).normalized() * spin * spin_curve_factor
+		curve_force = Vector2(-linear_velocity.y, linear_velocity.x).normalized() * spin * spin_curve_factor
 		apply_central_force(curve_force)
 	
 	# Apply air resistance

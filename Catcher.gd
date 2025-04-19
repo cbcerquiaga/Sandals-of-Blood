@@ -23,7 +23,7 @@ signal dive_completed
 @export var catch_anim_player: AnimationPlayer   # Reference to animation player
 
 var current_catcher_state: CatcherState = CatcherState.NONE
-var projected_ball_position: Vector2
+var projected_ball_position: float
 var dive_start_position: Vector2
 var dive_timer: float = 0.0
 var going_up = null
@@ -66,7 +66,7 @@ func start_catching():
 	else:
 		print("random failed")
 	current_catcher_state = CatcherState.CATCHING
-	navigation_agent.target_position = projected_ball_position
+	#navigation_agent.target_position = projected_ball_position
 	print("I got it! I got it! " + str(random))
 	#_move_to_position()
 
@@ -86,16 +86,24 @@ func start_dive():
 func _process_catching():
 	#use anticipation
 	if anticipation > random:
-		var target = _calculate_ball_projection()
-		print(str(target))
-		if target.y > position.y:
+		var targetY = _calculate_ball_projection()
+		print(str(targetY) + ", " + str(position.y))
+		if targetY > position.y:
+			print("go up")
+			if (targetY - position.y < movement_speed/10):
+				#print("close, take it easy")
+				velocity.y = targetY - position.y
 			if (going_up == null or going_up == true):
 				velocity.y = movement_speed
 			else:
 				print("have to react to the curve")
 				velocity.y = movement_speed - reactions
 				going_up = true
-		elif target.y < position.y:
+		elif targetY < position.y:
+			print("go down")
+			if (targetY - position.y < 0-movement_speed/10):
+				print("close, take it easy")
+				velocity.y = position.y - targetY
 			if (going_up == null or going_up == false):
 				velocity.y = 0 - movement_speed
 			else:
@@ -108,7 +116,7 @@ func _process_catching():
 		elif ball.position.y < position.y:
 			velocity.y = 0 - movement_speed
 		
-	move_and_slide()
+		move_and_slide()
 	if has_ball or ball == null or current_catcher_state != CatcherState.CATCHING:
 		print("no need to catch, mate")
 		current_catcher_state = CatcherState.NONE
@@ -137,8 +145,8 @@ func _process_diving(delta):
 	var progress = 1.0 - (dive_timer / dive_duration)
 	
 	# Move along dive path (simple straight line for now)
-	var dive_direction = (projected_ball_position - dive_start_position).normalized()
-	var dive_distance = min(max_dive_distance, dive_start_position.distance_to(projected_ball_position))
+	var dive_direction = (Vector2(position.x,projected_ball_position) - dive_start_position).normalized()
+	var dive_distance = min(max_dive_distance, dive_start_position.distance_to(Vector2(position.x,projected_ball_position)))
 	global_position = dive_start_position + dive_direction * dive_distance * progress
 
 func _attempt_catch_with_ball(is_diving: bool):
@@ -172,12 +180,18 @@ func _attempt_catch_with_ball(is_diving: bool):
 	else:
 		current_catcher_state = CatcherState.NONE
 
-func _calculate_ball_projection() -> Vector2:
-	# Simple linear projection - could be enhanced with actual trajectory prediction
-	var ball_direction = ball.linear_velocity.normalized()
-	var ball_english = ball.spin * ball.spin_curve_factor
-	var time_to_reach = global_position.distance_to(ball.global_position) / max(ball.linear_velocity.length(), 1.0)
-	return ball.global_position + ball_direction * ball.linear_velocity.length() * (time_to_reach + ball_english)
+func _calculate_ball_projection() -> float:
+	var ballPos = ball.global_position
+	var ballVel = ball.linear_velocity
+	var curve_force = ball.curve_force
+	# Calculate time step needed to reach target_x based on current x velocity
+	if abs(velocity.x) < 0.1:  # Avoid division by zero if not moving horizontally
+		return position.y
+	var time_to_target = (position.x - ballPos.x) / ballVel.x
+	# Predict y position using kinematic equations with constant force
+	# y = y0 + vy0*t + 0.5*a*t^2
+	var predicted_y = position.y + velocity.y * time_to_target + 0.5 * curve_force * time_to_target * time_to_target
+	return predicted_y
 
 func _get_nearby_ball() -> Ball:
 	# Implement your actual ball detection logic here
