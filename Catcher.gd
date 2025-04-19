@@ -27,6 +27,7 @@ var projected_ball_position: Vector2
 var dive_start_position: Vector2
 var dive_timer: float = 0.0
 var going_up = null
+var random #determines how the catcher reacts to this pitch
 
 func _physics_process(delta):
 	if not can_move:
@@ -34,6 +35,7 @@ func _physics_process(delta):
 	
 	match current_catcher_state:
 		CatcherState.CATCHING:
+			#print("process catching from physics process")
 			_process_catching()
 		CatcherState.DIVING:
 			_process_diving(delta)
@@ -58,10 +60,15 @@ func attempt_catch():
 		start_catching()
 
 func start_catching():
-	print("I got it! I got it!")
+	random = randf_range(0, 1)
+	if (anticipation > random):
+		print("random passed")
+	else:
+		print("random failed")
 	current_catcher_state = CatcherState.CATCHING
 	navigation_agent.target_position = projected_ball_position
-	_move_to_position()
+	print("I got it! I got it! " + str(random))
+	#_move_to_position()
 
 func start_dive():
 	current_catcher_state = CatcherState.DIVING
@@ -78,9 +85,9 @@ func start_dive():
 
 func _process_catching():
 	#use anticipation
-	var random = randf_range(0, 1)
 	if anticipation > random:
 		var target = _calculate_ball_projection()
+		print(str(target))
 		if target.y > position.y:
 			if (going_up == null or going_up == true):
 				velocity.y = movement_speed
@@ -100,13 +107,21 @@ func _process_catching():
 			velocity.y = movement_speed
 		elif ball.position.y < position.y:
 			velocity.y = 0 - movement_speed
-	
+		
 	move_and_slide()
+	if has_ball or ball == null or current_catcher_state != CatcherState.CATCHING:
+		print("no need to catch, mate")
+		current_catcher_state = CatcherState.NONE
+		return
+	
 	# Check if we're close enough to attempt catch
+	#print("Distance to  ball: " + str(global_position.distance_to(ball.position)))
 	if global_position.distance_to(ball.position) < 20.0:
+		print("ball is near the catcher")
 		var near_ball = _get_nearby_ball()
 		if near_ball:
-			_attempt_catch_with_ball(false)
+			attempt_catch()
+			#_attempt_catch_with_ball(false)
 		else:
 			current_catcher_state = CatcherState.NONE
 
@@ -128,6 +143,7 @@ func _process_diving(delta):
 
 func _attempt_catch_with_ball(is_diving: bool):
 	if not ball or has_ball:
+		print("no ball")
 		return
 	
 	var catch_chance = catching_skill
@@ -158,10 +174,10 @@ func _attempt_catch_with_ball(is_diving: bool):
 
 func _calculate_ball_projection() -> Vector2:
 	# Simple linear projection - could be enhanced with actual trajectory prediction
-	var ball_direction = ball.velocity.normalized()
+	var ball_direction = ball.linear_velocity.normalized()
 	var ball_english = ball.spin * ball.spin_curve_factor
-	var time_to_reach = global_position.distance_to(ball.global_position) / max(ball.velocity.length(), 1.0)
-	return ball.global_position + ball_direction * ball.velocity.length() * time_to_reach + ball_english
+	var time_to_reach = global_position.distance_to(ball.global_position) / max(ball.linear_velocity.length(), 1.0)
+	return ball.global_position + ball_direction * ball.linear_velocity.length() * (time_to_reach + ball_english)
 
 func _get_nearby_ball() -> Ball:
 	# Implement your actual ball detection logic here

@@ -231,7 +231,11 @@ func on_ball_pitched() -> void:
 	print("Everyone knows the ball has been pitched")
 	if (isHomeOffense):
 		homeTeam.catcher.ball = ball
+		homeTeam.catcher.can_move = true
 		homeTeam.catcher.start_catching()
+		print("home teach catcher ball: " + str(homeTeam.catcher.ball))
 	else:
 		awayTeam.catcher.ball = ball
+		awayTeam.catcher.can_move = true
 		awayTeam.catcher.start_catching()
+		print("away teach catcher ball: " + str(awayTeam.catcher.ball))
