@@ -32,6 +32,7 @@ var has_thrown := false
 
 func _ready():
 	can_throw = false
+	has_ball = true
 	power_timer = Timer.new()
 	chill_timer =10#number of chilling frames
 
@@ -144,7 +145,7 @@ func execute_pitch():
 	ball_pitched.emit(pitched_ball)
 	
 	# Allow all players to move
-	on_ball_pitched()
+	#on_ball_pitched()
 
 func set_auto_pitch(target: Vector2, power_percent: float = 0.7, spin_percent: float = 0.3):
 	if not has_ball:

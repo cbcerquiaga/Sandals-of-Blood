@@ -1,209 +1,92 @@
 class_name Catcher
-extends BallPlayer
+extends FootballPlayer
 
-## Catcher-specific states
-enum CatcherState {
-	NONE,
-	CATCHING,    # Moving to intercept the ball
-	DIVING       # Diving attempt at the ball
-}
+enum CatcherState { CATCHING, CARRYING }
 
-## Signals
-signal catch_attempt(success: bool)
-signal dive_started
-signal dive_completed
+@export var catching_skill: float = 0.8
+@export var focus_skill: float = 0.7
+@export var movement_boundary: Rect2 = Rect2(-50, -50, 100, 100)
 
-@export_group("Catching Attributes")
-@export var catching_skill: float = 0.8          # 0-1 rating of catching ability
-@export var anticipation: float = 0.8
-@export var reactions: float = 0.2 
-@export var catch_area_radius: float = 150.0     # Area where they can attempt catches
-@export var max_dive_distance: float = 200.0         # How far they can dive
-@export var dive_duration: float = 0.4          # How long dive animation takes
-@export var catch_anim_player: AnimationPlayer   # Reference to animation player
+var current_catcher_state: CatcherState = CatcherState.CATCHING
+var ball_in_range: bool = false
 
-var current_catcher_state: CatcherState = CatcherState.NONE
-var projected_ball_position: float
-var dive_start_position: Vector2
-var dive_timer: float = 0.0
-var going_up = null
-var random #determines how the catcher reacts to this pitch
+func _ready():
+	super._ready()
+	catch_rating = (catching_skill + focus_skill) / 2.0
 
 func _physics_process(delta):
-	if not can_move:
-		return
-	
-	match current_catcher_state:
-		CatcherState.CATCHING:
-			#print("process catching from physics process")
-			_process_catching()
-		CatcherState.DIVING:
-			_process_diving(delta)
-	
-	# Run normal ball player physics if not in catcher-specific state
-	if current_catcher_state == CatcherState.NONE:
+	if current_catcher_state == CatcherState.CATCHING:
+		catching_behavior(delta)
+	else:
 		super._physics_process(delta)
 
-func attempt_catch():
-	if current_catcher_state != CatcherState.NONE or has_ball:
+func catching_behavior(delta):
+	if has_ball:
+		transition_to_carrying()
 		return
 	
-	# Calculate projected ball position
-	projected_ball_position = _calculate_ball_projection()
-	print("catcher believes the ball will arrive at " + str(projected_ball_position))
-	var distance_to_ball = global_position.distance_to(ball.global_position)
-	
-	# Determine if we should dive or move to catch
-	if distance_to_ball > catch_area_radius and distance_to_ball < max_dive_distance:
-		start_dive()
+	if !is_player_controlled:
+		ai_catching_behavior(delta)
 	else:
-		start_catching()
+		player_catching_behavior(delta)
 
-func start_catching():
-	random = randf_range(0, 1)
-	if (anticipation > random):
-		print("random passed")
-	else:
-		print("random failed")
-	current_catcher_state = CatcherState.CATCHING
-	#navigation_agent.target_position = projected_ball_position
-	print("I got it! I got it! " + str(random))
-	#_move_to_position()
+func ai_catching_behavior(delta):
+	# AI catcher moves to optimal position
+	var target = Vector2.ZERO # Default to center
+	if ball_in_range:
+		# Adjust position based on ball trajectory
+		target = predict_ball_position()
+	
+	target.x = clamp(target.x, movement_boundary.position.x, movement_boundary.end.x)
+	target.y = clamp(target.y, movement_boundary.position.y, movement_boundary.end.y)
+	
+	super.move_towards(target, delta)
 
-func start_dive():
-	current_catcher_state = CatcherState.DIVING
-	dive_start_position = global_position
-	dive_timer = dive_duration
-	dive_started.emit()
+func player_catching_behavior(delta):
+	var input_vector = Vector2.ZERO
+	input_vector.x = Input.get_axis("move_left", "move_right")
+	input_vector.y = Input.get_axis("move_up", "move_down")
 	
-	# Play dive animation
-	if catch_anim_player:
-		catch_anim_player.play("dive")
+	velocity = input_vector.normalized() * speed
+	move_and_slide()
 	
-	# Immediately attempt catch with dive penalty
-	_attempt_catch_with_ball(true)
+	# Clamp position to boundary
+	position.x = clamp(position.x, movement_boundary.position.x, movement_boundary.end.x)
+	position.y = clamp(position.y, movement_boundary.position.y, movement_boundary.end.y)
 
-func _process_catching():
-	#use anticipation
-	if anticipation > random:
-		var targetY = _calculate_ball_projection()
-		print(str(targetY) + ", " + str(position.y))
-		if targetY > position.y:
-			print("go up")
-			if (targetY - position.y < movement_speed/10):
-				#print("close, take it easy")
-				velocity.y = targetY - position.y
-			if (going_up == null or going_up == true):
-				velocity.y = movement_speed
-			else:
-				print("have to react to the curve")
-				velocity.y = movement_speed - reactions
-				going_up = true
-		elif targetY < position.y:
-			print("go down")
-			if (targetY - position.y < 0-movement_speed/10):
-				print("close, take it easy")
-				velocity.y = position.y - targetY
-			if (going_up == null or going_up == false):
-				velocity.y = 0 - movement_speed
-			else:
-				print("have to react to the curve")
-				velocity.y = 0 - movement_speed + reactions
-				going_up = false
-	else:
-		if ball.position.y > position.y:
-			velocity.y = movement_speed
-		elif ball.position.y < position.y:
-			velocity.y = 0 - movement_speed
-		
-		move_and_slide()
-	if has_ball or ball == null or current_catcher_state != CatcherState.CATCHING:
-		print("no need to catch, mate")
-		current_catcher_state = CatcherState.NONE
-		return
+func transition_to_carrying():
+	current_catcher_state = CatcherState.CARRYING
+	transition_footballer_state(FootballerState.CARRYING)
 	
-	# Check if we're close enough to attempt catch
-	#print("Distance to  ball: " + str(global_position.distance_to(ball.position)))
-	if global_position.distance_to(ball.position) < 20.0:
-		print("ball is near the catcher")
-		var near_ball = _get_nearby_ball()
-		if near_ball:
-			attempt_catch()
-			#_attempt_catch_with_ball(false)
-		else:
-			current_catcher_state = CatcherState.NONE
+	# Spin 180 degrees when catching
+	var tween = create_tween()
+	tween.tween_property(self, "rotation", rotation + PI, 0.3)
 
-func _process_diving(delta):
-	dive_timer -= delta
-	
-	if dive_timer <= 0.0:
-		current_catcher_state = CatcherState.NONE
-		dive_completed.emit()
-		return
-	
-	# Calculate dive progress (0-1)
-	var progress = 1.0 - (dive_timer / dive_duration)
-	
-	# Move along dive path (simple straight line for now)
-	var dive_direction = (Vector2(position.x,projected_ball_position) - dive_start_position).normalized()
-	var dive_distance = min(max_dive_distance, dive_start_position.distance_to(Vector2(position.x,projected_ball_position)))
-	global_position = dive_start_position + dive_direction * dive_distance * progress
+func _on_ball_entered_range(ball: RigidBody2D):
+	ball_in_range = true
+	if attempt_catch(ball):
+		transition_to_carrying()
 
-func _attempt_catch_with_ball(is_diving: bool):
-	if not ball or has_ball:
-		print("no ball")
-		return
-	
-	var catch_chance = catching_skill
-	
-	# Modify chance based on ball properties
-	catch_chance -= ball.velocity.length() * 0.001  # Faster balls harder to catch
-	catch_chance -= ball.spin * 0.005              # More spin reduces chance
-	
-	# Diving penalty
-	if is_diving:
-		catch_chance *= 0.7  # 30% reduction when diving
-	
-	# Ensure chance stays within reasonable bounds
-	catch_chance = clampf(catch_chance, 0.1, 0.95)
-	
-	# Attempt catch
-	var success = randf() <= catch_chance
-	catch_attempt.emit(success)
-	
-	if success:
-		catch_ball(ball)
-		current_catcher_state = CatcherState.NONE
-	elif is_diving:
-		# If dive failed, stay in dive state until animation completes
-		pass
-	else:
-		current_catcher_state = CatcherState.NONE
+func _on_ball_exited_range():
+	ball_in_range = false
 
-func _calculate_ball_projection() -> float:
-	var ballPos = ball.global_position
-	var ballVel = ball.linear_velocity
-	var curve_force = ball.curve_force
-	# Calculate time step needed to reach target_x based on current x velocity
-	if abs(velocity.x) < 0.1:  # Avoid division by zero if not moving horizontally
-		return position.y
-	var time_to_target = (position.x - ballPos.x) / ballVel.x
-	# Predict y position using kinematic equations with constant force
-	# y = y0 + vy0*t + 0.5*a*t^2
-	var predicted_y = position.y + velocity.y * time_to_target + 0.5 * curve_force * time_to_target * time_to_target
-	return predicted_y
+func predict_ball_position() -> Vector2:
+	# Implement ball trajectory prediction
+	return Vector2.ZERO
 
-func _get_nearby_ball() -> Ball:
-	# Implement your actual ball detection logic here
-	var space_state = get_world_2d().direct_space_state
-	var query = PhysicsRayQueryParameters2D.create(global_position, global_position + Vector2(1, 1), 1)
-	var result = space_state.intersect_ray(query)
+func calculate_catch_chance(ball: RigidBody2D) -> float:
+	var base_chance = super.calculate_catch_chance(ball)
 	
-	if result and result.collider is Ball:
-		return result.collider
-	return null
-
-func _on_animation_finished(anim_name):
-	if anim_name == "dive" and current_catcher_state == CatcherState.DIVING:
-		current_catcher_state = CatcherState.NONE
-		dive_completed.emit()
+	# Catcher-specific bonuses
+	base_chance *= 1.0 + (catching_skill * 0.3) # 30% bonus from catching skill
+	base_chance *= 1.0 + (focus_skill * 0.2)   # 20% bonus from focus skill
+	
+	# Bonus for being set
+	if is_set:
+		base_chance *= 1.3
+	
+	# Penalty for ball curve
+	if "curve_force" in ball:
+		base_chance *= max(0.5, 1.0 - (ball.curve_force * 0.1))
+	
+	return clamp(base_chance, 0.0, 1.0)

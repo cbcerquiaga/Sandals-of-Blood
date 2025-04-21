@@ -1,13 +1,13 @@
 [gd_scene load_steps=3 format=3 uid="uid://do06blavtdukb"]
 
-[ext_resource type="Script" path="res://Goalie.gd" id="1_lhu4w"]
+[ext_resource type="Script" path="res://outfielder.gd" id="1_hfe7d"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_levo3"]
 radius = 2.0
 height = 6.0
 
-[node name="Forward" type="CharacterBody2D"]
-script = ExtResource("1_lhu4w")
+[node name="Outfielder" type="CharacterBody2D"]
+script = ExtResource("1_hfe7d")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("CapsuleShape2D_levo3")

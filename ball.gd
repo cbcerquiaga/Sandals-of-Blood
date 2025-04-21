@@ -18,7 +18,7 @@ var current_holder: Node2D = null
 var spin: float = 0.0
 var initial_pitch_velocity: Vector2 = Vector2.ZERO
 var air_hockey_physics: bool = false
-
+var height: float = 0
 var been_hit := false
 var hit_power_vector: Vector2
 var curve_force

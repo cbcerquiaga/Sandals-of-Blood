@@ -1,101 +1,145 @@
 class_name Batter
-extends Goalie
+extends BallPlayer
 
-enum SwingType {
-	CONTACT,
-	POWER
-}
+enum Handedness { LEFT, RIGHT, SWITCH }
+enum SwingType { CONTACT, POWER, BUNT }
+enum State { DEFAULT, WINDUP, SWINGING, BUNTING }
 
-signal swing_attempted(swing_type: SwingType)
-signal ball_hit(power: float)
+@export var handedness: Handedness = Handedness.RIGHT
+@export var bat_scene: PackedScene
 
-@export var swing_power: float = 800.0
-@export var contact_swing_accuracy: float = 0.8
-@export var power_swing_accuracy: float = 0.5
-@export var swing_cooldown: float = 1.0
+var swing_type: SwingType
+var bat_instance: Bat
+var swing_power: float = 0.0
+var swing_direction: Vector2 = Vector2.RIGHT
+var batting_state
 
-var can_swing: bool = true
-var is_swinging: bool = false
-var current_swing_type: SwingType = SwingType.CONTACT
-var ball_in_range: Ball = null
+# Movement boundaries
+@export var movement_boundary: Rect2 = Rect2(-100, -50, 200, 100)
 
 func _ready():
 	super._ready()
-	# Batters start idle (not defending like goalies)
-	change_state(GoalieState.MANUAL)
-	set_process_input(true)
+	spawn_bat()
+	set_handedness(handedness)
 
-func _input(event):
-	if not can_swing or not ball_in_range:
+func spawn_bat():
+	if bat_scene:
+		bat_instance = bat_scene.instantiate()
+		add_child(bat_instance)
+		bat_instance.set_batter(self)
+
+func set_handedness(new_handedness: Handedness):
+	handedness = new_handedness
+	match handedness:
+		Handedness.LEFT:
+			swing_direction = Vector2.LEFT
+			if bat_instance:
+				bat_instance.position.x = -abs(bat_instance.position.x)
+		Handedness.RIGHT:
+			swing_direction = Vector2.RIGHT
+			if bat_instance:
+				bat_instance.position.x = abs(bat_instance.position.x)
+		Handedness.SWITCH:
+			# Default to right but can be changed
+			swing_direction = Vector2.RIGHT
+			if bat_instance:
+				bat_instance.position.x = abs(bat_instance.position.x)
+
+func _physics_process(delta):
+	match batting_state:
+		State.DEFAULT:
+			handle_movement()
+			handle_swing_input()
+		State.WINDUP:
+			windup_swing(delta)
+		State.SWINGING:
+			execute_swing(delta)
+		State.BUNTING:
+			hold_bunt()
+
+func handle_movement():
+	var input_vector = Vector2.ZERO
+	input_vector.x = Input.get_axis("move_left", "move_right")
+	input_vector.y = Input.get_axis("move_up", "move_down")
+	
+	velocity = input_vector.normalized() * speed
+	move_and_slide()
+	
+	# Clamp position to boundaries
+	var new_position = position + velocity * get_physics_process_delta_time()
+	new_position.x = clamp(new_position.x, movement_boundary.position.x, movement_boundary.end.x)
+	new_position.y = clamp(new_position.y, movement_boundary.position.y, movement_boundary.end.y)
+	position = new_position
+
+func handle_swing_input():
+	if Input.is_action_just_pressed("swing_contact"):
+		start_swing(SwingType.CONTACT)
+	elif Input.is_action_just_pressed("swing_power"):
+		start_swing(SwingType.POWER)
+	elif Input.is_action_just_pressed("swing_bunt"):
+		start_swing(SwingType.BUNT)
+
+func start_swing(type: SwingType):
+	swing_type = type
+	match type:
+		SwingType.CONTACT:
+			batting_state = State.SWINGING
+			swing_power = 0.7 + 0.3 * power # Base power + power stat influence
+		SwingType.POWER:
+			batting_state = State.WINDUP
+			swing_power = 0.0
+		SwingType.BUNT:
+			batting_state = State.BUNTING
+			swing_power = 0.3 # Weak hit
+
+func windup_swing(delta: float):
+	# Wind up the swing (pull bat back)
+	swing_power = min(swing_power + delta * (0.5 + power * 0.5), 1.0)
+	
+	if swing_power >= 1.0 or Input.is_action_just_released("swing_power"):
+		batting_state = State.SWINGING
+
+func execute_swing(delta: float):
+	if not bat_instance:
+		batting_state = State.DEFAULT
 		return
 	
-	if event.is_action_pressed("contact_swing"):
-		attempt_swing(SwingType.CONTACT)
-	elif event.is_action_pressed("power_swing"):
-		attempt_swing(SwingType.POWER)
+	# Animate the bat swing
+	var swing_speed = 10.0 * (0.8 + power * 0.4) * swing_power
+	bat_instance.swing(swing_direction, swing_speed, delta)
+	
+	# Check if swing is complete
+	if bat_instance.is_swing_complete():
+		batting_state = State.DEFAULT
 
-func attempt_swing(swing_type: SwingType):
-	if not can_swing or is_swinging:
+func hold_bunt():
+	if not bat_instance:
+		batting_state = State.DEFAULT
 		return
 	
-	current_swing_type = swing_type
-	is_swinging = true
-	swing_attempted.emit(swing_type)
+	bat_instance.bunt_position()
 	
-	# Play swing animation
-	#if animation_player:
-		#animation_player.play("swing_" + ("power" if swing_type == SwingType.POWER else "contact"))
-	
-	# Check if contact was made
-	if ball_in_range and _check_contact():
-		_hit_ball()
-	
-	# Swing recovery
-	await get_tree().create_timer(swing_cooldown).timeout
-	is_swinging = false
-	can_swing = true
+	if Input.is_action_just_released("swing_bunt"):
+		batting_state = State.DEFAULT
 
-func _check_contact() -> bool:
-	if not ball_in_range:
-		return false
+func calculate_hit_effect(hit_position: Vector2, ball: RigidBody2D) -> Vector2:
+	# Calculate the effect of the hit based on bat position, batter stats, and ball properties
+	var hit_power = swing_power * power
 	
-	# Calculate accuracy based on swing type
-	var accuracy = power_swing_accuracy if current_swing_type == SwingType.POWER else contact_swing_accuracy
-	return randf() < accuracy
-
-func _hit_ball():
-	if not ball_in_range:
-		return
+	# Random chance to whiff based on focus
+	if randf() > focus * 0.9: # Higher focus = lower whiff chance
+		return Vector2.ZERO # Whiff - no contact
 	
-	# Calculate hit power
-	var power_multiplier = 1.5 if current_swing_type == SwingType.POWER else 1.0
-	var hit_power = swing_power * power_multiplier * randf_range(0.8, 1.2)
+	# Calculate direction variance based on control
+	var direction_variance = (1.0 - control) * 30.0 # Degrees of variance
+	var random_angle = deg_to_rad(randf_range(-direction_variance, direction_variance))
+	var base_direction = swing_direction.rotated(random_angle)
 	
-	# Determine direction - mix of player facing and random variance
-	var direction = Vector2.RIGHT.rotated(rotation)
-	direction = direction.rotated(randf_range(-0.2, 0.2))
+	# Calculate speed based on hit power and sweet spot
+	var hit_speed = ball.linear_velocity.length() * 0.5 + hit_power * 1200.0
 	
-	# Apply force to ball
-	ball_in_range.apply_impulse(direction * hit_power)
-	ball_hit.emit(hit_power)
+	# Apply curve effect from the ball
+	var curve_effect = ball.curve_force * 50.0 if "curve_force" in ball else 0.0
+	var final_direction = base_direction.rotated(deg_to_rad(curve_effect))
 	
-	# Transition to air hockey mode
-	if ball_in_range.has_method("enter_air_hockey_mode"):
-		ball_in_range.enter_air_hockey_mode()
-
-func _on_ball_entered_range(ball: Ball):
-	ball_in_range = ball
-
-func _on_ball_exited_range(ball: Ball):
-	if ball_in_range == ball:
-		ball_in_range = null
-
-# Override Goalie methods we don't want batters to use
-func attempt_dive():
-	pass  # Batters don't dive
-
-#func _on_animation_finished(anim_name):
-	#if "swing_" in anim_name:
-		#is_swinging = false
-	#else:
-		#super._on_animation_finished(anim_name)
+	return final_direction * hit_speed

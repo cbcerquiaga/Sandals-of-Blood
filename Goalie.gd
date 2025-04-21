@@ -1,181 +1,137 @@
 class_name Goalie
-extends BallPlayer
+extends AirHockeyPlayer
 
-enum GoalieState {
-	DEFENSIVE,    # Protects goal in crease
-	AGGRESSIVE,   # Challenges in neutral zone
-	VIOLENT,      # Attacks opponents
-	MANUAL        # Player-controlled
-}
-
-var move_speed: float = 350.0
-var dive_power: float = 1200.0
-var attack_range: float = 180.0
-var zone_boundaries: Array[float] = [0.2, 0.4]  # Defensive/Neutral/Attacking
-var dive_cooldown
-var can_dive: bool
-var spin_timer: float
-var is_spinning
-var goalie_state
-var can_shoot: bool = true
-var shot_power: float = 900.0
+var field_width = 300
+var is_ai_controlled: bool = true
+var save_cooldown: float = 0.0
+var aggression_threshold = field_width * 0.5  # When to go on offense
+var reaction_speed = 0.85  # 0-1, lower is faster
+var top_corner = 90 #TODO: find actual corner, update for culdesac/road field
+var bottom_corner = 60
+var aim_distance = 800
+var future_ball
+var tolerance = 0.5 #adjusts difficulty
+var ball_sprint_threshhold_speed = 200
+var ball_dive_threshhold_distance = 10
+var dive_range = 5#TODO: determine how dive-happy goalie should be
 
 func _ready():
-	is_spinning = false
-	can_dive = true
-	spin_timer = 0.0
-	dive_cooldown = 3.0
-	goalie_state = GoalieState.DEFENSIVE
+	super._ready()
+	# Goalies start locked until pitch
+	can_move = false
 
 func _physics_process(delta):
-	if is_spinning:
-		_process_spin(delta)
-		return
-	
-	match goalie_state:
-		GoalieState.DEFENSIVE:
-			_defend_crease(delta)
-		GoalieState.AGGRESSIVE:
-			_challenge_ball(delta)
-		GoalieState.VIOLENT:
-			_attack_opponent(delta)
-		GoalieState.MANUAL:
-			_manual_control(delta)
-
-func _defend_crease(delta):
-	if not ball: return
-	
-	# Stay between ball and goal center with predictive movement
-	var goal_center = Vector2(100, get_viewport_rect().size.y/2)
-	var ball_dir = (ball.global_position - goal_center).normalized()
-	var block_pos = goal_center + ball_dir * 150  # Lead position
-	
-	velocity = delta * (block_pos - global_position).normalized() * move_speed
-	move_and_slide()
-
-func _challenge_ball(delta):
-	if not ball: return
-	
-	# Move toward ball but stay within neutral zone
-	var challenge_x = clamp(ball.global_position.x, 
-						  get_viewport_rect().size.x * zone_boundaries[0],
-						  get_viewport_rect().size.x * zone_boundaries[1])
-	
-	var target_pos = Vector2(challenge_x, ball.global_position.y)
-	velocity = delta * (target_pos - global_position).normalized() * sprint_speed
-	move_and_slide()
-
-func _attack_opponent(delta):
-	if opponents.is_empty(): return
-	
-	# Find nearest opponent with ball
-	var nearest: Node2D = null
-	var min_dist = INF
-	for opponent in opponents:
-		if opponent.has_ball:
-			var dist = global_position.distance_to(opponent.global_position)
-			if dist < min_dist:
-				min_dist = dist
-				nearest = opponent
-	
-	if nearest:
-		if min_dist < attack_range:
-			_perform_attack(nearest)
-		else:
-			velocity = delta * (nearest.global_position - global_position).normalized() * sprint_speed
-			move_and_slide()
-
-func _perform_attack(target: Node2D):
-	# Play attack animation
-	# Apply stun to opponent or knock them back
-	target.position += (target.global_position - global_position).normalized() * 100.0
-
-func _manual_control(delta):
-	var input_dir = Input.get_vector("move_left", "move_right", "move_up", "move_down")
-	velocity = delta * input_dir * (sprint_speed if Input.is_action_pressed("sprint") else move_speed)
-	move_and_slide() #TODO: if sprinting, ball will phase past player instead of blocking
-	if Input.is_action_just_pressed("attack_ball") and ball and can_shoot:
-		_take_shot()
-	if Input.is_action_just_pressed("dive") and can_dive:
-		_attempt_dive(input_dir)
-	if Input.is_action_just_pressed("spin"):
-		_spin_move(delta)
-	if Input.is_action_just_pressed("attack_player"):
-		_attack_nearest()
-
-func _attempt_dive(direction: Vector2):
-	if not can_dive: return
-	
-	can_dive = false
-	velocity = direction.normalized() * dive_power
-	move_and_slide()
-	
-	# Check for ball save
-	if ball and global_position.distance_to(ball.global_position) < 80.0:
-		var reflect_dir = (ball.global_position - global_position).normalized().bounce(direction)
-		ball.apply_impulse(reflect_dir * 600.0)
-	
-	await get_tree().create_timer(dive_cooldown).timeout
-	can_dive = true
-
-func _take_shot():
-	if not ball or not can_shoot: return
-	
-	var goal_pos = Vector2(get_viewport_rect().size.x - 50, get_viewport_rect().size.y/2)
-	var shot_dir = (goal_pos - ball.global_position).normalized()
-	ball.apply_impulse(shot_dir * shot_power)
-	can_shoot = false
-	await get_tree().create_timer(1.5).timeout
-	can_shoot = true
-
-func _process_spin(delta):
-	spin_timer -= delta
-	if spin_timer <= 0.0:
-		is_spinning = false
+	if is_player_controlled:
+		super._physics_process(delta)
 	else:
-		# Circular evasion movement
-		rotation += delta * 15.0
-		velocity = Vector2.RIGHT.rotated(rotation) * move_speed * 0.7
-		move_and_slide()
+		if current_mode == BehaviorMode.DEFEND_AREA: #default
+			goalieAI()
+		elif current_mode == BehaviorMode.ATTACK_OUTFIELDER:
+			var nearest_player = get_neatest_player()
+		elif current_mode == BehaviorMode.SCORING_POSITION:
+			attackAI()
+		
+func goalieAI():
+		defend_area = Rect2(-10, 10, 20, 10)#TODO: fix rectangle position and size
+		var is_sprinting = false
+		var direction =Vector2(0,0)#TODO: go towards good position instead of just sitting still
+		var dive = false
+		if ball == null:
+			print("goalie can't find ball")
+			return
+		elif defend_area.has_point(ball.position): #best defend that ball
+			if ball.velocity.x > ball_sprint_threshhold_speed:
+				is_sprinting = true
+			var intercept_up = calculate_intercept(Vector2.UP)
+			if intercept_up != null: #need to go up
+				direction = Vector2.UP
+			else: 
+				var intercept_down = calculate_intercept(Vector2.DOWN)
+				if intercept_down != null: #need to go up
+					direction = Vector2.DOWN
+			if direction != Vector2(0,0):
+				if ball.position.x - position.x < ball_dive_threshhold_distance:
+					if abs(ball.position.y - position.y) > dive_range:
+						dive = true
+			if is_sprinting:
+				velocity = direction * sprint_speed
+			else:
+				velocity = direction * speed
+			if dive:
+				start_dive()
+			
+			
+			
+		
 
-func _attack_nearest():
-	if opponents.is_empty(): return
+		
+
+func attackAI():
+	var intercept = calculate_intercept(Vector2.UP)
+	#move vaguely to a defensive rectangle
+
+func attempt_shot():
+		# Calculate shot target - aim for corners with some randomness
+		var target_y = [
+			top_corner,
+			bottom_corner 
+		].pick_random()
+		
+		# Calculate intercept point with added forward bias
+		var intercept_x = future_ball.x + abs(future_ball.velocity_x) * 0.3
+		var intercept_y = future_ball.y + future_ball.velocity_y * 0.3
+		
+		# Move to intercept point quickly
+		go(intercept_x, intercept_y, true)
+		
+		# When at intercept point, "hit" the ball toward target
+		if position.distance_to(Vector2(intercept_x, intercept_y)) < 10:
+			self.hit_ball_toward(target_y)
+
+func hit_ball_toward(y):
+	var x = aim_distance  # Aim slightly before opponent's goal
+	var goal_position = Vector2(x,y).direction_to(Vector2(future_ball.position.x, ball.position.y)).normalized()
+	goal_position = Vector2(x,y) + goal_position
+	if (goal_position.distance_to(position) > tolerance):
+		go(goal_position.x, goal_position.y, false)
+	else:
+		go(future_ball.x, future_ball.y, true)
 	
-	var nearest = opponents[0]
-	var min_dist = global_position.distance_to(nearest.global_position)
-	for opponent in opponents:
-		var dist = global_position.distance_to(opponent.global_position)
-		if dist < min_dist:
-			min_dist = dist
-			nearest = opponent
+
+func get_neatest_player():
+	#TODO: find the nearest player
+	return null
+
+func calculate_intercept(direction):
+	var intersection = get_line_intersection(
+		ball.global_position,
+		ball.linear_velocity.normalized(),
+		global_position,
+		direction
+	)
 	
-	if min_dist < attack_range:
-		_perform_attack(nearest)
+	# If no intersection (parallel paths), just chase current ball position
+	if intersection == Vector2.INF:
+		return null
+	return intersection
 
-func change_state(new_state: GoalieState):
-	goalie_state = new_state
-	match new_state:
-		GoalieState.DEFENSIVE:
-			velocity = Vector2.ZERO
-		GoalieState.AGGRESSIVE:
-			pass
-		GoalieState.VIOLENT:
-			pass
-		GoalieState.MANUAL:
-			pass
-
-func _on_zone_changed(new_zone: int):
-	match new_zone:
-		0:  # Defensive
-			change_state(GoalieState.DEFENSIVE)
-		1:  # Neutral
-			change_state(GoalieState.AGGRESSIVE)
-		2:  # Attacking
-			change_state(GoalieState.VIOLENT)
-
-func _on_ball_entered_range(ball_body: Ball):
-	ball = ball_body
-
-func _on_ball_exited_range(ball_body: Ball):
-	if ball == ball_body:
-		ball = null
+func get_line_intersection(
+	point_a: Vector2, direction_a: Vector2,
+	point_b: Vector2, direction_b: Vector2) -> Vector2:
+   
+	# Calculate the denominator for the intersection formula
+	var denominator = direction_b.x * direction_a.y - direction_b.y * direction_a.x
+	
+	# If lines are parallel (denominator close to zero)
+	if abs(denominator) < 0.0001:
+		return Vector2.INF
+	
+	# Calculate differences between points
+	var diff = point_b - point_a
+	
+	# Calculate the parameters where the lines intersect
+	var ua = (direction_b.x * diff.y - direction_b.y * diff.x) / denominator
+	var ub = (direction_a.x * diff.y - direction_a.y * diff.x) / denominator
+	
+	# Calculate the intersection point using line A's equation
+	return point_a + direction_a * ua
