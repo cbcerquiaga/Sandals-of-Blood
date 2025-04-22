@@ -8,7 +8,7 @@
 [ext_resource type="PackedScene" uid="uid://dve3ocphe5x2s" path="res://catcher.tscn" id="6_vqosb"]
 [ext_resource type="PackedScene" uid="uid://ddw5b7ts08u62" path="res://goalie.tscn" id="7_beaaj"]
 [ext_resource type="PackedScene" uid="uid://cvxr2eqn537fq" path="res://flanker.tscn" id="8_w1rn8"]
-[ext_resource type="PackedScene" uid="uid://do06blavtdukb" path="res://forward.tscn" id="9_mnw2f"]
+[ext_resource type="PackedScene" uid="uid://do06blavtdukb" path="res://Outfielder.tscn" id="9_mnw2f"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_wv1so"]
 radius = 2.0

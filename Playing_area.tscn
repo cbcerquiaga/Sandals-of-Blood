@@ -1,7 +1,6 @@
-[gd_scene load_steps=23 format=3 uid="uid://btoxcaggormqj"]
+[gd_scene load_steps=22 format=3 uid="uid://btoxcaggormqj"]
 
 [ext_resource type="Script" path="res://field.gd" id="1_1m20k"]
-[ext_resource type="PackedScene" uid="uid://kt3yqmv3naao" path="res://Field_Positions/pitcher_spot.tscn" id="2_dq8k6"]
 [ext_resource type="PackedScene" uid="uid://dmpuk25x6hir0" path="res://Field_Positions/l_bat_spot.tscn" id="3_anm21"]
 [ext_resource type="PackedScene" uid="uid://x6663esuyj0i" path="res://Field_Positions/r_bat_spot.tscn" id="4_tysh0"]
 [ext_resource type="PackedScene" uid="uid://duypcnhefqus1" path="res://Field_Positions/rofl_spot.tscn" id="5_uliqq"]
@@ -27,8 +26,6 @@
 script = ExtResource("1_1m20k")
 
 [node name="Positions" type="Node" parent="."]
-
-[node name="PitcherSpot" parent="Positions" instance=ExtResource("2_dq8k6")]
 
 [node name="L_Bat_spot" parent="Positions" instance=ExtResource("3_anm21")]
 

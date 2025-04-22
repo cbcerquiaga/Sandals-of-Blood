@@ -28,7 +28,7 @@
 [ext_resource type="PackedScene" uid="uid://dve3ocphe5x2s" path="res://catcher.tscn" id="26_wm5vs"]
 [ext_resource type="PackedScene" uid="uid://crrsal1xqbxor" path="res://batter.tscn" id="27_6je4s"]
 [ext_resource type="PackedScene" uid="uid://cvxr2eqn537fq" path="res://flanker.tscn" id="28_3omd1"]
-[ext_resource type="PackedScene" uid="uid://do06blavtdukb" path="res://forward.tscn" id="29_g371l"]
+[ext_resource type="PackedScene" uid="uid://do06blavtdukb" path="res://Outfielder.tscn" id="29_g371l"]
 [ext_resource type="PackedScene" uid="uid://ddw5b7ts08u62" path="res://goalie.tscn" id="30_llvo3"]
 [ext_resource type="PackedScene" uid="uid://dji6nxlupd683" path="res://safety.tscn" id="31_meqhg"]
 
@@ -65,6 +65,7 @@ position = Vector2(2163, 354)
 [node name="LOFL_Spot" parent="Field/Positions" instance=ExtResource("13_y6jq7")]
 
 [node name="LS_Spot" parent="Field/Positions" instance=ExtResource("14_sveyt")]
+position = Vector2(527, 277)
 
 [node name="OF_Spot_LHB" parent="Field/Positions" instance=ExtResource("16_hn3fh")]
 

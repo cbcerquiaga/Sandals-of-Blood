@@ -10,7 +10,7 @@ const SAFETY := preload("res://safety.tscn") #jerseys 0,1
 const FLANKER := preload("res://flanker.tscn") #jerseys 2,3
 const CATCHER := preload("res://catcher.tscn") #jersey 4
 const BATTER := preload("res://batter.tscn") #jersey 5
-const FORWARD := preload("res://forward.tscn") #jersey 6
+const FORWARD := preload("res://Outfielder.tscn") #jersey 6
 const PITCHER := preload("res://pitcher.tscn") #jersey 7
 const GOALIE := preload("res://goalie.tscn") #jersey 8
 
@@ -233,9 +233,9 @@ func on_ball_pitched() -> void:
 		homeTeam.catcher.transition_to_catching(field.spot_catcher.position)
 		homeTeam.catcher.ball = ball
 		homeTeam.catcher.can_move = true
-		homeTeam.catcher.is_player_controlled = true#TODO
-		print("home teach catcher ball: " + str(homeTeam.catcher.ball))
+		homeTeam.catcher.is_player_controlled = false
+		print("home team catcher ball: " + str(homeTeam.catcher.ball))
 	else:
 		awayTeam.catcher.ball = ball
 		awayTeam.catcher.can_move = true
-		print("away teach catcher ball: " + str(awayTeam.catcher.ball))
+		print("away team catcher ball: " + str(awayTeam.catcher.ball))

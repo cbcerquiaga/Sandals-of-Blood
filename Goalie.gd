@@ -37,7 +37,7 @@ func goalieAI():
 		var direction =Vector2(0,0)#TODO: go towards good position instead of just sitting still
 		var dive = false
 		if ball == null:
-			print("goalie can't find ball")
+			#print("goalie can't find ball")
 			return
 		elif defend_area.has_point(ball.position): #best defend that ball
 			if ball.velocity.x > ball_sprint_threshhold_speed:
