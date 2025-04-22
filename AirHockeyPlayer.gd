@@ -66,7 +66,7 @@ func handle_actions():
 		start_spin()
 	if Input.is_action_just_pressed("dive"):
 		start_dive()
-	if Input.is_action_just_pressed("attack"):
+	if Input.is_action_just_pressed("attack_player"):
 		attack()
 
 func start_spin():

@@ -5,7 +5,9 @@ enum CatcherState { CATCHING, CARRYING }
 
 @export var catching_skill: float = 0.8
 @export var focus_skill: float = 0.7
-@export var movement_boundary: Rect2 = Rect2(-50, -50, 100, 100)
+@export var movement_boundary: Rect2
+var rect_width = 100
+var rect_height = 25
 
 var current_catcher_state: CatcherState = CatcherState.CATCHING
 var ball_in_range: bool = false
@@ -54,6 +56,11 @@ func player_catching_behavior(delta):
 	position.x = clamp(position.x, movement_boundary.position.x, movement_boundary.end.x)
 	position.y = clamp(position.y, movement_boundary.position.y, movement_boundary.end.y)
 
+func transition_to_catching(spot):
+	position = spot
+	movement_boundary = Rect2(spot.x - rect_width/2, spot.y - rect_width/2, rect_height, rect_width)
+	current_catcher_state = CatcherState.CATCHING
+	
 func transition_to_carrying():
 	current_catcher_state = CatcherState.CARRYING
 	transition_footballer_state(FootballerState.CARRYING)

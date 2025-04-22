@@ -122,7 +122,7 @@ func charge_Pitch():
 		current_power = min_power
 		increasing = true
 		active = true
-		power_timer.start()
+		power_timer.autostart = true#.start()
 		print("Scaling power...")
 
 func execute_pitch():

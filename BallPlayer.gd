@@ -66,8 +66,8 @@ var injury_type: String = ""
 var injury_debuffs: Dictionary = {}
 
 ## Nodes
-@onready var animation_player: AnimationPlayer = $AnimationPlayer
-@onready var sprite: Sprite2D = $Sprite
+#@onready var animation_player: AnimationPlayer = $AnimationPlayer
+#@onready var sprite: Sprite2D = $Sprite
 
 #housekeeping
 var is_player_controlled
@@ -128,8 +128,8 @@ func go_to_position_behavior(delta):
 
 func solo_celebration_behavior(delta):
 	# Play solo celebration animation
-	if not animation_player.is_playing():
-		animation_player.play("solo_celebration")
+	#if not animation_player.is_playing():
+		#animation_player.play("solo_celebration")
 	
 	# Random movement during celebration
 	velocity = Vector2(randf_range(-1, 1), randf_range(-1, 1)).normalized() * speed * 0.5 * delta
@@ -142,8 +142,9 @@ func team_celebration_behavior(delta):
 	velocity = direction * speed * 0.3 * delta
 	
 	if global_position.distance_to(celebration_center) < 20.0:
-		if not animation_player.is_playing():
-			animation_player.play("team_celebration")
+		print("celebrate")
+		#if not animation_player.is_playing():
+			#animation_player.play("team_celebration")
 	
 	move_and_slide()
 
@@ -188,9 +189,11 @@ func transition_state(new_state: PlayerState):
 	# State-specific initialization
 	match new_state:
 		PlayerState.SOLO_CELEBRATION:
-			animation_player.stop()
+			print("celebrate alone")
+			#animation_player.stop()
 		PlayerState.TEAM_CELEBRATION:
-			animation_player.stop()
+			print("celebrate with the boys")
+			#animation_player.stop()
 		PlayerState.IN_BRAWL:
 			play_brawl_animation()
 		PlayerState.OUT_BRAWL, PlayerState.AI_OUT_BRAWL:
@@ -201,8 +204,9 @@ func transition_state(new_state: PlayerState):
 		#animation_player.play("idle")
 
 func play_brawl_animation():
-	if not animation_player.is_playing():
-		animation_player.play("brawl_idle")
+	print("gloves off")
+	#if not animation_player.is_playing():
+		#animation_player.play("brawl_idle")
 
 func get_assigned_position() -> Vector2:
 	# Implement based on your game's position system

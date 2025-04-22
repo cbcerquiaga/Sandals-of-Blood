@@ -230,9 +230,10 @@ func _on_ball_caught_by_player(player: Node2D) -> void:
 func on_ball_pitched() -> void:
 	print("Everyone knows the ball has been pitched")
 	if (isHomeOffense):
+		homeTeam.catcher.transition_to_catching(field.spot_catcher.position)
 		homeTeam.catcher.ball = ball
 		homeTeam.catcher.can_move = true
-		homeTeam.catcher.is_player_controlled = false#TODO
+		homeTeam.catcher.is_player_controlled = true#TODO
 		print("home teach catcher ball: " + str(homeTeam.catcher.ball))
 	else:
 		awayTeam.catcher.ball = ball
