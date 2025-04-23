@@ -19,6 +19,9 @@ enum Team { OFFENSE, DEFENSE }
 @export var team: Team
 @export var route_speed_modifier: float = 1.0
 
+@export var tackle_rating: float = 0.5 #tackling skill
+@export var steal_rating: float = 0.2 #chance to steal
+
 var baller_state: FootballerState = FootballerState.DEFAULT
 var current_route: Array = []
 var route_index: int = 0
@@ -228,11 +231,6 @@ func blocking_behavior(delta):
 		if position.distance_to(defender.position) < 40:
 			attempt_shove(defender)
 
-func move_towards(target: Vector2, delta: float):
-	var direction = (target - position).normalized()
-	velocity = direction * speed * delta
-	move_and_slide()
-
 func transition_footballer_state(new_state: FootballerState):
 	baller_state = new_state
 	player_state_changed.emit(new_state)
@@ -286,7 +284,7 @@ func attempt_stiff_arm():
 	# Check for nearby defenders to stiff arm
 	var defenders = get_defenders_in_range(50.0)
 	for defender in defenders:
-		defender.take_stiff_arm(physical_strength)
+		defender.take_stiff_arm(strength)
 
 func end_stiff_arm():
 	is_stiff_arming = false
@@ -335,7 +333,7 @@ func receive_tackle(tackler: FootballPlayer, tackle_power: float) -> bool:
 			return false
 	
 	# Calculate tackle success chance
-	var success_chance = tackle_power * (1.0 - (physical_strength * 0.2))
+	var success_chance = tackle_power * (1.0 - (strength * 0.2))
 	if randf() <= success_chance:
 		is_tackled = true
 		tackle_timer = 1.0 # 1 second to recover
@@ -349,7 +347,7 @@ func attempt_shove(target: FootballPlayer):
 	if is_shoved or is_diving or is_tackled:
 		return
 	
-	var shove_power = physical_strength * 0.5
+	var shove_power = strength * 0.5
 	target.receive_shove(shove_power, position.direction_to(target.position))
 
 func receive_shove(power: float, direction: Vector2):
@@ -365,8 +363,8 @@ func recover_from_shove():
 
 func take_stiff_arm(power: float):
 	# Take damage from stiff arm
-	health -= power
-	if health <= 0 or is_stealing:
+	balance -= power
+	if balance <= 0 or is_stealing:
 		is_tackled = true
 		tackle_timer = 1.0
 
@@ -394,3 +392,6 @@ func find_open_position() -> Vector2:
 func find_nearest_defender() -> FootballPlayer:
 	# Implement logic to find nearest defender
 	return null
+
+func move_towards(target: Vector2, delta: float):
+	super.move_towards(target, delta)

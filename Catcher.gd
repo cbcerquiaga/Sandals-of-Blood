@@ -11,10 +11,14 @@ var rect_height = 25
 
 var current_catcher_state: CatcherState = CatcherState.CATCHING
 var ball_in_range: bool = false
+var pitcherPosition: Vector2
+var reaction_time = 0.5
+var too_fast = 100
 
 func _ready():
 	super._ready()
 	catch_rating = (catching_skill + focus_skill) / 2.0
+	pitcherPosition = Vector2(1161, 369)
 
 func _physics_process(delta):
 	if current_catcher_state == CatcherState.CATCHING:
@@ -38,11 +42,26 @@ func ai_catching_behavior(delta):
 	if ball_in_range:
 		# Adjust position based on ball trajectory
 		target = predict_ball_position()
+	else:
+		check_is_ball_in_range() #check  if the ball is in range
+		if ball:
+			target = Vector2(position.x, ball.position.y)
+			
 	
 	target.x = clamp(target.x, movement_boundary.position.x, movement_boundary.end.x)
 	target.y = clamp(target.y, movement_boundary.position.y, movement_boundary.end.y)
 	
 	super.move_towards(target, delta)
+	
+#print("ballY: " + str(ball.global_position.y) +  ", catchY: " + str(position.y))
+		#if ball.position.y > position.y:
+			#target.y = position.y + 100
+		#elif ball.position.y < position.y :
+			#target.y = position.y - 100
+		#if absf(ball.linear_velocity.x) >= too_fast:
+			#target.x = movement_boundary.position.x
+		#elif absf(ball.linear_velocity.y) >= absf(ball.linear_velocity.x)/2:
+			#target.x = movement_boundary.end.x
 
 func player_catching_behavior(delta):
 	var input_vector = Vector2.ZERO
@@ -69,7 +88,29 @@ func transition_to_carrying():
 	var tween = create_tween()
 	tween.tween_property(self, "rotation", rotation + PI, 0.3)
 
+func check_is_ball_in_range():
+	if !ball:
+		return
+	else:
+		var range
+		var full_distance = self.position.distance_to(pitcherPosition)
+		var ball_speed = absf(ball.linear_velocity.x)
+		var ball_movement = absf(ball.linear_velocity.y)
+	#reaction range is based on catcher's stats and the ball
+		range = full_distance
+		if ball_movement > ball_speed * (1 - reaction_time):
+			range = range/2
+		if ball_speed > too_fast:
+			range = range/2
+		if position.distance_to(ball.position) <= range:
+			ball_in_range = true
+			print("ball in catching range")
+			print("distance: " + str(position.distance_to(ball.position)) + ", range: " + str(range))
+			
+		
+
 func _on_ball_entered_range(ball: RigidBody2D):
+	print("ball in range of catcher")
 	ball_in_range = true
 	if attempt_catch(ball):
 		transition_to_carrying()

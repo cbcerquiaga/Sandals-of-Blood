@@ -29,31 +29,28 @@ enum BrawlType {
 @export var age: int = 25
 
 ## Visible Stats
-@export var power: float = 1.0
-@export var control: float = 1.0
-@export var focus: float = 1.0
-@export var speed: float = 200.0
-@export var acceleration: float = 2000.0
-@export var sprint_speed: float = 275
-@export var catch_rating: float = 0.5
-@export var tackle_rating: float = 0.5
-@export var steal_rating: float = 0.2
-@export var jump_height: float = 1.0
-@export var physical_strength: float = 1.0
-@export var health: int = 10
-
+@export var power: float = 1.0 #affects throwing and batting the ball
+@export var control: float = 1.0 #affects randomness of passes and pitches
+@export var focus: float = 1.0 #affects catching and defense
+@export var speed: float = 200.0 #running speed
+@export var sprint_speed: float = 275 #top speed
+@export var catch_rating: float = 0.5 #base catch chance
+@export var jump_height: float = 1.0 #affects catching high balls
+@export var strength: float = 1.0 #impacts stiff arm, blocking, and attack
+@export var dodge: float = 1.0 #spin effectiveness
+@export var balance: int = 3 #affects chance to be tackled or stiff armed
+@export var health: int = 10#affects training and survival
 ## Hidden Stats
 @export var max_athleticism: float = 1.0
 @export var max_skill: float = 1.0
 @export var max_mental: float = 1.0
 @export var max_tough: float = 1.0
-
+@export var determination: float = 1.0 #affects training
 ## Energy System
-@export var energy: float = 100.0
-@export var endurance: float = 1.0
-@export var toughness: float = 1.0
-@export var strength: float = 1.0
-@export var durability: float = 1.0
+@export var energy: float = 100.0 #current player energy. always between 0-100
+@export var endurance: float = 1.0 #affects speed, focus, and fighting
+@export var toughness: float = 1.0 #affects fighting
+@export var durability: float = 1.0 #affects injury chance
 
 ## Brawl System
 var current_state: PlayerState = PlayerState.IDLE
@@ -445,3 +442,8 @@ func get_brawlers_on_team() -> Array:
 func get_losing_brawlers() -> Array:
 	# Implement logic to get all brawlers on losing team
 	return []
+	
+func move_towards(target: Vector2, delta: float):
+	var direction = (target - position).normalized()
+	velocity = direction * speed * delta
+	move_and_slide()
