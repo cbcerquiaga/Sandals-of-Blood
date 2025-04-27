@@ -41,17 +41,9 @@ func catching_behavior(delta):
 func ai_catching_behavior(delta):
 	# AI catcher moves to optimal position
 	var target = Vector2.ZERO # Default to center
-	if ball_in_range:
 		# Adjust position based on ball trajectory
-		target = predict_ball_position()
-	else:
-		check_is_ball_in_range() #check  if the ball is in range
-		if ball:
-			target = Vector2(position.x, ball.position.y)
-			#if (target.y > position.y):
-				#print("I must go up")
-			#elif (position.y > target.y):
-				#print("I must go down")
+	target = predict_ball_position()
+	
 			
 	
 	target.x = clamp(target.x, movement_boundary.position.x, movement_boundary.end.x)
@@ -128,8 +120,20 @@ func _on_ball_exited_range():
 	ball_in_range = false
 
 func predict_ball_position() -> Vector2:
-	# Implement ball trajectory prediction
-	return Vector2.ZERO
+	if (!ball):
+		return Vector2(position.x, position.y)
+	var predicted_position = Vector2(position.x, 0)
+	var curve_force = ball.get_curve_force()
+	if abs(ballVelocity.x) < 0.1:  # If ball is moving nearly vertically
+		predicted_position.y = position.y  # Just return current y since x isn't changing
+	else:
+		var time_to_x = (position.x - ball.position.x) / ballVelocity.x
+	
+	# Predict y position using kinematic equations with constant acceleration
+	# y = y0 + vy*t + 0.5*a*t^2
+		predicted_position.y = position.y + ballVelocity.y * time_to_x + 0.5 * curve_force.y * time_to_x * time_to_x
+	print("predicted position: " + str(predicted_position))
+	return predicted_position
 
 func calculate_catch_chance(ball: RigidBody2D) -> float:
 	var base_chance = super.calculate_catch_chance(ball)

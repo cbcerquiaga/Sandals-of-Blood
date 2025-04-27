@@ -158,3 +158,9 @@ func _on_pitcher_ball_pitched(power: float, spin: float, direction: Vector2, pos
 	var vector = direction * power
 	be_pitched(vector, spin)
 	pass # Replace with function body.
+
+func get_curve_force():
+	if curve_force == null:
+		return Vector2(0,0)
+	else:
+		return curve_force
