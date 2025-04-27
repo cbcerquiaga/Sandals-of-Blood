@@ -15,6 +15,8 @@ var pitcherPosition: Vector2
 var reaction_time = 0.5
 var too_fast = 100
 
+var ballVelocity = Vector2(0,0)
+
 func _ready():
 	super._ready()
 	catch_rating = (catching_skill + focus_skill) / 2.0
@@ -46,6 +48,10 @@ func ai_catching_behavior(delta):
 		check_is_ball_in_range() #check  if the ball is in range
 		if ball:
 			target = Vector2(position.x, ball.position.y)
+			#if (target.y > position.y):
+				#print("I must go up")
+			#elif (position.y > target.y):
+				#print("I must go down")
 			
 	
 	target.x = clamp(target.x, movement_boundary.position.x, movement_boundary.end.x)
@@ -92,15 +98,18 @@ func check_is_ball_in_range():
 	if !ball:
 		return
 	else:
+		#print("ball: " + str(ball.position) + ", " + str(ballVelocity))
 		var range
 		var full_distance = self.position.distance_to(pitcherPosition)
-		var ball_speed = absf(ball.linear_velocity.x)
-		var ball_movement = absf(ball.linear_velocity.y)
+		var ball_speed = absf(ballVelocity.x)
+		var ball_movement = absf(ballVelocity.y)
 	#reaction range is based on catcher's stats and the ball
 		range = full_distance
 		if ball_movement > ball_speed * (1 - reaction_time):
+			print("too wild")
 			range = range/2
 		if ball_speed > too_fast:
+			print("too fast")
 			range = range/2
 		if position.distance_to(ball.position) <= range:
 			ball_in_range = true
@@ -138,3 +147,8 @@ func calculate_catch_chance(ball: RigidBody2D) -> float:
 		base_chance *= max(0.5, 1.0 - (ball.curve_force * 0.1))
 	
 	return clamp(base_chance, 0.0, 1.0)
+
+
+func _on_ball_ball_speed(movement: Vector2) -> void:
+	ballVelocity = movement
+	pass # Replace with function body.

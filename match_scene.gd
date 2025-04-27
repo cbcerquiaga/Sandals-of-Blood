@@ -213,6 +213,11 @@ func pitchProcess():
 		on_ball_pitched()
 
 func midPitchProcess():
+	if (isHomeOffense):
+		pass
+		#homeTeam.catcher.
+	else:
+		pass
 	if ball.been_hit:
 		gameState = GameState.AIR_HOCKEY
 
@@ -234,6 +239,7 @@ func on_ball_pitched() -> void:
 		homeTeam.catcher.ball = ball
 		homeTeam.catcher.can_move = true
 		homeTeam.catcher.is_player_controlled = false
+		
 		print("home team catcher ball: " + str(homeTeam.catcher.ball))
 	else:
 		awayTeam.catcher.ball = ball

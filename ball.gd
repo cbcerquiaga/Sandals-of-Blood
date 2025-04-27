@@ -6,6 +6,7 @@ enum BallMode { PITCHING, FIELDING, AIR_HOCKEY }
 signal caught_by_player(player: Node2D)
 signal hit_by_batter(power: float)
 signal entered_air_hockey_mode()
+signal ball_speed(movement: Vector2)
 
 @export_group("Physics Properties")
 @export var drag_coefficient: float = 0.05
@@ -42,6 +43,7 @@ func _physics_process(delta):
 		linear_velocity = linear_velocity.normalized() * max_speed
 
 func _process_pitching_physics(delta):
+	ball_speed.emit(linear_velocity)
 	# Apply spin-induced curve
 	position = position + linear_velocity
 	if spin != 0.0:

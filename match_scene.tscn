@@ -126,6 +126,8 @@ gravity_scale = 0.0
 
 [node name="Right Safety" parent="Away Team" instance=ExtResource("31_meqhg")]
 
+[connection signal="ball_speed" from="Ball" to="Home Team/Catcher" method="_on_ball_ball_speed"]
+[connection signal="ball_speed" from="Ball" to="Away Team/Catcher" method="_on_ball_ball_speed"]
 [connection signal="caught_by_player" from="Ball" to="." method="_on_ball_caught_by_player"]
 [connection signal="entered_air_hockey_mode" from="Ball" to="." method="_on_ball_entered_air_hockey_mode"]
 [connection signal="hit_by_batter" from="Ball" to="." method="_on_ball_hit_by_batter"]
