@@ -14,6 +14,8 @@ var ball_in_range: bool = false
 var pitcherPosition: Vector2
 var reaction_time = 0.5
 var too_fast = 100
+var catch_distance = 10
+var reaching_distance = 10
 
 var ballVelocity = Vector2(0,0)
 
@@ -50,16 +52,10 @@ func ai_catching_behavior(delta):
 	target.y = clamp(target.y, movement_boundary.position.y, movement_boundary.end.y)
 	
 	super.move_towards(target, delta)
-	
-#print("ballY: " + str(ball.global_position.y) +  ", catchY: " + str(position.y))
-		#if ball.position.y > position.y:
-			#target.y = position.y + 100
-		#elif ball.position.y < position.y :
-			#target.y = position.y - 100
-		#if absf(ball.linear_velocity.x) >= too_fast:
-			#target.x = movement_boundary.position.x
-		#elif absf(ball.linear_velocity.y) >= absf(ball.linear_velocity.x)/2:
-			#target.x = movement_boundary.end.x
+	if !ball_in_range:
+		check_is_ball_in_range()
+		if check_is_ball_in_range():
+			_on_ball_entered_range()
 
 func player_catching_behavior(delta):
 	var input_vector = Vector2.ZERO
@@ -90,33 +86,22 @@ func check_is_ball_in_range():
 	if !ball:
 		return
 	else:
-		#print("ball: " + str(ball.position) + ", " + str(ballVelocity))
-		var range
-		var full_distance = self.position.distance_to(pitcherPosition)
-		var ball_speed = absf(ballVelocity.x)
-		var ball_movement = absf(ballVelocity.y)
-	#reaction range is based on catcher's stats and the ball
-		range = full_distance
-		if ball_movement > ball_speed * (1 - reaction_time):
-			print("too wild")
-			range = range/2
-		if ball_speed > too_fast:
-			print("too fast")
-			range = range/2
-		if position.distance_to(ball.position) <= range:
-			ball_in_range = true
-			print("ball in catching range")
-			print("distance: " + str(position.distance_to(ball.position)) + ", range: " + str(range))
-			
+		if absf(ball.position.x - position.x) < catch_distance:
+			if absf(ball.position.y - position.y) < reaching_distance:
+				return true
+	return false
+
+
 		
 
-func _on_ball_entered_range(ball: RigidBody2D):
+func _on_ball_entered_range():
 	print("ball in range of catcher")
 	ball_in_range = true
 	if attempt_catch(ball):
 		transition_to_carrying()
 
 func _on_ball_exited_range():
+	#TODO: check to attempt dive
 	ball_in_range = false
 
 func predict_ball_position() -> Vector2:
@@ -132,19 +117,30 @@ func predict_ball_position() -> Vector2:
 	# Predict y position using kinematic equations with constant acceleration
 	# y = y0 + vy*t + 0.5*a*t^2
 		predicted_position.y = position.y + ballVelocity.y * time_to_x + 0.5 * curve_force.y * time_to_x * time_to_x
-	print("predicted position: " + str(predicted_position))
+	#print("predicted position: " + str(predicted_position))
 	return predicted_position
 
 func calculate_catch_chance(ball: RigidBody2D) -> float:
 	var base_chance = super.calculate_catch_chance(ball)
 	
 	# Catcher-specific bonuses
-	base_chance *= 1.0 + (catching_skill * 0.3) # 30% bonus from catching skill
-	base_chance *= 1.0 + (focus_skill * 0.2)   # 20% bonus from focus skill
+	base_chance *= 1.0 + (catching_skill * 0.2) # 20% bonus from catching skill
+	
+	#	else:
+	var ball_speed = absf(ballVelocity.x)
+	var ball_movement = absf(ballVelocity.y)
+	#focus impacts ability to catch the ball if it is moving in a difficult way
+	if ball_movement > ball_speed * (1 - reaction_time):
+		print("too wild")
+		base_chance *= (1-focus_skill)
+	if ball_speed > too_fast:
+		print("too fast")
+		base_chance *= (1-focus_skill)
+			
 	
 	# Bonus for being set
 	if is_set:
-		base_chance *= 1.3
+		base_chance *= (catching_skill*2) #good catchers will generally catch the ball when set
 	
 	# Penalty for ball curve
 	if "curve_force" in ball:

@@ -8,8 +8,11 @@ enum BehaviorMode { DEFEND_AREA, ATTACK_OUTFIELDER, ATTACK_GOALIE, SCORING_POSIT
 @export var dive_speed_boost: float = 300.0 # Speed burst when diving
 @export var dive_duration: float = 0.5 # How long dive lasts
 @export var attack_power: int = 1
+@export var reactions: float = 0.1 #how long it takes to react to ball movement
+@export var aggression: int = 5 #more aggressive players go for offense and violence more, less aggressive play defensively more
 
 var current_mode: BehaviorMode = BehaviorMode.DEFEND_AREA
+var has_reacted: bool = false#used to determine reaction time
 var is_spinning: bool = false
 var is_diving: bool = false
 var is_knocked_down: bool = false

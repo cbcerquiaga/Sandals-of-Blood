@@ -1,6 +1,10 @@
 class_name Pitcher
 extends BallPlayer
 
+enum currentPitch {CURVEBALL,
+FASTBALL,
+KNUCKLEBALL}
+
 ## Signals
 signal ball_pitched(power: float, spin: float, direction: Vector2, position: Vector2)
 signal pitch_started
@@ -12,8 +16,12 @@ signal pitch_parameters_changed(power: float, spin: float, direction: Vector2)
 @export var max_spin: float = 50.0
 @export var pitch_animation: String = "pitch"
 @export var windup_time: float = 0.5
+@export var curveball: float = 0.9#speed consistency with curveball
+@export var fastball: float = 0.9#curve consistency with fastball
+@export var knuckleball: float = 0.9#
 
 ## Current pitch values
+var pitch_type = currentPitch.CURVEBALL
 var current_power: float = 0.0
 var current_spin: float = 0.0
 var current_direction: Vector2 = Vector2(-1, 0)
@@ -56,16 +64,14 @@ func _physics_process(delta):
 func _handle_pitch_controls():
 	if is_winding_up:
 		return
+	match pitch_type:
+		currentPitch.CURVEBALL:
+			curve_controls()
+		currentPitch.FASTBALL:
+			fast_controls()
+	#TODO: switch between pitch types
+	#TODO: change windup system for different pitch types
 	
-	# Spin control
-	if Input.is_action_pressed("increase_spin"):
-		current_spin = min(current_spin + 1.0, max_spin)
-		print("more cowbell! " + str(current_spin))
-	
-	if Input.is_action_pressed("decrease_spin"):
-		current_spin = max(current_spin - 1.0, -max_spin)
-		print("less cowbell... " + str(current_spin))
-		
 	if Input.is_action_just_pressed("move_down"):
 		print("a littler lower")
 		current_direction.y += aim_increment
@@ -170,3 +176,21 @@ func release_ball():
 	has_thrown = true
 	is_player_controlled = false
 	
+func curve_controls():
+	# Spin control
+	if Input.is_action_pressed("increase_spin"):
+		current_spin = min(current_spin + 1.0, max_spin)
+		print("more cowbell! " + str(current_spin))
+	
+	if Input.is_action_pressed("decrease_spin"):
+		current_spin = max(current_spin - 1.0, -max_spin)
+		print("less cowbell... " + str(current_spin))
+		
+func fast_controls():
+	if Input.is_action_pressed("increase_spin"):
+		current_power = min(current_power + 2.0, max_spin)
+		print("more heat! " + str(current_spin))
+	
+	if Input.is_action_pressed("decrease_spin"):
+		current_spin = max(current_power - 2.0, -max_spin)
+		print("kitchen too hot... " + str(current_spin))
