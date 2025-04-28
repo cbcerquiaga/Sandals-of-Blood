@@ -21,7 +21,7 @@ signal pitch_parameters_changed(power: float, spin: float, direction: Vector2)
 @export var knuckleball: float = 0.9#
 
 ## Current pitch values
-var pitch_type = currentPitch.CURVEBALL
+var pitch_type = currentPitch.FASTBALL
 var current_power: float = 0.0
 var current_spin: float = 0.0
 var current_direction: Vector2 = Vector2(-1, 0)
@@ -29,6 +29,8 @@ var is_winding_up: bool = false
 var min_power := 40
 var power_increment := 10
 var power_increment_rand := 3
+var spin_increment := 0.2
+var spin_increment_rand := 0.1
 var increasing := true
 var active := false
 var power_timer : Timer
@@ -37,6 +39,7 @@ var aim_increment = 0.02
 var chill_timer
 var can_throw := false
 var has_thrown := false
+var is_left_handed:= false
 
 func _ready():
 	can_throw = false
@@ -67,10 +70,11 @@ func _handle_pitch_controls():
 	match pitch_type:
 		currentPitch.CURVEBALL:
 			curve_controls()
+			current_power = min_power
 		currentPitch.FASTBALL:
+			current_power = max_power * fastball
 			fast_controls()
 	#TODO: switch between pitch types
-	#TODO: change windup system for different pitch types
 	
 	if Input.is_action_just_pressed("move_down"):
 		print("a littler lower")
@@ -85,7 +89,6 @@ func _handle_pitch_controls():
 		if current_direction.y < (0-aim_max_angle):
 			print("max angle")
 			current_direction.y = 0-aim_max_angle
-	
 	if Input.is_action_just_pressed("pitch"):
 		charge_Pitch()
 		start_pitch_windup()
@@ -101,21 +104,8 @@ func start_pitch_windup():
 func _process_windup():
 	print("winding up")
 	var rng = RandomNumberGenerator.new()
-	var variance = rng.randi_range(0-power_increment_rand, power_increment_rand)
-	if increasing:
-		if current_power < max_power:
-			current_power += power_increment + variance
-		else:
-			#TODO: use stats to determine if player can throw over max power on this pitch
-			current_power = max_power
-			increasing = false
-	else: 
-		if current_power > min_power:
-			current_power -= power_increment - variance
-		else:
-			#TODO: use stats to determine if player flubs it and throws under max power on this pitch
-			current_power = min_power
-			increasing = true
+	if pitch_type == currentPitch.CURVEBALL:
+		curveball_windup(rng)
 			
 
 func charge_Pitch():
@@ -125,7 +115,7 @@ func charge_Pitch():
 		active = false
 		print("Final Power:", current_power)
 	else: # Start the power scaling process
-		current_power = min_power
+		#current_power = min_power
 		increasing = true
 		active = true
 		power_timer.autostart = true#.start()
@@ -186,11 +176,62 @@ func curve_controls():
 		current_spin = max(current_spin - 1.0, -max_spin)
 		print("less cowbell... " + str(current_spin))
 		
+	if Input.is_action_just_pressed("pitch"):
+			charge_Pitch()
+			start_pitch_windup()
+		
 func fast_controls():
 	if Input.is_action_pressed("increase_spin"):
-		current_power = min(current_power + 2.0, max_spin)
-		print("more heat! " + str(current_spin))
+		current_power = min(current_power + 2.0, max_power)
+		print("more heat! " + str(current_power))
 	
 	if Input.is_action_pressed("decrease_spin"):
-		current_spin = max(current_power - 2.0, -max_spin)
-		print("kitchen too hot... " + str(current_spin))
+		current_power = max(current_power - 2.0, min_power)
+		print("kitchen too hot... " + str(current_power))
+
+func curveball_windup(rng):
+	var variance = rng.randi_range(0-power_increment_rand, power_increment_rand)
+	variance = variance * (1 - focus)
+	var temp_min = min_power + (max_power * curveball)/2
+	if temp_min > max_power * (1 - focus):
+		temp_min = max_power * (1 - focus)
+	#TODO: implement curveball skill
+	if increasing:
+		if current_power < max_power:
+			current_power += power_increment + variance
+		else:
+			#TODO: use stats to determine if player can throw over max power on this pitch
+			current_power = max_power
+			increasing = false
+	else: 
+		if current_power > temp_min:
+			current_power -= power_increment - variance
+		else:
+			#TODO: use stats to determine if player flubs it and throws under max power on this pitch
+			current_power = temp_min
+			increasing = true
+
+func fastball_windup(rng):
+	var power_mod = 1 - (energy/100) + (1-fastball)
+	current_power = current_power - (rng.randi_range(0, power_mod))
+	var temp_min = (max_spin * -1 * (1 - fastball) - control)/3
+	var temp_max = (max_spin * (1 - fastball) + control)/3
+	if is_left_handed: #TODO: figure out which way fastballs actually curve more
+		temp_min = temp_min / 2
+	else:
+		temp_max = temp_max / 2
+	var variance = rng.randi_range(0-spin_increment_rand, spin_increment_rand)
+	variance = variance * focus
+	if increasing:
+		if current_spin < temp_max:
+			current_spin += spin_increment + variance
+		else:
+			#TODO: use stats to determine if player can throw over max power on this pitch
+			current_spin = temp_max
+			increasing = false
+	else: 
+		if current_spin > temp_min:
+			current_spin -= spin_increment - variance
+		else:
+			current_spin = temp_min
+			increasing = true
