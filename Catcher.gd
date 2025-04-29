@@ -16,10 +16,12 @@ var reaction_time = 0.5
 var too_fast = 100
 var catch_distance = 10
 var reaching_distance = 10
+var isSprinting
 
 var ballVelocity = Vector2(0,0)
 
 func _ready():
+	sprint_speed = 320
 	super._ready()
 	catch_rating = (catching_skill + focus_skill) / 2.0
 	pitcherPosition = Vector2(1161, 369)
@@ -31,6 +33,11 @@ func _physics_process(delta):
 		super._physics_process(delta)
 
 func catching_behavior(delta):
+	if ballVelocity.length() > reaction_time * too_fast:
+		#print("better hustle, boy")
+		isSprinting = true
+	else:
+		isSprinting = false
 	if has_ball:
 		transition_to_carrying()
 		return
@@ -50,8 +57,10 @@ func ai_catching_behavior(delta):
 	
 	target.x = clamp(target.x, movement_boundary.position.x, movement_boundary.end.x)
 	target.y = clamp(target.y, movement_boundary.position.y, movement_boundary.end.y)
-	
-	super.move_towards(target, delta)
+	if !isSprinting:
+		super.move_towards(target, delta)
+	else:
+		super.sprint_towards(target, delta, true)
 	if !ball_in_range:
 		check_is_ball_in_range()
 		if check_is_ball_in_range():
@@ -61,8 +70,12 @@ func player_catching_behavior(delta):
 	var input_vector = Vector2.ZERO
 	input_vector.x = Input.get_axis("move_left", "move_right")
 	input_vector.y = Input.get_axis("move_up", "move_down")
-	
-	velocity = input_vector.normalized() * speed
+	var go_speed
+	if is_sprinting:
+		go_speed = sprint_speed
+	else:
+		go_speed = speed
+	velocity = input_vector.normalized() * go_speed
 	move_and_slide()
 	
 	# Clamp position to boundary

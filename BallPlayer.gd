@@ -444,6 +444,14 @@ func get_losing_brawlers() -> Array:
 	return []
 	
 func move_towards(target: Vector2, delta: float):
+	sprint_towards(target, delta, false)
+	
+func sprint_towards(target: Vector2, delta: float, isSprinting: bool):
 	var direction = (target - position).normalized()
-	velocity = direction * speed * delta
+	var go_speed
+	if isSprinting:
+		go_speed = sprint_speed
+	else:
+		go_speed = speed
+	velocity = direction * go_speed * delta
 	move_and_slide()
