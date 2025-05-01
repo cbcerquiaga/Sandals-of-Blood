@@ -50,19 +50,6 @@ func _ready():
 
 func _physics_process(delta):
 	if is_player_controlled:
-		_handle_pitch_controls()
-		if Input.is_action_just_pressed("strategy_primary"):
-			pitch_type = currentPitch.CURVEBALL
-		elif Input.is_action_just_pressed("strategy_secondary"):
-			pitch_type = currentPitch.FASTBALL
-		elif Input.is_action_just_pressed("strategy_tertiary"):
-			print("This is where the knuckleball code goes")
-			#TODO: knuckleball logic
-			#pitch_type = currentPitch.KNUCKLEBALL
-		elif Input.is_action_just_pressed("strategy_quaternary"):
-			print("This is where the change up code goes")
-			#TODO: changeup logic
-			#pitch_type = currentPitch.CHANGEUP
 		if (is_winding_up):
 			#print("and here's the windup..." + str(current_power))
 			_process_windup()
@@ -75,6 +62,20 @@ func _physics_process(delta):
 					chill_timer-= 1
 				else:
 					can_throw = true
+		else:
+			_handle_pitch_controls()
+			if Input.is_action_just_pressed("strategy_primary"):
+				pitch_type = currentPitch.CURVEBALL
+			elif Input.is_action_just_pressed("strategy_secondary"):
+				pitch_type = currentPitch.FASTBALL
+			elif Input.is_action_just_pressed("strategy_tertiary"):
+				print("This is where the knuckleball code goes")
+				#TODO: knuckleball logic
+				#pitch_type = currentPitch.KNUCKLEBALL
+			elif Input.is_action_just_pressed("strategy_quaternary"):
+				print("This is where the change up code goes")
+				#TODO: changeup logic
+				#pitch_type = currentPitch.CHANGEUP
 	#super._physics_process(delta)
 
 func _handle_pitch_controls():

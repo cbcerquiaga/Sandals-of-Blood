@@ -7,6 +7,7 @@ radius = 2.0
 height = 6.0
 
 [node name="Catcher" type="CharacterBody2D"]
+scale = Vector2(2, 2)
 script = ExtResource("1_ej8uw")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]

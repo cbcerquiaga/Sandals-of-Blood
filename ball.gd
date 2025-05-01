@@ -1,7 +1,13 @@
 class_name Ball
 extends RigidBody2D
 
-enum BallMode { PITCHING, FIELDING, AIR_HOCKEY }
+enum BallMode { PITCHING, #thrown by pitcher, can be batted or caught by catcher
+FIELDING, #batted, can be caught by outfielders
+AIR_HOCKEY, #in air hockey mode, play must end with a goal
+FOOTBALL_CARRY, #follow player
+FOOTBALL_PASS, #in air, able to be caught
+OUTFIELDER_THROW #caught by outfielder, can be thrown at goal
+}
 
 signal caught_by_player(player: Node2D)
 signal hit_by_batter(power: float)
@@ -26,14 +32,14 @@ var curve_force
 
 func _ready():
 	contact_monitor = true
-	max_contacts_reported = 10
+	max_contacts_reported = 100
 	#body_entered.connect(_on_body_entered)
 
 func _physics_process(delta):
 	match current_mode:
 		BallMode.PITCHING:
 			_process_pitching_physics(delta)
-		BallMode.FIELDING:
+		BallMode.FOOTBALL_CARRY:
 			_process_fielding_physics(delta)
 		BallMode.AIR_HOCKEY:
 			_process_air_hockey_physics(delta)
@@ -79,11 +85,20 @@ func be_pitched(velocity: Vector2, ball_spin: float):
 	print("I am be pitched " + str(linear_velocity))
 
 func be_caught(by_player: Node2D):
-	current_mode = BallMode.FIELDING
-	current_holder = by_player
-	linear_velocity = Vector2.ZERO
-	freeze = true
-	caught_by_player.emit(by_player)
+	print("you got me!")
+	if current_mode == BallMode.FIELDING:
+		#TODO: check field position
+		#TODO: if in catching area, check player team
+		#TODO: if offense, give points to offense
+		#TODO: if defense, switch sides
+		#TODO: if not in catching area, initiate catch and throw
+		current_mode = BallMode.OUTFIELDER_THROW
+	elif current_mode == BallMode.PITCHING: #catcher got it
+		current_mode = BallMode.FOOTBALL_CARRY
+		current_holder = by_player
+		linear_velocity = Vector2.ZERO
+		freeze = true
+		caught_by_player.emit(by_player)
 
 func be_hit(power_vector: Vector2):
 	hit_power_vector = power_vector
@@ -109,6 +124,7 @@ func be_passed(target_position: Vector2, power: float):
 	spin = power * 0.05 * (1.0 if randf() > 0.5 else -1.0)
 
 func _on_body_entered(body: Node):
+	print("you touched ball")
 	# Handle collisions based on current mode
 	match current_mode:
 		BallMode.PITCHING:

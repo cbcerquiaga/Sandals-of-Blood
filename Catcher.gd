@@ -77,6 +77,9 @@ func player_catching_behavior(delta):
 		go_speed = speed
 	velocity = input_vector.normalized() * go_speed
 	move_and_slide()
+	for i in get_slide_collision_count():
+		var collision = get_slide_collision(i)
+		print("I collided with ", collision.get_collider().name)
 	
 	# Clamp position to boundary
 	position.x = clamp(position.x, movement_boundary.position.x, movement_boundary.end.x)
