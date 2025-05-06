@@ -1,0 +1,19 @@
+[gd_scene load_steps=5 format=3 uid="uid://cgfb6numfby87"]
+
+[ext_resource type="Script" path="res://MatchHandler.gd" id="1_v8xhv"]
+[ext_resource type="PackedScene" uid="uid://bje6o4s6rvh85" path="res://road_field.tscn" id="1_wmjeh"]
+[ext_resource type="PackedScene" uid="uid://3o41jr3lt75l" path="res://team.tscn" id="3_4qoer"]
+[ext_resource type="PackedScene" uid="uid://cetfl640qv42t" path="res://ball.tscn" id="4_uyrol"]
+
+[node name="Node2D" type="Node2D"]
+script = ExtResource("1_v8xhv")
+
+[node name="Camera2D" type="Camera2D" parent="."]
+
+[node name="RoadField" parent="." instance=ExtResource("1_wmjeh")]
+
+[node name="AITeam" parent="." instance=ExtResource("3_4qoer")]
+
+[node name="PlayerTeam" parent="." instance=ExtResource("3_4qoer")]
+
+[node name="RigidBody2D" parent="." instance=ExtResource("4_uyrol")]

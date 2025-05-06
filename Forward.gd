@@ -1,225 +1,272 @@
+extends Player
 class_name Forward
-extends BallPlayer
 
-enum ForwardState {
-	MANUAL,          # Player-controlled
-	ATTACK_GOALIE,   # Pressures opponent's goalie
-	PROTECT_GOALIE,  # Defends teammate goalie
-	DEFEND_HIGH,     # Blocks goal in neutral/attacking zones
-	DEFEND_LOW,      # Blocks goal in neutral/defending zones
-	GET_OPEN,        # Finds open space
-	CHASE_BALL       # Aggressive ball pursuit
-}
+# Forward-Specific Attributes
+@export var pass_tendency: float = 0.3  # 0-1 likelihood to pass to teammate
+@export var switch_cooldown: float = 5.0  # Seconds between side switches
 
-@export_group("Forward Attributes")
-@export var move_speed: float = 400.0
-@export var attack_power: float = 800.0
-@export var protect_radius: float = 300.0
-@export var shot_power: float = 900.0
-@export var shoot_power: float = 1000.0
-@export var dive_distance: float = 200.0
-@export var attack_range: float = 150.0
-@export var spin_duration: float = 0.5
-@export var zone_boundaries: Array[float] = [0.33, 0.66]  # Defensive/Neutral/Attacking
+var goal_position = Vector2(0,0)
+var assigned_guard: Guard = null
+var opposing_keeper: Keeper = null
+var forward_partner: Forward = null
+var can_switch_sides: bool = true
+var last_switch_time: float = 0.0
+var current_strategy: String = "positioning"  # "positioning" or "attacking"
+var guard_approach = "" #used for AI decision making
+var is_in_pass_mode = false #tells the ball to go to the goal or the teammate
 
-var forward_state: ForwardState = ForwardState.CHASE_BALL
-var teammate: BallPlayer
-var opponent_forward: BallPlayer
-var opponent_goalie: BallPlayer
-var can_shoot: bool = true
-var is_spinning: bool = false
-
+func _ready():
+	super._ready()
+	position_type = "forward"
+	$SwitchCooldown.wait_time = switch_cooldown
+	$SwitchCooldown.timeout.connect(_on_switch_cooldown_timeout)
 
 func _physics_process(delta):
-	if is_spinning:
-		_process_spin(delta)
+	super._physics_process(delta)
+	
+	if not is_controlling_player:
+		update_ai_behavior(delta)
+	else:
+		handle_human_input(delta)
+
+func handle_human_input(delta):
+	super.handle_human_input(delta)
+	if Input.is_action_just_pressed("switch_sides") and can_switch_sides:
+		attempt_side_switch()
+
+func update_ai_behavior(delta):
+	if !ball:
+		return
+	# Only make decisions when ball is in defensive half
+	if ball.global_position.y > get_defensive_threshold():
+		if current_strategy == "positioning":
+			make_strategy_decision()
+		
+		execute_current_strategy()
+
+func make_strategy_decision():
+	# Use aggression rating to decide strategy
+	var rand = randf_range(0,100)
+	if rand < attributes.aggression:
+		current_strategy = "attacking"
+	else:
+		current_strategy = "positioning"
+	
+	# If attacking, decide how to handle guard
+	if current_strategy == "attacking" and assigned_guard:
+		decide_guard_approach()
+
+func execute_current_strategy():
+	match current_strategy:
+		"positioning":
+			find_scoring_position()
+			check_pass_opportunity()
+		"attacking":
+			execute_attack_plan()
+
+func decide_guard_approach():
+	var guard_distance = global_position.distance_to(assigned_guard.global_position)
+	var guard_angle = (assigned_guard.global_position - global_position).angle()
+	
+	# Check if guard is out of position
+	if guard_distance > 250 or abs(guard_angle) > PI/3:
+		guard_approach = "ignore"
+	else:
+		# Choose to attack or avoid guard
+		if randf() < 0.4 * (attributes.confidence / 100.0):
+			guard_approach = "attack_guard"
+		else:
+			guard_approach = "avoid_" + ("left" if randf() > 0.5 else "right")
+
+func execute_attack_plan():
+	var target_position: Vector2
+	
+	match guard_approach:
+		"ignore":
+			target_position = opposing_keeper.global_position
+		"attack_guard":
+			target_position = assigned_guard.global_position
+			if global_position.distance_to(target_position) < 100:
+				attempt_attack()
+		"avoid_left", "avoid_right":
+			var avoid_dir = 1.0 if guard_approach == "avoid_right" else -1.0
+			var perpendicular = (opposing_keeper.global_position - global_position).normalized().rotated(avoid_dir * PI/4)
+			target_position = global_position + perpendicular * 200
+	
+	navigate_to(target_position)
+	
+	# Use boost for attack moves
+	if guard_approach != "ignore" and status.boost > 30:
+		if randf_range(0,1) < 0.6:
+			super.attempt_sprint(target_position)
+		else:
+			attempt_dodge()
+
+func find_scoring_position():
+	var ideal_position = goal_position + Vector2(
+		randf_range(-150, 150),
+		randf_range(200, 300)  # Position in front of goal
+	)
+	if plays_left_side:
+		ideal_position.x -= 100
+	else:
+		ideal_position.x += 100
+	
+	# Adjust based on ball position
+	if ball:
+		var ball_to_goal = (goal_position - ball.global_position).normalized()
+		ideal_position = ball.global_position + ball_to_goal * 200
+	
+	navigate_to(ideal_position)
+
+func check_pass_opportunity():
+	if not forward_partner:
+		is_in_pass_mode = false
 		return
 	
-	match forward_state:
-		ForwardState.MANUAL:
-			_manual_control(delta)
-		ForwardState.ATTACK_GOALIE:
-			_attack_goalie(delta)
-		ForwardState.PROTECT_GOALIE:
-			_protect_goalie(delta)
-		ForwardState.DEFEND_HIGH:
-			_defend_high(delta)
-		ForwardState.DEFEND_LOW:
-			_defend_low(delta)
-		ForwardState.GET_OPEN:
-			_get_open()
-		ForwardState.CHASE_BALL:
-			_chase_ball(delta)
-
-# State Behaviors --------------------------------------------------------
-
-func _manual_control(delta):
-	var input_dir = Input.get_vector("move_left", "move_right", "move_up", "move_down")
-	velocity = input_dir * (sprint_speed if Input.is_action_pressed("sprint") else move_speed)
+	var should_pass = false
 	
-	if Input.is_action_just_pressed("attack_ball") and ball and can_shoot:
-		_take_shot()
-	if Input.is_action_just_pressed("dive"):
-		_attempt_dive()
-	if Input.is_action_just_pressed("spin"):
-		_start_spin()
-	if Input.is_action_just_pressed("attack_player"):
-		_attack_nearest()
-	if Input.is_action_just_pressed("pass_ball"):
-		#_switch_player()
-		pass
-	
-	move_and_slide()
-	
-func _perform_attack(target: Node2D):
-	# Play attack animation
-	# Apply stun to opponent or knock them back
-	target.position += (target.global_position - global_position).normalized() * 100.0
-
-func _attack_nearest():
-	if opponents.is_empty(): return
-	
-	var nearest = opponents[0]
-	var min_dist = global_position.distance_to(nearest.global_position)
-	for opponent in opponents:
-		var dist = global_position.distance_to(opponent.global_position)
-		if dist < min_dist:
-			min_dist = dist
-			nearest = opponent
-	
-	if min_dist < attack_range:
-		_perform_attack(nearest)
-		
-func _attack_goalie(delta):
-	if not opponent_goalie: return
-	
-	var attack_pos = opponent_goalie.global_position + Vector2(-50, 0)  # Attack from front
-	velocity = (attack_pos - global_position).normalized() * sprint_speed
-	
-	if global_position.distance_to(opponent_goalie.global_position) < 150.0:
-		_perform_attack(opponent_goalie)
-	
-	move_and_slide()
-
-func _protect_goalie(delta):
-	if not teammate or opponents.is_empty(): return
-	
-	# Stay near goalie while looking for threats
-	var protect_pos = teammate.global_position + Vector2(100, 0)
-	var nearest_threat = _find_nearest_opponent_in_radius(protect_radius)
-	
-	if nearest_threat:
-		velocity = (nearest_threat.global_position - global_position).normalized() * sprint_speed
-		if global_position.distance_to(nearest_threat.global_position) < 180.0:
-			_perform_attack(nearest_threat)
+	if is_controlling_player:
+		# Human player - check key press and confidence
+		should_pass = (
+			Input.is_action_pressed("pass"))
 	else:
-		velocity = (protect_pos - global_position).normalized() * move_speed
+		# AI - check confidence and pass tendency
+		should_pass = (
+			randf() < pass_tendency * (attributes.confidence / 100.0) and
+			global_position.distance_to(forward_partner.global_position) < 600
+		)
 	
-	move_and_slide()
+	if should_pass:
+		is_in_pass_mode = true
+	else:
+		is_in_pass_mode = false
 
-func _defend_high(delta):
-	if not ball: return
+func attempt_side_switch():
+	if not can_switch_sides or not forward_partner:
+		return
 	
-	# Block shots from neutral/attacking zones
-	var defend_x = clamp(ball.global_position.x, 
-					   get_viewport_rect().size.x * zone_boundaries[0],
-					   get_viewport_rect().size.x * zone_boundaries[1])
-	var defend_y = get_viewport_rect().size.y * 0.3  # High position
+	# Swap positions with partner
+	var my_pos = global_position
+	var partner_pos = forward_partner.global_position
 	
-	velocity = (Vector2(defend_x, defend_y) - global_position).normalized() * move_speed
-	move_and_slide()
-
-func _defend_low(delta):
-	if not ball: return
+	navigate_to(partner_pos)
+	forward_partner.navigate_to(my_pos)
 	
-	# Block shots from neutral/defending zones
-	var defend_x = clamp(ball.global_position.x, 
-					   get_viewport_rect().size.x * 0.1,
-					   get_viewport_rect().size.x * zone_boundaries[1])
-	var defend_y = get_viewport_rect().size.y * 0.7  # Low position
+	# Update position labels if needed
+	if position_type.ends_with("_l"):
+		position_type = position_type.replace("_l", "_r")
+	else:
+		position_type = position_type.replace("_r", "_l")
 	
-	velocity = (Vector2(defend_x, defend_y) - global_position).normalized() * move_speed
-	move_and_slide()
+	# Start cooldown
+	can_switch_sides = false
+	$SwitchCooldown.start()
+	last_switch_time = Time.get_ticks_msec() / 1000.0
 
-func _chase_ball(delta):
-	if not ball: return
+func attempt_dodge():
+	if not assigned_guard or is_spinning or status.boost < 15:
+		return
 	
-	# Chase ball with aggression
-	velocity = (ball.global_position - global_position).normalized() * sprint_speed
+	# Calculate dodge success probability based on factors
+	var dodge_success_chance = calculate_dodge_success()
 	
-	# Check for shot opportunity
-	if global_position.distance_to(ball.global_position) < 120.0 and can_shoot:
-		_take_shot()
+	# Only dodge if we have good chance of success
+	if dodge_success_chance >= 0.65:  # 65% minimum threshold
+		start_spin()
+		
+		# If we predicted an attack, counterattack
+		if is_guard_attacking_soon():
+			await get_tree().create_timer(0.2).timeout  # Small delay for dramatic effect
+			attempt_counterattack()
+
+func calculate_dodge_success() -> float:
+	var base_chance = 0.5
+	var guard_attack_prob = predict_guard_attack()
 	
-	# Attack nearby opponents
-	var nearest_opponent = _find_nearest_opponent_in_radius(180.0)
-	if nearest_opponent:
-		_perform_attack(nearest_opponent)
+	# Factors affecting dodge success
+	var confidence_bonus = attributes.confidence / 200.0  # +0% to +50%
+	var speed_advantage = (attributes.speed - assigned_guard.attributes.speed) / 500.0
+	var energy_advantage = (status.energy - assigned_guard.energy) / 200.0
+	var distance_factor = 1.0 - (global_position.distance_to(assigned_guard.global_position) / 300.0)
 	
-	move_and_slide()
-
-# Core Actions -----------------------------------------------------------
-
-func _take_shot():
-	if not ball or not can_shoot: return
+	# Combine factors (clamped to 0-1 range)
+	var success_chance = clamp(
+		base_chance + 
+		(guard_attack_prob * 0.3) +  # More effective against imminent attacks
+		confidence_bonus +
+		speed_advantage +
+		energy_advantage +
+		(distance_factor * 0.2),
+		0.0, 1.0
+	)
 	
-	var goal_pos = Vector2(get_viewport_rect().size.x - 50, get_viewport_rect().size.y/2)
-	var shot_dir = (goal_pos - ball.global_position).normalized()
-	ball.apply_impulse(shot_dir * shot_power)
-	can_shoot = false
-	await get_tree().create_timer(1.5).timeout
-	can_shoot = true
+	return success_chance
 
-func _attempt_dive():
-	if not ball: return
+func predict_guard_attack() -> float:
+	if not assigned_guard or not is_instance_valid(assigned_guard):
+		return 0.0
 	
-	var dive_dir = (ball.global_position - global_position).normalized()
-	velocity = dive_dir * sprint_speed * 1.5
-	move_and_slide()
+	# Calculate attack probability based on:
+	var attack_prob = 0.0
 	
-	if global_position.distance_to(ball.global_position) < 80.0:
-		var reflect_dir = dive_dir.bounce(Vector2.UP)
-		ball.apply_impulse(reflect_dir * shot_power * 0.6)
-
-func _start_spin():
-	is_spinning = true
-	await get_tree().create_timer(0.6).timeout
-	is_spinning = false
-
-func _process_spin(delta):
-	rotation += delta * 15.0
-	velocity = Vector2.RIGHT.rotated(rotation) * move_speed * 0.8
-	move_and_slide()
-
-# Helper Methods ---------------------------------------------------------
-
-func _find_nearest_opponent_in_radius(radius: float) -> Node2D:
-	var nearest = null
-	var min_dist = INF
+	# 1. Guard's aggression rating
+	attack_prob += assigned_guard.attributes.aggression / 100.0 * 0.4
 	
-	for opponent in opponents:
-		var dist = global_position.distance_to(opponent.global_position)
-		if dist < radius and dist < min_dist:
-			min_dist = dist
-			nearest = opponent
+	# 2. Distance to ball (closer = more likely)
+	var guard_to_ball_dist = assigned_guard.global_position.distance_to(ball.global_position)
+	attack_prob += (1.0 - clamp(guard_to_ball_dist / 400.0, 0.0, 1.0)) * 0.3
 	
-	return nearest
+	# 3. Relative angle (facing player = more likely)
+	var guard_facing = assigned_guard.velocity.normalized() if assigned_guard.velocity.length() > 10 else assigned_guard.transform.x
+	var to_player_dir = (global_position - assigned_guard.global_position).normalized()
+	var angle_factor = 1.0 - (guard_facing.angle_to(to_player_dir) / PI)
+	attack_prob += angle_factor * 0.3
+	
+	return clamp(attack_prob, 0.0, 1.0)
 
-func change_state(new_state: ForwardState):
-	forward_state = new_state
-	velocity = Vector2.ZERO  # Reset movement on state change
+func is_guard_attacking_soon() -> bool:
+	if not assigned_guard:
+		return false
+	
+	# Check if guard is winding up an attack
+	if assigned_guard.has_method("is_attacking") and assigned_guard.is_attacking():
+		return true
+	
+	# Predictive check
+	var attack_prob = predict_guard_attack()
+	return attack_prob > 0.75 and global_position.distance_to(assigned_guard.global_position) < 150
 
-# Signal Connections -----------------------------------------------------
+func attempt_counterattack():
+	if status.boost < 20 or is_spinning:
+		return
+	
+	# Quick counterattack after successful dodge
+	status.boost -= 20
+	$AttackArea.monitoring = true
+	$CounterattackTimer.start(0.3)  # Brief attack window
+	
+	# Visual feedback
+	$CounterattackParticles.emitting = true
+	$CounterattackAnimation.play("counter")
 
-func _on_ball_entered_range(ball_body: Ball):
-	ball = ball_body
+func _on_counterattack_timer_timeout():
+	$AttackArea.monitoring = false
 
-func _on_ball_exited_range(ball_body: Ball):
-	if ball == ball_body:
-		ball = null
+func _on_switch_cooldown_timeout():
+	can_switch_sides = true
 
-func _on_teammate_goalie_spotted(goalie_node: BallPlayer):
-	teammate = goalie_node
+func get_defensive_threshold() -> float:
+	# Returns y-value that separates defensive/offensive halves
+	#TODO: check field type road, wide road, culdusac, left-horseshoe, right-horseshoe
+	return 0
 
-func _on_opponent_goalie_spotted(goalie_node: BallPlayer):
-	opponent_goalie = goalie_node
+func set_assigned_guard(guard: Guard):
+	assigned_guard = guard
+
+func set_forward_partner(partner: Forward):
+	forward_partner = partner
+
+func navigate_to(position: Vector2):
+	if $NavigationAgent.is_navigation_finished():
+		$NavigationAgent.target_position = position

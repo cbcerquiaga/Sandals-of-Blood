@@ -1,16 +1,47 @@
 [gd_scene load_steps=3 format=3 uid="uid://cetfl640qv42t"]
 
-[ext_resource type="Script" path="res://ball.gd" id="1_s8e87"]
+[ext_resource type="Script" path="res://ball.gd" id="1_4lfb7"]
 
-[sub_resource type="CircleShape2D" id="CircleShape2D_x28m4"]
+[sub_resource type="CircleShape2D" id="CircleShape2D_sqjmm"]
+radius = 36.0694
 
-[node name="Ball" type="RigidBody2D"]
-position = Vector2(1631, 358)
-script = ExtResource("1_s8e87")
+[node name="RigidBody2D" type="RigidBody2D"]
+script = ExtResource("1_4lfb7")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-shape = SubResource("CircleShape2D_x28m4")
+scale = Vector2(0.05, 0.05)
+shape = SubResource("CircleShape2D_sqjmm")
 
-[node name="Sprite2D" type="Polygon2D" parent="."]
-color = Color(1, 1, 0, 1)
-polygon = PackedVector2Array(3, -9, 6, -8, 9, -4, 10, 0, 9, 4, 7, 7, 4, 9, 1, 10, -4, 9, -7, 7, -9, 5, -10, 2, -10, -1, -9, -4, -7, -7, -4, -9, 0, -10)
+[node name="Polygon2D" type="Polygon2D" parent="."]
+scale = Vector2(0.05, 0.05)
+color = Color(0.686275, 0.87451, 0.247059, 1)
+polygon = PackedVector2Array(0, -36, 9, -35, 19, -31, 25, -26, 31, -18, 35, -9, 36, 0, 35, 9, 31, 18, 26, 25, 18, 31, 9, 35, 0, 36, -9, 35, -18, 31, -26, 25, -31, 18, -35, 9, -36, 0, -35, -9, -31, -18, -25, -26, -18, -31, -9, -35, 0, -36)
+
+[node name="Particles" type="Node" parent="."]
+
+[node name="Impact-dust" type="GPUParticles2D" parent="Particles"]
+amount = 9
+
+[node name="Impact-water" type="GPUParticles2D" parent="Particles"]
+
+[node name="Trail-dust" type="GPUParticles2D" parent="Particles"]
+
+[node name="Trail-water" type="GPUParticles2D" parent="Particles"]
+
+[node name="Audio" type="Node2D" parent="."]
+
+[node name="Contact- Stick" type="AudioStreamPlayer2D" parent="Audio"]
+
+[node name="Contact- Post" type="AudioStreamPlayer2D" parent="Audio"]
+
+[node name="Contact- Wall" type="AudioStreamPlayer2D" parent="Audio"]
+
+[node name="Movement- Rolling" type="AudioStreamPlayer2D" parent="Audio"]
+
+[node name="Movement- Skipping" type="AudioStreamPlayer2D" parent="Audio"]
+
+[node name="Movement- Whistling" type="AudioStreamPlayer2D" parent="Audio"]
+
+[node name="Highlight" type="Sprite2D" parent="."]
+
+[node name="Projection" type="Line2D" parent="."]

@@ -1,9 +1,6 @@
-[gd_scene load_steps=2 format=3 uid="uid://bjdgqu7nj5ewa"]
-
-[ext_resource type="Script" path="res://reworked_pitcher.gd" id="1_ogwsy"]
+[gd_scene format=3 uid="uid://cuyqvexth0anf"]
 
 [node name="CharacterBody2D" type="CharacterBody2D"]
-script = ExtResource("1_ogwsy")
 
 [node name="Polygon2D" type="Polygon2D" parent="."]
 polygon = PackedVector2Array(-1, -1, 1, -1, 2, 0, 1, 1, -1, 1, -2, 0)
@@ -64,7 +61,3 @@ offset_bottom = 40.0
 [node name="Cheer" type="AudioStreamPlayer2D" parent="Audio"]
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="."]
-
-[node name="StunTimer" type="Timer" parent="."]
-
-[node name="SpinCooldown" type="Timer" parent="."]

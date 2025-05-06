@@ -1,9 +1,9 @@
-[gd_scene load_steps=2 format=3 uid="uid://bjdgqu7nj5ewa"]
+[gd_scene load_steps=2 format=3 uid="uid://ba85u2jijse6y"]
 
-[ext_resource type="Script" path="res://reworked_pitcher.gd" id="1_ogwsy"]
+[ext_resource type="Script" path="res://Guard.gd" id="1_l8tvi"]
 
 [node name="CharacterBody2D" type="CharacterBody2D"]
-script = ExtResource("1_ogwsy")
+script = ExtResource("1_l8tvi")
 
 [node name="Polygon2D" type="Polygon2D" parent="."]
 polygon = PackedVector2Array(-1, -1, 1, -1, 2, 0, 1, 1, -1, 1, -2, 0)
@@ -64,6 +64,8 @@ offset_bottom = 40.0
 [node name="Cheer" type="AudioStreamPlayer2D" parent="Audio"]
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+
+[node name="DecisionTimer" type="Timer" parent="."]
 
 [node name="StunTimer" type="Timer" parent="."]
 

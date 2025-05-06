@@ -1,0 +1,193 @@
+[gd_scene load_steps=8 format=3 uid="uid://bje6o4s6rvh85"]
+
+[ext_resource type="Script" path="res://Field.gd" id="1_s84cq"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_jakbm"]
+size = Vector2(117, 238)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_5gq74"]
+size = Vector2(3.5, 2)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_p4dk0"]
+size = Vector2(1, 7)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_msuvs"]
+size = Vector2(40, 7)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_87lc5"]
+size = Vector2(116, 121)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_fu7hr"]
+size = Vector2(8, 238)
+
+[node name="RoadField" type="Node2D"]
+script = ExtResource("1_s84cq")
+
+[node name="Boundary" type="StaticBody2D" parent="."]
+
+[node name="Texture" type="Sprite2D" parent="Boundary"]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Boundary"]
+shape = SubResource("RectangleShape2D_jakbm")
+
+[node name="Goals" type="Node2D" parent="."]
+
+[node name="PlayerGoal" type="Area2D" parent="Goals"]
+position = Vector2(0, 124)
+
+[node name="Post1" type="StaticBody2D" parent="Goals/PlayerGoal"]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Goals/PlayerGoal/Post1"]
+position = Vector2(-19.25, -4)
+shape = SubResource("RectangleShape2D_5gq74")
+
+[node name="Post2" type="StaticBody2D" parent="Goals/PlayerGoal"]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Goals/PlayerGoal/Post2"]
+position = Vector2(19.25, -4)
+shape = SubResource("RectangleShape2D_5gq74")
+
+[node name="SidePanel1" type="StaticBody2D" parent="Goals/PlayerGoal"]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Goals/PlayerGoal/SidePanel1"]
+position = Vector2(-20.5, 0.5)
+shape = SubResource("RectangleShape2D_p4dk0")
+
+[node name="SidePanel2" type="StaticBody2D" parent="Goals/PlayerGoal"]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Goals/PlayerGoal/SidePanel2"]
+position = Vector2(20.5, 0.5)
+shape = SubResource("RectangleShape2D_p4dk0")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Goals/PlayerGoal"]
+position = Vector2(0, 0.5)
+shape = SubResource("RectangleShape2D_msuvs")
+
+[node name="Texture" type="Sprite2D" parent="Goals/PlayerGoal"]
+
+[node name="AIGoal" type="Area2D" parent="Goals"]
+position = Vector2(0, -124)
+rotation = 3.14159
+
+[node name="Post1" type="StaticBody2D" parent="Goals/AIGoal"]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Goals/AIGoal/Post1"]
+position = Vector2(-19.25, -4)
+shape = SubResource("RectangleShape2D_5gq74")
+
+[node name="Post2" type="StaticBody2D" parent="Goals/AIGoal"]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Goals/AIGoal/Post2"]
+position = Vector2(19.25, -4)
+shape = SubResource("RectangleShape2D_5gq74")
+
+[node name="SidePanel1" type="StaticBody2D" parent="Goals/AIGoal"]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Goals/AIGoal/SidePanel1"]
+position = Vector2(-20.5, 0.5)
+shape = SubResource("RectangleShape2D_p4dk0")
+
+[node name="SidePanel2" type="StaticBody2D" parent="Goals/AIGoal"]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Goals/AIGoal/SidePanel2"]
+position = Vector2(20.5, 0.5)
+shape = SubResource("RectangleShape2D_p4dk0")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Goals/AIGoal"]
+position = Vector2(0, 0.5)
+shape = SubResource("RectangleShape2D_msuvs")
+
+[node name="Texture" type="Sprite2D" parent="Goals/AIGoal"]
+
+[node name="Zones" type="Node2D" parent="."]
+position = Vector2(0, 124)
+
+[node name="PlayerHalf" type="Area2D" parent="Zones"]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Zones/PlayerHalf"]
+position = Vector2(0, -65.5)
+shape = SubResource("RectangleShape2D_87lc5")
+
+[node name="AIHalf" type="Area2D" parent="Zones"]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Zones/AIHalf"]
+position = Vector2(0, -182)
+shape = SubResource("RectangleShape2D_87lc5")
+
+[node name="SpawnPoints" type="Node" parent="."]
+
+[node name="Player" type="Node2D" parent="SpawnPoints"]
+
+[node name="K" type="Marker2D" parent="SpawnPoints/Player"]
+position = Vector2(0, 116)
+
+[node name="RG" type="Marker2D" parent="SpawnPoints/Player"]
+position = Vector2(28, 116)
+
+[node name="LP" type="Marker2D" parent="SpawnPoints/Player"]
+position = Vector2(28, 125)
+
+[node name="RP" type="Marker2D" parent="SpawnPoints/Player"]
+position = Vector2(-28, 125)
+
+[node name="LG" type="Marker2D" parent="SpawnPoints/Player"]
+position = Vector2(-28, 116)
+
+[node name="LF" type="Marker2D" parent="SpawnPoints/Player"]
+position = Vector2(-56, -116)
+
+[node name="RF" type="Marker2D" parent="SpawnPoints/Player"]
+position = Vector2(56, -116)
+
+[node name="AI" type="Node2D" parent="SpawnPoints"]
+rotation = 3.14159
+
+[node name="K" type="Marker2D" parent="SpawnPoints/AI"]
+position = Vector2(0, 116)
+
+[node name="RG" type="Marker2D" parent="SpawnPoints/AI"]
+position = Vector2(28, 116)
+
+[node name="LP" type="Marker2D" parent="SpawnPoints/AI"]
+position = Vector2(28, 125)
+
+[node name="RP" type="Marker2D" parent="SpawnPoints/AI"]
+position = Vector2(-28, 125)
+
+[node name="LG" type="Marker2D" parent="SpawnPoints/AI"]
+position = Vector2(-28, 116)
+
+[node name="LF" type="Marker2D" parent="SpawnPoints/AI"]
+position = Vector2(-56, -116)
+
+[node name="RF" type="Marker2D" parent="SpawnPoints/AI"]
+position = Vector2(56, -116)
+
+[node name="Walls" type="Node2D" parent="."]
+
+[node name="Left" type="StaticBody2D" parent="Walls"]
+position = Vector2(-62, 0)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Walls/Left"]
+shape = SubResource("RectangleShape2D_fu7hr")
+
+[node name="Right" type="StaticBody2D" parent="Walls"]
+position = Vector2(62, 0)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Walls/Right"]
+shape = SubResource("RectangleShape2D_fu7hr")
+
+[node name="Back" type="StaticBody2D" parent="Walls"]
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="Walls/Back"]
+polygon = PackedVector2Array(-66, -119, -21, -119, -22, -129, 22, -129, 21, -119, 66, -119, 20, -136, -22, -136)
+one_way_collision = true
+one_way_collision_margin = 128.0
+
+[node name="Front" type="StaticBody2D" parent="Walls"]
+rotation = 3.14159
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="Walls/Front"]
+polygon = PackedVector2Array(-66, -119, -21, -119, -22, -129, 22, -129, 21, -119, 66, -119, 20, -136, -22, -136)
+one_way_collision = true
+one_way_collision_margin = 128.0

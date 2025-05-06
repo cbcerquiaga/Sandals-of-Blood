@@ -1,33 +1,52 @@
-extends Node
+extends Node2D
+class_name Field
 
-#playing areas
-var runningField  #where the play happens if the catcher catches the ball
-var endZone #scores 6 points
-var bonusZone #scores 2 points if ran into before touchdown
+#spawn points
+var human_orientation
+var human_k_spawn
+var human_lg_spawn
+var human_rg_spawn
+var human_lf_spawn
+var human_rf_spawn
+var human_lhp_spawn
+var human_rhp_spawn
+var cpu_orientation
+var cpu_k_spawn
+var cpu_lg_spawn
+var cpu_rg_spawn
+var cpu_lf_spawn
+var cpu_rf_spawn
+var cpu_lhp_spawn
+var cpu_rhp_spawn
 
-var pitchingField #where the pitcher stands and where play happens if the batter hits the ball
-var goal_batting #where the defense (batting team) defends
-var goal_pitching  #where the offense (pitching team) defends
+#collision areas
+var playerHalf
+var cpuHalf
+var playerGoal
+var cpuGoal
+var fieldBoundary
 
-#fixed offensive positions
-var spot_pitcher 
-var spot_catcher
-var spot_goalie 
-var spot_off_left_flanker
-var spot_off_right_flanker 
 
-#fixed defensive positions
-var spot_def_left_flanker 
-var spot_def_right_flanker 
-var spot_def_left_safety 
-var spot_def_right_safety 
 
-#variable positions based on batter handedness
-#left handed batter
-var spot_L_Batter  #where the batter stands
-var spot_L_off_forward  #where the offensive forward stands
-var spot_L_def_forward  #where the defensive forward stands
-#right handed batter
-var spot_R_Batter #where the batter stands
-var spot_R_off_forward #where the offensive forward stands
-var spot_R_def_forward  #where the defensive forward stands
+func _ready():
+	human_orientation = $SpawnPoints/Player.global_rotation
+	human_k_spawn = $SpawnPoints/Player/K.global_position
+	human_lg_spawn = $SpawnPoints/Player/LG.global_position
+	human_rg_spawn = $SpawnPoints/Player/RG.global_position
+	human_lf_spawn = $SpawnPoints/Player/LF.global_position
+	human_rf_spawn = $SpawnPoints/Player/RF.global_position
+	human_lhp_spawn = $SpawnPoints/Player/LP.global_position
+	human_rhp_spawn = $SpawnPoints/Player/RP.global_position
+	cpu_orientation = $SpawnPoints/AI.global_rotation
+	cpu_k_spawn = $SpawnPoints/AI/K.global_position
+	cpu_lg_spawn = $SpawnPoints/AI/LG.global_position
+	cpu_rg_spawn = $SpawnPoints/AI/RG.global_position
+	cpu_lf_spawn = $SpawnPoints/AI/LF.global_position
+	cpu_rf_spawn = $SpawnPoints/AI/RF.global_position
+	cpu_lhp_spawn = $SpawnPoints/AI/LP.global_position
+	cpu_rhp_spawn = $SpawnPoints/AI/RP.global_position
+	playerHalf = $Zones/PlayerHalf
+	cpuHalf = $Zones/AIHalf
+	playerGoal = $Goals/PlayerGoal
+	cpuGoal = $Goals/AIGoal
+	fieldBoundary = $Boundary
