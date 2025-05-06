@@ -16,4 +16,6 @@ script = ExtResource("1_v8xhv")
 
 [node name="PlayerTeam" parent="." instance=ExtResource("3_4qoer")]
 
-[node name="RigidBody2D" parent="." instance=ExtResource("4_uyrol")]
+[node name="Ball" parent="." instance=ExtResource("4_uyrol")]
+
+[node name="PlayTimer" type="Timer" parent="."]

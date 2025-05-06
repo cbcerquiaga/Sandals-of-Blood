@@ -78,10 +78,10 @@ var brawl_defense: float = 0.0
 var brawl_health: float = 0.0
 var brawl_opponents: Array = []
 
-# Nodes
-@onready var stamina_bar = $StaminaBar
-@onready var boost_bar = $BoostBar
-@onready var state_label = $StateLabel
+# Nodes TODO
+var stamina_bar
+var boost_bar
+var state_label
 @onready var stun_timer = $StunTimer
 @onready var spin_cooldown = $SpinCooldown
 

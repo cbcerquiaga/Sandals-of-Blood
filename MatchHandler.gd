@@ -35,7 +35,7 @@ var is_human_team_pitching = true
 @onready var pTeam = $PlayerTeam as Team
 @onready var aTeam = $AITeam as Team
 @onready var play_timer = $PlayTimer
-@onready var match_ui = $MatchUI
+#@onready var match_ui = $MatchUI #TODO
 @onready var field: Field = $RoadField #TODO: import different kinds of fields
 
 signal emit_match_ended(winning_team)
@@ -187,17 +187,17 @@ func end_match(winning_team: int):
 	emit_signal("match_ended", winning_team)
 	
 	# Show match end UI
-	match winning_team:
-		0: match_ui.show_result("Tie Game!")
-		1: match_ui.show_result("Team 1 Wins!")
-		2: match_ui.show_result("Team 2 Wins!")
+	#match winning_team:
+		#0: match_ui.show_result("Tie Game!")
+		#1: match_ui.show_result("Team 1 Wins!")
+		#2: match_ui.show_result("Team 2 Wins!")
 
 func update_settings(new_settings: Dictionary):
 	current_settings = new_settings
 	apply_time_scale()
 	
 	# Update UI to reflect new settings
-	match_ui.update_settings_display(current_settings)
+	#match_ui.update_settings_display(current_settings)
 
 # Called from UI
 func set_time_scale(scale: float):

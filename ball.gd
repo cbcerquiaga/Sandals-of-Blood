@@ -19,8 +19,8 @@ var trajectory_progress: float = 0.0
 
 # Nodes
 @onready var collision_shape = $CollisionShape2D
-@onready var trail_particles = $TrailParticles
-@onready var impact_sound = $ImpactSound
+#@onready var trail_particles = $TrailParticles
+#@onready var impact_sound = $ImpactSound
 
 signal goal_scored(team)
 signal ball_entered_play

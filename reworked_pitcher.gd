@@ -34,10 +34,10 @@ var variance_factor = ((100 - attributes.focus)/100 + 1)/4 #between 25% and 50% 
 var current_variance = 0 #ranges from -100 to 100, then multiplied by variance factor
 var variance_increment = 5
 
-# Nodes
-@onready var pitch_aim = $PitchAim
-@onready var power_meter = $PowerMeter
-@onready var curve_indicator = $CurveIndicator
+# Nodes TODO
+#var aim_arrow = $AimArrow
+#var power_meter = $PowerMeter
+#var curve_indicator = $CurveIndicator
 
 func _ready():
 	super._ready()
@@ -52,8 +52,8 @@ func _process(delta):
 			if special_pitch_timers[i] <= 0:
 				special_pitch_available[i] = true
 	
-	if is_aiming:
-		update_aim_ui()
+	#if is_aiming: TODO
+		#update_aim_ui()
 
 func _physics_process(delta):
 	super._physics_process(delta)
@@ -254,17 +254,17 @@ func update_special_pitch_availability():
 	for i in special_pitch_available.size():
 		special_pitch_available[i] = special_pitch_timers[i] <= 0
 
-func update_aim_ui():
+#func update_aim_ui():
 	# Update power meter
-	power_meter.value = (current_power - min_power) / (max_power - min_power) * 100
+	#power_meter.value = (current_power - min_power) / (max_power - min_power) * 100
 	
 	# Update curve indicator
-	curve_indicator.rotation = current_curve * 0.5
-	curve_indicator.modulate = Color.RED if current_curve < 0 else Color.BLUE
+	#curve_indicator.rotation = current_curve * 0.5
+	#curve_indicator.modulate = Color.RED if current_curve < 0 else Color.BLUE
 	
 	# Update aim arrow
-	pitch_aim.rotation = aim_direction.angle()
-	pitch_aim.scale.x = current_power / max_power * 1.5
+	#aim_arrow.rotation = aim_direction.angle()
+	#aim_arrow.scale.x = current_power / max_power * 1.5
 
 func _on_goal_aced():
 		# Add pitch to successful pitches if not already there
