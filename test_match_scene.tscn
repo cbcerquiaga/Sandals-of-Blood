@@ -1,7 +1,8 @@
-[gd_scene load_steps=5 format=3 uid="uid://cgfb6numfby87"]
+[gd_scene load_steps=6 format=3 uid="uid://cgfb6numfby87"]
 
 [ext_resource type="Script" path="res://MatchHandler.gd" id="1_v8xhv"]
 [ext_resource type="PackedScene" uid="uid://bje6o4s6rvh85" path="res://road_field.tscn" id="1_wmjeh"]
+[ext_resource type="Script" path="res://camera_2d.gd" id="2_w1g4r"]
 [ext_resource type="PackedScene" uid="uid://3o41jr3lt75l" path="res://team.tscn" id="3_4qoer"]
 [ext_resource type="PackedScene" uid="uid://cetfl640qv42t" path="res://ball.tscn" id="4_uyrol"]
 
@@ -9,6 +10,7 @@
 script = ExtResource("1_v8xhv")
 
 [node name="Camera2D" type="Camera2D" parent="."]
+script = ExtResource("2_w1g4r")
 
 [node name="RoadField" parent="." instance=ExtResource("1_wmjeh")]
 

@@ -96,8 +96,10 @@ func _handle_pitch_controls():
 	if Input.is_action_just_pressed("pitch"):
 		execute_pitch("normal")
 	elif Input.is_action_just_pressed("sp_pitch_1") and special_pitch_available[0]:
+		print("special pitch pressed")
 		execute_pitch(special_pitch_names[0])
 	elif Input.is_action_just_pressed("sp_pitch_2") and special_pitch_available[1]:
+		print("special pitch pressed")
 		execute_pitch(special_pitch_names[1])
 
 func handle_ai_pitch_decision():
@@ -148,22 +150,23 @@ func execute_pitch(pitch_type: String):
 		special_pitch_available[sp_index] = false
 		special_pitch_timers[sp_index] = special_pitch_cooldowns[sp_index] * (1.2 - (attributes.confidence / 100.0))
 
+#no0rmal pitch curves
 func perform_normal_pitch():
-	var power_variation = randf_range(0.9, 1.1) * (attributes.power / 100.0)
-	var curve_variation = current_curve * (attributes.focus / 100.0)
+	status.energy = status.energy - (10 - attributes.endurance/10) #more endurance, less energy loss
 	
 	# AI adds some randomness if not player controlled
 	if not is_controlling_player:
-		power_variation *= randf_range(0.8, 1.2)
-		curve_variation *= randf_range(0.5, 1.5)
+		var power_variation = randf_range(0.8, 1.2)
+		var curve_variation = randf_range(0.5, 1.5)
 		
 		# Try to bank shots off walls
 		if randf() < 0.4: # 40% chance to try bank shot
 			var wall_position = get_best_bank_angle()
 			aim_direction = (wall_position - ball.global_position).normalized()
 			curve_variation = sign(curve_variation) * max_curve * 0.8
-	
-	ball.apply_pitch(aim_direction * current_power * power_variation, curve_variation)
+			ball.apply_pitch(aim_direction * current_power * power_variation, curve_variation)
+	else:
+		aim_direction = aim_direction * (1 + (current_variance * variance_factor))#TODO: check to make sure this works as intended
 
 func perform_fake_curve_pitch():
 	var curve_dir = 1.0 if randf() > 0.5 else -1.0

@@ -308,7 +308,7 @@ func enter_stunned_state(duration: float):
 	$StunAnimation.play("stun")
 
 func apply_health_damage(amount: float):
-	# This would tie into your injury system
+	#TODO
 	pass
 
 func _on_stun_timer_timeout():

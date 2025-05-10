@@ -8,9 +8,13 @@ class_name Ball
 @export var min_bounce_speed: float = 100.0
 @export var spin_decay: float = 0.95
 
+#debugging
+var debug = false
+var frame = 0
+
 # Game State
-enum BallState { PITCHING, SPECIAL_PITCH, IN_PLAY }
-var current_state: BallState = BallState.PITCHING
+enum BallState { WAITING, PITCHING, SPECIAL_PITCH, IN_PLAY }
+var current_state: BallState = BallState.WAITING
 var current_curve: float = 0.0
 var current_spin: float = 0.0
 var last_hit_by: Player = null
@@ -30,8 +34,14 @@ func _ready():
 	contact_monitor = true
 	max_contacts_reported = 8
 	body_entered.connect(_on_body_entered)
+	current_state = BallState.WAITING
 
 func _physics_process(delta):
+	if debug:
+		frame = frame + 1
+		if (frame >= 10):
+			print("ball position: " + str(global_position) + ", ball state: " + str(current_state))
+			frame = 0
 	match current_state:
 		BallState.PITCHING:
 			apply_pitching_physics(delta)
@@ -39,8 +49,13 @@ func _physics_process(delta):
 			follow_special_trajectory(delta)
 		BallState.IN_PLAY:
 			apply_in_play_physics(delta)
+		BallState.WAITING:
+			apply_waiting_physics()
 	
 	update_visuals()
+
+func apply_waiting_physics():
+	linear_velocity = Vector2(0,0)
 
 func apply_pitching_physics(delta):
 	# Apply curve effect
@@ -93,6 +108,8 @@ func _on_body_entered(body: Node):
 	#impact_sound.play()
 
 func handle_player_collision(player: Player):
+	if current_state == BallState.WAITING:
+		return
 	last_hit_by = player
 	
 	match player.position_type:
@@ -174,6 +191,8 @@ func apply_forward_hit(forward: Forward, direction: Vector2):
 	linear_velocity = direction * final_power
 
 func handle_wall_collision(wall: StaticBody2D):
+	if current_state == BallState.WAITING:
+		return
 	# Get wall normal (assuming walls have consistent orientation)
 	var wall_normal = (global_position - wall.global_position).normalized()
 	
@@ -185,8 +204,8 @@ func handle_wall_collision(wall: StaticBody2D):
 	if abs(incoming_angle) < PI/6: # Shallow angle
 		current_spin = incoming_angle * linear_velocity.length() * 0.005
 	
-	# Enter play state if not already
-	if current_state != BallState.IN_PLAY:
+	# Enter play state if being pitched
+	if current_state == BallState.PITCHING:
 		enter_play_state()
 
 func set_special_trajectory(trajectory: Curve2D):
@@ -205,7 +224,7 @@ func reset_ball(position):
 	linear_velocity = Vector2.ZERO
 	current_curve = 0.0
 	current_spin = 0.0
-	current_state = BallState.PITCHING
+	current_state = BallState.WAITING
 	last_hit_by = null
 	special_trajectory = null
 	freeze = true
