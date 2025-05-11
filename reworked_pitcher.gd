@@ -73,27 +73,34 @@ func _on_pitch_phase_started():
 	aim_direction = Vector2.RIGHT if team == 1 else Vector2.LEFT
 
 func _handle_pitch_controls():
+	print("control pitcher")
 	can_move = false
 	# Power adjustment
-	if Input.is_action_pressed("aim_up"):
+	if Input.is_action_pressed("move_up"):
+		print("more mustard")
 		current_power = min(max_power, current_power + 10)
-	elif Input.is_action_pressed("aim_down"):
+	elif Input.is_action_pressed("move_down"):
+		print("scrape some mustard off")
 		current_power = max(min_power, current_power - 10)
 	
 	# Curve adjustment
-	if Input.is_action_pressed("increase_curve"):
+	if Input.is_action_pressed("increase_spin"):
 		current_curve = min(max_curve, current_curve + curve_step)
-	elif Input.is_action_pressed("decrease_curve"):
+		print("curl it")
+	elif Input.is_action_pressed("decrease_spin"):
 		current_curve = max(-max_curve, current_curve - curve_step)
+		print("straighten it")
 	
 	# Aim direction (mouse/joystick)
-	var input_direction = Input.get_vector("aim_left", "aim_right", "aim_up", "aim_down")
+	var input_direction = Input.get_vector("move_left", "move_right", "move_up", "move_down")
 	input_direction = input_direction * Vector2(1,0)#we only care about x axis
 	if input_direction.length() > 0.1:
 		aim_direction = input_direction.normalized()
+		print("aim it")
 	
 	# Pitch execution
 	if Input.is_action_just_pressed("pitch"):
+		print("throw it")
 		execute_pitch("normal")
 	elif Input.is_action_just_pressed("sp_pitch_1") and special_pitch_available[0]:
 		print("special pitch pressed")

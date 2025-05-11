@@ -27,12 +27,12 @@ var strategy: Dictionary = {
 	}
 }
 
-var K: Player
-var P: Player
-var LG: Player
-var RG: Player
-var LF: Player
-var RF: Player
+@export var K: Player
+@export var P: Player
+@export var LG: Player
+@export var RG: Player
+@export var LF: Player
+@export var RF: Player
 
 @onready var onfield_playes = [K, P, LG, RG, LF, RF]
 
@@ -59,12 +59,7 @@ func _process(delta: float) -> void:
 			has_readied = true
 
 func _ready():
-	K = $K
-	P = $P
-	LG = $LG
-	RG = $RG
-	RF = $RF
-	LF = $LF
+	initialize_default_strategy()
 
 func initialize_default_strategy():
 	# Set default position aggression modifiers

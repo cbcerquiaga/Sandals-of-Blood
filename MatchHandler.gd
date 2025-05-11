@@ -32,8 +32,8 @@ var is_human_team_pitching = true
 
 # References
 @onready var ball= $Ball as Ball
-@onready var pTeam = $PlayerTeam as Team
-@onready var aTeam = $AITeam as Team
+@onready var pTeam =  $PlayerTeam as Team
+@onready var aTeam =  $AITeamTeam as Team
 @onready var play_timer = $PlayTimer
 #@onready var match_ui = $MatchUI #TODO
 @onready var field: Field = $RoadField #TODO: import different kinds of fields
@@ -44,11 +44,13 @@ signal score_changed(team, new_score)
 
 func _ready():
 	ball= $Ball as Ball
-	pTeam = $PlayerTeam as Team
-	aTeam = $AITeam as Team
+	pTeam = Team.new(1)
+	aTeam = Team.new(2)
+	#print("pteam " + str(pTeam) + "/ateam " + str(aTeam) + "/ball " + str(ball))
 	apply_time_scale()
 
 func reset_match():
+	print("reset match")
 	team_scores = [0, 0]
 	pitches_remaining = current_settings.pitch_limit
 	is_in_extra_pitches = false
@@ -64,6 +66,9 @@ func _process(delta: float) -> void:
 				if pTeam.K != null and field.cpuGoal != null and ball.global_position != null:
 					print("We're ready")
 					ready_to_start = true
+		#else:
+			##problem
+			#
 	elif !has_started:
 		reset_match()
 		has_started = true
@@ -108,10 +113,12 @@ func position_player(player: Player, position: Vector2, rotation: float):
 		player.reset_state()
 
 func reset_ball():
+	print("reset ball")
 	if is_human_team_pitching:
 		ball.reset_ball(pTeam.P.global_position)
 		pTeam.P.has_ball = true
 		pTeam.P.is_controlling_player = true
+		pTeam.P.is_aiming = true
 	else:
 		ball.reset_ball(aTeam.P.global_position)
 		aTeam.P.has_ball = true
