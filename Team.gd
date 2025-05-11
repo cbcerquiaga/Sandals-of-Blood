@@ -261,6 +261,8 @@ func get_brawl_priority_players() -> Array[Player]:
 
 func enlighten(ball, ownGoal, oppGoal, oppK, oppLG, oppRG, oppLF, oppRF):
 	P.ball = ball
+	P.ball_pitched.connect(ball.be_pitched)
+	P.special_pitched.connect(ball.be_special_pitched)
 	P.oppGoal = oppGoal.global_position
 	K.ball = ball
 	K.own_goal = ownGoal.global_position

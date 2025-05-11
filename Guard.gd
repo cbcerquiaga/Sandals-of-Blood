@@ -225,7 +225,7 @@ func check_ball_attacking_half():
 func get_attacking_threshhold():
 	if !ball:
 		return false
-	if ball.globalPosition.y < 0:
+	if ball.global_position.y < 0:
 		return true
 	#TODO: update for different field shapes
 	return false

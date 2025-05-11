@@ -11,6 +11,7 @@ class_name Ball
 #debugging
 var debug = false
 var frame = 0
+var debug_frames = 20
 
 # Game State
 enum BallState { WAITING, PITCHING, SPECIAL_PITCH, IN_PLAY }
@@ -39,7 +40,7 @@ func _ready():
 func _physics_process(delta):
 	if debug:
 		frame = frame + 1
-		if (frame >= 10):
+		if (frame >= debug_frames):
 			print("ball position: " + str(global_position) + ", ball state: " + str(current_state))
 			frame = 0
 	match current_state:
@@ -100,6 +101,8 @@ func apply_in_play_physics(delta):
 		linear_velocity = linear_velocity.rotated(randf_range(-accuracy_effect * 0.05, accuracy_effect * 0.05))
 
 func _on_body_entered(body: Node):
+	if debug:
+		print("we have ball contact")
 	if body is Player:
 		handle_player_collision(body)
 	elif body is StaticBody2D: # Walls
@@ -240,3 +243,18 @@ func update_visuals():
 		#trail_particles.modulate = last_hit_by.team_color
 	#else:
 		#trail_particles.modulate = Color.WHITE
+		
+func be_pitched(power, curve, direction, place):
+	print("I am be pitched")
+	current_state = BallState.PITCHING
+	global_position = place
+	global_rotation = direction.angle()
+	apply_central_impulse(direction * power)
+	#apply_torque_impulse(curve)
+	
+func be_special_pitched(power, path, place):
+	print("that's a special pitch")
+	current_state = BallState.SPECIAL_PITCH
+	global_position = place
+	#TODO
+	

@@ -46,10 +46,10 @@ signal score_changed(team, new_score)
 
 func _ready():
 	ball= $Ball as Ball
-	pTeam = Team.new()
+	pTeam = $PlayerTeam as Team
 	pTeam.set_team_id(1)
 	pTeam.is_player_team = true
-	aTeam = Team.new()
+	aTeam = $AITeam as Team
 	aTeam.set_team_id(2)
 	aTeam.is_player_team = false
 	pTeam.set_process(true)

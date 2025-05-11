@@ -34,6 +34,7 @@ var variance_factor = ((100 - attributes.focus)/100 + 1)/4 #between 25% and 50% 
 var current_variance = 0 #ranges from -100 to 100, then multiplied by variance factor
 var variance_increment = 5
 
+
 # Nodes TODO
 #var aim_arrow = $AimArrow
 #var power_meter = $PowerMeter
@@ -58,8 +59,6 @@ func _process(delta):
 
 func _physics_process(delta):
 	
-	if team == 1:
-		print(str(is_controlling_player) + " and " +str(is_aiming))
 	super._physics_process(delta)
 	await ball
 	if is_controlling_player and is_aiming:
@@ -68,6 +67,9 @@ func _physics_process(delta):
 	elif not is_controlling_player and has_ball:
 		random_variance()
 		handle_ai_pitch_decision()
+	#else:
+		#if team == 1:
+			#print(str(is_controlling_player) + " and " +str(is_aiming))
 
 func _on_pitch_phase_started():
 	max_power = true_max_power * status.energy
@@ -77,7 +79,7 @@ func _on_pitch_phase_started():
 	aim_direction = Vector2.RIGHT if team == 1 else Vector2.LEFT
 
 func _handle_pitch_controls():
-	print("control pitcher")
+	#print("control pitcher")
 	can_move = false
 	# Power adjustment
 	if Input.is_action_pressed("move_up"):
@@ -175,9 +177,13 @@ func perform_normal_pitch():
 			var wall_position = get_best_bank_angle()
 			aim_direction = (wall_position - ball.global_position).normalized()
 			curve_variation = sign(curve_variation) * max_curve * 0.8
-			ball.apply_pitch(aim_direction * current_power * power_variation, curve_variation)
+			ball_pitched.emit(current_power * power_variation,  current_curve * curve_variation)
+			ball.apply_pitch(aim_direction * current_power * power_variation, current_curve * curve_variation, aim_direction, global_position)
 	else:
 		aim_direction = aim_direction * (1 + (current_variance * variance_factor))#TODO: check to make sure this works as intended
+		aim_direction = aim_direction.normalized()
+		release_ball()
+		ball_pitched.emit(current_power, current_curve, aim_direction, global_position)
 
 func perform_fake_curve_pitch():
 	var curve_dir = 1.0 if randf() > 0.5 else -1.0
@@ -322,3 +328,9 @@ func variance_timer():
 			
 func random_variance():
 	current_variance = randi_range(1,100)
+
+func release_ball():
+	has_ball = false
+	is_aiming = true
+	is_controlling_player = false
+	

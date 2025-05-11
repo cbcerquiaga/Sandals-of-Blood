@@ -10,7 +10,7 @@
 script = ExtResource("1_v8xhv")
 
 [node name="Camera2D" type="Camera2D" parent="."]
-zoom = Vector2(2, 2)
+zoom = Vector2(4, 4)
 script = ExtResource("2_w1g4r")
 
 [node name="RoadField" parent="." instance=ExtResource("1_wmjeh")]

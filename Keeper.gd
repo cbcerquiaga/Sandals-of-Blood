@@ -85,7 +85,7 @@ func perform_approaching():
 func make_clear_decision():
 	# Get closest opponent forward
 	var closest_opponent = get_closest_opponent()
-	var min_opp_dist = global_position.distance_to(closest_opponent)
+	var min_opp_dist = global_position.distance_to(closest_opponent.global_position)
 	
 	# Check if opponent is threatening
 	var opponent_threat = 0.0
@@ -101,7 +101,7 @@ func make_clear_decision():
 	weights.append(0.3)
 	
 	# 2. Direct shot if opponent keeper is out of position
-	if oppKeeper and (oppKeeper.is_stunned() or oppKeeper.global_position.distance_to(opp_goal) > 250):
+	if oppKeeper and (oppKeeper.is_stunned or oppKeeper.global_position.distance_to(opp_goal) > 250):
 		options.append("shoot_straight")
 		weights.append(0.4 * aggression)
 	
