@@ -70,6 +70,7 @@ var is_incapacitated: bool = false
 var is_in_brawl: bool = false
 var team: int = 1
 var position_type: String = ""
+var overall_state
 
 
 # Brawl Variables
@@ -415,6 +416,9 @@ func update_ui():
 
 func check_is_incapacitated() -> bool:
 	return is_incapacitated or is_stunned
+	
+func reset_state():
+	overall_state = PlayerState.IDLE
 
 # Signals
 signal player_hit(damage)

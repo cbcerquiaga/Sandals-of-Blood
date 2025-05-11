@@ -10,6 +10,7 @@
 script = ExtResource("1_v8xhv")
 
 [node name="Camera2D" type="Camera2D" parent="."]
+zoom = Vector2(2, 2)
 script = ExtResource("2_w1g4r")
 
 [node name="RoadField" parent="." instance=ExtResource("1_wmjeh")]
@@ -21,3 +22,6 @@ script = ExtResource("2_w1g4r")
 [node name="Ball" parent="." instance=ExtResource("4_uyrol")]
 
 [node name="PlayTimer" type="Timer" parent="."]
+
+[connection signal="on_team_ready" from="AITeam" to="." method="on_team_ready_signal"]
+[connection signal="on_team_ready" from="PlayerTeam" to="." method="on_team_ready_signal"]

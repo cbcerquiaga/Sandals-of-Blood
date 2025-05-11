@@ -29,11 +29,13 @@ var match_ended: bool = false
 var ready_to_start = false
 var has_started = false
 var is_human_team_pitching = true
+var team1Ready:bool
+var team2Ready:bool
 
 # References
 @onready var ball= $Ball as Ball
-@onready var pTeam =  $PlayerTeam as Team
-@onready var aTeam =  $AITeamTeam as Team
+var pTeam : Team
+var aTeam : Team
 @onready var play_timer = $PlayTimer
 #@onready var match_ui = $MatchUI #TODO
 @onready var field: Field = $RoadField #TODO: import different kinds of fields
@@ -44,9 +46,15 @@ signal score_changed(team, new_score)
 
 func _ready():
 	ball= $Ball as Ball
-	pTeam = Team.new(1)
-	aTeam = Team.new(2)
-	#print("pteam " + str(pTeam) + "/ateam " + str(aTeam) + "/ball " + str(ball))
+	pTeam = Team.new()
+	pTeam.set_team_id(1)
+	pTeam.is_player_team = true
+	aTeam = Team.new()
+	aTeam.set_team_id(2)
+	aTeam.is_player_team = false
+	pTeam.set_process(true)
+	aTeam.set_process(true)
+	print("process: pteam " + str(pTeam.process_mode) + "/ateam " + str(aTeam.has_readied) + "/field " + str(field))
 	apply_time_scale()
 
 func reset_match():
@@ -56,13 +64,17 @@ func reset_match():
 	is_in_extra_pitches = false
 	extra_pitches_used = 0
 	match_ended = false
+	pTeam.is_on_offense = true
+	aTeam.is_on_offense = false
 	enlighten_players()
 	reset_play()
 	
 func _process(delta: float) -> void:
 	if !ready_to_start:
 		if pTeam and aTeam and ball and field:
-			if pTeam.has_readied and aTeam.has_readied:
+			#print("everybody is here" + str(pTeam.has_readied) + "/"+str(aTeam.has_readied))
+			if team1Ready and team2Ready:
+				print("teams are ready. Goal: " + str(field.cpuGoal))
 				if pTeam.K != null and field.cpuGoal != null and ball.global_position != null:
 					print("We're ready")
 					ready_to_start = true
@@ -78,6 +90,8 @@ func reset_play():
 	current_play_time = 0.0
 	pTeam.wipe_player_control()
 	aTeam.wipe_player_control()
+	pTeam.assign_player_control()
+	print("human has control")
 	reposition_players()
 	reset_ball()
 	play_timer.start(current_settings.play_length if current_settings.play_length > 0 else 9999)
@@ -108,7 +122,7 @@ func reposition_players():
 func position_player(player: Player, position: Vector2, rotation: float):
 	if player:
 		player.global_position = position
-		player.globat_rotation = rotation
+		player.global_rotation = rotation
 		player.velocity = Vector2.ZERO
 		player.reset_state()
 
@@ -119,6 +133,7 @@ func reset_ball():
 		pTeam.P.has_ball = true
 		pTeam.P.is_controlling_player = true
 		pTeam.P.is_aiming = true
+		print("human pitcher in control")
 	else:
 		ball.reset_ball(aTeam.P.global_position)
 		aTeam.P.has_ball = true
@@ -217,3 +232,12 @@ func enlighten_players():
 	aTeam.enlighten(ball, field.cpuGoal, field.playerGoal, pTeam.K, pTeam.LG, pTeam.RG, pTeam.LF, pTeam.RF)
 	
 	
+
+#passing IDs didn't actually work, but as long as we get both signals we're good
+func on_team_ready_signal(id: int) -> void:
+	print("signal recieved " + str(id))
+	if (!team1Ready):
+		team1Ready = true
+	elif (team1Ready):
+		team2Ready = true
+	pass # Replace with function body.

@@ -45,6 +45,7 @@ func _ready():
 	update_special_pitch_availability()
 
 func _process(delta):
+	#print("pitcher processing")
 	# Update cooldowns
 	for i in special_pitch_timers.size():
 		if special_pitch_timers[i] > 0:
@@ -56,6 +57,9 @@ func _process(delta):
 		#update_aim_ui()
 
 func _physics_process(delta):
+	
+	if team == 1:
+		print(str(is_controlling_player) + " and " +str(is_aiming))
 	super._physics_process(delta)
 	await ball
 	if is_controlling_player and is_aiming:

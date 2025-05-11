@@ -3,6 +3,8 @@ extends Node
 
 # Team Configuration
 var team_id: int
+var is_on_offense: bool #whether or not the team is pitching
+var is_player_team: bool#whether ot not the team is human controlled
 var roster: Array[Player] = []
 var bench: Array[Player] = []  # Players not currently in positions
 var buffs: Array[Dictionary] = []
@@ -48,18 +50,26 @@ var positions: Dictionary = {
 
 var has_readied
 
-func _init(id: int):
+signal on_team_ready(id: int)
+
+func _init():
 	has_readied = false
-	team_id = id
+	K = Keeper.new()
+	P = Reworked_Pitcher.new()
+	LG = Guard.new()
+	RG = Guard.new()
+	LF = Forward.new()
+	RF = Forward.new()
+	add_players_to_roster()
 	initialize_default_strategy()
 	
 func _process(delta: float) -> void:
 	if !has_readied:
+		#print("not ready")
 		if K.attributes.power != null && LF.attributes.power != null:
 			has_readied = true
-
-func _ready():
-	initialize_default_strategy()
+			on_team_ready.emit(team_id)
+			print("ready")
 
 func initialize_default_strategy():
 	# Set default position aggression modifiers
@@ -69,6 +79,14 @@ func initialize_default_strategy():
 		"forward": 1.5,
 		"pitcher": 0.3
 	}
+
+func add_players_to_roster():
+	add_player(K)
+	add_player(P)
+	add_player(LG)
+	add_player(RG)
+	add_player(RF)
+	add_player(LF)
 
 func add_player(player: Player):
 	roster.append(player)
@@ -256,11 +274,11 @@ func enlighten(ball, ownGoal, oppGoal, oppK, oppLG, oppRG, oppLF, oppRF):
 	LG.ball = ball
 	LG.assigned_forward = oppRF
 	LG.other_forward = oppLF
-	LG.buddyKeeper = K
+	LG.buddy_keeper = K
 	RG.defending_goal_position = ownGoal.global_position
 	RG.assigned_forward = oppLF
 	RG.other_forward = oppRF
-	RG.buddyKeeper = K
+	RG.buddy_keeper = K
 	LF.goal_position = oppGoal.global_position
 	LF.assigned_guard = oppRG
 	LF.opposing_keeper = oppK
@@ -277,3 +295,18 @@ func wipe_player_control():
 	RG.is_controlling_player = false
 	LF.is_controlling_player = false
 	RF.is_controlling_player = false
+	
+func assign_player_control():
+	if is_on_offense:
+		P.is_controlling_player = true
+	else:
+		K.is_controlling_player = true
+		
+func set_team_id(id):
+	team_id = id
+	K.team = id
+	P.team = id
+	RG.team = id
+	RF.team = id
+	LG.team = id
+	LF.team = id
