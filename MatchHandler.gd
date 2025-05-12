@@ -129,13 +129,13 @@ func position_player(player: Player, position: Vector2, rotation: float):
 func reset_ball():
 	print("reset ball")
 	if is_human_team_pitching:
-		ball.reset_ball(pTeam.P.global_position)
+		ball.reset_ball(Vector2(pTeam.P.global_position.x + pTeam.P.hand_offset, pTeam.P.global_position.y))
 		pTeam.P.has_ball = true
 		pTeam.P.is_controlling_player = true
 		pTeam.P.is_aiming = true
 		print("human pitcher in control")
 	else:
-		ball.reset_ball(aTeam.P.global_position)
+		ball.reset_ball(Vector2(aTeam.P.global_position.x + aTeam.P.hand_offset, aTeam.P.global_position.y))
 		aTeam.P.has_ball = true
 		pTeam.K.is_controlling_player = true
 

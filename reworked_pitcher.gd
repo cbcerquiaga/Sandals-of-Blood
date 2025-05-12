@@ -33,6 +33,7 @@ var increasing := true
 var variance_factor = ((100 - attributes.focus)/100 + 1)/4 #between 25% and 50% maximum error
 var current_variance = 0 #ranges from -100 to 100, then multiplied by variance factor
 var variance_increment = 5
+var hand_offset: float = 15.0 #how far to move the ball in the X to keep it from colliding
 
 
 # Nodes TODO
@@ -43,6 +44,8 @@ var variance_increment = 5
 func _ready():
 	super._ready()
 	position_type = "pitcher"
+	if bio.leftHanded:
+		hand_offset = hand_offset * -1
 	update_special_pitch_availability()
 
 func _process(delta):
@@ -139,23 +142,23 @@ func select_ai_pitch() -> String:
 func execute_pitch(pitch_type: String):
 	is_aiming = false
 	last_pitch_type = pitch_type
-	
+	var ball_position = Vector2(global_position.x + hand_offset, global_position.y)
 	match pitch_type:
 		"normal":
 			perform_normal_pitch()
-			ball_pitched.emit(current_power, current_curve, aim_direction, global_position)
+			ball_pitched.emit(current_power, current_curve, aim_direction, ball_position)
 		"fake_curve":
 			perform_fake_curve_pitch()
-			special_pitched.emit(global_position)
+			special_pitched.emit(ball_position)
 		"zig_zag":
 			perform_zig_zag_pitch()
-			special_pitched.emit(global_position)
+			special_pitched.emit(ball_position)
 		"knuckler":
 			perform_knuckler_pitch()
-			special_pitched.emit(global_position)
+			special_pitched.emit(ball_position)
 		"bouncer":
 			perform_bouncer_pitch()
-			special_pitched.emit(global_position)
+			special_pitched.emit(ball_position)
 	
 	# Handle special pitch cooldown
 	var sp_index = special_pitch_names.find(pitch_type)
@@ -177,8 +180,8 @@ func perform_normal_pitch():
 			var wall_position = get_best_bank_angle()
 			aim_direction = (wall_position - ball.global_position).normalized()
 			curve_variation = sign(curve_variation) * max_curve * 0.8
-			ball_pitched.emit(current_power * power_variation,  current_curve * curve_variation)
-			ball.apply_pitch(aim_direction * current_power * power_variation, current_curve * curve_variation, aim_direction, global_position)
+			ball_pitched.emit(current_power * power_variation,  current_curve * curve_variation, aim_direction, global_position)
+			#ball.apply_pitch(aim_direction * current_power * power_variation, current_curve * curve_variation, aim_direction, global_position)
 	else:
 		aim_direction = aim_direction * (1 + (current_variance * variance_factor))#TODO: check to make sure this works as intended
 		aim_direction = aim_direction.normalized()

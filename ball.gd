@@ -21,6 +21,7 @@ var current_spin: float = 0.0
 var last_hit_by: Player = null
 var special_trajectory: Curve2D
 var trajectory_progress: float = 0.0
+var pitcher_position: Vector2
 
 # Nodes
 @onready var collision_shape = $CollisionShape2D
@@ -32,8 +33,10 @@ signal ball_entered_play
 signal special_pitch_interrupted
 
 func _ready():
+	collision_layer = 0b0001  # Layer 1 (balls)
+	collision_mask = 0b0110  # Collide with obstacles (2) and players (3)
 	contact_monitor = true
-	max_contacts_reported = 8
+	max_contacts_reported = 12 #5 players in half, 3 obstacles, 3 areas, 1 player in neutral area
 	body_entered.connect(_on_body_entered)
 	current_state = BallState.WAITING
 
@@ -56,6 +59,7 @@ func _physics_process(delta):
 	update_visuals()
 
 func apply_waiting_physics():
+	global_position = pitcher_position
 	linear_velocity = Vector2(0,0)
 
 func apply_pitching_physics(delta):
@@ -224,6 +228,7 @@ func enter_play_state():
 		emit_signal("ball_entered_play")
 
 func reset_ball(position):
+	pitcher_position = position
 	linear_velocity = Vector2.ZERO
 	current_curve = 0.0
 	current_spin = 0.0

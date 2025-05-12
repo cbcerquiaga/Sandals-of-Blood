@@ -87,6 +87,8 @@ var state_label
 @onready var spin_cooldown = $SpinCooldown
 
 func _ready():
+	collision_layer = 0b0100  # Layer 3 (players)
+	collision_mask = 0b0011  # Collide with obstacles (2) and balls (1)
 	status.energy = max_energy
 	status.max_boost = status.energy * (attributes.endurance/100)
 	status.boost = status.max_boost
