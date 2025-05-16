@@ -27,13 +27,16 @@ var rightWall
 var current_power: float = 800
 var current_curve: float = 0.0
 var is_aiming: bool = false
-var aim_direction: Vector2 = Vector2.RIGHT
+var aim_direction: Vector2 = Vector2(0,1)
 var has_ball: bool = false
 var increasing := true
 var variance_factor = ((100 - attributes.focus)/100 + 1)/4 #between 25% and 50% maximum error
 var current_variance = 0 #ranges from -100 to 100, then multiplied by variance factor
 var variance_increment = 5
 var hand_offset: float = 15.0 #how far to move the ball in the X to keep it from colliding
+var aim_max_angle : float = 0.36
+var aim_increment = 0.02
+
 
 
 # Nodes TODO
@@ -79,7 +82,7 @@ func _on_pitch_phase_started():
 	is_aiming = true
 	current_power = lerp(min_power, max_power, 0.5)
 	current_curve = 0.0
-	aim_direction = Vector2.RIGHT if team == 1 else Vector2.LEFT
+	aim_direction = Vector2.UP #TODO: check if this is relative
 
 func _handle_pitch_controls():
 	#print("control pitcher")
@@ -104,8 +107,18 @@ func _handle_pitch_controls():
 	var input_direction = Input.get_vector("move_left", "move_right", "move_up", "move_down")
 	input_direction = input_direction * Vector2(1,0)#we only care about x axis
 	if input_direction.length() > 0.1:
-		aim_direction = input_direction.normalized()
-		print("aim it")
+		var normal = input_direction.normalized()
+		if normal.x < 0:
+			if aim_direction.x > 0 - aim_max_angle:
+				aim_direction.x -= aim_increment
+			else:
+				aim_direction.x = 0 - aim_max_angle
+		elif normal.x > 0:
+			if aim_direction.x < aim_max_angle:
+				aim_direction.x += aim_increment
+			else:
+				aim_direction.x = aim_max_angle
+		print("aim it: " + str(aim_direction))
 	
 	# Pitch execution
 	if Input.is_action_just_pressed("pitch"):
@@ -184,7 +197,8 @@ func perform_normal_pitch():
 			#ball.apply_pitch(aim_direction * current_power * power_variation, current_curve * curve_variation, aim_direction, global_position)
 	else:
 		aim_direction = aim_direction * (1 + (current_variance * variance_factor))#TODO: check to make sure this works as intended
-		aim_direction = aim_direction.normalized()
+		print("aim with variance: " + str(aim_direction))
+		#aim_direction = aim_direction.normalized()
 		release_ball()
 		ball_pitched.emit(current_power, current_curve, aim_direction, global_position)
 
