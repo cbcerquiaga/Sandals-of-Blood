@@ -198,15 +198,17 @@ func perform_normal_pitch():
 			var wall_position = get_best_bank_angle()
 			aim_direction = (wall_position - ball.global_position).normalized()
 			curve_variation = sign(curve_variation) * max_curve * 0.8
-			ball_pitched.emit(current_power * power_variation,  current_curve * curve_variation, aim_direction, global_position)
+			var huck = (current_power * power_variation) * aim_direction
+			ball_pitched.emit(huck,  current_curve * curve_variation)
 			#ball.apply_pitch(aim_direction * current_power * power_variation, current_curve * curve_variation, aim_direction, global_position)
 	else:
 		var varied_direction = aim_direction.normalized()
-		varied_direction = varied_direction.rotated(current_variance * variance_factor)        
+		varied_direction = varied_direction.rotated(current_variance * variance_factor)      
+		var huck = current_power * varied_direction  
 		print("aim with variance: " + str(aim_direction))
 		#aim_direction = aim_direction.normalized()
 		release_ball()
-		ball_pitched.emit(current_power, current_curve, varied_direction, global_position)
+		ball_pitched.emit(huck, current_curve)
 
 func perform_fake_curve_pitch():
 	var curve_dir = 1.0 if randf() > 0.5 else -1.0

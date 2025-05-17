@@ -200,15 +200,14 @@ func handle_wall_collision(wall: StaticBody2D):
 	if current_state == BallState.PITCHING:
 		enter_hockey_state()
 
-func be_pitched(power: float, curve: float, direction: Vector2, place: Vector2):
-	reset_ball(place)
+func be_pitched(huck: Vector2, curve: float):
 	current_state = BallState.PITCHING
 	
 	# Apply pitch immunity
 	chill_timer = 10  # 10 frames of immunity
 	collision_mask = 0b0010  # Only collide with obstacles during pitch
 	
-	linear_velocity = power * direction
+	linear_velocity = huck
 	spin = curve
 	freeze = false
 
