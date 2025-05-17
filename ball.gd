@@ -6,15 +6,10 @@ class_name Ball
 @export var max_speed: float = 1500.0
 @export var min_bounce_speed: float = 100.0
 @export var spin: float = 0
-var spin_curve_factor: float = 1.0#TODO
-
-#debugging
-var debug = true
-var frame = 0
-var debug_frames = 20
+var spin_curve_factor: float = 1.0
 
 # Game State
-enum BallState { WAITING, PITCHING, SPECIAL_PITCH, IN_PLAY }
+enum BallState { WAITING, PITCHING, SPECIAL_PITCH, HOCKEY }
 var current_state: BallState = BallState.WAITING
 var current_curve: float = 0.0
 var current_spin: float = 0.0
@@ -22,54 +17,53 @@ var last_hit_by: Player = null
 var special_trajectory: Curve2D
 var trajectory_progress: float = 0.0
 var pitcher_position: Vector2
+var chill_timer: int = 0
+var original_collision_mask: int = 0b0110
 
-# Nodes
-@onready var collision_shape = $CollisionShape2D
-#@onready var trail_particles = $TrailParticles
-#@onready var impact_sound = $ImpactSound
-
+# Signals
 signal goal_scored(team)
 signal ball_entered_play
 signal special_pitch_interrupted
+signal area_entered(area: Area2D)
 
 func _ready():
 	collision_layer = 0b0001  # Layer 1 (balls)
-	collision_mask = 0b0110  # Collide with obstacles (2) and players (3)
+	collision_mask = 0b0110   # Collide with obstacles (2) and players (3)
+	original_collision_mask = collision_mask
 	contact_monitor = true
-	max_contacts_reported = 12 #5 players in half, 3 obstacles, 3 areas, 1 player in neutral area
+	max_contacts_reported = 12
 	body_entered.connect(_on_body_entered)
-	current_state = BallState.WAITING
+	area_entered.connect(_on_area_entered)
 
 func _physics_process(delta):
-	if debug:
-		frame = frame + 1
-		if (frame >= debug_frames):
-			print("ball position: " + str(global_position) + ", ball state: " + str(current_state))
-			frame = 0
+	# Handle chill timer
+	if chill_timer > 0:
+		chill_timer -= 1
+		if chill_timer == 0:
+			collision_mask = original_collision_mask
+	
 	match current_state:
 		BallState.PITCHING:
 			apply_pitching_physics(delta)
 		BallState.SPECIAL_PITCH:
 			follow_special_trajectory(delta)
-		BallState.IN_PLAY:
-			apply_in_play_physics(delta)
+		BallState.HOCKEY:
+			apply_hockey_physics(delta)
 		BallState.WAITING:
 			apply_waiting_physics()
 	
-	update_visuals()
+	# Enforce max speed in all states
+	if linear_velocity.length() > max_speed:
+		linear_velocity = linear_velocity.normalized() * max_speed
 
 func apply_waiting_physics():
 	global_position = pitcher_position
-	linear_velocity = Vector2(0,0)
+	linear_velocity = Vector2.ZERO
 
 func apply_pitching_physics(delta):
 	if spin != 0.0:
 		var curve_force = Vector2(-linear_velocity.y, linear_velocity.x).normalized() * spin * spin_curve_factor
 		apply_central_force(curve_force)
-	
-	# Speed limit
-	if linear_velocity.length() > max_speed:
-		linear_velocity = linear_velocity.normalized() * max_speed
 
 func follow_special_trajectory(delta):
 	if not special_trajectory:
@@ -80,33 +74,33 @@ func follow_special_trajectory(delta):
 	var progress_ratio = trajectory_progress / (trajectory_length / base_speed)
 	
 	if progress_ratio >= 1.0:
-		enter_play_state()
+		enter_hockey_state()
 		return
 	
 	global_position = special_trajectory.sample_baked(trajectory_length * progress_ratio)
 
-func apply_in_play_physics(delta):
+func apply_hockey_physics(delta):
 	# Inherits normal physics plus additional spin effects
 	apply_pitching_physics(delta)
 	
-	# Add slight randomness to movement
+	# Add slight randomness to movement from last hitter's accuracy
 	if last_hit_by and is_instance_valid(last_hit_by):
 		var accuracy_effect = 1.0 - (last_hit_by.attributes.accuracy / 100.0)
 		linear_velocity = linear_velocity.rotated(randf_range(-accuracy_effect * 0.05, accuracy_effect * 0.05))
 
 func _on_body_entered(body: Node):
-	if debug:
-		print("we have ball contact")
 	if body is Player:
 		handle_player_collision(body)
 	elif body is StaticBody2D: # Walls
 		handle_wall_collision(body)
-	
-	#impact_sound.play()
+
+func _on_area_entered(area: Area2D):
+	emit_signal("area_entered", area)
 
 func handle_player_collision(player: Player):
 	if current_state == BallState.WAITING:
 		return
+		
 	last_hit_by = player
 	
 	match player.position_type:
@@ -117,7 +111,7 @@ func handle_player_collision(player: Player):
 		"pitcher":
 			if current_state == BallState.SPECIAL_PITCH:
 				emit_signal("special_pitch_interrupted")
-				enter_play_state()
+				enter_hockey_state()
 
 func handle_defender_collision(player: Player):
 	# Calculate reflection with physics
@@ -143,11 +137,11 @@ func handle_defender_collision(player: Player):
 	
 	linear_velocity = new_velocity
 	
-	# Enter play state if not already
-	if current_state != BallState.IN_PLAY:
-		enter_play_state()
+	# Enter hockey state if not already
+	if current_state != BallState.HOCKEY:
+		enter_hockey_state()
 
-func handle_forward_collision(forward: Forward):
+func handle_forward_collision(forward: Player):
 	var goal_pos = forward.goal_position
 	
 	# Check if forward wants to pass
@@ -161,9 +155,9 @@ func handle_forward_collision(forward: Forward):
 		var shot_dir = (goal_pos - global_position).normalized()
 		apply_forward_hit(forward, shot_dir)
 	
-	enter_play_state()
+	enter_hockey_state()
 
-func apply_forward_hit(forward: Forward, direction: Vector2):
+func apply_forward_hit(forward: Player, direction: Vector2):
 	# Calculate power - combination of shooting skill and movement
 	var forward_speed_toward_goal = forward.velocity.dot(direction)
 	forward_speed_toward_goal = max(0, forward_speed_toward_goal)
@@ -190,6 +184,7 @@ func apply_forward_hit(forward: Forward, direction: Vector2):
 func handle_wall_collision(wall: StaticBody2D):
 	if current_state == BallState.WAITING:
 		return
+		
 	# Get wall normal (assuming walls have consistent orientation)
 	var wall_normal = (global_position - wall.global_position).normalized()
 	
@@ -201,23 +196,40 @@ func handle_wall_collision(wall: StaticBody2D):
 	if abs(incoming_angle) < PI/6: # Shallow angle
 		current_spin = incoming_angle * linear_velocity.length() * 0.005
 	
-	# Enter play state if being pitched
+	# Enter hockey state if being pitched
 	if current_state == BallState.PITCHING:
-		enter_play_state()
+		enter_hockey_state()
 
-func set_special_trajectory(trajectory: Curve2D):
-	special_trajectory = trajectory
+func be_pitched(power: float, curve: float, direction: Vector2, place: Vector2):
+	reset_ball(place)
+	current_state = BallState.PITCHING
+	
+	# Apply pitch immunity
+	chill_timer = 10  # 10 frames of immunity
+	collision_mask = 0b0010  # Only collide with obstacles during pitch
+	
+	linear_velocity = power * direction
+	spin = curve
+	freeze = false
+
+func be_special_pitched(power: float, path: Curve2D, place: Vector2):
+	reset_ball(place)
 	current_state = BallState.SPECIAL_PITCH
+	special_trajectory = path
 	trajectory_progress = 0.0
 	freeze = true
+	
+	# Apply pitch immunity
+	chill_timer = 10
+	collision_mask = 0b0010  # Only collide with obstacles during special pitch
 
-func enter_play_state():
-	if current_state != BallState.IN_PLAY:
-		current_state = BallState.IN_PLAY
+func enter_hockey_state():
+	if current_state != BallState.HOCKEY:
+		current_state = BallState.HOCKEY
 		freeze = false
 		emit_signal("ball_entered_play")
 
-func reset_ball(position):
+func reset_ball(position: Vector2):
 	pitcher_position = position
 	linear_velocity = Vector2.ZERO
 	current_curve = 0.0
@@ -227,31 +239,4 @@ func reset_ball(position):
 	special_trajectory = null
 	freeze = true
 	global_position = position
-
-func update_visuals():
-	# Trail intensity based on speed
-	var speed_ratio = linear_velocity.length() / max_speed
-	#trail_particles.process_material.emission_scale = speed_ratio
-	
-	# Trail color based on last hitter
-	#if last_hit_by:
-		#trail_particles.modulate = last_hit_by.team_color
-	#else:
-		#trail_particles.modulate = Color.WHITE
-		
-func be_pitched(power, curve, direction, place):
-	print("I am be pitched: " + str(direction.normalized() * power))
-	current_state = BallState.PITCHING
-	global_position = place
-	freeze = false
-	linear_velocity = power * direction
-	#global_rotation = direction.angle()
-	#apply_central_impulse(direction.normalized() * power)
-	#apply_torque_impulse(curve)
-	
-func be_special_pitched(power, path, place):
-	print("that's a special pitch")
-	current_state = BallState.SPECIAL_PITCH
-	global_position = place
-	#TODO
-	
+	collision_mask = original_collision_mask

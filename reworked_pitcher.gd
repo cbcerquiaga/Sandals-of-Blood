@@ -6,7 +6,7 @@ signal special_pitched(position: Vector2)
 # Pitching Controls
 var true_max_power = 1200 * attributes.power/100 #maximum possible power at 100% energy
 @export var max_power: float = true_max_power * status.energy
-@export var min_power: float = 400
+@export var min_power: float = 100
 @export var max_curve: float = 2.0 # radians/second
 @export var curve_step: float = 0.1
 
@@ -24,7 +24,7 @@ var leftWall
 var rightWall
 
 # Pitch State
-var current_power: float = 800
+var current_power: float = 200
 var current_curve: float = 0.0
 var is_aiming: bool = false
 var aim_direction: Vector2 = Vector2(0,1)
@@ -34,9 +34,9 @@ var variance_factor = ((100 - attributes.focus)/100 + 1)/4 #between 25% and 50% 
 var current_variance = 0 #ranges from -100 to 100, then multiplied by variance factor
 var variance_increment = 5
 var hand_offset: float = 15.0 #how far to move the ball in the X to keep it from colliding
-var aim_max_angle : float = 45
+var aim_max_angle : float = 100
 var aim_increment: float = 1.5
-var target: Vector2 = Vector2(position.x, position.y + 10)
+var target: Vector2
 
 
 
@@ -50,6 +50,8 @@ func _ready():
 	position_type = "pitcher"
 	if bio.leftHanded:
 		hand_offset = hand_offset * -1
+	var forward_direction = Vector2.RIGHT.rotated(rotation)
+	target = global_position + (forward_direction * 100)
 	update_special_pitch_availability()
 
 func _process(delta):
@@ -83,7 +85,6 @@ func _on_pitch_phase_started():
 	is_aiming = true
 	current_power = lerp(min_power, max_power, 0.5)
 	current_curve = 0.0
-	aim_direction = Vector2.UP #TODO: check if this is relative
 
 func _handle_pitch_controls():
 	#print("control pitcher")
@@ -113,13 +114,15 @@ func _handle_pitch_controls():
 			if target.x > 0 - aim_max_angle:
 				target.x -= aim_increment
 			else:
+				print("no more left")
 				target.x = 0 - aim_max_angle
 		elif normal.x > 0:
 			if target.x < aim_max_angle:
 				target.x += aim_increment
 			else:
+				print("no more right")
 				target.x = aim_max_angle
-		aim_direction = position.direction_to(target).normalized()
+		aim_direction = global_position.direction_to(target).normalized()
 		print("aim it: " + str(aim_direction))
 	
 	# Pitch execution
