@@ -4,12 +4,12 @@ class_name Ball
 # Physics Properties
 @export var base_speed: float = 500.0
 @export var max_speed: float = 1500.0
-@export var speed_decay: float = 0.98
 @export var min_bounce_speed: float = 100.0
-@export var spin_decay: float = 0.95
+@export var spin: float = 0
+var spin_curve_factor: float = 1.0#TODO
 
 #debugging
-var debug = false
+var debug = true
 var frame = 0
 var debug_frames = 20
 
@@ -63,19 +63,9 @@ func apply_waiting_physics():
 	linear_velocity = Vector2(0,0)
 
 func apply_pitching_physics(delta):
-	# Apply curve effect
-	if current_curve != 0:
-		linear_velocity = linear_velocity.rotated(current_curve * delta)
-		current_curve *= spin_decay
-	
-	# Apply spin effect (affects bounce angles)
-	if current_spin != 0:
-		rotation += current_spin * delta
-		current_spin *= spin_decay
-	
-	# Speed decay
-	if linear_velocity.length() > min_bounce_speed:
-		linear_velocity *= speed_decay
+	if spin != 0.0:
+		var curve_force = Vector2(-linear_velocity.y, linear_velocity.x).normalized() * spin * spin_curve_factor
+		apply_central_force(curve_force)
 	
 	# Speed limit
 	if linear_velocity.length() > max_speed:
@@ -250,11 +240,13 @@ func update_visuals():
 		#trail_particles.modulate = Color.WHITE
 		
 func be_pitched(power, curve, direction, place):
-	print("I am be pitched")
+	print("I am be pitched: " + str(direction.normalized() * power))
 	current_state = BallState.PITCHING
 	global_position = place
-	global_rotation = direction.angle()
-	apply_central_impulse(direction * power)
+	freeze = false
+	linear_velocity = power * direction
+	#global_rotation = direction.angle()
+	#apply_central_impulse(direction.normalized() * power)
 	#apply_torque_impulse(curve)
 	
 func be_special_pitched(power, path, place):

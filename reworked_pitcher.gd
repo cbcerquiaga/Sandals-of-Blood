@@ -34,8 +34,9 @@ var variance_factor = ((100 - attributes.focus)/100 + 1)/4 #between 25% and 50% 
 var current_variance = 0 #ranges from -100 to 100, then multiplied by variance factor
 var variance_increment = 5
 var hand_offset: float = 15.0 #how far to move the ball in the X to keep it from colliding
-var aim_max_angle : float = 0.36
-var aim_increment = 0.02
+var aim_max_angle : float = 45
+var aim_increment: float = 1.5
+var target: Vector2 = Vector2(position.x, position.y + 10)
 
 
 
@@ -109,15 +110,16 @@ func _handle_pitch_controls():
 	if input_direction.length() > 0.1:
 		var normal = input_direction.normalized()
 		if normal.x < 0:
-			if aim_direction.x > 0 - aim_max_angle:
-				aim_direction.x -= aim_increment
+			if target.x > 0 - aim_max_angle:
+				target.x -= aim_increment
 			else:
-				aim_direction.x = 0 - aim_max_angle
+				target.x = 0 - aim_max_angle
 		elif normal.x > 0:
-			if aim_direction.x < aim_max_angle:
-				aim_direction.x += aim_increment
+			if target.x < aim_max_angle:
+				target.x += aim_increment
 			else:
-				aim_direction.x = aim_max_angle
+				target.x = aim_max_angle
+		aim_direction = position.direction_to(target).normalized()
 		print("aim it: " + str(aim_direction))
 	
 	# Pitch execution
@@ -159,7 +161,7 @@ func execute_pitch(pitch_type: String):
 	match pitch_type:
 		"normal":
 			perform_normal_pitch()
-			ball_pitched.emit(current_power, current_curve, aim_direction, ball_position)
+			#ball_pitched.emit(current_power, current_curve, aim_direction, ball_position)
 		"fake_curve":
 			perform_fake_curve_pitch()
 			special_pitched.emit(ball_position)
@@ -196,11 +198,12 @@ func perform_normal_pitch():
 			ball_pitched.emit(current_power * power_variation,  current_curve * curve_variation, aim_direction, global_position)
 			#ball.apply_pitch(aim_direction * current_power * power_variation, current_curve * curve_variation, aim_direction, global_position)
 	else:
-		aim_direction = aim_direction * (1 + (current_variance * variance_factor))#TODO: check to make sure this works as intended
+		var varied_direction = aim_direction.normalized()
+		varied_direction = varied_direction.rotated(current_variance * variance_factor)        
 		print("aim with variance: " + str(aim_direction))
 		#aim_direction = aim_direction.normalized()
 		release_ball()
-		ball_pitched.emit(current_power, current_curve, aim_direction, global_position)
+		ball_pitched.emit(current_power, current_curve, varied_direction, global_position)
 
 func perform_fake_curve_pitch():
 	var curve_dir = 1.0 if randf() > 0.5 else -1.0
