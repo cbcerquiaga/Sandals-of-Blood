@@ -18,16 +18,16 @@ var cpu_lf_spawn
 var cpu_rf_spawn
 var cpu_lhp_spawn
 var cpu_rhp_spawn
-var wall1
-var wall2
-var wall3
-var wall4
+var leftWall
+var rightWall
+var backWall
+var frontWall
 var player_goal_post1
 var player_goal_post2
 var player_goal_side_panel1
 var player_goal_side_panel2
 var cpu_goal_post1
-var cpu_goal_post_2
+var cpu_goal_post2
 var cpu_goal_side_panel1
 var cpu_goal_side_panel2
 
@@ -67,30 +67,42 @@ func _ready():
 	cpuGoal.add_to_group("goals")
 	fieldBoundary = $Boundary
 	fieldBoundary.add_to_group("areas")
-	wall1 = $Walls/Left
-	wall1.add_to_group("obstacles")
-	wall2 = $Walls/Right
-	wall2.add_to_group("obstacles")
-	wall3 = $Walls/Back
-	wall3.add_to_group("obstacles")
-	wall4 = $Walls/Front
-	wall4.add_to_group("obstacles")
+	leftWall = $Walls/Left
+	leftWall.add_to_group("obstacles")
+	leftWall.add_to_group("left")
+	rightWall = $Walls/Right
+	rightWall.add_to_group("obstacles")
+	rightWall.add_to_group("right")
+	backWall = $Walls/Back
+	backWall.add_to_group("obstacles")
+	backWall.add_to_group("back")
+	frontWall = $Walls/Front
+	frontWall.add_to_group("obstacles")
+	frontWall.add_to_group("front")
 	player_goal_post1 = $Goals/PlayerGoal/Post1
 	player_goal_post1.add_to_group("obstacles")
+	player_goal_post1.add_to_group("front")
 	player_goal_post2 = $Goals/PlayerGoal/Post2
 	player_goal_post2.add_to_group("obstacles")
+	player_goal_post2.add_to_group("front")
 	player_goal_side_panel1 = $Goals/PlayerGoal/SidePanel1
 	player_goal_side_panel1.add_to_group("obstacles")
+	player_goal_side_panel1.add_to_group("left")
 	player_goal_side_panel2 = $Goals/PlayerGoal/SidePanel2
 	player_goal_side_panel2.add_to_group("obstacles")
+	player_goal_side_panel2.add_to_group("right")
 	cpu_goal_post1 = $Goals/AIGoal/Post1
 	cpu_goal_post1.add_to_group("obstacles")
-	cpu_goal_post_2 = $Goals/AIGoal/Post2
-	cpu_goal_post_2.add_to_group("obstacles")
+	cpu_goal_post1.add_to_group("back")
+	cpu_goal_post2 = $Goals/AIGoal/Post2
+	cpu_goal_post2.add_to_group("obstacles")
+	cpu_goal_post2.add_to_group("back")
 	cpu_goal_side_panel1 = $Goals/AIGoal/SidePanel1
 	cpu_goal_side_panel1.add_to_group("obstacles")
+	cpu_goal_side_panel1.add_to_group("right")
 	cpu_goal_side_panel2 = $Goals/AIGoal/SidePanel2
 	cpu_goal_side_panel2.add_to_group("obstacles")
+	cpu_goal_side_panel2.add_to_group("left")
 	loop_through_children()
 
 func loop_through_children():

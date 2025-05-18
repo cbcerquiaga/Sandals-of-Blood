@@ -76,6 +76,8 @@ func _physics_process(delta):
 	elif not is_controlling_player and has_ball:
 		random_variance()
 		handle_ai_pitch_decision()
+	else:
+		go_away()
 	#else:
 		#if team == 1:
 			#print(str(is_controlling_player) + " and " +str(is_aiming))
@@ -102,7 +104,7 @@ func _handle_pitch_controls():
 		current_curve = min(max_curve, current_curve + curve_step)
 		print("curl it")
 	elif Input.is_action_pressed("decrease_spin"):
-		current_curve = max(-max_curve, current_curve - curve_step)
+		current_curve = max(0-max_curve, current_curve - curve_step)
 		print("straighten it")
 	
 	# Aim direction (mouse/joystick)
@@ -114,27 +116,33 @@ func _handle_pitch_controls():
 			if target.x > 0 - aim_max_angle:
 				target.x -= aim_increment
 			else:
-				print("no more left")
+				#print("no more left")
 				target.x = 0 - aim_max_angle
 		elif normal.x > 0:
 			if target.x < aim_max_angle:
 				target.x += aim_increment
 			else:
-				print("no more right")
+				#print("no more right")
 				target.x = aim_max_angle
 		aim_direction = global_position.direction_to(target).normalized()
-		print("aim it: " + str(aim_direction))
+		#print("aim it: " + str(aim_direction))
 	
 	# Pitch execution
+	var has_pitched = false
 	if Input.is_action_just_pressed("pitch"):
 		print("throw it")
 		execute_pitch("normal")
+		has_pitched = true
 	elif Input.is_action_just_pressed("sp_pitch_1") and special_pitch_available[0]:
 		print("special pitch pressed")
 		execute_pitch(special_pitch_names[0])
+		has_pitched = true
 	elif Input.is_action_just_pressed("sp_pitch_2") and special_pitch_available[1]:
 		print("special pitch pressed")
 		execute_pitch(special_pitch_names[1])
+		has_pitched = true
+	if has_pitched:
+		go_away()
 
 func handle_ai_pitch_decision():
 	# Wait a moment to simulate "wind up" time
@@ -358,4 +366,10 @@ func release_ball():
 	has_ball = false
 	is_aiming = true
 	is_controlling_player = false
+	
+func go_away():
+	global_position = Vector2(-1000,-1000)
+	is_controlling_player = false
+	has_ball = false
+	
 	

@@ -181,7 +181,6 @@ shape = SubResource("RectangleShape2D_fu7hr")
 
 [node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="Walls/Back"]
 polygon = PackedVector2Array(-66, -119, -21, -119, -22, -129, 22, -129, 21, -119, 66, -119, 20, -136, -22, -136)
-one_way_collision = true
 one_way_collision_margin = 128.0
 
 [node name="Front" type="StaticBody2D" parent="Walls"]
@@ -189,5 +188,4 @@ rotation = 3.14159
 
 [node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="Walls/Front"]
 polygon = PackedVector2Array(-66, -119, -21, -119, -22, -129, 22, -129, 21, -119, 66, -119, 20, -136, -22, -136)
-one_way_collision = true
 one_way_collision_margin = 128.0

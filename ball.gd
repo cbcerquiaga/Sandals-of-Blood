@@ -184,11 +184,23 @@ func apply_forward_hit(forward: Player, direction: Vector2):
 func handle_wall_collision(wall: StaticBody2D):
 	if current_state == BallState.WAITING:
 		return
-		
-	# Get wall normal (assuming walls have consistent orientation)
-	var wall_normal = (global_position - wall.global_position).normalized()
+	# Get predefined wall normal based on wall name/groups
+	var wall_normal := Vector2.ZERO
 	
-	# Standard bounce physics
+	# Check which wall was hit (assuming you've named them appropriately)
+	if wall.is_in_group("left"):
+		wall_normal = Vector2.RIGHT  # Bounce right when hitting left wall
+	elif wall.is_in_group("right"):
+		wall_normal = Vector2.LEFT   # Bounce left when hitting right wall
+	elif wall.is_in_group("front"):
+		wall_normal = Vector2.UP     # Bounce up when hitting front wall
+	elif wall.is_in_group("back"):
+		wall_normal = Vector2.DOWN   # Bounce down when hitting back wall
+	else:
+		# Fallback to current behavior for other walls
+		wall_normal = (global_position - wall.global_position).normalized()
+	
+	# Standard bounce physics with the correct normal
 	linear_velocity = linear_velocity.bounce(wall_normal)
 	
 	# Add spin effect from shallow angles
