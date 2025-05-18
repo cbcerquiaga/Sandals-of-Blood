@@ -312,3 +312,28 @@ func set_team_id(id):
 	RF.team = id
 	LG.team = id
 	LF.team = id
+	
+func allow_movement():
+	K.can_move = true
+	#P.can_move = true #TODO: depends on what pitcher does after pitching
+	RG.can_move = true
+	RF.can_move = true
+	LG.can_move = true
+	LF.can_move = true
+	
+func default_human_state():
+	K.is_controlling_player = true
+	K.child_state()
+	LG.is_controlling_player = false
+	LG.child_state()
+	RG.is_controlling_player = false
+	RG.child_state()
+	#TODO:forwards
+	
+func default_ai_state():
+	K.is_controlling_player = false
+	K.child_state()
+	LG.is_controlling_player = false
+	LG.child_state()
+	RG.is_controlling_player = false
+	RG.child_state()

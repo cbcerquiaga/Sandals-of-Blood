@@ -38,6 +38,13 @@ var playerGoal
 var cpuGoal
 var fieldBoundary
 
+#tracking
+@export var ball_touched_player_half: bool = false
+@export var ball_touched_cpu_half: bool = false
+
+signal ball_exited_field
+signal free_movement
+
 
 
 func _ready():
@@ -104,6 +111,8 @@ func _ready():
 	cpu_goal_side_panel2.add_to_group("obstacles")
 	cpu_goal_side_panel2.add_to_group("left")
 	loop_through_children()
+	playerHalf.body_entered.connect(_on_player_half_entered)
+	cpuHalf.body_entered.connect(_on_cpu_half_entered)
 
 func loop_through_children():
 	for child in get_children():
@@ -117,3 +126,17 @@ func loop_through_children():
 				child.monitoring = true
 				child.monitorable = false
 	pass
+
+func _on_player_half_entered(body: Node):
+	if body is Ball:
+		ball_touched_player_half = true
+		_check_midfield_crossing()
+
+func _on_cpu_half_entered(body: Node):
+	if body is Ball:
+		ball_touched_cpu_half = true
+		_check_midfield_crossing()
+
+func _check_midfield_crossing():
+	if ball_touched_player_half and ball_touched_cpu_half:
+		emit_signal("free_movement")

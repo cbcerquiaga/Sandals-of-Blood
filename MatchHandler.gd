@@ -56,6 +56,14 @@ func _ready():
 	aTeam.set_process(true)
 	print("process: pteam " + str(pTeam.process_mode) + "/ateam " + str(aTeam.has_readied) + "/field " + str(field))
 	apply_time_scale()
+	field.free_movement.connect(_on_ball_crossed_midfield)
+
+func _on_ball_crossed_midfield():
+	print("game on!")
+	pTeam.allow_movement()
+	aTeam.allow_movement()
+	pTeam.default_human_state()
+	#aTeam.default_ai_state()
 
 func reset_match():
 	print("reset match")
@@ -88,10 +96,13 @@ func _process(delta: float) -> void:
 
 func reset_play():
 	current_play_time = 0.0
+	#TODO: switch possession
 	pTeam.wipe_player_control()
 	aTeam.wipe_player_control()
 	pTeam.assign_player_control()
-	print("human has control")
+	#print("human has control")
+	field.ball_touched_cpu_half = false
+	field.ball_touched_player_half = false
 	reposition_players()
 	reset_ball()
 	play_timer.start(current_settings.play_length if current_settings.play_length > 0 else 9999)

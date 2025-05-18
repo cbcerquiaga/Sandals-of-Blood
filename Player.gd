@@ -421,6 +421,18 @@ func check_is_incapacitated() -> bool:
 	
 func reset_state():
 	overall_state = PlayerState.IDLE
+	
+func child_state():
+	overall_state = PlayerState.CHILD_STATE
+	
+func fighting_state():
+	overall_state = PlayerState.IN_BRAWL
+	
+func out_fight():
+	if team == 1:
+		overall_state = PlayerState.OUT_BRAWL
+	else:
+		overall_state = PlayerState.AI_OUT_BRAWL
 
 # Signals
 signal player_hit(damage)
