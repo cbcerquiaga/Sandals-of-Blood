@@ -119,49 +119,49 @@ shape = SubResource("RectangleShape2D_87lc5")
 [node name="Player" type="Node2D" parent="SpawnPoints"]
 
 [node name="K" type="Marker2D" parent="SpawnPoints/Player"]
-position = Vector2(0, 116)
+position = Vector2(0, 110)
 
 [node name="RG" type="Marker2D" parent="SpawnPoints/Player"]
-position = Vector2(28, 116)
+position = Vector2(28, 110)
 
 [node name="LP" type="Marker2D" parent="SpawnPoints/Player"]
-position = Vector2(28, 107)
+position = Vector2(14, 107)
 
 [node name="RP" type="Marker2D" parent="SpawnPoints/Player"]
-position = Vector2(-28, 107)
+position = Vector2(-14, 107)
 
 [node name="LG" type="Marker2D" parent="SpawnPoints/Player"]
-position = Vector2(-28, 116)
+position = Vector2(-28, 110)
 
 [node name="LF" type="Marker2D" parent="SpawnPoints/Player"]
-position = Vector2(-56, -116)
+position = Vector2(-56, -110)
 
 [node name="RF" type="Marker2D" parent="SpawnPoints/Player"]
-position = Vector2(56, -116)
+position = Vector2(56, -110)
 
 [node name="AI" type="Node2D" parent="SpawnPoints"]
 rotation = 3.14159
 
 [node name="K" type="Marker2D" parent="SpawnPoints/AI"]
-position = Vector2(0, 116)
+position = Vector2(0, 110)
 
 [node name="RG" type="Marker2D" parent="SpawnPoints/AI"]
-position = Vector2(28, 116)
+position = Vector2(28, 110)
 
 [node name="LP" type="Marker2D" parent="SpawnPoints/AI"]
-position = Vector2(28, 107)
+position = Vector2(14, 107)
 
 [node name="RP" type="Marker2D" parent="SpawnPoints/AI"]
-position = Vector2(-28, 107)
+position = Vector2(-14, 107)
 
 [node name="LG" type="Marker2D" parent="SpawnPoints/AI"]
-position = Vector2(-28, 116)
+position = Vector2(-28, 110)
 
 [node name="LF" type="Marker2D" parent="SpawnPoints/AI"]
-position = Vector2(-56, -116)
+position = Vector2(-56, -110)
 
 [node name="RF" type="Marker2D" parent="SpawnPoints/AI"]
-position = Vector2(56, -116)
+position = Vector2(56, -110)
 
 [node name="Walls" type="Node2D" parent="."]
 

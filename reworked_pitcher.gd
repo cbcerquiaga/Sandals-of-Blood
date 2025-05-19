@@ -35,9 +35,9 @@ var current_variance = 0 #ranges from -100 to 100, then multiplied by variance f
 var variance_increment = 5
 var hand_offset: float = 15.0 #how far to move the ball in the X to keep it from colliding
 var aim_max_angle : float = 100
-var aim_increment: float = 1.5
+var aim_increment: float = 2
 var target: Vector2
-
+var field_type: String = "road"
 
 
 # Nodes TODO
@@ -50,8 +50,6 @@ func _ready():
 	position_type = "pitcher"
 	if bio.leftHanded:
 		hand_offset = hand_offset * -1
-	var forward_direction = Vector2.RIGHT.rotated(rotation)
-	target = global_position + (forward_direction * 100)
 	update_special_pitch_availability()
 
 func _process(delta):
@@ -211,10 +209,13 @@ func perform_normal_pitch():
 			#ball.apply_pitch(aim_direction * current_power * power_variation, current_curve * curve_variation, aim_direction, global_position)
 	else:
 		var varied_direction = aim_direction.normalized()
-		varied_direction = varied_direction.rotated(current_variance * variance_factor)      
-		var huck = current_power * varied_direction  
+		varied_direction = varied_direction.rotated(current_variance * variance_factor)   
+		#TODO: modify for different fields
+		if field_type == "road" || field_type == "wide_road":
+			if varied_direction.y > 0:
+				varied_direction.y = varied_direction.y * -1
+		var huck = current_power * varied_direction
 		print("aim with variance: " + str(aim_direction))
-		#aim_direction = aim_direction.normalized()
 		release_ball()
 		ball_pitched.emit(huck, current_curve)
 
@@ -372,4 +373,7 @@ func go_away():
 	is_controlling_player = false
 	has_ball = false
 	
-	
+#TODO: change this for different fields
+func prepare_target_position():
+	target = Vector2(0,0)
+	print("target position: " + str(target))
