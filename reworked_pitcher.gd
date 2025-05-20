@@ -104,6 +104,8 @@ func _handle_pitch_controls():
 	elif Input.is_action_pressed("decrease_spin"):
 		current_curve = max(0-max_curve, current_curve - curve_step)
 		print("straighten it")
+		if current_curve == 0 - max_curve:
+			print("ooooooh")
 	
 	# Aim direction (mouse/joystick)
 	var input_direction = Input.get_vector("move_left", "move_right", "move_up", "move_down")

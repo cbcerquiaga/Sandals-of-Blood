@@ -4,14 +4,12 @@ class_name Ball
 # Physics Properties
 @export var base_speed: float = 500.0
 @export var max_speed: float = 1500.0
-@export var min_bounce_speed: float = 100.0
-@export var spin: float = 0
-var spin_curve_factor: float = 1.0
+@export var min_bounce_speed: float = 50.0
+var spin_curve_factor: float = 180.0
 
 # Game State
 enum BallState { WAITING, PITCHING, SPECIAL_PITCH, HOCKEY }
 var current_state: BallState = BallState.WAITING
-var current_curve: float = 0.0
 var current_spin: float = 0.0
 var last_hit_by: Player = null
 var special_trajectory: Curve2D
@@ -61,9 +59,10 @@ func apply_waiting_physics():
 	linear_velocity = Vector2.ZERO
 
 func apply_pitching_physics(delta):
-	if spin != 0.0:
-		var curve_force = Vector2(-linear_velocity.y, linear_velocity.x).normalized() * spin * spin_curve_factor
-		apply_central_force(curve_force)
+	if current_spin != 0.0:
+		var perpendicular = linear_velocity.normalized().rotated(PI/2)
+		var curve_force = perpendicular * current_spin * spin_curve_factor * delta
+		apply_central_impulse(curve_force)
 
 func follow_special_trajectory(delta):
 	if not special_trajectory:
@@ -220,7 +219,7 @@ func be_pitched(huck: Vector2, curve: float):
 	collision_mask = 0b0010  # Only collide with obstacles during pitch
 	
 	linear_velocity = huck
-	spin = curve
+	current_spin = curve
 	freeze = false
 
 func be_special_pitched(power: float, path: Curve2D, place: Vector2):
@@ -243,7 +242,6 @@ func enter_hockey_state():
 func reset_ball(position: Vector2):
 	pitcher_position = position
 	linear_velocity = Vector2.ZERO
-	current_curve = 0.0
 	current_spin = 0.0
 	current_state = BallState.WAITING
 	last_hit_by = null
