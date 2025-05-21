@@ -1,6 +1,6 @@
 [gd_scene load_steps=6 format=3 uid="uid://3o41jr3lt75l"]
 
-[ext_resource type="Script" path="res://team.gd" id="1_or4d5"]
+[ext_resource type="Script" path="res://Team.gd" id="1_or4d5"]
 [ext_resource type="PackedScene" uid="uid://bjdgqu7nj5ewa" path="res://pitcher.tscn" id="2_qmi7b"]
 [ext_resource type="PackedScene" uid="uid://dvmvqmgnm6cps" path="res://Keeper.tscn" id="3_dm414"]
 [ext_resource type="PackedScene" uid="uid://ba85u2jijse6y" path="res://Guard.tscn" id="4_cyi4g"]
