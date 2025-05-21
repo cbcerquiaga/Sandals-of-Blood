@@ -153,8 +153,8 @@ func handle_forward_collision(forward: Player):
 		# Shoot at goal
 		var shot_dir = (goal_pos - global_position).normalized()
 		apply_forward_hit(forward, shot_dir)
-	
-	enter_hockey_state()
+	if current_state != BallState.HOCKEY:
+		enter_hockey_state()
 
 func apply_forward_hit(forward: Player, direction: Vector2):
 	# Calculate power - combination of shooting skill and movement
@@ -181,10 +181,16 @@ func apply_forward_hit(forward: Player, direction: Vector2):
 	linear_velocity = direction * final_power
 
 func handle_wall_collision(wall: StaticBody2D):
+	#print("ball hit wall")
 	if current_state == BallState.WAITING:
 		return
 	# Get predefined wall normal based on wall name/groups
 	var wall_normal := Vector2.ZERO
+	
+	if current_state == BallState.PITCHING or current_state == BallState.SPECIAL_PITCH:
+		if wall.is_in_group("front") or wall.is_in_group("back"):
+			print("the ball careens off the back wall and onto the ground into play")
+			current_state = BallState.HOCKEY
 	
 	# Check which wall was hit (assuming you've named them appropriately)
 	if wall.is_in_group("left"):
@@ -206,10 +212,6 @@ func handle_wall_collision(wall: StaticBody2D):
 	var incoming_angle = linear_velocity.angle_to(wall_normal)
 	if abs(incoming_angle) < PI/6: # Shallow angle
 		current_spin = incoming_angle * linear_velocity.length() * 0.005
-	
-	# Enter hockey state if being pitched
-	if current_state == BallState.PITCHING:
-		enter_hockey_state()
 
 func be_pitched(huck: Vector2, curve: float):
 	current_state = BallState.PITCHING

@@ -85,6 +85,7 @@ var boost_bar
 var state_label
 @onready var stun_timer = $StunTimer
 @onready var spin_cooldown = $SpinCooldown
+@onready var label = $RichTextLabel
 
 func _ready():
 	collision_layer = 0b0100  # Layer 3 (players)
@@ -407,6 +408,8 @@ func apply_opponent_stun(duration: float):
 	pass
 
 func update_ui():
+	label.bbcode_enabled = true
+	label.set_text(position_type)
 	#stamina_bar.value = energy
 	#boost_bar.value = boost
 	#
@@ -414,7 +417,7 @@ func update_ui():
 		#state_label.text = ""
 	#else:
 		#state_label.text = "%s\nE:%.0f B:%.0f" % [position_type, energy, boost]
-		pass
+	pass
 
 func check_is_incapacitated() -> bool:
 	return is_incapacitated or is_stunned

@@ -70,3 +70,14 @@ offset_bottom = 40.0
 [node name="SpinCooldown" type="Timer" parent="."]
 
 [node name="StunTimer" type="Timer" parent="."]
+
+[node name="RichTextLabel" type="RichTextLabel" parent="."]
+offset_right = 40.0
+offset_bottom = 40.0
+theme_override_font_sizes/bold_italics_font_size = 10
+theme_override_font_sizes/italics_font_size = 10
+theme_override_font_sizes/mono_font_size = 10
+theme_override_font_sizes/normal_font_size = 10
+theme_override_font_sizes/bold_font_size = 10
+scroll_active = false
+tab_size = 1

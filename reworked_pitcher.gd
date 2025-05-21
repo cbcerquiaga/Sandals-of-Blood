@@ -38,6 +38,7 @@ var aim_max_angle : float = 100
 var aim_increment: float = 2
 var target: Vector2
 var field_type: String = "road"
+var has_pitched: bool = false
 
 
 # Nodes TODO
@@ -68,6 +69,8 @@ func _physics_process(delta):
 	
 	super._physics_process(delta)
 	await ball
+	if has_pitched:
+		go_away()
 	if is_controlling_player and is_aiming:
 		_handle_pitch_controls()
 		variance_timer()
@@ -126,9 +129,7 @@ func _handle_pitch_controls():
 				target.x = aim_max_angle
 		aim_direction = global_position.direction_to(target).normalized()
 		#print("aim it: " + str(aim_direction))
-	
-	# Pitch execution
-	var has_pitched = false
+		
 	if Input.is_action_just_pressed("pitch"):
 		print("throw it")
 		execute_pitch("normal")
@@ -374,6 +375,7 @@ func go_away():
 	global_position = Vector2(-1000,-1000)
 	is_controlling_player = false
 	has_ball = false
+	can_move = false
 	
 #TODO: change this for different fields
 func prepare_target_position():

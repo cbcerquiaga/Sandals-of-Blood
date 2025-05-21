@@ -59,7 +59,7 @@ func _ready():
 	field.free_movement.connect(_on_ball_crossed_midfield)
 
 func _on_ball_crossed_midfield():
-	print("game on!")
+	#print("game on!")
 	pTeam.allow_movement()
 	aTeam.allow_movement()
 	pTeam.default_human_state()
