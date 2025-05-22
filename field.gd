@@ -120,9 +120,9 @@ func loop_through_children():
 			child.collision_layer = 0b0010  # Layer 2 (obstacles)
 			child.collision_mask = 0b0101
 		elif child.is_in_group("areas"):
+			child.collision_layer = 0  # No physics layer
+			child.collision_mask = 0b0101  # Detect balls (layer 1) and players (layer 3)
 			if child is Area2D:
-				child.collision_layer = 0  # No physics layer
-				child.collision_mask = 0b0101  # Detect balls (layer 1) and players (layer 3)
 				child.monitoring = true
 				child.monitorable = false
 	pass

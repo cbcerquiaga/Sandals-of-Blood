@@ -138,11 +138,11 @@ func handle_human_input(delta):
 		is_sprinting = false
 	
 	# Spinning
-	if Input.is_action_just_pressed("dodge") and not is_sprinting and status.boost > 15 and spin_cooldown.is_stopped():
+	if Input.is_action_just_pressed("move_dodge") and not is_sprinting and status.boost > 15 and spin_cooldown.is_stopped():
 		start_spin()
 	
 	# Attacking
-	if Input.is_action_just_pressed("attack") and not is_spinning:
+	if Input.is_action_just_pressed("attack_player") and not is_spinning:
 		attempt_attack()
 	
 	# Special moves (position-specific)
