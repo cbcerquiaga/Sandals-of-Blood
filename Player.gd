@@ -87,6 +87,12 @@ var state_label
 @onready var spin_cooldown = $SpinCooldown
 @onready var label = $RichTextLabel
 
+#position tracking
+var fieldType: String = "road"
+var fieldHeight: float = 0.0
+var returnSpeed: float = 6
+
+
 func _ready():
 	collision_layer = 0b0100  # Layer 3 (players)
 	collision_mask = 0b0011  # Collide with obstacles (2) and balls (1)
@@ -105,6 +111,15 @@ func _physics_process(delta):
 		handle_stun_movement(delta)
 		move_and_slide()
 		return
+	else: #if not stunned, go back to player's half
+		if fieldType == "road" or fieldType == "wideRoad":
+			if (team == 2 and (position_type == "guard" or position_type == "keeper")) or (team == 1 and position_type == "forward"):
+				if global_position.y > fieldHeight:
+					global_position.y -= returnSpeed
+			elif (team == 1 and (position_type == "guard" or position_type == "keeper")) or (team == 2 and position_type == "forward"):
+				if global_position.y < fieldHeight:
+					global_position.y += returnSpeed
+			
 	
 	if is_in_brawl:
 		handle_brawl_input()
