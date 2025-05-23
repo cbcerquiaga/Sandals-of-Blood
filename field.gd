@@ -129,14 +129,26 @@ func loop_through_children():
 
 func _on_player_half_entered(body: Node):
 	if body is Ball:
-		ball_touched_player_half = true
-		_check_midfield_crossing()
+		if !ball_touched_player_half:
+			ball_touched_player_half = true
+			print("touched player half")
+			_check_midfield_crossing()
 
 func _on_cpu_half_entered(body: Node):
 	if body is Ball:
-		ball_touched_cpu_half = true
-		_check_midfield_crossing()
+		if !ball_touched_cpu_half:
+			ball_touched_cpu_half = true
+			print("touched CPU half")
+			_check_midfield_crossing()
 
 func _check_midfield_crossing():
 	if ball_touched_player_half and ball_touched_cpu_half:
 		emit_signal("free_movement")
+
+func touch_half(side: String):
+	if side == "human":
+		ball_touched_player_half = true
+		ball_touched_cpu_half = false
+	elif side == "cpu":
+		ball_touched_cpu_half = true
+		ball_touched_player_half = false

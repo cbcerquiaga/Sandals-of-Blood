@@ -141,6 +141,7 @@ func reset_ball():
 	print("reset ball")
 	if is_human_team_pitching:
 		ball.reset_ball(Vector2(pTeam.P.global_position.x + pTeam.P.hand_offset, pTeam.P.global_position.y))
+		field.touch_half("human")
 		pTeam.P.has_ball = true
 		pTeam.P.prepare_target_position()
 		pTeam.P.is_controlling_player = true
@@ -148,6 +149,7 @@ func reset_ball():
 		print("human pitcher in control")
 	else:
 		ball.reset_ball(Vector2(aTeam.P.global_position.x + aTeam.P.hand_offset, aTeam.P.global_position.y))
+		field.touch_half("cpu")
 		aTeam.P.has_ball = true
 		aTeam.P.prepare_target_position()
 		pTeam.K.is_controlling_player = true
@@ -241,6 +243,7 @@ func set_time_scale(scale: float):
 	
 #players must know each other. More importantly, they must know ball
 func enlighten_players():
+	#TODO: enlighten players about their half of the field too
 	pTeam.enlighten(ball, field.playerGoal, field.cpuGoal, aTeam.K, aTeam.LG, aTeam.RG, aTeam.LF, aTeam.RF)
 	aTeam.enlighten(ball, field.cpuGoal, field.playerGoal, pTeam.K, pTeam.LG, pTeam.RG, pTeam.LF, pTeam.RF)
 	
