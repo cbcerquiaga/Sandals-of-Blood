@@ -39,10 +39,10 @@ func assign_forward(forward: Forward):
 func _physics_process(delta):
 	super._physics_process(delta)
 	
-	if not is_controlling_player:
+	if not is_controlling_player and can_move:
 		check_ball_attacking_half()
-		update_ai_movement(delta)
-		update_forward_tracking(delta)
+		#update_ai_movement(delta)
+		#update_forward_tracking(delta)
 		
 
 func update_forward_tracking(delta):

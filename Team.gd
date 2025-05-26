@@ -79,6 +79,7 @@ func initialize_default_strategy():
 		"forward": 1.5,
 		"pitcher": 0.3
 	}
+	#TODO: set the team_strategy dictionary for each player
 
 func add_players_to_roster():
 	add_player(K)
@@ -259,7 +260,7 @@ func get_brawl_priority_players() -> Array[Player]:
 	priority.erase(null)
 	return priority
 
-func enlighten(ball, ownGoal, oppGoal, oppK, oppLG, oppRG, oppLF, oppRF):
+func enlighten(ball, field, keeperWall, ownGoal, oppGoal, oppK, oppLG, oppRG, oppLF, oppRF):
 	P.ball = ball
 	P.ball_pitched.connect(ball.be_pitched)
 	P.special_pitched.connect(ball.be_special_pitched)
@@ -267,6 +268,9 @@ func enlighten(ball, ownGoal, oppGoal, oppK, oppLG, oppRG, oppLF, oppRF):
 	K.ball = ball
 	K.own_goal = ownGoal.global_position
 	K.opp_goal = oppGoal.global_position
+	K.left_wall = field.leftWall
+	K.right_wall = field.rightWall
+	K.back_wall = keeperWall
 	K.oppKeeper = oppK
 	K.oppLF = oppLF
 	K.oppRF = oppRF

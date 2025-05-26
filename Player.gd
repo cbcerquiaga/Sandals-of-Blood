@@ -5,6 +5,7 @@ class_name Player
 @export var attributes := {
 	"speed": 300.0,
 	"sprint_speed": 400.0,
+	"positioning" : 90, #player's positioning ability
 	"aggression": 50, #1-100, impacts decision making
 	"reactions": 90, #1-100, impacts AI speed
 	"durability": 75,	#1-100, impacts injury chance
@@ -39,6 +40,14 @@ class_name Player
 	"years": 25
 }
 
+#TODO: update for different parts of strategy
+#TODO: import from team.gd
+@export var team_strategy := {
+	"shoot": 30,
+	"pass": 20,
+	"miss": 10,
+}
+
 enum PlayerState {
 	IDLE,
 	GO_TO_POSITION,
@@ -49,6 +58,11 @@ enum PlayerState {
 	AI_OUT_BRAWL,
 	CHILD_STATE #means character is using some child's state as primary operation
 }
+
+#debugging
+var debug: bool = false
+var debug_frames: int = 200
+var current_debug_frame:int = 0
 
 
 # Energy Systems

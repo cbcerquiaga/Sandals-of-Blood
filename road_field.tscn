@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3 uid="uid://bje6o4s6rvh85"]
+[gd_scene load_steps=9 format=3 uid="uid://bje6o4s6rvh85"]
 
 [ext_resource type="Script" path="res://Field.gd" id="1_s84cq"]
 
@@ -19,6 +19,11 @@ size = Vector2(116, 121)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_fu7hr"]
 size = Vector2(8, 238)
+
+[sub_resource type="NavigationPolygon" id="NavigationPolygon_bgms3"]
+vertices = PackedVector2Array(48, 109, -48, 109, -48, -109, 48, -109)
+polygons = Array[PackedInt32Array]([PackedInt32Array(0, 1, 2, 3)])
+outlines = Array[PackedVector2Array]([PackedVector2Array(-58, -119, 58, -119, 58, 119, -58, 119)])
 
 [node name="RoadField" type="Node2D"]
 script = ExtResource("1_s84cq")
@@ -189,3 +194,6 @@ rotation = 3.14159
 [node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="Walls/Front"]
 polygon = PackedVector2Array(-66, -119, -21, -119, -22, -129, 22, -129, 21, -119, 66, -119, 20, -136, -22, -136)
 one_way_collision_margin = 128.0
+
+[node name="NavigationRegion2D" type="NavigationRegion2D" parent="."]
+navigation_polygon = SubResource("NavigationPolygon_bgms3")

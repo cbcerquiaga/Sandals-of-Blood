@@ -244,8 +244,8 @@ func set_time_scale(scale: float):
 #players must know each other. More importantly, they must know ball
 func enlighten_players():
 	#TODO: enlighten players about their half of the field too
-	pTeam.enlighten(ball, field.playerGoal, field.cpuGoal, aTeam.K, aTeam.LG, aTeam.RG, aTeam.LF, aTeam.RF)
-	aTeam.enlighten(ball, field.cpuGoal, field.playerGoal, pTeam.K, pTeam.LG, pTeam.RG, pTeam.LF, pTeam.RF)
+	pTeam.enlighten(ball, field, field.frontWall, field.playerGoal, field.cpuGoal, aTeam.K, aTeam.LG, aTeam.RG, aTeam.LF, aTeam.RF)
+	aTeam.enlighten(ball, field, field.backWall, field.cpuGoal, field.playerGoal, pTeam.K, pTeam.LG, pTeam.RG, pTeam.LF, pTeam.RF)
 	
 	
 
