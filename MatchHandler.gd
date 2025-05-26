@@ -146,6 +146,7 @@ func reset_ball():
 		pTeam.P.prepare_target_position()
 		pTeam.P.is_controlling_player = true
 		pTeam.P.is_aiming = true
+		pTeam.K.current_behavior = "waiting"
 		print("human pitcher in control")
 	else:
 		ball.reset_ball(Vector2(aTeam.P.global_position.x + aTeam.P.hand_offset, aTeam.P.global_position.y))

@@ -270,6 +270,9 @@ func enlighten(ball, field, keeperWall, ownGoal, oppGoal, oppK, oppLG, oppRG, op
 	K.opp_goal = oppGoal.global_position
 	K.left_wall = field.leftWall
 	K.right_wall = field.rightWall
+	#TODO: if field type is road or wide road, else different
+	K.leftPost = Vector2(field.player_goal_post1.global_position.x, ownGoal.global_position.y)
+	K.rightPost = Vector2(field.player_goal_post2.global_position.x, ownGoal.global_position.y)
 	K.back_wall = keeperWall
 	K.oppKeeper = oppK
 	K.oppLF = oppLF

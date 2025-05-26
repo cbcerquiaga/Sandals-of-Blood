@@ -5,17 +5,25 @@ class_name Keeper
 @export var avoidance_weights := {
 	"forward_proximity": 1.5,
 	"goal_proximity": 0.8,
-	"dodge_threshold": 150.0,
-	"fence_threshold": 200.0,
-	"panic_threshold": 120.0
+	"dodge_threshold": 20.0,
+	"fence_threshold": 50.0,
+	"panic_threshold": 20.0,
+	"chill_threshold": 30
+}
+
+@export var sweeping_params := {
+	"max_distance" : 60,
+	"min_distance" : 30,
+	"slow": 100,
+	"grumpy_frames": 3000
 }
 
 @export var fencing_params := {
-	"ideal_distance": 120.0,
-	"advance_speed": 1.5,
-	"retreat_speed": 2.0,
+	"ideal_distance": 12.0,
+	"advance_speed": attributes.speed * 0.75,
+	"retreat_speed": attributes.speed,
 	"attack_cooldown": 1.0,
-	"ball_proximity_threshold": 300.0
+	"ball_proximity_threshold": 30.0#TODO: base on reactions
 }
 
 @export var attack_params := {
@@ -51,6 +59,7 @@ var oppKeeper
 var navigation_agent: NavigationAgent2D
 
 func _ready():
+	debug = true
 	super._ready()
 	position_type = "keeper"
 	navigation_agent = $NavigationAgent2D
@@ -86,6 +95,12 @@ func _physics_process(delta):
 				perform_fencing()
 			"attacking":
 				perform_attacking()
+				
+		if debug:
+			current_debug_frame += 1
+			if current_debug_frame >= debug_frames:
+				current_debug_frame = 0
+				print(current_behavior)
 		
 		move_and_slide()
 
@@ -121,22 +136,26 @@ func check_state():
 	"""Determines when to transition from defending to other states"""
 	if !ball:
 		return
+	if current_behavior == "waiting": #sit down and wait!
+		return
 	
 	var ball_speed = ball_last_velocity.length()
 	var ball_to_goal = (own_goal - ball.global_position).normalized()
 	var ball_direction = ball_last_velocity.normalized()
 	var goal_threat = ball_direction.dot(ball_to_goal)
 	
-	var ball_dist_to_goal = ball.global_position.distance_to(own_goal)
+	var ball_dist_to_goal = ball.global_position.distance_squared_to(own_goal)
+	var keeper_dist_to_goal = global_position.distance_squared_to(own_goal)
 	var keeper_dist_to_ball = global_position.distance_to(ball.global_position)
 	
 	# Check for blocking conditions (urgent defense)
-	if (ball_speed > 500 and goal_threat > 0.7) or (ball_dist_to_goal < 300 and keeper_dist_to_ball > 200):
+	if (ball_speed > 500 and goal_threat > 0.7) or ball_dist_to_goal < keeper_dist_to_goal:
 		current_behavior = "blocking"
 		return
 	
 	# Check for striking conditions (ball control)
-	if keeper_dist_to_ball < 150:
+	if keeper_dist_to_ball < attributes.aggression/4: #12.5 for 50, 20 for 80, 25 for 99
+		print(str(keeper_dist_to_ball))
 		current_behavior = "striking"
 		return
 	
@@ -148,12 +167,13 @@ func check_state():
 	
 	# Check for sweeping conditions (ball stagnation)
 	var sweep_chance = 0.0
-	sweep_chance += 0.4 * (1.0 - clamp(ball_speed / 200.0, 0.0, 1.0))  # Slow ball
+	sweep_chance += 0.4 * (1.0 - clamp(ball_speed / sweeping_params.slow, 0.0, 1.0))  # Slow ball
 	sweep_chance += 0.3 * (1.0 - abs(ball_direction.x))  # Lateral movement
-	sweep_chance += 0.3 * clamp(time_since_last_touch / 10.0, 0.0, 1.0)  # Time since touch
+	sweep_chance += 0.3 * clamp(time_since_last_touch / sweeping_params.grumpy_frames, 0.0, 1.0)  # Time since touch
 	
-	if randf() < sweep_chance * (attributes.aggression / 99.0):
-		current_behavior = "sweeping"
+	if keeper_dist_to_ball <= sweeping_params.max_distance and keeper_dist_to_ball >= sweeping_params.min_distance:
+		if randf() < sweep_chance * (attributes.aggression / 99.0):
+			current_behavior = "sweeping"
 
 func perform_blocking():
 	"""Blocking behavior - intercepts ball path to goal"""
@@ -250,7 +270,7 @@ func perform_sweeping():
 func perform_avoiding():
 	"""Avoiding behavior - evades opposing forwards while positioning"""
 	var closest_opponent = get_closest_opponent()
-	if !closest_opponent:
+	if !closest_opponent or global_position.distance_squared_to(closest_opponent.global_position) >= avoidance_weights.chill_threshold :
 		current_behavior = "defending"
 		return
 	
@@ -313,7 +333,8 @@ func perform_attacking():
 #region Helper Functions
 func _calculate_arc_intersection(goalLine: Array, ballPath: Array) -> Vector2:
 	"""Calculates intersection with defensive arc"""
-	var arcHeight = 150 * (1.0 - attributes.aggression/99.0) * (0.5 + attributes.confidence/200.0)
+	var arcHeight = 15 * (1.0 - attributes.aggression/99.0) * (0.5 + attributes.confidence/200.0)
+	#print("arc height: " + str(arcHeight))
 	var controlPoint = (goalLine[0] + goalLine[1]) / 2 - Vector2(0, arcHeight)
 	var t = _estimate_bezier_intersection(goalLine[0], controlPoint, goalLine[1], ballPath[0], ballPath[1])
 	return _quadratic_bezier_point(goalLine[0], controlPoint, goalLine[1], t)

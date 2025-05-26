@@ -61,7 +61,7 @@ enum PlayerState {
 
 #debugging
 var debug: bool = false
-var debug_frames: int = 200
+var debug_frames: int = 20
 var current_debug_frame:int = 0
 
 
@@ -104,7 +104,7 @@ var state_label
 #position tracking
 var fieldType: String = "road"
 var fieldHeight: float = 0.0
-var returnSpeed: float = 6
+var returnSpeed: float = 12
 
 
 func _ready():
