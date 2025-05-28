@@ -27,9 +27,8 @@ class_name Keeper
 }
 
 @export var attack_params := {
-	"charge_speed_multiplier": 1.8,
 	"attack_range": 100.0,
-	"target_switch_threshold": 250.0,
+	"target_switch_threshold": 50.0,
 	"cooldown_time": 0.8
 }
 
@@ -115,9 +114,9 @@ func perform_waiting():
 		var tiny_wander = global_position + Vector2(randf_range(-5, 5), randf_range(-5, 5))
 		navigation_agent.target_position = tiny_wander
 	
-	# Transition if ball comes close
-	if ball and global_position.distance_to(ball.global_position) < 600:
-		current_behavior = "defending"
+	## Transition if ball comes close
+	#if ball and global_position.distance_to(ball.global_position) < 600:
+		#current_behavior = "defending"
 
 func perform_defending():
 	"""Defending behavior - positions the keeper along defensive arc"""
@@ -324,7 +323,7 @@ func perform_attacking():
 			current_behavior = "defending"
 			return
 	
-	velocity = (attack_target.global_position - global_position).normalized() * attributes.speed * attack_params["charge_speed_multiplier"]
+	velocity = (attack_target.global_position - global_position).normalized() * attributes.sprint_speed
 	
 	if global_position.distance_to(attack_target.global_position) < attack_params["attack_range"]:
 		_execute_attack()
@@ -420,14 +419,15 @@ func _apply_anticipation_adjustments(basePos: Vector2) -> Vector2:
 	var nearestOpponent = get_closest_opponent()
 	if nearestOpponent:
 		var opponentInfluence = 0.4 * (1.0 - attributes.toughness/100.0)
-		adjustedPos += (adjustedPos - nearestOpponent.global_position).normalized() * 50.0 * opponentInfluence
+		adjustedPos += (adjustedPos - nearestOpponent.global_position).normalized() * 10.0 * opponentInfluence
 	
 	var randomFactor = 1.0 - (attributes.positioning / 100.0)
-	adjustedPos += Vector2(randf_range(-20, 20) * randomFactor, randf_range(-10, 10) * randomFactor)
+	adjustedPos += Vector2(randf_range(-10, 10) * randomFactor, randf_range(-10, 10) * randomFactor)
 	
 	var goalCenter = (leftPost + rightPost) / 2
-	if adjustedPos.distance_to(goalCenter) > 250:
-		adjustedPos = goalCenter + (adjustedPos - goalCenter).normalized() * 250
+	if adjustedPos.distance_to(goalCenter) > attributes.aggression:
+		print("adjusted position")
+		adjustedPos = (goalCenter + adjustedPos) / (attributes.aggression / 50)
 	
 	return adjustedPos
 

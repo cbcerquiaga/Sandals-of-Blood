@@ -322,6 +322,7 @@ func set_team_id(id):
 	
 func allow_movement():
 	K.can_move = true
+	K.current_behavior = "defending"
 	#P.can_move = true #TODO: depends on what pitcher does after pitching
 	RG.can_move = true
 	RF.can_move = true
@@ -331,6 +332,7 @@ func allow_movement():
 func default_human_state():
 	K.is_controlling_player = true
 	K.child_state()
+	K.current_behavior = "waiting"
 	LG.is_controlling_player = false
 	LG.child_state()
 	RG.is_controlling_player = false

@@ -3,8 +3,8 @@ class_name Player
 
 # Player Attributes
 @export var attributes := {
-	"speed": 300.0,
-	"sprint_speed": 400.0,
+	"speed": 110.0,
+	"sprint_speed": 140.0,
 	"positioning" : 90, #player's positioning ability
 	"aggression": 50, #1-100, impacts decision making
 	"reactions": 90, #1-100, impacts AI speed
