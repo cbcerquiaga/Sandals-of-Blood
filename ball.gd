@@ -3,8 +3,12 @@ class_name Ball
 
 # Physics Properties
 @export var base_speed: float = 500.0
-@export var max_speed: float = 1500.0
+var max_speed: float = 1500.0
+@export var hockey_max_speed: float = 800.0
+@export var pitching_max_speed: float = 1500
 @export var min_bounce_speed: float = 50.0
+var bounce_drag = 0.95 #how much speed ball retains when bouncing off walls
+var center_influence = 0.5 #affects how close to 0,0 ball bounces when it's not sure where to go
 var spin_curve_factor: float = 180.0
 
 # Game State
@@ -81,7 +85,7 @@ func follow_special_trajectory(delta):
 func apply_hockey_physics(delta):
 	# Inherits normal physics plus additional spin effects
 	apply_pitching_physics(delta)
-	
+	max_speed = hockey_max_speed
 	# Add slight randomness to movement from last hitter's accuracy
 	if last_hit_by and is_instance_valid(last_hit_by):
 		var accuracy_effect = 1.0 - (last_hit_by.attributes.accuracy / 100.0)
@@ -113,6 +117,7 @@ func handle_player_collision(player: Player):
 				enter_hockey_state()
 
 func handle_defender_collision(player: Player):
+	print("smack me, daddy")
 	# Calculate reflection with physics
 	var normal = (global_position - player.global_position).normalized()
 	var incoming_angle = linear_velocity.angle_to(normal)
@@ -192,21 +197,30 @@ func handle_wall_collision(wall: StaticBody2D):
 			print("the ball careens off the back wall and onto the ground into play")
 			current_state = BallState.HOCKEY
 	
+	var reverse = false
 	# Check which wall was hit (assuming you've named them appropriately)
 	if wall.is_in_group("left"):
 		wall_normal = Vector2.RIGHT  # Bounce right when hitting left wall
 	elif wall.is_in_group("right"):
 		wall_normal = Vector2.LEFT   # Bounce left when hitting right wall
 	elif wall.is_in_group("front"):
+		print("touched front wall")
 		wall_normal = Vector2.UP     # Bounce up when hitting front wall
 	elif wall.is_in_group("back"):
+		print("touched back wall")
 		wall_normal = Vector2.DOWN   # Bounce down when hitting back wall
-	else:
-		# Fallback to current behavior for other walls
-		wall_normal = (global_position - wall.global_position).normalized()
+	else: #bounce backwards
+		print("where do I go? " + str(wall))
+		reverse = true
 	
-	# Standard bounce physics with the correct normal
-	linear_velocity = linear_velocity.bounce(wall_normal)
+	if !reverse: #bounce and apply drag
+		linear_velocity = linear_velocity.bounce(wall_normal)
+		linear_velocity = linear_velocity * bounce_drag
+	else: #turn around and apply lots of drag
+		linear_velocity = linear_velocity * -1
+		linear_velocity = linear_velocity * bounce_drag
+		linear_velocity = linear_velocity * bounce_drag
+		
 	
 	# Add spin effect from shallow angles
 	var incoming_angle = linear_velocity.angle_to(wall_normal)
@@ -214,6 +228,7 @@ func handle_wall_collision(wall: StaticBody2D):
 		current_spin = incoming_angle * linear_velocity.length() * 0.005
 
 func be_pitched(huck: Vector2, curve: float):
+	max_speed = pitching_max_speed
 	current_state = BallState.PITCHING
 	
 	# Apply pitch immunity

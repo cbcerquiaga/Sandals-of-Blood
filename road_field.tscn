@@ -1,12 +1,9 @@
-[gd_scene load_steps=9 format=3 uid="uid://bje6o4s6rvh85"]
+[gd_scene load_steps=8 format=3 uid="uid://bje6o4s6rvh85"]
 
 [ext_resource type="Script" path="res://Field.gd" id="1_s84cq"]
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_jakbm"]
-size = Vector2(117, 238)
-
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_5gq74"]
-size = Vector2(3.5, 2)
+size = Vector2(3.5, 2.99995)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_p4dk0"]
 size = Vector2(1, 7)
@@ -18,7 +15,7 @@ size = Vector2(40, 7)
 size = Vector2(116, 121)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_fu7hr"]
-size = Vector2(8, 238)
+size = Vector2(14, 238)
 
 [sub_resource type="NavigationPolygon" id="NavigationPolygon_bgms3"]
 vertices = PackedVector2Array(48, 109, -48, 109, -48, -109, 48, -109)
@@ -28,13 +25,6 @@ outlines = Array[PackedVector2Array]([PackedVector2Array(-58, -119, 58, -119, 58
 [node name="RoadField" type="Node2D"]
 script = ExtResource("1_s84cq")
 
-[node name="Boundary" type="StaticBody2D" parent="."]
-
-[node name="Texture" type="Sprite2D" parent="Boundary"]
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Boundary"]
-shape = SubResource("RectangleShape2D_jakbm")
-
 [node name="Goals" type="Node2D" parent="."]
 
 [node name="PlayerGoal" type="Area2D" parent="Goals"]
@@ -43,13 +33,13 @@ position = Vector2(0, 124)
 [node name="Post1" type="StaticBody2D" parent="Goals/PlayerGoal"]
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Goals/PlayerGoal/Post1"]
-position = Vector2(-19.25, -4)
+position = Vector2(-19.25, -4.5)
 shape = SubResource("RectangleShape2D_5gq74")
 
 [node name="Post2" type="StaticBody2D" parent="Goals/PlayerGoal"]
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Goals/PlayerGoal/Post2"]
-position = Vector2(19.25, -4)
+position = Vector2(19.25, -4.5)
 shape = SubResource("RectangleShape2D_5gq74")
 
 [node name="SidePanel1" type="StaticBody2D" parent="Goals/PlayerGoal"]
@@ -77,13 +67,13 @@ rotation = 3.14159
 [node name="Post1" type="StaticBody2D" parent="Goals/AIGoal"]
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Goals/AIGoal/Post1"]
-position = Vector2(-19.25, -4)
+position = Vector2(-19.25, -4.5)
 shape = SubResource("RectangleShape2D_5gq74")
 
 [node name="Post2" type="StaticBody2D" parent="Goals/AIGoal"]
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Goals/AIGoal/Post2"]
-position = Vector2(19.25, -4)
+position = Vector2(19.25, -4.49998)
 shape = SubResource("RectangleShape2D_5gq74")
 
 [node name="SidePanel1" type="StaticBody2D" parent="Goals/AIGoal"]
@@ -174,25 +164,27 @@ position = Vector2(56, -110)
 position = Vector2(-62, 0)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Walls/Left"]
+position = Vector2(-3, 0)
 shape = SubResource("RectangleShape2D_fu7hr")
 
 [node name="Right" type="StaticBody2D" parent="Walls"]
 position = Vector2(62, 0)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Walls/Right"]
+position = Vector2(3, 0)
 shape = SubResource("RectangleShape2D_fu7hr")
 
 [node name="Back" type="StaticBody2D" parent="Walls"]
 
 [node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="Walls/Back"]
-polygon = PackedVector2Array(-66, -119, -21, -119, -22, -129, 22, -129, 21, -119, 66, -119, 20, -136, -22, -136)
+polygon = PackedVector2Array(-72, -118, -21, -118, -21, -128, 21, -128, 21, -118, 72, -118, 20, -136, -22, -136)
 one_way_collision_margin = 128.0
 
 [node name="Front" type="StaticBody2D" parent="Walls"]
 rotation = 3.14159
 
 [node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="Walls/Front"]
-polygon = PackedVector2Array(-66, -119, -21, -119, -22, -129, 22, -129, 21, -119, 66, -119, 20, -136, -22, -136)
+polygon = PackedVector2Array(-71.9997, -118, -20.9997, -118, -20.9997, -128, 21.0003, -128, 21.0003, -118, 72.0003, -118, 20, -136, -22, -136)
 one_way_collision_margin = 128.0
 
 [node name="NavigationRegion2D" type="NavigationRegion2D" parent="."]

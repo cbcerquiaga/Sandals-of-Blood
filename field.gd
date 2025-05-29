@@ -36,7 +36,6 @@ var playerHalf
 var cpuHalf
 var playerGoal
 var cpuGoal
-var fieldBoundary
 
 #tracking
 @export var ball_touched_player_half: bool = false
@@ -72,8 +71,6 @@ func _ready():
 	playerGoal.add_to_group("goals")
 	cpuGoal = $Goals/AIGoal
 	cpuGoal.add_to_group("goals")
-	fieldBoundary = $Boundary
-	fieldBoundary.add_to_group("areas")
 	leftWall = $Walls/Left
 	leftWall.add_to_group("obstacles")
 	leftWall.add_to_group("left")

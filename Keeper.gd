@@ -58,7 +58,7 @@ var oppKeeper
 var navigation_agent: NavigationAgent2D
 
 func _ready():
-	debug = true
+	debug = false
 	super._ready()
 	position_type = "keeper"
 	navigation_agent = $NavigationAgent2D
@@ -426,7 +426,7 @@ func _apply_anticipation_adjustments(basePos: Vector2) -> Vector2:
 	
 	var goalCenter = (leftPost + rightPost) / 2
 	if adjustedPos.distance_to(goalCenter) > attributes.aggression:
-		print("adjusted position")
+		#print("adjusted position")
 		adjustedPos = (goalCenter + adjustedPos) / (attributes.aggression / 50)
 	
 	return adjustedPos
