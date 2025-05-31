@@ -40,6 +40,13 @@ var cpuGoal
 #tracking
 @export var ball_touched_player_half: bool = false
 @export var ball_touched_cpu_half: bool = false
+@export var ball_in_cpu_half: bool = false
+@export var ball_in_player_half: bool = false
+@export var ball_in_play: bool = true
+var check_ball_goal: bool = false
+var goal_to_check: Node = null
+var ball: Node = null
+const raycast_points: int = 8
 
 signal ball_exited_field
 signal free_movement
@@ -109,7 +116,18 @@ func _ready():
 	cpu_goal_side_panel2.add_to_group("left")
 	loop_through_children()
 	playerHalf.body_entered.connect(_on_player_half_entered)
+	playerHalf.body_exited.connect(_on_player_half_exited)
 	cpuHalf.body_entered.connect(_on_cpu_half_entered)
+	cpuHalf.body_exited.connect(_on_cpu_half_exited)
+	playerGoal.body_entered.connect(_on_player_goal_entered)
+	playerGoal.body_exited.connect(_on_player_goal_exited)
+	cpuGoal.body_entered.connect(_on_cpu_goal_entered)
+	cpuGoal.body_exited.connect(_on_cpu_goal_exited)
+	
+func _process(delta) -> void:
+	if check_ball_goal:
+		if ball and goal_to_check:
+			_perform_raycast_check()
 
 func loop_through_children():
 	for child in get_children():
@@ -126,6 +144,7 @@ func loop_through_children():
 
 func _on_player_half_entered(body: Node):
 	if body is Ball:
+		ball_in_player_half = true
 		if !ball_touched_player_half:
 			ball_touched_player_half = true
 			print("touched player half")
@@ -133,10 +152,32 @@ func _on_player_half_entered(body: Node):
 
 func _on_cpu_half_entered(body: Node):
 	if body is Ball:
+		ball_in_cpu_half = true
 		if !ball_touched_cpu_half:
 			ball_touched_cpu_half = true
 			print("touched CPU half")
 			_check_midfield_crossing()
+
+func _on_cpu_half_exited(body: Node):
+	if body is Ball:
+		ball_in_cpu_half = false
+		check_ball_in_play(body)
+		
+func _on_player_half_exited(body:Node):
+	if body is Ball:
+		ball_in_player_half = false
+		check_ball_in_play(body)
+		
+func check_ball_in_play(ball: Ball):
+	if !ball_in_cpu_half && !ball_in_player_half:
+		if playerGoal.get_overlapping_bodies().find(ball) != -1:
+			print("CPU goal!")
+		elif cpuGoal.get_overlapping_bodies().find(ball):
+			print("Player goal!")
+		else:
+			print("It's outta here!")
+			emit_signal("ball_exited_field")
+
 
 func _check_midfield_crossing():
 	if ball_touched_player_half and ball_touched_cpu_half:
@@ -149,3 +190,55 @@ func touch_half(side: String):
 	elif side == "cpu":
 		ball_touched_cpu_half = true
 		ball_touched_player_half = false
+
+func _on_player_goal_entered(body: Node):
+	if body is Ball:
+		goal_to_check = playerGoal
+		check_ball_goal = true
+		
+func _on_player_goal_exited(body: Node):
+	if body is Ball:
+		goal_to_check = null
+		check_ball_goal = false
+
+func _on_cpu_goal_entered(body: Node):
+	if body is Ball:
+		ball = body
+		goal_to_check = cpuGoal
+		check_ball_goal = true
+		
+func _on_cpu_goal_exited(body: Node):
+	if body is Ball:
+		ball = body
+		goal_to_check = null
+		check_ball_goal = false
+
+func _perform_raycast_check():
+	print("is the ball in the goal?")
+	var all_points_inside = true
+	var ball_radius = ball.get_node("CollisionShape2D").shape.radius
+	var space_state = get_world_2d().direct_space_state
+	
+	for i in range(raycast_points):
+		var angle = i * (2 * PI / raycast_points)
+		var point = ball.global_position + Vector2(cos(angle), sin(angle)) * ball_radius
+		
+		var params = PhysicsPointQueryParameters2D.new()
+		params.position = point
+		params.collide_with_areas = true
+		params.collision_mask = goal_to_check.collision_layer
+		
+		var result = space_state.intersect_point(params)
+		var point_inside = false
+		for collision in result:
+			if collision.collider == goal_to_check:
+				point_inside = true
+				break
+		
+		if not point_inside:
+			all_points_inside = false
+			break
+	
+	if all_points_inside:
+		print("GOOOOOAAAAAALLLLLLL")
+		#TODO: emit signal, re-set play

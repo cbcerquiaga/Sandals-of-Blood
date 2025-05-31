@@ -154,7 +154,7 @@ func check_state():
 	
 	# Check for striking conditions (ball control)
 	if keeper_dist_to_ball < attributes.aggression/4: #12.5 for 50, 20 for 80, 25 for 99
-		print(str(keeper_dist_to_ball))
+		#print(str(keeper_dist_to_ball))
 		current_behavior = "striking"
 		return
 	

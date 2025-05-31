@@ -204,10 +204,10 @@ func handle_wall_collision(wall: StaticBody2D):
 	elif wall.is_in_group("right"):
 		wall_normal = Vector2.LEFT   # Bounce left when hitting right wall
 	elif wall.is_in_group("front"):
-		print("touched front wall")
+		#print("touched front wall")
 		wall_normal = Vector2.UP     # Bounce up when hitting front wall
 	elif wall.is_in_group("back"):
-		print("touched back wall")
+		#print("touched back wall")
 		wall_normal = Vector2.DOWN   # Bounce down when hitting back wall
 	else: #bounce backwards
 		print("where do I go? " + str(wall))
