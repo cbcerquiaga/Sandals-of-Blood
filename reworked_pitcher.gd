@@ -94,21 +94,21 @@ func _handle_pitch_controls():
 	can_move = false
 	# Power adjustment
 	if Input.is_action_pressed("move_up"):
-		print("more mustard")
+		#print("more mustard")
 		current_power = min(max_power, current_power + 10)
 	elif Input.is_action_pressed("move_down"):
-		print("scrape some mustard off")
+		#print("scrape some mustard off")
 		current_power = max(min_power, current_power - 10)
 	
 	# Curve adjustment
 	if Input.is_action_pressed("increase_spin"):
 		current_curve = min(max_curve, current_curve + curve_step)
-		print("curl it")
+		#print("curl it")
 	elif Input.is_action_pressed("decrease_spin"):
 		current_curve = max(0-max_curve, current_curve - curve_step)
-		print("straighten it")
-		if current_curve == 0 - max_curve:
-			print("ooooooh")
+		#print("straighten it")
+		#if current_curve == 0 - max_curve:
+			#print("ooooooh")
 	
 	# Aim direction (mouse/joystick)
 	var input_direction = Input.get_vector("move_left", "move_right", "move_up", "move_down")
