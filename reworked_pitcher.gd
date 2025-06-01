@@ -172,14 +172,15 @@ func handle_ai_pitch_decision():
 
 func select_ai_pitch() -> String:
 	# Check special pitches first
-	for i in special_pitch_available.size():
-		if special_pitch_available[i]:
-			return special_pitch_names[i]
+	#TODO: actually implement special pitches
+	#for i in special_pitch_available.size():
+		#if special_pitch_available[i]:
+			#return special_pitch_names[i]
 	
-	# Then check successful pitches
-	if not successful_pitches.is_empty() and randf() < 0.7: # 70% chance to reuse
-		var pitch = successful_pitches.pick_random()
-		return pitch["type"]
+	# Then check successful pitches TODO
+	#if not successful_pitches.is_empty() and randf() < 0.7: # 70% chance to reuse
+		#var pitch = successful_pitches.pick_random()
+		#return pitch["type"]
 	
 	# Default to random normal pitch
 	return "normal"
@@ -187,6 +188,7 @@ func select_ai_pitch() -> String:
 func execute_pitch(pitch_type: String):
 	is_aiming = false
 	last_pitch_type = pitch_type
+	ball.last_hit_by = self
 	var ball_position = Vector2(global_position.x + hand_offset, global_position.y)
 	match pitch_type:
 		"normal":
