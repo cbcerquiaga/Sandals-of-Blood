@@ -57,6 +57,9 @@ func _ready():
 	print("process: pteam " + str(pTeam.process_mode) + "/ateam " + str(aTeam.has_readied) + "/field " + str(field))
 	apply_time_scale()
 	field.free_movement.connect(_on_ball_crossed_midfield)
+	field.ball_exited_field.connect(_on_ball_exited_field)
+	field.player_goal.connect(_on_player_goal)
+	field.cpu_goal.connect(_on_cpu_goal)
 
 func _on_ball_crossed_midfield():
 	#print("game on!")
@@ -64,6 +67,38 @@ func _on_ball_crossed_midfield():
 	aTeam.allow_movement()
 	pTeam.default_human_state()
 	#aTeam.default_ai_state()
+
+func _on_ball_exited_field():
+	print("and the ball goes out of bounds, we'll re-set")
+	if ball.last_hit_by.team == 1: #out on player team
+		is_human_team_pitching = false
+	else:
+		is_human_team_pitching = true
+	reset_play()
+	
+func _on_player_goal():
+	if ball.last_hit_by == pTeam.P:
+		print("it's an ace!")
+		pTeam.P._on_goal_aced()
+		is_human_team_pitching = true
+	else:
+		is_human_team_pitching = !is_human_team_pitching
+	#TODO: goal celebrations
+	team_scores[0] += 1
+	print("Score: " + str(team_scores))
+	reset_play()
+
+func _on_cpu_goal():
+	if ball.last_hit_by == aTeam.P:
+		print("it's an ace!")
+		aTeam.P._on_goal_aced()
+		is_human_team_pitching = false
+	else:
+		is_human_team_pitching = !is_human_team_pitching
+	#TODO: goal celebrations
+	team_scores[1] += 1
+	print("Score: " + str(team_scores))
+	reset_play()
 
 func reset_match():
 	print("reset match")
@@ -76,6 +111,7 @@ func reset_match():
 	aTeam.is_on_offense = false
 	enlighten_players()
 	reset_play()
+	
 	
 func _process(delta: float) -> void:
 	if !ready_to_start:
@@ -140,6 +176,8 @@ func position_player(player: Player, position: Vector2, rotation: float):
 func reset_ball():
 	print("reset ball")
 	if is_human_team_pitching:
+		pTeam.is_on_offense = true
+		aTeam.is_on_offense = false
 		ball.reset_ball(Vector2(pTeam.P.global_position.x + pTeam.P.hand_offset, pTeam.P.global_position.y))
 		field.touch_half("human")
 		pTeam.P.has_ball = true
@@ -149,6 +187,8 @@ func reset_ball():
 		pTeam.K.current_behavior = "waiting"
 		print("human pitcher in control")
 	else:
+		pTeam.is_on_offense = false
+		aTeam.is_on_offense = true
 		ball.reset_ball(Vector2(aTeam.P.global_position.x + aTeam.P.hand_offset, aTeam.P.global_position.y))
 		field.touch_half("cpu")
 		aTeam.P.has_ball = true
@@ -234,17 +274,16 @@ func update_settings(new_settings: Dictionary):
 	current_settings = new_settings
 	apply_time_scale()
 	
-	# Update UI to reflect new settings
+	# TODO: Update UI to reflect new settings
 	#match_ui.update_settings_display(current_settings)
 
-# Called from UI
+# Accessibility setting
 func set_time_scale(scale: float):
 	current_settings.time_scale = clamp(scale, 0.25, 1.0)
 	apply_time_scale()
 	
 #players must know each other. More importantly, they must know ball
 func enlighten_players():
-	#TODO: enlighten players about their half of the field too
 	pTeam.enlighten(ball, field, field.frontWall, field.playerGoal, field.cpuGoal, aTeam.K, aTeam.LG, aTeam.RG, aTeam.LF, aTeam.RF)
 	aTeam.enlighten(ball, field, field.backWall, field.cpuGoal, field.playerGoal, pTeam.K, pTeam.LG, pTeam.RG, pTeam.LF, pTeam.RF)
 	
@@ -257,4 +296,4 @@ func on_team_ready_signal(id: int) -> void:
 		team1Ready = true
 	elif (team1Ready):
 		team2Ready = true
-	pass # Replace with function body.
+	pass

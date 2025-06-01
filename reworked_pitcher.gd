@@ -20,8 +20,8 @@ var special_pitch_available: Array[bool] = [false, false]
 var successful_pitches: Array[Dictionary] = []
 var last_pitch_type: String = ""
 var oppGoal: Vector2
-var leftWall
-var rightWall
+var left_wall
+var right_wall
 
 # Pitch State
 var current_power: float = 200
@@ -39,6 +39,13 @@ var aim_increment: float = 2
 var target: Vector2
 var field_type: String = "road"
 var has_pitched: bool = false
+
+#waiting to pitch
+var pitch_frames: int = 240 #4 seconds at 60fps
+var pitch_goal: int = 0 #modified target time taking into account random_effect
+var random_effect:int = 120 #maximum possible disstance from pitch_frames
+var current_frame:int = 0
+var can_pitch:bool = false
 
 
 # Nodes TODO
@@ -74,6 +81,8 @@ func _physics_process(delta):
 	if is_controlling_player and is_aiming:
 		_handle_pitch_controls()
 		variance_timer()
+	elif !can_pitch:
+		increment_pitch_time()
 	elif not is_controlling_player and has_ball:
 		random_variance()
 		handle_ai_pitch_decision()
@@ -82,6 +91,11 @@ func _physics_process(delta):
 	#else:
 		#if team == 1:
 			#print(str(is_controlling_player) + " and " +str(is_aiming))
+
+func increment_pitch_time():
+	current_frame = current_frame + 1
+	if current_frame > pitch_goal:
+		can_pitch = true
 
 func _on_pitch_phase_started():
 	max_power = true_max_power * status.energy
@@ -144,6 +158,10 @@ func _handle_pitch_controls():
 		has_pitched = true
 	if has_pitched:
 		go_away()
+		
+func prepare_ai_to_pitch():
+	can_pitch = false
+	pitch_goal = pitch_frames + randi_range(0-random_effect, random_effect)
 
 func handle_ai_pitch_decision():
 	# Wait a moment to simulate "wind up" time
@@ -193,7 +211,7 @@ func execute_pitch(pitch_type: String):
 		special_pitch_available[sp_index] = false
 		special_pitch_timers[sp_index] = special_pitch_cooldowns[sp_index] * (1.2 - (attributes.confidence / 100.0))
 
-#no0rmal pitch curves
+#normal pitch curves
 func perform_normal_pitch():
 	status.energy = status.energy - (10 - attributes.endurance/10) #more endurance, less energy loss
 	
@@ -239,7 +257,8 @@ func perform_fake_curve_pitch():
 	# Then straight
 	trajectory.add_point(end_pos, aim_direction * 800)
 	
-	ball.set_special_trajectory(trajectory)
+	ball.be_special_pitched(current_power, trajectory, global_position)
+	release_ball()
 
 func perform_zig_zag_pitch():
 	var trajectory = Curve2D.new()
@@ -254,7 +273,8 @@ func perform_zig_zag_pitch():
 	trajectory.add_point(start_pos + zag_dir * 200 + aim_direction * 600)
 	trajectory.add_point(start_pos + aim_direction * 1000)
 	
-	ball.set_special_trajectory(trajectory)
+	ball.be_special_pitched(current_power, trajectory, global_position)
+	release_ball()
 
 func perform_knuckler_pitch():
 	var power = current_power * (attributes.power / 100.0)
@@ -268,36 +288,48 @@ func perform_knuckler_pitch():
 	tween.set_loops(4) # Will reverse direction 4 times
 	tween.tween_property(ball, "current_curve", -max_curve, 0.15)
 	tween.tween_property(ball, "current_curve", max_curve, 0.15)
+	
+	release_ball()
+	
+func find_wall_normal(wall:StaticBody2D) -> Vector2:
+	if wall.global_position.x < global_position.x:
+		return Vector2.RIGHT
+	else:
+		return Vector2.LEFT
+	
 
 func perform_bouncer_pitch():
 	var wall = get_closest_wall()
-	var reflect_dir = (wall.position - ball.global_position).normalized().bounce(wall.normal)
+	var wall_normal
+	wall_normal = find_wall_normal(wall)
+		
+	var reflect_dir = (wall.global_position - ball.global_position).normalized().bounce(wall_normal)
 	
 	var trajectory = Curve2D.new()
 	var start_pos = ball.global_position
-	
 	# Create bounce path (3 bounces)
 	for i in 3:
 		var next_pos = start_pos + reflect_dir * 400
 		trajectory.add_point(start_pos)
 		trajectory.add_point(next_pos)
 		start_pos = next_pos
-		reflect_dir = reflect_dir.bounce(wall.normal) # Bounce again
-	
-	ball.set_special_trajectory(trajectory)
+		reflect_dir = reflect_dir.bounce(wall_normal) # Bounce again
+	release_ball()
+	ball.be_special_pitched(current_power, trajectory, global_position)
 
 func get_best_bank_angle() -> Vector2:
 	# AI calculates optimal bank shot off walls
 	var goal_pos = oppGoal
 	
 	# Get all wall segments
-	var walls = [leftWall, rightWall]
+	var walls = [left_wall, right_wall]
 	var best_wall = walls[0]
 	var best_angle = 0.0
 	var best_score = 0.0
 	
 	for wall in walls:
-		var reflect_dir = (ball.global_position - wall.global_position).normalized().bounce(wall.normal)
+		var wall_normal = find_wall_normal(wall)
+		var reflect_dir = (ball.global_position - wall.global_position).normalized().bounce(wall_normal)
 		var shot_angle = reflect_dir.angle_to((goal_pos - wall.global_position).normalized())
 		var angle_score = 1.0 - abs(shot_angle) / PI # Closer to 0 is better
 		
@@ -344,9 +376,9 @@ func _on_goal_aced():
 			
 func get_closest_wall():
 	if bio.leftHanded:
-		return rightWall
+		return right_wall
 	else:
-		return leftWall
+		return left_wall
 
 #little timing minigame to make sure the pitch goes exactly as designed for human players
 func variance_timer():
@@ -370,6 +402,7 @@ func release_ball():
 	has_ball = false
 	is_aiming = true
 	is_controlling_player = false
+	ball.last_hit_by = self
 	
 func go_away():
 	global_position = Vector2(-1000,-1000)

@@ -50,6 +50,8 @@ const raycast_points: int = 8
 
 signal ball_exited_field
 signal free_movement
+signal player_goal
+signal cpu_goal
 
 
 
@@ -167,8 +169,10 @@ func check_ball_in_play(ball: Ball):
 	if !ball_in_cpu_half && !ball_in_player_half:
 		if playerGoal.get_overlapping_bodies().find(ball) != -1:
 			print("CPU goal!")
+			emit_signal("cpu_goal")
 		elif cpuGoal.get_overlapping_bodies().find(ball) != -1:
 			print("Player goal!")
+			emit_signal("player_goal")
 		else:
 			print("It's outta here!")
 			emit_signal("ball_exited_field")

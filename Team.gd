@@ -265,6 +265,8 @@ func enlighten(ball, field, keeperWall, ownGoal, oppGoal, oppK, oppLG, oppRG, op
 	P.ball_pitched.connect(ball.be_pitched)
 	P.special_pitched.connect(ball.be_special_pitched)
 	P.oppGoal = oppGoal.global_position
+	P.left_wall = field.leftWall
+	P.right_wall = field.rightWall
 	K.ball = ball
 	K.own_goal = ownGoal.global_position
 	K.opp_goal = oppGoal.global_position
