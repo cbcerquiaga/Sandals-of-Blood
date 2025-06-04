@@ -10,6 +10,8 @@ var human_lf_spawn
 var human_rf_spawn
 var human_lhp_spawn
 var human_rhp_spawn
+var human_lf_waiting
+var human_rf_waiting
 var cpu_orientation
 var cpu_k_spawn
 var cpu_lg_spawn
@@ -18,6 +20,8 @@ var cpu_lf_spawn
 var cpu_rf_spawn
 var cpu_lhp_spawn
 var cpu_rhp_spawn
+var cpu_lf_waiting
+var cpu_rf_waiting
 var leftWall
 var rightWall
 var backWall
@@ -125,6 +129,14 @@ func _ready():
 	playerGoal.body_exited.connect(_on_player_goal_exited)
 	cpuGoal.body_entered.connect(_on_cpu_goal_entered)
 	cpuGoal.body_exited.connect(_on_cpu_goal_exited)
+	human_lf_waiting = $PositioningGuides/PLF_waiting
+	human_rf_waiting = $PositioningGuides/PRF_waiting
+	cpu_lf_waiting = $PositioningGuides/ALF_waiting
+	cpu_rf_waiting = $PositioningGuides/ARF_waiting
+	
+func _process(delta) -> void:
+	if ball:
+		check_ball_in_play(ball)
 
 func loop_through_children():
 	for child in get_children():
@@ -141,6 +153,7 @@ func loop_through_children():
 
 func _on_player_half_entered(body: Node):
 	if body is Ball:
+		ball = body
 		ball_in_player_half = true
 		if !ball_touched_player_half:
 			ball_touched_player_half = true
@@ -149,6 +162,7 @@ func _on_player_half_entered(body: Node):
 
 func _on_cpu_half_entered(body: Node):
 	if body is Ball:
+		ball = body
 		ball_in_cpu_half = true
 		if !ball_touched_cpu_half:
 			ball_touched_cpu_half = true
@@ -157,24 +171,26 @@ func _on_cpu_half_entered(body: Node):
 
 func _on_cpu_half_exited(body: Node):
 	if body is Ball:
+		ball = body
 		ball_in_cpu_half = false
 		check_ball_in_play(body)
 		
 func _on_player_half_exited(body:Node):
 	if body is Ball:
+		ball = body
 		ball_in_player_half = false
 		check_ball_in_play(body)
 		
 func check_ball_in_play(ball: Ball):
 	if !ball_in_cpu_half && !ball_in_player_half:
-		if playerGoal.get_overlapping_bodies().find(ball) != -1:
-			print("CPU goal!")
-			emit_signal("cpu_goal")
-		elif cpuGoal.get_overlapping_bodies().find(ball) != -1:
-			print("Player goal!")
-			emit_signal("player_goal")
-		else:
-			print("It's outta here!")
+			if playerGoal.get_overlapping_bodies().find(ball) != -1:
+				print("CPU goal!")
+				emit_signal("cpu_goal")
+			elif cpuGoal.get_overlapping_bodies().find(ball) != -1:
+				print("Player goal!")
+				emit_signal("player_goal")
+			else:
+				print("It's outta here!")
 			emit_signal("ball_exited_field")
 
 

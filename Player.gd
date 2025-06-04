@@ -5,6 +5,7 @@ class_name Player
 @export var attributes := {
 	"speed": 110.0,
 	"sprint_speed": 140.0,
+	"blocking": 50, #scales player size?
 	"positioning" : 90, #player's positioning ability
 	"aggression": 50, #1-100, impacts decision making
 	"reactions": 90, #1-100, impacts AI speed
@@ -43,10 +44,31 @@ class_name Player
 #TODO: update for different parts of strategy
 #TODO: import from team.gd
 @export var team_strategy := {
-	"shoot": 30,
+	"shoot": 30, #keeper strategies
 	"pass": 20,
 	"miss": 10,
+	"bull_rush": 10,
+	"skill_rush": 10,
+	"target_man": 10,
+	"shooter": 25,
+	"rebound": 5,
+	"pick": 10,
+	"bully": 35
 }
+
+@export var fencing_params := {
+	"ideal_distance": 12.0,
+	"advance_speed": attributes.speed * 0.75,
+	"retreat_speed": attributes.speed,
+	"attack_cooldown": 1.0,
+	"ball_proximity_threshold": 30.0#TODO: base on reactions
+}
+
+#in-match combat
+var attack_target: Player = null
+var current_opponent: Player = null
+var fencing_timer: float = 0.0
+var attack_cooldown: float = 0.0
 
 enum PlayerState {
 	IDLE,
@@ -269,6 +291,9 @@ func end_sprint():
 	# Apply slight overshoot momentum
 	velocity *= 0.7  # Reduce speed but maintain direction
 	
+func attempt_dodge():
+	if status.boost > 15:
+		start_spin()
 
 func start_spin():
 	is_spinning = true
@@ -346,6 +371,18 @@ func apply_health_damage(amount: float):
 
 func _on_stun_timer_timeout():
 	is_stunned = false
+	
+func _make_combat_decision(current_dist: float):
+	"""Decides to attack or dodge during fencing"""
+	var attack_prob = (0.4*attributes.aggression/99.0) + (0.3*(1.0 - current_dist/fencing_params["ideal_distance"]))
+	
+	if attack_prob > 0.65:
+		attempt_attack()
+		fencing_timer = 0.0
+		velocity += (global_position - current_opponent.global_position).normalized() * 100.0
+	else:
+		attempt_dodge()
+		fencing_timer = fencing_params["attack_cooldown"] * 0.5
 
 func start_brawl(opponent: Player):
 	is_in_brawl = true

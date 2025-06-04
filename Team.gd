@@ -260,7 +260,7 @@ func get_brawl_priority_players() -> Array[Player]:
 	priority.erase(null)
 	return priority
 
-func enlighten(ball, field, keeperWall, ownGoal, oppGoal, oppK, oppLG, oppRG, oppLF, oppRF):
+func enlighten(ball, field, keeperWall, ownGoal, oppGoal, oppK, oppLG, oppRG, oppLF, oppRF, LfWaiting, RfWaiting):
 	P.ball = ball
 	P.ball_pitched.connect(ball.be_pitched)
 	P.special_pitched.connect(ball.be_special_pitched)
@@ -294,10 +294,14 @@ func enlighten(ball, field, keeperWall, ownGoal, oppGoal, oppK, oppLG, oppRG, op
 	LF.assigned_guard = oppRG
 	LF.opposing_keeper = oppK
 	LF.forward_partner = RF
+	LF.ball = ball
+	LF.waiting_point = LfWaiting.global_position
+	RF.waiting_point = RfWaiting.global_position
 	RF.goal_position = oppGoal.global_position
 	RF.assigned_guard = oppLG
 	RF.opposing_keeper = oppK
 	RF.forward_partner = LF
+	RF.ball = ball
 
 func wipe_player_control():
 	P.is_controlling_player = false
@@ -331,6 +335,7 @@ func allow_movement():
 	LG.can_move = true
 	LF.can_move = true
 	
+	#default state for once the team can play
 func default_human_state():
 	K.is_controlling_player = true
 	K.child_state()
@@ -339,8 +344,14 @@ func default_human_state():
 	LG.child_state()
 	RG.is_controlling_player = false
 	RG.child_state()
+	LF.is_controlling_player = false
+	LF.child_state()
+	LF.current_behavior = "target_man"
+	RF.is_controlling_player = false
+	RF.child_state()
 	#TODO:forwards
 	
+	#default state for once the team can play
 func default_ai_state():
 	K.is_controlling_player = false
 	K.child_state()

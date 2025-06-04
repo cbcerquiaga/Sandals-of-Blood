@@ -223,11 +223,13 @@ func perform_normal_pitch():
 		var curve_variation = randf_range(0.5, 1.5)
 		
 		# Try to bank shots off walls
-		if randf() < 0.4: # 40% chance to try bank shot
+		if randf() < 0.9: # 90% chance to try bank shot
 			var wall_position = get_best_bank_angle()
-			aim_direction = (wall_position - ball.global_position).normalized()
+			if field_type == "road" || field_type == "wide_road":
+				aim_direction = (wall_position - ball.global_position).normalized() * -1#adjust to make the ball go down instead of up
 			curve_variation = sign(curve_variation) * max_curve * 0.8
 			var huck = (current_power * power_variation) * aim_direction
+			release_ball()
 			ball_pitched.emit(huck,  current_curve * curve_variation)
 			#ball.apply_pitch(aim_direction * current_power * power_variation, current_curve * curve_variation, aim_direction, global_position)
 	else:
@@ -363,6 +365,7 @@ func _on_goal_aced():
 		for pitch in successful_pitches:
 			if pitch["type"] == last_pitch_type:
 				already_exists = true
+				pitch.count += 1
 				break
 		
 		if not already_exists:
@@ -372,9 +375,6 @@ func _on_goal_aced():
 				"curve": current_curve,
 				"count": 1
 			})
-		else:
-			var pitch = successful_pitches.find(last_pitch_type)
-			pitch.count += 1
 			
 func get_closest_wall():
 	if bio.leftHanded:

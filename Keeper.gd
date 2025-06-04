@@ -18,14 +18,6 @@ class_name Keeper
 	"grumpy_frames": 3000
 }
 
-@export var fencing_params := {
-	"ideal_distance": 12.0,
-	"advance_speed": attributes.speed * 0.75,
-	"retreat_speed": attributes.speed,
-	"attack_cooldown": 1.0,
-	"ball_proximity_threshold": 30.0#TODO: base on reactions
-}
-
 @export var attack_params := {
 	"attack_range": 100.0,
 	"target_switch_threshold": 50.0,
@@ -41,10 +33,6 @@ var rightPost: Vector2
 var left_wall: StaticBody2D
 var right_wall: StaticBody2D
 var back_wall: StaticBody2D
-var attack_target: Player = null
-var current_opponent: Player = null
-var fencing_timer: float = 0.0
-var attack_cooldown: float = 0.0
 var ball_last_position: Vector2
 var ball_last_velocity: Vector2
 var time_since_last_touch: float = 0.0
@@ -60,6 +48,8 @@ var navigation_agent: NavigationAgent2D
 func _ready():
 	debug = false
 	super._ready()
+	attributes.blocking = 85 #nice and wide
+	self.scale.x = 1 * (attributes.blocking/50)
 	position_type = "keeper"
 	navigation_agent = $NavigationAgent2D
 	navigation_agent.path_desired_distance = 10.0
@@ -122,6 +112,12 @@ func perform_defending():
 	"""Defending behavior - positions the keeper along defensive arc"""
 	if !ball or !leftPost or !rightPost:
 		return
+		
+	#if our guy is pitching, chill out
+	if ball.current_state == Ball.BallState.PITCHING || ball.current_state == Ball.BallState.SPECIAL_PITCH:
+		if ball.last_hit_by && ball.last_hit_by.team == team:
+			current_behavior = "waiting"
+			return
 	
 	var goalLine = [leftPost, rightPost]
 	var ballPath = [ball.global_position, Geometry2D.get_closest_point_to_segment(ball.global_position, goalLine[0], goalLine[1])]
@@ -284,7 +280,7 @@ func perform_avoiding():
 	velocity = (avoidance_pos - global_position).normalized() * attributes.speed
 	
 	if threat > 0.5 and randf() < 0.05:
-		attempt_dodge()
+		super.attempt_dodge()
 
 func perform_fencing():
 	"""Fencing behavior - duels with a specific forward"""
@@ -482,18 +478,6 @@ func _execute_strike(strike_vector: Vector2):
 		ball.apply_force(strike_vector)
 		time_since_last_touch = 0.0
 
-func _make_combat_decision(current_dist: float):
-	"""Decides to attack or dodge during fencing"""
-	var attack_prob = (0.4*attributes.aggression/99.0) + (0.3*(1.0 - current_dist/fencing_params["ideal_distance"]))
-	
-	if attack_prob > 0.65:
-		super.attempt_attack()
-		fencing_timer = 0.0
-		velocity += (global_position - current_opponent.global_position).normalized() * 100.0
-	else:
-		attempt_dodge()
-		fencing_timer = fencing_params["attack_cooldown"] * 0.5
-
 func _execute_attack():
 	"""Performs attack against current target"""
 	super.attempt_attack()
@@ -534,10 +518,6 @@ func get_closest_opponent() -> Player:
 		return oppLF
 	else:
 		return oppRF
-		
-func attempt_dodge():
-	if status.boost > 15:
-		super.start_spin()
 
 func _calculate_avoidance_position(threat_left: float, threat_right: float) -> Vector2:
 	"""Calculates optimal avoidance position"""

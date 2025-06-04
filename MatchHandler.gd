@@ -31,6 +31,8 @@ var has_started = false
 var is_human_team_pitching = true
 var team1Ready:bool
 var team2Ready:bool
+var out_of_bounds_frames: int = 0
+var too_much_out_of_bounds: int = 20
 
 # References
 @onready var ball= $Ball as Ball
@@ -66,15 +68,31 @@ func _on_ball_crossed_midfield():
 	pTeam.allow_movement()
 	aTeam.allow_movement()
 	pTeam.default_human_state()
-	#aTeam.default_ai_state()
+	aTeam.default_ai_state()
 
 func _on_ball_exited_field():
-	print("and the ball goes out of bounds, we'll re-set")
-	if ball.last_hit_by.team == 1: #out on player team
-		is_human_team_pitching = false
+	if (out_of_bounds_frames > too_much_out_of_bounds):
+		print("and the ball goes out of bounds, we'll re-set")
+		if !ball or !ball.last_hit_by:
+			if is_human_team_pitching:
+				pTeam.is_on_offense = false
+				aTeam.is_on_offense = true
+				is_human_team_pitching = false
+			else:
+				is_human_team_pitching = true
+				pTeam.is_on_offense = true
+				aTeam.is_on_offense = false
+		elif ball.last_hit_by.team == 1: #out on player team
+			pTeam.is_on_offense = false
+			aTeam.is_on_offense = true
+			is_human_team_pitching = false
+		else:
+			is_human_team_pitching = true
+			pTeam.is_on_offense = true
+			aTeam.is_on_offense = false
+		reset_play()
 	else:
-		is_human_team_pitching = true
-	reset_play()
+		out_of_bounds_frames += 1
 	
 func _on_player_goal():
 	if ball.last_hit_by == pTeam.P:
@@ -84,9 +102,8 @@ func _on_player_goal():
 	else:
 		is_human_team_pitching = !is_human_team_pitching
 	#TODO: goal celebrations
-	team_scores[0] += 1
+	score_goal(1)
 	print("Score: " + str(team_scores))
-	reset_play()
 
 func _on_cpu_goal():
 	if ball.last_hit_by == aTeam.P:
@@ -96,9 +113,8 @@ func _on_cpu_goal():
 	else:
 		is_human_team_pitching = !is_human_team_pitching
 	#TODO: goal celebrations
-	team_scores[1] += 1
+	score_goal(2)
 	print("Score: " + str(team_scores))
-	reset_play()
 
 func reset_match():
 	print("reset match")
@@ -132,6 +148,7 @@ func _process(delta: float) -> void:
 
 func reset_play():
 	current_play_time = 0.0
+	out_of_bounds_frames = 0
 	#TODO: switch possession
 	pTeam.wipe_player_control()
 	aTeam.wipe_player_control()
@@ -204,6 +221,7 @@ func apply_time_scale():
 	#PhysicsServer2D.set_active(!PhysicsServer2D.is_active()) # Force refresh
 
 func score_goal(team: int):
+	print("Goal! " + str(team_scores))
 	team_scores[team-1] += 1
 	pitches_remaining -= 1
 	last_scoring_team = team
@@ -287,8 +305,8 @@ func set_time_scale(scale: float):
 	
 #players must know each other. More importantly, they must know ball
 func enlighten_players():
-	pTeam.enlighten(ball, field, field.frontWall, field.playerGoal, field.cpuGoal, aTeam.K, aTeam.LG, aTeam.RG, aTeam.LF, aTeam.RF)
-	aTeam.enlighten(ball, field, field.backWall, field.cpuGoal, field.playerGoal, pTeam.K, pTeam.LG, pTeam.RG, pTeam.LF, pTeam.RF)
+	pTeam.enlighten(ball, field, field.frontWall, field.playerGoal, field.cpuGoal, aTeam.K, aTeam.LG, aTeam.RG, aTeam.LF, aTeam.RF, field.human_lf_waiting, field.human_rf_waiting)
+	aTeam.enlighten(ball, field, field.backWall, field.cpuGoal, field.playerGoal, pTeam.K, pTeam.LG, pTeam.RG, pTeam.LF, pTeam.RF, field.cpu_lf_waiting, field.cpu_rf_waiting)
 	
 	
 
