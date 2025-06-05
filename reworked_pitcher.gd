@@ -215,6 +215,7 @@ func execute_pitch(pitch_type: String):
 
 #normal pitch curves
 func perform_normal_pitch():
+	print("tossing the ball")
 	status.energy = status.energy - (10 - attributes.endurance/10) #more endurance, less energy loss
 	
 	# AI adds some randomness if not player controlled
@@ -360,6 +361,7 @@ func update_special_pitch_availability():
 	#aim_arrow.scale.x = current_power / max_power * 1.5
 
 func _on_goal_aced():
+		print("aced it")
 		# Add pitch to successful pitches if not already there
 		var already_exists = false
 		for pitch in successful_pitches:
@@ -401,6 +403,7 @@ func random_variance():
 	current_variance = randi_range(1,100)
 
 func release_ball():
+	print("ball released")
 	has_ball = false
 	is_aiming = true
 	is_controlling_player = false

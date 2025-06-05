@@ -138,6 +138,10 @@ func _ready():
 	update_ui()
 
 func _physics_process(delta):
+	if !can_move:
+		velocity = Vector2.ZERO
+		return
+
 	if is_incapacitated:
 		velocity = Vector2.ZERO
 		move_and_slide()
@@ -290,7 +294,14 @@ func end_sprint():
 	
 	# Apply slight overshoot momentum
 	velocity *= 0.7  # Reduce speed but maintain direction
-	
+
+func get_closest_point(line_start : Vector2, line_direction : Vector2, point_position : Vector2):
+	line_direction = line_direction.normalized()
+	var vector_to_object := point_position - line_start
+	var distance := line_direction.dot(vector_to_object)
+	var closest_position = line_start + distance * line_direction
+	return closest_position
+
 func attempt_dodge():
 	if status.boost > 15:
 		start_spin()

@@ -42,6 +42,9 @@ var aTeam : Team
 #@onready var match_ui = $MatchUI #TODO
 @onready var field: Field = $RoadField #TODO: import different kinds of fields
 
+#UI
+@onready var scoreboard = $UI/Score
+
 signal emit_match_ended(winning_team)
 signal play_ended(reason)
 signal score_changed(team, new_score)
@@ -147,13 +150,22 @@ func _process(delta: float) -> void:
 	
 
 func reset_play():
+	update_scoreboard()
 	current_play_time = 0.0
 	out_of_bounds_frames = 0
 	#TODO: switch possession
+	for player in pTeam.onfield_players + aTeam.onfield_players:
+		if player:
+			player.can_move = false
 	pTeam.wipe_player_control()
 	aTeam.wipe_player_control()
 	pTeam.assign_player_control()
-	#print("human has control")
+	if aTeam.is_on_offense:
+		print("robots are in control")
+		is_human_team_pitching = false
+	else:
+		print("human has control")
+		is_human_team_pitching = true
 	field.ball_touched_cpu_half = false
 	field.ball_touched_player_half = false
 	reposition_players()
@@ -171,15 +183,15 @@ func reposition_players():
 		position_player(pTeam.P, field.human_lhp_spawn, field.human_orientation)
 	else:
 		position_player(pTeam.P, field.human_rhp_spawn, field.human_orientation)
+	if aTeam.P.bio.leftHanded:
+		position_player(aTeam.P, field.cpu_lhp_spawn, field.cpu_orientation)
+	else:
+		position_player(aTeam.P, field.cpu_rhp_spawn, field.cpu_orientation)
 	position_player(aTeam.K, field.cpu_k_spawn, field.cpu_orientation)
 	position_player(aTeam.LG, field.cpu_k_spawn, field.cpu_orientation)
 	position_player(aTeam.RG, field.cpu_rg_spawn, field.cpu_orientation)
 	position_player(aTeam.LF, field.cpu_lf_spawn, field.cpu_orientation)
 	position_player(aTeam.RF, field.cpu_rf_spawn, field.cpu_orientation)
-	if aTeam.P.bio.leftHanded:
-		position_player(aTeam.P, field.cpu_lhp_spawn, field.cpu_orientation)
-	else:
-		position_player(aTeam.P, field.cpu_rhp_spawn, field.cpu_orientation)
 
 
 
@@ -193,8 +205,14 @@ func position_player(player: Player, position: Vector2, rotation: float):
 func reset_ball():
 	print("reset ball")
 	if is_human_team_pitching:
+		print("human is pitching")
 		pTeam.is_on_offense = true
 		aTeam.is_on_offense = false
+		if pTeam.P.bio.leftHanded:
+			pTeam.P.global_position = field.human_lhp_spawn
+		else:
+			pTeam.global_position = field.human_rhp_spawn
+		aTeam.P.go_away()
 		ball.reset_ball(Vector2(pTeam.P.global_position.x + pTeam.P.hand_offset, pTeam.P.global_position.y))
 		field.touch_half("human")
 		pTeam.P.has_ball = true
@@ -204,10 +222,15 @@ func reset_ball():
 		pTeam.P.has_pitched = false
 		pTeam.K.current_behavior = "waiting"
 		pTeam.K.is_controlling_player = false
-		print("human pitcher in control")
 	else:
+		print("machine is pitching")
 		pTeam.is_on_offense = false
 		aTeam.is_on_offense = true
+		if aTeam.P.bio.leftHanded:
+			aTeam.P.global_position = field.cpu_lhp_spawn
+		else:
+			aTeam.P.global_position = field.cpu_rhp_spawn
+		pTeam.P.go_away()
 		ball.reset_ball(Vector2(aTeam.P.global_position.x + aTeam.P.hand_offset, aTeam.P.global_position.y))
 		field.touch_half("cpu")
 		aTeam.P.has_ball = true
@@ -318,3 +341,6 @@ func on_team_ready_signal(id: int) -> void:
 	elif (team1Ready):
 		team2Ready = true
 	pass
+
+func update_scoreboard():
+	scoreboard.text = str(team_scores[0]) + ":" + str(team_scores[1])

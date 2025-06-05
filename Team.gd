@@ -36,7 +36,7 @@ var strategy: Dictionary = {
 @export var LF: Player
 @export var RF: Player
 
-@onready var onfield_playes = [K, P, LG, RG, LF, RF]
+@onready var onfield_players = [K, P, LG, RG, LF, RF]
 
 # Current Field Positions
 var positions: Dictionary = {
@@ -334,6 +334,7 @@ func allow_movement():
 	RF.can_move = true
 	LG.can_move = true
 	LF.can_move = true
+	LF.current_behavior = "target_man"
 	
 	#default state for once the team can play
 func default_human_state():
@@ -349,6 +350,7 @@ func default_human_state():
 	LF.current_behavior = "target_man"
 	RF.is_controlling_player = false
 	RF.child_state()
+	RF.current_behavior = "shooter"
 	#TODO:forwards
 	
 	#default state for once the team can play
@@ -359,3 +361,6 @@ func default_ai_state():
 	LG.child_state()
 	RG.is_controlling_player = false
 	RG.child_state()
+	LF.child_state()
+	LF.current_behavior = "rebound"
+	

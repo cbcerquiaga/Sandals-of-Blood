@@ -57,6 +57,9 @@ func _ready():
 
 func _physics_process(delta):
 	super._physics_process(delta)
+	if !can_move:
+		velocity = Vector2.ZERO
+		return
 	
 	if not is_controlling_player and can_move:
 		time_since_last_touch += delta
@@ -410,20 +413,26 @@ func _apply_anticipation_adjustments(basePos: Vector2) -> Vector2:
 	
 	if !_is_ball_near_wall():
 		var trajectoryInfluence = 0.5 * (attributes.reactions / 100.0)
-		adjustedPos = adjustedPos.lerp(ball.global_position + ball_last_velocity * trajectoryInfluence, 0.3)
+		var aggImpact = attributes.aggression / 300 #50/300 = 0.16, 99/300 = 0.33
+		adjustedPos = adjustedPos.lerp(ball.global_position + ball_last_velocity * trajectoryInfluence, aggImpact)
 	
 	var nearestOpponent = get_closest_opponent()
 	if nearestOpponent:
-		var opponentInfluence = 0.4 * (1.0 - attributes.toughness/100.0)
+		var opponentInfluence = 0.1 * (1.0 - attributes.toughness/100.0)#TODO: balance
 		adjustedPos += (adjustedPos - nearestOpponent.global_position).normalized() * 10.0 * opponentInfluence
 	
-	var randomFactor = 1.0 - (attributes.positioning / 100.0)
+	var randomFactor = 1.0 - (attributes.positioning / 100.0) #TODO: balance
 	adjustedPos += Vector2(randf_range(-10, 10) * randomFactor, randf_range(-10, 10) * randomFactor)
 	
 	var goalCenter = (leftPost + rightPost) / 2
-	if adjustedPos.distance_to(goalCenter) > attributes.aggression:
+	#if adjustedPos.distance_to(goalCenter) > (attributes.aggression/2):
+		##TODO: adjust for different field types
+		#if goalCenter.y > adjustedPos.y:
+			#adjustedPos.y = adjustedPos.y - 10
+		#else:
+			#adjustedPos.y = adjustedPos.y + 10
 		#print("adjusted position")
-		adjustedPos = (goalCenter + adjustedPos) / (attributes.aggression / 50)
+		#adjustedPos = (goalCenter + adjustedPos) / (attributes.aggression / 50)
 	
 	return adjustedPos
 

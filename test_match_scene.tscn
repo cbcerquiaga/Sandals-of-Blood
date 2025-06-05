@@ -4,7 +4,7 @@
 [ext_resource type="PackedScene" uid="uid://bje6o4s6rvh85" path="res://road_field.tscn" id="1_wmjeh"]
 [ext_resource type="Script" path="res://camera_2d.gd" id="2_w1g4r"]
 [ext_resource type="PackedScene" uid="uid://3o41jr3lt75l" path="res://team.tscn" id="3_4qoer"]
-[ext_resource type="PackedScene" uid="uid://cetfl640qv42t" path="res://ball.tscn" id="4_uyrol"]
+[ext_resource type="PackedScene" uid="uid://cetfl640qv42t" path="res://Ball.tscn" id="4_uyrol"]
 
 [node name="Node2D" type="Node2D"]
 script = ExtResource("1_v8xhv")
@@ -22,6 +22,13 @@ script = ExtResource("2_w1g4r")
 [node name="Ball" parent="." instance=ExtResource("4_uyrol")]
 
 [node name="PlayTimer" type="Timer" parent="."]
+
+[node name="UI" type="Node2D" parent="."]
+position = Vector2(-63, -189)
+
+[node name="Score" type="RichTextLabel" parent="UI"]
+offset_right = 40.0
+offset_bottom = 40.0
 
 [connection signal="on_team_ready" from="AITeam" to="." method="on_team_ready_signal"]
 [connection signal="on_team_ready" from="PlayerTeam" to="." method="on_team_ready_signal"]

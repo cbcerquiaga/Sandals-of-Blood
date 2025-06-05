@@ -23,15 +23,15 @@ var current_decision_frame: int = 0
 var behaviors = ["bull_rush", "skill_rush", "target_man", "shooter", "rebound", "pick", "bully", "fencing", "cower"]
 var current_behavior = "bull_rush"
 var player_preference = {
-	"bull_rush": 1.0,
-	"skill_rush": 1.0,
-	"target_man": 1.0,
-	"shooter": 1.0,
-	"rebound": 1.0,
-	"pick": 1.0,
-	"bully": 1.0,
-	"fencing": 1.0,
-	"cower": 1.0
+	"bull_rush": 0.0,
+	"skill_rush": 0.0,
+	"target_man": 0.0,
+	"shooter": 100.0,
+	"rebound": 0.0,
+	"pick": 0.0,
+	"bully": 0.0,
+	"fencing": 0.0,
+	"cower": 0.0
 }
 var behavior_cooldowns = {}
 var last_behavior_change = 0.0
@@ -52,10 +52,15 @@ var safe_area_center: Vector2 = Vector2.ZERO
 var panic_distance: float = 300.0
 var is_avoiding_guard: bool = false
 
+@onready var navigation_agent = $NavigationAgent2D
+
+
 func _ready():
 	super._ready()
 	position_type = "forward"
 	decision_frames = 100 - (attributes.reactions)/2 #between 50 and 75 frames
+	navigation_agent.path_desired_distance = 10.0
+	navigation_agent.target_desired_distance = 10.0
 	$SwitchCooldown.wait_time = switch_cooldown
 	$SwitchCooldown.timeout.connect(_on_switch_cooldown_timeout)
 	
@@ -65,6 +70,9 @@ func _ready():
 
 func _physics_process(delta):
 	super._physics_process(delta)
+	if !can_move:
+		velocity = Vector2.ZERO
+		return
 	
 	# Update behavior cooldowns
 	for behavior in behavior_cooldowns:
@@ -74,27 +82,19 @@ func _physics_process(delta):
 		update_ai_behavior(delta)
 	else:
 		handle_human_input(delta)
+	move_and_slide()
 
 func update_ai_behavior(delta):
 	if !ball:
 		return
 	
 	if team == 2 and ball.global_position.y > get_defensive_threshold() or team == 1 and ball.global_position.y < get_defensive_threshold():
-		if current_strategy == "positioning":
-			make_strategy_decision()
+		make_strategy_decision()
 		
-		execute_current_strategy()
+		execute_attack_plan()
 
 func make_strategy_decision():
 	choose_behavior()
-
-func execute_current_strategy():
-	match current_strategy:
-		"positioning":
-			find_scoring_position()
-			check_pass_opportunity()
-		"attacking":
-			execute_attack_plan()
 
 func execute_attack_plan():
 	match current_behavior:
@@ -129,9 +129,10 @@ func execute_bull_rush():
 	var rush_line = Line2D.new()
 	rush_line.add_point(global_position)
 	rush_line.add_point(opposing_keeper.global_position)
-	
-	var guard_distance_to_line = rush_line.get_closest_point(assigned_guard.global_position).distance_to(assigned_guard.global_position)
-	var guard_is_blocking = guard_distance_to_line < 100 and not assigned_guard.is_stunned
+	var simple_line = global_position - opposing_keeper.global_position
+	var closest_point = get_closest_point(global_position, simple_line, assigned_guard.global_position)
+	var guard_distance_to_line = assigned_guard.global_position.distance_to(closest_point)
+	var guard_is_blocking = guard_distance_to_line < 30 and not assigned_guard.is_stunned
 	
 	if guard_is_blocking:
 		navigate_to(assigned_guard.global_position)
@@ -172,7 +173,7 @@ func execute_target_man():
 	
 	calculate_target_man_position()
 	
-	if assigned_guard && global_position.distance_to(assigned_guard.global_position) < 150:
+	if assigned_guard && global_position.distance_to(assigned_guard.global_position) < 6:
 		if !is_avoiding_guard:
 			start_avoiding_guard()
 		return
@@ -222,8 +223,11 @@ func execute_pick():
 	
 	var guard_blocking = false
 	if assigned_guard:
-		var guard_distance_to_line = pick_line.get_closest_point(assigned_guard.global_position).distance_to(assigned_guard.global_position)
-		guard_blocking = guard_distance_to_line < 150 and not assigned_guard.is_stunned
+		var guard_distance_to_line = get_closest_point(other_guard.global_position, pick_line, assigned_guard.global_position)
+		if guard_distance_to_line < 30 and not assigned_guard.is_stunned:
+			guard_blocking = true
+		else:
+			guard_blocking = false
 	
 	if guard_blocking:
 		navigate_to(assigned_guard.global_position)
@@ -325,9 +329,8 @@ func choose_behavior():
 		
 		# Apply situational modifier
 		var situational_weight = situational_weights.get(behavior, 1.0)
-		var cooldown_factor = 1.0 - (0.5 * behavior_cooldowns.get(behavior, 0.0))
 		
-		combined_weights[behavior] = base_weight * situational_weight * cooldown_factor
+		combined_weights[behavior] = base_weight * situational_weight
 		total_weight += combined_weights[behavior]
 	
 	# Normalize weights
@@ -594,10 +597,13 @@ func set_other_guard(guard: Guard):
 	other_guard = guard
 
 func navigate_to(position: Vector2):
-	if $NavigationAgent2D.is_navigation_finished():
-		$NavigationAgent2D.target_position = position
+	navigation_agent.target_position = position
+	if navigation_agent.is_navigation_finished():
+		velocity = Vector2.ZERO
+	else:
+		var next_path_pos = navigation_agent.get_next_path_position()
+		velocity = global_position.direction_to(next_path_pos) * attributes.speed
 
-# --- Behavior-Specific Helper Functions ---
 
 func choose_shooter_position():
 	is_in_slot = randf() > team_strategy.get("wing_preference", 0.5)
@@ -713,6 +719,7 @@ func calculate_target_man_position():
 	)
 
 func create_passing_lane():
+	#print("find the passing lane")
 	var passing_path = Line2D.new()
 	passing_path.add_point(ball.global_position)
 	passing_path.add_point(target_man_position)
@@ -728,10 +735,11 @@ func create_passing_lane():
 		var blocker_position = result.position
 		var avoid_direction = (target_man_position - blocker_position).normalized()
 		var new_position = target_man_position + (avoid_direction * 100)
-		new_position.x = clamp(new_position.x, -600, 600)
-		new_position.y = clamp(new_position.y, -300, 300)
+		new_position.x = clamp(new_position.x, -50, 50)
+		new_position.y = clamp(new_position.y, -100, 100)
 		target_man_position = new_position
 	
+	#print("getting open: " + str(target_man_position) )
 	navigate_to(target_man_position)
 	passing_path.queue_free()
 
