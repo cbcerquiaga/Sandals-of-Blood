@@ -186,12 +186,15 @@ func check_ball_in_play(ball: Ball):
 			if playerGoal.get_overlapping_bodies().find(ball) != -1:
 				print("CPU goal!")
 				emit_signal("cpu_goal")
+				ball_in_play = false
 			elif cpuGoal.get_overlapping_bodies().find(ball) != -1:
 				print("Player goal!")
 				emit_signal("player_goal")
+				ball_in_play = false
 			else:
 				print("It's outta here!")
-			emit_signal("ball_exited_field")
+				ball_in_play = false
+				emit_signal("ball_exited_field")
 
 
 func _check_midfield_crossing():

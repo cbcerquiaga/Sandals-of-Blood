@@ -98,6 +98,8 @@ func _on_ball_exited_field():
 		out_of_bounds_frames += 1
 	
 func _on_player_goal():
+	if match_ended or not is_instance_valid(ball):
+		return
 	if ball.last_hit_by == pTeam.P:
 		print("it's an ace!")
 		pTeam.P._on_goal_aced()
@@ -109,6 +111,8 @@ func _on_player_goal():
 	print("Score: " + str(team_scores))
 
 func _on_cpu_goal():
+	if match_ended or not is_instance_valid(ball):
+		return
 	if ball.last_hit_by == aTeam.P:
 		print("it's an ace!")
 		aTeam.P._on_goal_aced()
@@ -133,6 +137,11 @@ func reset_match():
 	
 	
 func _process(delta: float) -> void:
+	if Input.is_action_just_pressed("debug_reset"):
+		var tempScore = team_scores
+		reset_match()
+		team_scores = tempScore
+		update_scoreboard()
 	if !ready_to_start:
 		if pTeam and aTeam and ball and field:
 			#print("everybody is here" + str(pTeam.has_readied) + "/"+str(aTeam.has_readied))
@@ -147,27 +156,51 @@ func _process(delta: float) -> void:
 	elif !has_started:
 		reset_match()
 		has_started = true
+	else:
+		if ball.current_state == Ball.BallState.PITCHING or ball.current_state == Ball.BallState.SPECIAL_PITCH:
+			if field.ball_in_play == false:
+				field.ball_in_play = true
+				reset_play()
 	
 
 func reset_play():
 	update_scoreboard()
 	current_play_time = 0.0
 	out_of_bounds_frames = 0
-	#TODO: switch possession
+	# Reset player states
 	for player in pTeam.onfield_players + aTeam.onfield_players:
 		if player:
 			player.can_move = false
+			player.reset_state()
 	pTeam.wipe_player_control()
 	aTeam.wipe_player_control()
 	pTeam.assign_player_control()
+	# Reset ball completely
+	if is_instance_valid(ball):
+		ball.reset_ball(Vector2.ZERO)
+		ball.current_state = Ball.BallState.WAITING
 	if aTeam.is_on_offense:
+		field.ball_touched_player_half = false
+		field.ball_touched_cpu_half = true
+		field.ball_in_player_half = false
+		field.ball_in_cpu_half = true
 		print("robots are in control")
 		is_human_team_pitching = false
+		aTeam.P.current_power = 200
+		aTeam.P.current_curve = 0.0
+		aTeam.P.target = Vector2.ZERO
+		field.touch_half("cpu")
 	else:
 		print("human has control")
 		is_human_team_pitching = true
-	field.ball_touched_cpu_half = false
-	field.ball_touched_player_half = false
+		field.ball_touched_player_half = true
+		field.ball_touched_cpu_half = false
+		field.ball_in_player_half = true
+		field.ball_in_cpu_half = false
+		pTeam.P.current_power = 200
+		pTeam.P.current_curve = 0.0
+		pTeam.P.target = Vector2.ZERO
+		field.touch_half("human")
 	reposition_players()
 	reset_ball()
 	play_timer.start(current_settings.play_length if current_settings.play_length > 0 else 9999)

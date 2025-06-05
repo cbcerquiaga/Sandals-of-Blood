@@ -266,3 +266,4 @@ func reset_ball(position: Vector2):
 	freeze = true
 	global_position = position
 	collision_mask = original_collision_mask
+	chill_timer = 0
