@@ -205,3 +205,41 @@ one_way_collision_margin = 128.0
 navigation_polygon = SubResource("NavigationPolygon_bgms3")
 
 [node name="Node" type="Node" parent="NavigationRegion2D"]
+
+[node name="AimingGuides" type="Node" parent="."]
+
+[node name="LBank1" type="Node2D" parent="AimingGuides"]
+position = Vector2(-56, -75)
+
+[node name="LBank2" type="Node2D" parent="AimingGuides"]
+position = Vector2(-57, -45)
+
+[node name="LBank3" type="Node2D" parent="AimingGuides"]
+position = Vector2(-57, -15)
+
+[node name="LBank4" type="Node2D" parent="AimingGuides"]
+position = Vector2(-57, 15)
+
+[node name="LBank5" type="Node2D" parent="AimingGuides"]
+position = Vector2(-57, 45)
+
+[node name="LBank6" type="Node2D" parent="AimingGuides"]
+position = Vector2(-57, 75)
+
+[node name="RBank1" type="Node2D" parent="AimingGuides"]
+position = Vector2(56, -75)
+
+[node name="RBank2" type="Node2D" parent="AimingGuides"]
+position = Vector2(57, -45)
+
+[node name="RBank3" type="Node2D" parent="AimingGuides"]
+position = Vector2(57, -15)
+
+[node name="RBank4" type="Node2D" parent="AimingGuides"]
+position = Vector2(57, 15)
+
+[node name="RBank5" type="Node2D" parent="AimingGuides"]
+position = Vector2(57, 45)
+
+[node name="RBank6" type="Node2D" parent="AimingGuides"]
+position = Vector2(57, 75)

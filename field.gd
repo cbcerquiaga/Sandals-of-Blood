@@ -34,6 +34,18 @@ var cpu_goal_post1
 var cpu_goal_post2
 var cpu_goal_side_panel1
 var cpu_goal_side_panel2
+var LBank1
+var LBank2
+var LBank3
+var LBank4
+var LBank5
+var LBank6
+var RBank1
+var RBank2
+var RBank3
+var RBank4
+var RBank5
+var RBank6
 
 #collision areas
 var playerHalf
@@ -133,6 +145,18 @@ func _ready():
 	human_rf_waiting = $PositioningGuides/PRF_waiting
 	cpu_lf_waiting = $PositioningGuides/ALF_waiting
 	cpu_rf_waiting = $PositioningGuides/ARF_waiting
+	LBank1 = $AimingGuides/LBank1
+	LBank2 = $AimingGuides/LBank2
+	LBank3 = $AimingGuides/LBank3
+	LBank4 = $AimingGuides/LBank4
+	LBank5 = $AimingGuides/LBank5
+	LBank6 = $AimingGuides/LBank6
+	RBank1 = $AimingGuides/RBank1
+	RBank2 = $AimingGuides/RBank2
+	RBank3 = $AimingGuides/RBank3
+	RBank4 = $AimingGuides/RBank4
+	RBank5 = $AimingGuides/RBank5
+	RBank6 = $AimingGuides/RBank6
 	
 func _process(delta) -> void:
 	if ball:
