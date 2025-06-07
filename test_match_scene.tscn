@@ -1,10 +1,11 @@
-[gd_scene load_steps=6 format=3 uid="uid://cgfb6numfby87"]
+[gd_scene load_steps=7 format=3 uid="uid://cgfb6numfby87"]
 
 [ext_resource type="Script" path="res://MatchHandler.gd" id="1_v8xhv"]
 [ext_resource type="PackedScene" uid="uid://bje6o4s6rvh85" path="res://road_field.tscn" id="1_wmjeh"]
 [ext_resource type="Script" path="res://camera_2d.gd" id="2_w1g4r"]
 [ext_resource type="PackedScene" uid="uid://3o41jr3lt75l" path="res://team.tscn" id="3_4qoer"]
 [ext_resource type="PackedScene" uid="uid://cetfl640qv42t" path="res://Ball.tscn" id="4_uyrol"]
+[ext_resource type="PackedScene" uid="uid://c5gldnftsuhcm" path="res://aim_target.tscn" id="6_mpo6o"]
 
 [node name="Node2D" type="Node2D"]
 script = ExtResource("1_v8xhv")
@@ -20,8 +21,14 @@ script = ExtResource("2_w1g4r")
 [node name="PlayerTeam" parent="." instance=ExtResource("3_4qoer")]
 
 [node name="Ball" parent="." instance=ExtResource("4_uyrol")]
+base_speed = 500.0
+hockey_max_speed = 800.0
+pitching_max_speed = 1500.0
+min_bounce_speed = 50.0
 
 [node name="PlayTimer" type="Timer" parent="."]
+
+[node name="Aim_Target" parent="." instance=ExtResource("6_mpo6o")]
 
 [node name="UI" type="Node2D" parent="."]
 position = Vector2(-63, -189)

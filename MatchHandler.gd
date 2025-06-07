@@ -41,6 +41,7 @@ var aTeam : Team
 @onready var play_timer = $PlayTimer
 #@onready var match_ui = $MatchUI #TODO
 @onready var field: Field = $RoadField #TODO: import different kinds of fields
+@onready var aimTarget: AimTarget = $Aim_Target
 
 #UI
 @onready var scoreboard = $UI/Score
@@ -361,8 +362,8 @@ func set_time_scale(scale: float):
 	
 #players must know each other. More importantly, they must know ball
 func enlighten_players():
-	pTeam.enlighten(ball, field, field.frontWall, field.playerGoal, field.cpuGoal, aTeam.K, aTeam.LG, aTeam.RG, aTeam.LF, aTeam.RF, field.human_lf_waiting, field.human_rf_waiting)
-	aTeam.enlighten(ball, field, field.backWall, field.cpuGoal, field.playerGoal, pTeam.K, pTeam.LG, pTeam.RG, pTeam.LF, pTeam.RF, field.cpu_lf_waiting, field.cpu_rf_waiting)
+	pTeam.enlighten(aimTarget, ball, field, field.frontWall, field.playerGoal, field.cpuGoal, aTeam.K, aTeam.LG, aTeam.RG, aTeam.LF, aTeam.RF, field.human_lf_waiting, field.human_rf_waiting)
+	aTeam.enlighten(aimTarget, ball, field, field.backWall, field.cpuGoal, field.playerGoal, pTeam.K, pTeam.LG, pTeam.RG, pTeam.LF, pTeam.RF, field.cpu_lf_waiting, field.cpu_rf_waiting)
 	
 	
 

@@ -118,29 +118,12 @@ func handle_player_collision(player: Player):
 
 func handle_defender_collision(player: Player):
 	print("smack me, daddy")
-	# Calculate reflection with physics
-	var normal = (global_position - player.global_position).normalized()
-	var incoming_angle = linear_velocity.angle_to(normal)
-	var speed = linear_velocity.length()
-	
-	# Power boost from player
-	var power_boost = 1.0 + (player.attributes.power / 100.0)
-	var speed_boost = player.velocity.length() / 200.0
-	
-	# Apply bounce physics
-	var new_velocity = linear_velocity.bounce(normal) * power_boost * (1.0 + speed_boost)
-	
-	# Add spin from shallow angles
-	if abs(incoming_angle) < PI/6: # Shallow angle
-		current_spin = incoming_angle * speed * 0.01
-		new_velocity = new_velocity.rotated(sign(incoming_angle) * 0.1)
-	
+	var pass_target = player.aim
 	# Add randomness based on accuracy
-	var accuracy_offset = 1.0 - (player.attributes.accuracy / 100.0)
-	new_velocity = new_velocity.rotated(randf_range(-accuracy_offset * 0.1, accuracy_offset * 0.1))
-	
-	linear_velocity = new_velocity
-	
+	var accuracy_offset = 1.0 - (player.attributes.accuracy / 100.0)	
+	var pass_dir = (pass_target - global_position).normalized()
+	pass_dir = pass_dir.rotated(randf_range(-accuracy_offset * 0.1, accuracy_offset * 0.1))
+	apply_forward_hit(player, pass_dir)
 	# Enter hockey state if not already
 	if current_state != BallState.HOCKEY:
 		enter_hockey_state()

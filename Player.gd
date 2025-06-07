@@ -90,7 +90,7 @@ var current_debug_frame:int = 0
 # Energy Systems
 @export var max_energy: float = 100.0
 
-#moevement
+#movement
 var plays_left_side: bool = false
 var current_sprint_target
 var current_sprint_curve
@@ -122,6 +122,8 @@ var state_label
 @onready var stun_timer = $StunTimer
 @onready var spin_cooldown = $SpinCooldown
 @onready var label = $RichTextLabel
+@onready var aim_target: AimTarget
+@onready var aim: Vector2 #will be either aim_target's position or a Vector2 depending on AI/human control
 
 #position tracking
 var fieldType: String = "road"

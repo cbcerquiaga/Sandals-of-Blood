@@ -42,6 +42,19 @@ var oppLF
 var oppRF
 var oppKeeper
 
+# defending the ball
+var reaction_timer: float = 0
+var reacting: bool = false
+var last_ball_direction: Vector2 = Vector2.ZERO
+var target_position: Vector2 = Vector2.ZERO
+var current_position: Vector2 = Vector2.ZERO
+# Constants
+const MAX_REACTION_TIME: float = 0.5  # seconds
+const MIN_REACTION_TIME: float = 0.1  # seconds
+const BASE_AGGRESSION_DISTANCE: float = 100.0  # pixels
+const POSITIONING_VARIANCE: float = 30.0  # max variance in pixels
+const ANTICIPATION_DISTANCE: float = 200.0  # how far ahead to look for ball path
+
 # Navigation
 var navigation_agent: NavigationAgent2D
 
@@ -73,12 +86,10 @@ func _physics_process(delta):
 			"waiting":
 				perform_waiting()
 			"defending":
-				perform_defending()
+				defending_behavior(delta)
 				check_state()
-			"striking":
-				perform_striking()
-			"blocking":
-				perform_blocking()
+			#"blocking":
+				#perform_blocking()
 			"sweeping":
 				perform_sweeping()
 			"avoiding":
@@ -87,6 +98,10 @@ func _physics_process(delta):
 				perform_fencing()
 			"attacking":
 				perform_attacking()
+	else:
+		if aim_target:
+			aim_target.on = true
+			aim = aim_target.global_position
 				
 		if debug:
 			current_debug_frame += 1
@@ -110,25 +125,8 @@ func perform_waiting():
 	## Transition if ball comes close
 	#if ball and global_position.distance_to(ball.global_position) < 600:
 		#current_behavior = "defending"
-
-func perform_defending():
-	"""Defending behavior - positions the keeper along defensive arc"""
-	if !ball or !leftPost or !rightPost:
-		return
 		
-	#if our guy is pitching, chill out
-	if ball.current_state == Ball.BallState.PITCHING || ball.current_state == Ball.BallState.SPECIAL_PITCH:
-		if ball.last_hit_by && ball.last_hit_by.team == team:
-			current_behavior = "waiting"
-			return
-	
-	var goalLine = [leftPost, rightPost]
-	var ballPath = [ball.global_position, Geometry2D.get_closest_point_to_segment(ball.global_position, goalLine[0], goalLine[1])]
-	var baseTargetPos = _calculate_arc_intersection(goalLine, ballPath)
-	var adjustedTargetPos = _apply_anticipation_adjustments(baseTargetPos)
-	
-	navigation_agent.target_position = adjustedTargetPos
-	velocity = (adjustedTargetPos - global_position).normalized() * attributes.speed
+
 
 func check_state():
 	"""Determines when to transition from defending to other states"""
@@ -136,6 +134,10 @@ func check_state():
 		return
 	if current_behavior == "waiting": #sit down and wait!
 		return
+		
+	#DEBUG TODO: remove
+	current_behavior = "defending"
+	return
 	
 	var ball_speed = ball_last_velocity.length()
 	var ball_to_goal = (own_goal - ball.global_position).normalized()
@@ -146,16 +148,10 @@ func check_state():
 	var keeper_dist_to_goal = global_position.distance_squared_to(own_goal)
 	var keeper_dist_to_ball = global_position.distance_to(ball.global_position)
 	
-	# Check for blocking conditions (urgent defense)
-	if (ball_speed > 500 and goal_threat > 0.7) or ball_dist_to_goal < keeper_dist_to_goal:
-		current_behavior = "blocking"
-		return
-	
-	# Check for striking conditions (ball control)
-	if keeper_dist_to_ball < attributes.aggression/4: #12.5 for 50, 20 for 80, 25 for 99
-		#print(str(keeper_dist_to_ball))
-		current_behavior = "striking"
-		return
+	# Check for blocking conditions (urgent defense) #TODO: see if this is necessary, rework if it is
+	#if (ball_speed > 500 and goal_threat > 0.7) or ball_dist_to_goal < keeper_dist_to_goal:
+		#current_behavior = "blocking"
+		#return
 	
 	# Check for avoiding conditions (forward pressure)
 	var closest_opponent = get_closest_opponent()
@@ -172,82 +168,6 @@ func check_state():
 	if keeper_dist_to_ball <= sweeping_params.max_distance and keeper_dist_to_ball >= sweeping_params.min_distance:
 		if randf() < sweep_chance * (attributes.aggression / 99.0):
 			current_behavior = "sweeping"
-
-func perform_blocking():
-	"""Blocking behavior - intercepts ball path to goal"""
-	if !ball or !leftPost or !rightPost:
-		current_behavior = "defending"
-		return
-	
-	var goalLine = [leftPost, rightPost]
-	var ballPath = [ball.global_position, Geometry2D.get_closest_point_to_segment(ball.global_position, goalLine[0], goalLine[1])]
-	var pathClosest = Geometry2D.get_closest_point_to_segment(global_position, ballPath[0], ballPath[1])
-	var blockingPos = pathClosest.lerp(ballPath[1], 0.2)  # 20% toward goal
-	
-	navigation_agent.target_position = blockingPos
-	velocity = (blockingPos - global_position).normalized() * attributes.sprint_speed
-	
-	if global_position.distance_to(ball.global_position) < 100:
-		current_behavior = "striking"
-
-func perform_striking():
-	"""Striking behavior - makes calculated decisions on where to send the ball"""
-	if !ball or !opp_goal:
-		current_behavior = "defending"
-		return
-	
-	var target_pos = _determine_strike_target()
-	var intercept_point = _calculate_intercept_striking(target_pos)
-	
-	if !intercept_point:
-		current_behavior = "defending"
-		return
-	
-	# Calculate strike vector (direction and power)
-	var strike_power = 800 + (200 * attributes.aggression / 99.0)
-	var strike_vector = (target_pos - intercept_point).normalized() * strike_power
-	
-	# Move to intercept point
-	navigation_agent.target_position = intercept_point
-	var desired_velocity = (intercept_point - global_position).normalized() * attributes.sprint_speed
-	velocity = velocity.lerp(desired_velocity, 0.4)  # Aggressive movement
-	
-	# Execute strike when in position
-	if global_position.distance_to(intercept_point) < 30:
-		_execute_strike(strike_vector)
-		current_behavior = "defending"  # Return to defending after strike
-
-func _calculate_intercept_striking(target_pos: Vector2) -> Variant:
-	"""
-	Calculates optimal intercept point for striking the ball toward target.
-	Returns Vector2 position or null if intercept is unreachable.
-	"""
-	if !ball:
-		return null
-	
-	# Predict ball position 0.3-0.8 seconds in future (based on reactions)
-	var prediction_time = clamp(0.8 - (attributes.reactions / 200.0), 0.3, 0.8)
-	var predicted_ball_pos = ball.global_position + ball_last_velocity * prediction_time
-	
-	# Calculate ideal striking position (slightly behind ball's path to target)
-	var ball_to_target = (target_pos - predicted_ball_pos).normalized()
-	var intercept_point = predicted_ball_pos - (ball_to_target * 25.0)  # Back off slightly
-	
-	# Verify this position is reachable
-	if intercept_point.distance_to(global_position) > 500:  # Too far to attempt
-		return null
-	
-	# Adjust for keeper's current momentum
-	if velocity.length() > 100:
-		var momentum_adjustment = velocity.normalized() * 20.0
-		intercept_point += momentum_adjustment
-	
-	# Ensure we're not trying to intercept behind our own goal
-	var goal_center = (leftPost + rightPost) / 2
-	if (intercept_point - goal_center).dot((target_pos - goal_center).normalized()) < -0.5:
-		return null
-	
-	return intercept_point
 
 func perform_sweeping():
 	"""Sweeping behavior - aggressively pursues ball with anticipation"""
@@ -328,114 +248,6 @@ func perform_attacking():
 		_execute_attack()
 #endregion
 
-#region Helper Functions
-func _calculate_arc_intersection(goalLine: Array, ballPath: Array) -> Vector2:
-	"""Calculates intersection with defensive arc"""
-	var arcHeight = 15 * (1.0 - attributes.aggression/99.0) * (0.5 + attributes.confidence/200.0)
-	#print("arc height: " + str(arcHeight))
-	var controlPoint = (goalLine[0] + goalLine[1]) / 2 - Vector2(0, arcHeight)
-	var t = _estimate_bezier_intersection(goalLine[0], controlPoint, goalLine[1], ballPath[0], ballPath[1])
-	return _quadratic_bezier_point(goalLine[0], controlPoint, goalLine[1], t)
-	
-func _estimate_bezier_intersection(p0: Vector2, p1: Vector2, p2: Vector2, line_a: Vector2, line_b: Vector2) -> float:
-	"""
-	Estimates the t value (0-1) where a quadratic Bezier curve intersects with a line segment.
-	Returns the t value of the closest estimated intersection point.
-	
-	Parameters:
-		p0, p1, p2: Control points of the quadratic Bezier curve
-		line_a, line_b: Points defining the line segment to test against
-	"""
-	var best_t = 0.5  # Default midpoint if no better intersection found
-	var min_dist = INF  # Track closest distance found
-	
-	# Sample 11 points along the curve (0.0 to 1.0 in 0.1 increments)
-	for i in range(11):
-		var t = i / 10.0
-		# Calculate point on Bezier curve at t
-		var q0 = p0.lerp(p1, t)
-		var q1 = p1.lerp(p2, t)
-		var curve_point = q0.lerp(q1, t)
-		
-		# Find closest point on line segment to this curve point
-		var line_point = Geometry2D.get_closest_point_to_segment(curve_point, line_a, line_b)
-		var dist = curve_point.distance_to(line_point)
-		
-		# Keep track of the closest point
-		if dist < min_dist:
-			min_dist = dist
-			best_t = t
-	
-	# If we found a reasonably close point, do a refined search near it
-	if min_dist < 10.0:  # 10 pixel threshold for "close enough"
-		# Search around the best t with smaller steps
-		var refine_start = max(best_t - 0.1, 0.0)
-		var refine_end = min(best_t + 0.1, 1.0)
-		
-		for i in range(11):
-			var t = refine_start + (i / 10.0) * (refine_end - refine_start)
-			var q0 = p0.lerp(p1, t)
-			var q1 = p1.lerp(p2, t)
-			var curve_point = q0.lerp(q1, t)
-			
-			var line_point = Geometry2D.get_closest_point_to_segment(curve_point, line_a, line_b)
-			var dist = curve_point.distance_to(line_point)
-			
-			if dist < min_dist:
-				min_dist = dist
-				best_t = t
-	
-	return best_t
-	
-func _quadratic_bezier_point(p0: Vector2, p1: Vector2, p2: Vector2, t: float) -> Vector2:
-	"""
-	Calculates a point on a quadratic Bezier curve at parameter t (0-1)
-	
-	Parameters:
-		p0: Start point
-		p1: Control point
-		p2: End point
-		t: Interpolation parameter (0-1)
-		
-	Returns:
-		Vector2 position on the curve at t
-	"""
-	# First linear interpolation between p0-p1 and p1-p2
-	var q0 = p0.lerp(p1, t)
-	var q1 = p1.lerp(p2, t)
-	
-	# Final interpolation between the intermediate points
-	return q0.lerp(q1, t)
-
-func _apply_anticipation_adjustments(basePos: Vector2) -> Vector2:
-	"""Adjusts position based on ball and opponent predictions"""
-	var adjustedPos = basePos
-	
-	if !_is_ball_near_wall():
-		var trajectoryInfluence = 0.5 * (attributes.reactions / 100.0)
-		var aggImpact = attributes.aggression / 300 #50/300 = 0.16, 99/300 = 0.33
-		adjustedPos = adjustedPos.lerp(ball.global_position + ball_last_velocity * trajectoryInfluence, aggImpact)
-	
-	var nearestOpponent = get_closest_opponent()
-	if nearestOpponent:
-		var opponentInfluence = 0.1 * (1.0 - attributes.toughness/100.0)#TODO: balance
-		adjustedPos += (adjustedPos - nearestOpponent.global_position).normalized() * 10.0 * opponentInfluence
-	
-	var randomFactor = 1.0 - (attributes.positioning / 100.0) #TODO: balance
-	adjustedPos += Vector2(randf_range(-10, 10) * randomFactor, randf_range(-10, 10) * randomFactor)
-	
-	var goalCenter = (leftPost + rightPost) / 2
-	#if adjustedPos.distance_to(goalCenter) > (attributes.aggression/2):
-		##TODO: adjust for different field types
-		#if goalCenter.y > adjustedPos.y:
-			#adjustedPos.y = adjustedPos.y - 10
-		#else:
-			#adjustedPos.y = adjustedPos.y + 10
-		#print("adjusted position")
-		#adjustedPos = (goalCenter + adjustedPos) / (attributes.aggression / 50)
-	
-	return adjustedPos
-
 func _make_sweeping_decision(anticipated_pos: Vector2):
 	"""Decides whether to strike or clear during sweeping"""
 	var ball_speed = ball_last_velocity.length()
@@ -444,12 +256,8 @@ func _make_sweeping_decision(anticipated_pos: Vector2):
 	
 	var strike_chance = 0.4*(1.0 - ball_speed/800.0) + (0.3*(1.0 - opponent_dist/300.0)) + (0.3*(1.0 - goal_dist/600.0))
 	var keeper_bias = (attributes.aggression * 0.5 + attributes.confidence * 0.3) / 99.0
-	
-	if (strike_chance + keeper_bias) > 0.5:
-		current_behavior = "striking"
-	else:
-		_execute_sweeping_clearance(anticipated_pos)
-		current_behavior = "defending"
+	_execute_sweeping_clearance(anticipated_pos)
+	current_behavior = "defending"
 
 func _execute_sweeping_clearance(pos: Vector2):
 	"""Performs a clearance while in motion"""
@@ -660,3 +468,85 @@ func weighted_random_choice(options: Array, weights: Array):
 	
 	return options[0]
 #endregion
+
+func defending_behavior(delta: float):
+	if !ball:
+		return
+	# Calculate goal characteristics
+	var goal_center: Vector2 = (leftPost + rightPost) / 2
+	var goal_width: float = rightPost.x - leftPost.x
+	
+	# Get ball position and velocity
+	var ball_pos: Vector2 = ball.global_position
+	var ball_vel: Vector2 = ball.linear_velocity
+	
+	# Handle reaction delay if ball changed direction significantly
+	if ball_vel.length() > 10:  # Only if ball is moving meaningfully
+		if last_ball_direction.dot(ball_vel.normalized()) < 0.7:  # Direction changed >45°
+			reacting = true
+			reaction_timer = map_attribute_to_reaction_time(attributes.reactions)
+		
+		last_ball_direction = ball_vel.normalized()
+	
+	# If we're in reaction delay, wait before updating position
+	if reacting:
+		reaction_timer -= delta
+		if reaction_timer <= 0:
+			reacting = false
+		return  # Hold position while reacting
+	
+	# Calculate base X position (follow ball position proportionally)
+	var ball_field_progress: float = clamp(inverse_lerp(0, get_viewport().size.x, ball_pos.x), 0.0, 1.0)
+	var base_x: float = lerp(leftPost.x, rightPost.x, ball_field_progress)
+	
+	# Calculate Y position based on aggression (0 = at goal line, 1 = far out)
+	var aggression_factor: float = attributes.aggression / 99.0
+	var base_y: float = leftPost.y + (BASE_AGGRESSION_DISTANCE * aggression_factor)
+	
+	# Add positioning variance
+	var positioning_variance: float = (1.0 - (attributes.positioning / 99.0)) * POSITIONING_VARIANCE
+	var variance_x: float = randf_range(-positioning_variance, positioning_variance)
+	var variance_y: float = randf_range(-positioning_variance * 0.5, positioning_variance * 0.5)
+	
+	# Calculate base target position
+	var base_target: Vector2 = Vector2(base_x + variance_x, base_y + variance_y)
+	
+	# Anticipate ball path if moving toward goal
+	if is_ball_moving_toward_goal():
+		var anticipated_position: Vector2 = ball_pos + ball_vel.normalized() * ANTICIPATION_DISTANCE
+		var anticipation_weight: float = clamp(ball_vel.length() / 500.0, 0.0, 0.7)  # Don't fully commit
+		
+		# Blend between base position and anticipated position
+		base_target = base_target.lerp(anticipated_position, anticipation_weight)
+	
+	# Don't stray too far from center based on aggression
+	var max_distance_from_center: float = goal_width * 0.5 * (1.0 - aggression_factor * 0.5)
+	var target_position = base_target
+	target_position.x = clamp(target_position.x, 
+							 goal_center.x - max_distance_from_center, 
+							 goal_center.x + max_distance_from_center)
+	
+	# Update navigation agent target
+	navigation_agent.target_position = target_position
+
+# Helper functions
+func map_attribute_to_reaction_time(reaction_rating: float) -> float:
+	# Higher rating = faster reaction (shorter delay)
+	var normalized = 1.0 - (reaction_rating / 99.0)
+	return lerp(MIN_REACTION_TIME, MAX_REACTION_TIME, normalized)
+
+func is_ball_moving_toward_goal() -> bool:
+	var ball_vel: Vector2 = ball.linear_velocity
+	if ball_vel.length_squared() < 1.0:
+		return false
+	
+	var goal_center: Vector2 = (leftPost + rightPost) / 2
+	var to_goal: Vector2 = goal_center - ball.global_position
+	
+	# Check if ball is moving generally toward goal (within 90° cone)
+	return to_goal.normalized().dot(ball_vel.normalized()) > 0.0
+
+func inverse_lerp(a: float, b: float, value: float) -> float:
+	if a == b:
+		return 0.0
+	return clamp((value - a) / (b - a), 0.0, 1.0)
