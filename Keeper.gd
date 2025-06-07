@@ -472,6 +472,7 @@ func weighted_random_choice(options: Array, weights: Array):
 func defending_behavior(delta: float):
 	if !ball:
 		return
+	
 	# Calculate goal characteristics
 	var goal_center: Vector2 = (leftPost + rightPost) / 2
 	var goal_width: float = rightPost.distance_to(leftPost)
@@ -480,58 +481,45 @@ func defending_behavior(delta: float):
 	var ball_pos: Vector2 = ball.global_position
 	var ball_vel: Vector2 = ball.linear_velocity
 	
-	# Handle reaction delay if ball changed direction significantly
-	if ball_vel.length() > 10:  # Only if ball is moving meaningfully
-		if last_ball_direction.dot(ball_vel.normalized()) < 0.7:  # Direction changed >45°
-			reacting = true
-			reaction_timer = map_attribute_to_reaction_time(attributes.reactions)
-		
-		last_ball_direction = ball_vel.normalized()
-	
-	# If we're in reaction delay, wait before updating position
-	if reacting:
-		reaction_timer -= delta
-		if reaction_timer <= 0:
-			reacting = false
-		return  # Hold position while reacting
-	
-	# Calculate base X position (follow ball position proportionally)
-	var ball_field_progress: float
+	#initial position: goal line, x as far as ball is across field
+	var ball_field_distance
 	if fieldType == "road":
-		ball_field_progress = ball.global_position.x / 57.0
-		print("posts " + str(leftPost) + ", " + str(rightPost))
-	var base_x: float = ball_field_progress * goal_width/2
+		ball_field_distance = ball.global_position.x/57.0
+	else:
+		ball_field_distance = ball.global_position.x/100
+	var relative_x = ball_field_distance * goal_width
+	if ball.global_position.y < leftPost.y + 10 and abs(ball.global_position.x) > 35: #in teh corner
+		var pos_check =  (100-attributes.positioning)/10
+		var positioning_variance = randf_range(0- pos_check, pos_check)
+		var aggression_variance = attributes.aggression/20
+		if leftPost.distance_squared_to(ball.global_position) < rightPost.distance_squared_to(ball.global_position):
+			navigation_agent.target_position = Vector2(leftPost.x + aggression_variance, leftPost.y + 5 + positioning_variance)
+		else:
+			navigation_agent.target_position = Vector2(rightPost.x - aggression_variance, rightPost.y + 5 + positioning_variance)
+	elif ball.global_position.distance_to(goal_center) < (attributes.reactions / 2): #faster reactions = more saves
+		navigation_agent.target_position = ball.position
+		velocity = (navigation_agent.target_position - global_position).normalized() * attributes.sprint_speed
+		return
+	else: #far away, passive position
+		#account for positioning skill
+		var variance_x = (100 - attributes.positioning)/10
+		variance_x = randf_range(0 -variance_x, variance_x)
+		navigation_agent.target_position = Vector2(relative_x + variance_x, leftPost.y + 10)
+
+	#project a path of the ball
 	
-	# Calculate Y position based on aggression (0 = at goal line, 1 = far out)
-	var aggression_factor: float = attributes.aggression / 99.0
-	var base_y: float = leftPost.y + (BASE_AGGRESSION_DISTANCE * aggression_factor)
+	#consider that it might reflect off of a wall or an opposing forward
 	
-	# Add positioning variance
-	var positioning_variance: float = (1.0 - (attributes.positioning / 99.0)) * POSITIONING_VARIANCE
-	var variance_x: float = randf_range(-positioning_variance, positioning_variance)
-	var variance_y: float = randf_range(-positioning_variance * 0.5, positioning_variance * 0.5)
+	#if the ball changes directions, freeze in place for a moment
+	#length of freeze depends on attributes.reactions
 	
-	# Calculate base target position
-	var base_target: Vector2 = Vector2(base_x + variance_x, base_y + variance_y)
+	#goal position based on projection and attributes.positioning
 	
-	# Anticipate ball path if moving toward goal
-	if is_ball_moving_toward_goal():
-		var anticipated_position: Vector2 = ball_pos + ball_vel.normalized() * ANTICIPATION_DISTANCE
-		var anticipation_weight: float = clamp(ball_vel.length() / 500.0, 0.0, 0.7)  # Don't fully commit
-		
-		# Blend between base position and anticipated position
-		base_target = base_target.lerp(anticipated_position, anticipation_weight)
+	#make sure total distance to center of goal is less than 20
 	
-	# Don't stray too far from center based on aggression
-	var max_distance_from_center: float = goal_width * 0.5 * (1.0 - aggression_factor * 0.5)
-	var target_position = base_target
-	target_position.x = clamp(target_position.x, 
-							 goal_center.x - max_distance_from_center, 
-							 goal_center.x + max_distance_from_center)
-	
-	# Update navigation agent target
-	navigation_agent.target_position = target_position
+	#move
 	velocity = (navigation_agent.target_position - global_position).normalized() * attributes.speed
+
 
 
 # Helper functions
