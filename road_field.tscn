@@ -31,15 +31,15 @@ script = ExtResource("1_s84cq")
 position = Vector2(0, 124)
 
 [node name="Post1" type="StaticBody2D" parent="Goals/PlayerGoal"]
+position = Vector2(-19.25, -4.5)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Goals/PlayerGoal/Post1"]
-position = Vector2(-19.25, -4.5)
 shape = SubResource("RectangleShape2D_5gq74")
 
 [node name="Post2" type="StaticBody2D" parent="Goals/PlayerGoal"]
+position = Vector2(19.25, -4.5)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Goals/PlayerGoal/Post2"]
-position = Vector2(19.25, -4.5)
 shape = SubResource("RectangleShape2D_5gq74")
 
 [node name="SidePanel1" type="StaticBody2D" parent="Goals/PlayerGoal"]
@@ -65,15 +65,15 @@ position = Vector2(0, -124)
 rotation = 3.14159
 
 [node name="Post1" type="StaticBody2D" parent="Goals/AIGoal"]
+position = Vector2(-19.25, -4.5)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Goals/AIGoal/Post1"]
-position = Vector2(-19.25, -4.5)
 shape = SubResource("RectangleShape2D_5gq74")
 
 [node name="Post2" type="StaticBody2D" parent="Goals/AIGoal"]
+position = Vector2(20.25, -4.5)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Goals/AIGoal/Post2"]
-position = Vector2(19.25, -4.49998)
 shape = SubResource("RectangleShape2D_5gq74")
 
 [node name="SidePanel1" type="StaticBody2D" parent="Goals/AIGoal"]

@@ -260,7 +260,7 @@ func get_brawl_priority_players() -> Array[Player]:
 	priority.erase(null)
 	return priority
 
-func enlighten(aimTarget, ball, field, keeperWall, ownGoal, oppGoal, oppK, oppLG, oppRG, oppLF, oppRF, LfWaiting, RfWaiting):
+func enlighten(aimTarget, ball, field, keeperWall, ownGoal, oppGoal, oppK, oppLG, oppRG, oppLF, oppRF, LfWaiting, RfWaiting, LPost, RPost):
 	P.ball = ball
 	P.ball_pitched.connect(ball.be_pitched)
 	P.special_pitched.connect(ball.be_special_pitched)
@@ -274,8 +274,8 @@ func enlighten(aimTarget, ball, field, keeperWall, ownGoal, oppGoal, oppK, oppLG
 	K.left_wall = field.leftWall
 	K.right_wall = field.rightWall
 	#TODO: if field type is road or wide road, else different
-	K.leftPost = Vector2(field.player_goal_post1.global_position.x, ownGoal.global_position.y)
-	K.rightPost = Vector2(field.player_goal_post2.global_position.x, ownGoal.global_position.y)
+	K.leftPost = LPost
+	K.rightPost = RPost
 	K.back_wall = keeperWall
 	K.oppKeeper = oppK
 	K.oppLF = oppLF

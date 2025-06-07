@@ -59,7 +59,7 @@ const ANTICIPATION_DISTANCE: float = 200.0  # how far ahead to look for ball pat
 var navigation_agent: NavigationAgent2D
 
 func _ready():
-	debug = false
+	debug = true
 	super._ready()
 	attributes.blocking = 85 #nice and wide
 	self.scale.x = 1 * (attributes.blocking/50)
@@ -98,16 +98,16 @@ func _physics_process(delta):
 				perform_fencing()
 			"attacking":
 				perform_attacking()
-	else:
-		if aim_target:
-			aim_target.on = true
-			aim = aim_target.global_position
-				
 		if debug:
 			current_debug_frame += 1
 			if current_debug_frame >= debug_frames:
 				current_debug_frame = 0
 				print(current_behavior)
+	else:
+		if aim_target:
+			aim_target.on = true
+			aim = aim_target.global_position
+				
 		
 		move_and_slide()
 
@@ -474,7 +474,7 @@ func defending_behavior(delta: float):
 		return
 	# Calculate goal characteristics
 	var goal_center: Vector2 = (leftPost + rightPost) / 2
-	var goal_width: float = rightPost.x - leftPost.x
+	var goal_width: float = rightPost.distance_to(leftPost)
 	
 	# Get ball position and velocity
 	var ball_pos: Vector2 = ball.global_position
@@ -496,8 +496,11 @@ func defending_behavior(delta: float):
 		return  # Hold position while reacting
 	
 	# Calculate base X position (follow ball position proportionally)
-	var ball_field_progress: float = clamp(inverse_lerp(0, get_viewport().size.x, ball_pos.x), 0.0, 1.0)
-	var base_x: float = lerp(leftPost.x, rightPost.x, ball_field_progress)
+	var ball_field_progress: float
+	if fieldType == "road":
+		ball_field_progress = ball.global_position.x / 57.0
+		print("posts " + str(leftPost) + ", " + str(rightPost))
+	var base_x: float = ball_field_progress * goal_width/2
 	
 	# Calculate Y position based on aggression (0 = at goal line, 1 = far out)
 	var aggression_factor: float = attributes.aggression / 99.0
@@ -528,6 +531,8 @@ func defending_behavior(delta: float):
 	
 	# Update navigation agent target
 	navigation_agent.target_position = target_position
+	velocity = (navigation_agent.target_position - global_position).normalized() * attributes.speed
+
 
 # Helper functions
 func map_attribute_to_reaction_time(reaction_rating: float) -> float:

@@ -21,10 +21,6 @@ script = ExtResource("2_w1g4r")
 [node name="PlayerTeam" parent="." instance=ExtResource("3_4qoer")]
 
 [node name="Ball" parent="." instance=ExtResource("4_uyrol")]
-base_speed = 500.0
-hockey_max_speed = 800.0
-pitching_max_speed = 1500.0
-min_bounce_speed = 50.0
 
 [node name="PlayTimer" type="Timer" parent="."]
 
