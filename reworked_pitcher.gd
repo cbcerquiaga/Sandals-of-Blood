@@ -18,10 +18,12 @@ var special_pitch_available: Array[bool] = [false, false]
 
 # AI Memory
 var successful_pitches: Array[Dictionary] = []
-var last_pitch_type: String = ""
 var oppGoal: Vector2
 var left_wall
 var right_wall
+var lastTarget: Vector2
+var lastPower: float
+var lastCurve: float
 
 # Pitch State
 var current_power: float = 200
@@ -167,27 +169,40 @@ func handle_ai_pitch_decision():
 	# Wait a moment to simulate "wind up" time
 	await get_tree().create_timer(0.5).timeout
 	
-	var pitch_to_use = select_ai_pitch()
-	execute_pitch(pitch_to_use)
+	if false: #TODO: determine if can throw special pitch
+		pass
+		#TODO: throw a special pitch
+	elif len(successful_pitches) > 0:
+		pass
+		#TODO: decide how often to use an already used pitch
+	else:
+		#TODO: change for different field types
+		var x = randf_range(-60,60)
+		var y = randf_range(-50, 75)
+		var current_target = Vector2(x, y)
+		if status.energy > 50: #high energy, high power
+			current_power = randf_range(attributes.power * 2, attributes.power * 3) * 4 #792-1188 at 99; 400-600 at 50
+			status.energy = status.energy - ((100 - attributes.endurance) * 5)
+		else: #low energy, lower power
+			current_power = randf_range(attributes.power , attributes.power * 2) * 4#396-792 at 99, 200-400 at 50
+			status.energy = status.energy - ((100 - attributes.endurance) * 2)
+		var weight_chance = randi_range(0, 10)
+		#lexx likely to throw wildly curved pitches
+		if weight_chance <= 6: #60% chance
+			current_curve = randf_range(0 -max_curve/4, max_curve/4)
+		elif weight_chance <= 9: #30% chance
+			current_curve = randf_range(0-max_curve/2, max_curve/2)
+		else: #10% chance
+			current_curve = randf_range(0-max_curve, max_curve)
+		lastCurve = current_curve
+		lastPower = current_power
+		lastTarget = current_target
+		perform_ai_normal_pitch(current_target)
+	#execute_pitch(pitch_to_use)
 
-func select_ai_pitch() -> String:
-	# Check special pitches first
-	#TODO: actually implement special pitches
-	#for i in special_pitch_available.size():
-		#if special_pitch_available[i]:
-			#return special_pitch_names[i]
-	
-	# Then check successful pitches TODO
-	#if not successful_pitches.is_empty() and randf() < 0.7: # 70% chance to reuse
-		#var pitch = successful_pitches.pick_random()
-		#return pitch["type"]
-	
-	# Default to random normal pitch
-	return "normal"
 
 func execute_pitch(pitch_type: String):
 	is_aiming = false
-	last_pitch_type = pitch_type
 	ball.last_hit_by = self
 	var ball_position = Vector2(global_position.x + hand_offset, global_position.y)
 	match pitch_type:
@@ -213,37 +228,29 @@ func execute_pitch(pitch_type: String):
 		special_pitch_available[sp_index] = false
 		special_pitch_timers[sp_index] = special_pitch_cooldowns[sp_index] * (1.2 - (attributes.confidence / 100.0))
 
+func perform_ai_normal_pitch(target):
+	print("robot launching ball")
+	aim_direction = global_position.direction_to(target).normalized()
+	var varied_direction = aim_direction.rotated(current_variance * variance_factor)   
+	var huck = current_power * varied_direction
+	print("aim with variance: " + str(aim_direction))
+	release_ball()
+	ball_pitched.emit(huck, current_curve)
+
 #normal pitch curves
 func perform_normal_pitch():
 	print("tossing the ball")
 	status.energy = status.energy - (10 - attributes.endurance/10) #more endurance, less energy loss
-	
-	# AI adds some randomness if not player controlled
-	if not is_controlling_player:
-		var power_variation = randf_range(0.8, 1.2)
-		var curve_variation = randf_range(0.5, 1.5)
-		
-		# Try to bank shots off walls
-		if randf() < 0.9: # 90% chance to try bank shot
-			var wall_position = get_best_bank_angle()
-			if field_type == "road" || field_type == "wide_road":
-				aim_direction = (wall_position - ball.global_position).normalized() * -1#adjust to make the ball go down instead of up
-			curve_variation = sign(curve_variation) * max_curve * 0.8
-			var huck = (current_power * power_variation) * aim_direction
-			release_ball()
-			ball_pitched.emit(huck,  current_curve * curve_variation)
-			#ball.apply_pitch(aim_direction * current_power * power_variation, current_curve * curve_variation, aim_direction, global_position)
-	else:
-		var varied_direction = aim_direction.normalized()
-		varied_direction = varied_direction.rotated(current_variance * variance_factor)   
-		#TODO: modify for different fields
-		if field_type == "road" || field_type == "wide_road":
-			if varied_direction.y > 0:
-				varied_direction.y = varied_direction.y * -1
-		var huck = current_power * varied_direction
-		print("aim with variance: " + str(aim_direction))
-		release_ball()
-		ball_pitched.emit(huck, current_curve)
+	var varied_direction = aim_direction.normalized()
+	varied_direction = varied_direction.rotated(current_variance * variance_factor)   
+	#TODO: modify for different fields
+	if field_type == "road" || field_type == "wide_road":
+		if varied_direction.y > 0:
+			varied_direction.y = varied_direction.y * -1
+	var huck = current_power * varied_direction
+	print("aim with variance: " + str(aim_direction))
+	release_ball()
+	ball_pitched.emit(huck, current_curve)
 
 func perform_fake_curve_pitch():
 	var curve_dir = 1.0 if randf() > 0.5 else -1.0
@@ -362,21 +369,8 @@ func update_special_pitch_availability():
 
 func _on_goal_aced():
 		print("aced it")
-		# Add pitch to successful pitches if not already there
-		var already_exists = false
-		for pitch in successful_pitches:
-			if pitch["type"] == last_pitch_type:
-				already_exists = true
-				pitch.count += 1
-				break
-		
-		if not already_exists:
-			successful_pitches.append({
-				"type": last_pitch_type,
-				"power": current_power,
-				"curve": current_curve,
-				"count": 1
-			})
+		# TODO: Add pitch to successful pitches if not already there
+
 			
 func get_closest_wall():
 	if bio.leftHanded:
