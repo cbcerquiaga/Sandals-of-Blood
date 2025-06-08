@@ -164,8 +164,10 @@ func calculate_block_position() -> Vector2:
 func handle_arrival_behavior():
 	match current_behavior:
 		"engaging":
-			if engagement_decision == "attack" or engagement_decision == "double_team":
-				attempt_attack()
+			if engagement_decision == "attack":
+				attempt_attack(assigned_forward.global_position)
+			elif engagement_decision == "double_team":
+				attempt_attack(other_forward.global_position)
 		"intercepting":
 			if randf() < 0.3: # 30% chance to dodge when intercepting
 				attempt_dodge()
@@ -177,11 +179,6 @@ func handle_intercept_movement(place):
 			super.attempt_sprint(place)
 		else:
 			attempt_dodge()
-
-func attempt_attack():
-	if status.boost > 25:
-		#start_attack_animation() #TODO: animate
-		status.boost -= 25
 
 func attempt_dodge():
 	if status.boost > 15:

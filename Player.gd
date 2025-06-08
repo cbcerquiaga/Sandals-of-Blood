@@ -26,7 +26,8 @@ class_name Player
 	"health": 100, #used for injuries
 	"boost": 100, #short-term endurance that applies to sprinting and dodging, recovers immediately
 	"max_energy": 100, #always 100
-	"max_boost": 100#variable dependent on energy
+	"max_boost": 100, #variable dependent on energy
+	"stability": 100 #fall chance, shoved chance
 }
 
 @export var bio := {
@@ -200,7 +201,8 @@ func handle_human_input(delta):
 	
 	# Attacking
 	if Input.is_action_just_pressed("attack_player") and not is_spinning:
-		attempt_attack()
+		if aim:
+			attempt_attack(aim)
 	
 	# Special moves (position-specific)
 	#if position_type == "pitcher" and is_controlling_player:
@@ -218,6 +220,10 @@ func recover_resources(delta):
 	# Energy recovers slowly all the time
 	status.energy = min(status.energy + delta * (0.5 + attributes.endurance * 0.01), max_energy)
 	status.max_boost = status.energy * (attributes.endurance/100)
+	if status.stability >= attributes.balance:
+		status.stability = attributes.balance
+	else:
+		status.stability = min(status.stability + delta * (0.5 + attributes.balance * 0.01), attributes.balance)
 	# Boost recovers when not sprinting
 	if not is_sprinting:
 		status.boost = min(status.boost + delta * (10 + attributes.endurance * 0.2), status.max_boost)
@@ -324,24 +330,58 @@ func start_spin():
 	is_spinning = false
 	$Hitbox/CollisionShape2D.set_deferred("disabled", false)
 
-func attempt_attack():
-	if not $AttackCooldown.is_stopped():
+func attempt_attack(target_position: Vector2):
+	if not $AttackCooldown or not $AttackCooldown.is_stopped():
 		return
 	
 	$AttackCooldown.start()
 	$AttackAnimation.play("attack")
 	
-	# Calculate attack power based on speed and attributes
-	var attack_power = (velocity.length() / 500.0) * attributes.power
+	# Start sprinting toward target
+	is_sprinting = true
+	status.boost -= 20
+	var to_target = (target_position - global_position).normalized()
+	velocity = to_target * attributes.sprint_speed
 	
-	# Check for hits in attack range
-	var hit_objects = $AttackArea.get_overlapping_bodies()
-	for body in hit_objects:
-		if body != self and body is Player and body.team != team:
-			body.take_hit(self, attack_power)
+	# Connect the area entered signal if not already connected
+	if not $AttackArea.body_entered.is_connected(_on_attack_area_body_entered):
+		$AttackArea.body_entered.connect(_on_attack_area_body_entered)
 	
 	# Stamina cost
 	status.energy -= 10
+	
+func _on_attack_area_body_entered(body: Node2D):
+	if body != self and body is Player and body.team != team:
+		# Calculate attack power (your force toward opponent)
+		var attack_dir = (body.global_position - global_position).normalized()
+		var my_velocity_toward_opponent = velocity.project(attack_dir).length()
+		var attackPower = my_velocity_toward_opponent * (attributes.power / 100.0)
+		# Calculate opponent's attack power (their force toward you)
+		var opp_attack_dir = (global_position - body.global_position).normalized()
+		var opponent_velocity_toward_me = body.velocity.project(opp_attack_dir).length()
+		var oppAttackPower = opponent_velocity_toward_me * (body.attributes.power / 100.0)
+		# Calculate bounce effect (0-30 range)
+		var base_bounce = attackPower * 30.0  # Max potential bounce (30 when attackPower=1)
+		# Apply opponent's power and stability reduction (both 50-99 ranges)
+		var power_reduction = 1.0 - (body.attributes.power - 50) / 49.0  # Maps 50→1.0, 99→0.0
+		var stability_reduction = 1.0 - (body.status.stability - 50) / 49.0  # Maps 50→1.0, 99→0.0
+		var total_bounce = base_bounce * power_reduction * stability_reduction
+		# Clamp final bounce between 0-30
+		total_bounce = clamp(total_bounce, 0.0, 30.0)
+		# Apply bounce impulse to opponent
+		body.velocity += attack_dir * total_bounce
+		
+		# Apply the hit with calculated power
+		body.take_hit(self, attackPower)
+		
+		# If opponent was moving toward us, they also take counter-hit damage
+		if oppAttackPower > 0:
+			take_hit(body, oppAttackPower * 0.5)  # Reduced counter-hit damage
+		
+		# Stop the attack sprint
+		is_sprinting = false
+		velocity = Vector2.ZERO
+		
 
 func take_hit(attacker: Player, power: float):
 	if is_spinning:
@@ -385,12 +425,12 @@ func apply_health_damage(amount: float):
 func _on_stun_timer_timeout():
 	is_stunned = false
 	
-func _make_combat_decision(current_dist: float):
+func _make_combat_decision(opponent_position: Vector2, current_dist: float):
 	"""Decides to attack or dodge during fencing"""
 	var attack_prob = (0.4*attributes.aggression/99.0) + (0.3*(1.0 - current_dist/fencing_params["ideal_distance"]))
 	
 	if attack_prob > 0.65:
-		attempt_attack()
+		attempt_attack(opponent_position)
 		fencing_timer = 0.0
 		velocity += (global_position - current_opponent.global_position).normalized() * 100.0
 	else:

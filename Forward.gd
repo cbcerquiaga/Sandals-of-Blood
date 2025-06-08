@@ -138,13 +138,13 @@ func execute_bull_rush():
 		navigate_to(assigned_guard.global_position)
 		if global_position.distance_to(assigned_guard.global_position) < 150:
 			if randf() < 0.7:
-				attempt_attack()
+				attempt_attack(assigned_guard.global_position)
 			else:
 				attempt_dodge()
 	else:
 		navigate_to(opposing_keeper.global_position)
-		if global_position.distance_to(opposing_keeper.global_position) < 200:
-			attempt_attack()
+		if global_position.distance_to(opposing_keeper.global_position) < attributes.aggression:
+			attempt_attack(opposing_keeper.global_position)
 	
 	rush_line.queue_free()
 
@@ -231,12 +231,12 @@ func execute_pick():
 	
 	if guard_blocking:
 		navigate_to(assigned_guard.global_position)
-		if global_position.distance_to(assigned_guard.global_position) < 120:
-			attempt_attack()
+		if global_position.distance_to(assigned_guard.global_position) < attributes.aggression/2:
+			attempt_attack(assigned_guard.global_position)
 	else:
 		navigate_to(other_guard.global_position)
-		if global_position.distance_to(other_guard.global_position) < 150:
-			attempt_attack()
+		if global_position.distance_to(other_guard.global_position) < attributes.aggression/2:
+			attempt_attack(other_guard.global_position)
 	
 	pick_line.queue_free()
 
@@ -248,13 +248,13 @@ func execute_bully():
 	
 	if !bullied_opponent.is_stunned:
 		navigate_to(bullied_opponent.global_position)
-		if global_position.distance_to(bullied_opponent.global_position) < 150:
-			attempt_attack()
+		if global_position.distance_to(bullied_opponent.global_position) < attributes.aggression/2:
+			attempt_attack(bullied_opponent.global_position)
 		return
 	
 	handle_nearby_opponents()
 	
-	var hover_distance = 100
+	var hover_distance = 20
 	var hover_position = bullied_opponent.global_position + Vector2(
 		randf_range(-hover_distance, hover_distance),
 		randf_range(-hover_distance, hover_distance)
@@ -561,20 +561,6 @@ func attempt_counterattack():
 	$CounterattackParticles.emitting = true
 	$CounterattackAnimation.play("counter")
 
-func attempt_attack():
-	if status.boost < 20:
-		return
-	
-	status.boost -= 20
-	$AttackArea.monitoring = true
-	$AttackTimer.start(0.5)
-	$AttackParticles.emitting = true
-	$AttackAnimation.play("attack")
-	
-	if current_behavior == "bully" and bullied_opponent:
-		if global_position.distance_to(bullied_opponent.global_position) < 150:
-			bullied_opponent.apply_stun(1.5)
-
 func _on_counterattack_timer_timeout():
 	$AttackArea.monitoring = false
 
@@ -703,8 +689,10 @@ func decide_defensive_response(guard_dist: float, keeper_dist: float):
 	if randf() < fencing_chance:
 		switch_to_fencing_mode()
 	else:
-		if keeper_dist < guard_dist || randf() < 0.6:
-			attempt_attack()
+		if keeper_dist < guard_dist && randf() < 0.6:
+			attempt_attack(opposing_keeper.global_position)
+		elif guard_dist < keeper_dist && randf() < 0.6:
+			attempt_attack(assigned_guard.global_position)
 		else:
 			attempt_dodge()
 
@@ -848,7 +836,7 @@ func handle_obstacles_to_intercept():
 		var attack_chance = 0.5 + (attributes.aggression / 200.0)
 		
 		if randf() < attack_chance:
-			attempt_attack()
+			attempt_attack(assigned_guard.global_position)
 		else:
 			var dodge_dir = (current_intercept_point - obstacle_pos).normalized().rotated(randf_range(-PI/4, PI/4))
 			var dodge_target = obstacle_pos + dodge_dir * 150
@@ -886,7 +874,7 @@ func handle_nearby_opponents():
 			if randf() < 0.7:
 				attempt_dodge()
 			else:
-				attempt_attack()
+				attempt_attack(nearby_opponents[0].global_position)
 
 func attempt_shielding(opponent: Player) -> bool:
 	var to_opponent = (opponent.global_position - bullied_opponent.global_position).normalized()
@@ -936,7 +924,7 @@ func perform_fencing():
 		velocity = (global_position - current_opponent.global_position).normalized() * attributes.speed * fencing_params["retreat_speed"]
 	
 	if fencing_timer > fencing_params["attack_cooldown"]:
-		_make_combat_decision(current_dist)
+		_make_combat_decision(current_opponent.global_position,current_dist)
 		
 func _should_break_fencing() -> bool:
 	"""Checks if fencing should be interrupted"""

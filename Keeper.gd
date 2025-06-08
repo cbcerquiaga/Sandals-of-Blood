@@ -227,7 +227,7 @@ func perform_fencing():
 		velocity = (global_position - current_opponent.global_position).normalized() * attributes.speed * fencing_params["retreat_speed"]
 	
 	if fencing_timer > fencing_params["attack_cooldown"]:
-		_make_combat_decision(current_dist)
+		_make_combat_decision(current_opponent.global_position, current_dist)
 
 func perform_attacking():
 	"""Attacking behavior - aggressively charges and attacks forwards"""
@@ -245,7 +245,7 @@ func perform_attacking():
 	velocity = (attack_target.global_position - global_position).normalized() * attributes.sprint_speed
 	
 	if global_position.distance_to(attack_target.global_position) < attack_params["attack_range"]:
-		_execute_attack()
+		_execute_attack(attack_target.global_position)
 #endregion
 
 func _make_sweeping_decision(anticipated_pos: Vector2):
@@ -295,9 +295,9 @@ func _execute_strike(strike_vector: Vector2):
 		ball.apply_force(strike_vector)
 		time_since_last_touch = 0.0
 
-func _execute_attack():
+func _execute_attack(target: Vector2):
 	"""Performs attack against current target"""
-	super.attempt_attack()
+	super.attempt_attack(target)
 	attack_cooldown = attack_params["cooldown_time"]
 	
 	if attack_target.is_stunned:
