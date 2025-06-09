@@ -380,11 +380,11 @@ func calculate_situational_weights() -> Dictionary:
 func is_guard_vulnerable() -> bool:
 	return (assigned_guard and 
 			(assigned_guard.is_stunned or 
-			 global_position.distance_to(assigned_guard.global_position) > 300))
+			 global_position.distance_to(assigned_guard.global_position) > 150))
 
 func is_ball_reachable() -> bool:
 	return (ball and 
-			global_position.distance_to(ball.global_position) < 400 and 
+			global_position.distance_to(ball.global_position) < attributes.speed/1.5 and 
 			has_clear_path_to(ball.global_position))
 
 func has_stunned_opponent() -> bool:

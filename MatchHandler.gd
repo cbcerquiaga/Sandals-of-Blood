@@ -97,6 +97,7 @@ func _on_ball_exited_field():
 		reset_play()
 	else:
 		out_of_bounds_frames += 1
+		ball.apply_drag()
 	
 func _on_player_goal():
 	if match_ended or not is_instance_valid(ball):
@@ -269,6 +270,7 @@ func reset_ball():
 		field.touch_half("cpu")
 		aTeam.P.has_ball = true
 		aTeam.P.has_pitched = false
+		aTeam.P.prepare_ai_to_pitch()
 		aTeam.P.prepare_target_position()
 		pTeam.K.is_controlling_player = true
 

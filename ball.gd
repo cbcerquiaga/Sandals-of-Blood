@@ -21,6 +21,9 @@ var trajectory_progress: float = 0.0
 var pitcher_position: Vector2
 var chill_timer: int = 0
 var original_collision_mask: int = 0b0110
+var field_type = "road"
+
+const spin_drag_factor: float = 0.995
 
 # Signals
 signal goal_scored(team)
@@ -67,6 +70,31 @@ func apply_pitching_physics(delta):
 		var perpendicular = linear_velocity.normalized().rotated(PI/2)
 		var curve_force = perpendicular * current_spin * spin_curve_factor * delta
 		apply_central_impulse(curve_force)
+		current_spin = current_spin * spin_drag_factor #applies dpin drag
+		force_inbounds()
+		
+func force_inbounds():
+	if field_type == "road": #TODO: update for other field types
+		if global_position.x < -60:
+			if linear_velocity.x < 0:
+				linear_velocity.x = 0 - linear_velocity.x
+			elif linear_velocity.x == 0:
+				linear_velocity.x = 10
+		elif global_position.x > 60:
+			if linear_velocity.x > 0:
+				linear_velocity.x = 0 - linear_velocity.x
+			elif linear_velocity.x == 0:
+				linear_velocity.x = -10
+		if global_position.y < -120:
+			if linear_velocity.y < 0:
+				linear_velocity.y = 0 - linear_velocity.y
+			elif linear_velocity.y == 0:
+				linear_velocity.y = 10
+		elif global_position.y > 120:
+			if linear_velocity.y > 0:
+				linear_velocity.y = 0 - linear_velocity.y
+			elif linear_velocity.y == 0:
+				linear_velocity.y = -10
 
 func follow_special_trajectory(delta):
 	if not special_trajectory:
@@ -83,13 +111,7 @@ func follow_special_trajectory(delta):
 	global_position = special_trajectory.sample_baked(trajectory_length * progress_ratio)
 
 func apply_hockey_physics(delta):
-	# Inherits normal physics plus additional spin effects
-	apply_pitching_physics(delta)
 	max_speed = hockey_max_speed
-	# Add slight randomness to movement from last hitter's accuracy
-	if last_hit_by and is_instance_valid(last_hit_by):
-		var accuracy_effect = 1.0 - (last_hit_by.attributes.accuracy / 100.0)
-		linear_velocity = linear_velocity.rotated(randf_range(-accuracy_effect * 0.05, accuracy_effect * 0.05))
 
 func _on_body_entered(body: Node):
 	if body is Player:
@@ -250,3 +272,7 @@ func reset_ball(position: Vector2):
 	global_position = position
 	collision_mask = original_collision_mask
 	chill_timer = 0
+	
+func apply_drag():
+	linear_velocity = linear_velocity * 0.95
+	print("stop that ball!")

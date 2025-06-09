@@ -205,6 +205,7 @@ func execute_pitch(pitch_type: String):
 	is_aiming = false
 	ball.last_hit_by = self
 	var ball_position = Vector2(global_position.x + hand_offset, global_position.y)
+	ball.global_position = ball_position
 	match pitch_type:
 		"normal":
 			perform_normal_pitch()
@@ -412,4 +413,4 @@ func go_away():
 #TODO: change this for different fields
 func prepare_target_position():
 	target = Vector2(0,0)
-	print("target position: " + str(target))
+	#print("target position: " + str(target))

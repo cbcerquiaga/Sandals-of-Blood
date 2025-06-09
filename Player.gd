@@ -400,10 +400,10 @@ func take_hit(attacker: Player, power: float):
 	# Then affect balance (chance to stumble)
 	if total_damage > 0:
 		var balance_damage = total_damage * 0.5
-		var stumble_chance = balance_damage / 30.0
-		if randf() < stumble_chance:
+		status.stability = status.stability - balance_damage
+		if status.stability <= 0:
 			enter_stunned_state(balance_damage)
-			total_damage -= balance_damage
+		total_damage -= balance_damage
 	
 	# Any remaining damage affects health (potential injury)
 	if total_damage > 0:
