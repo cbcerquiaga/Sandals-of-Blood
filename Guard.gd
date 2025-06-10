@@ -41,8 +41,8 @@ func _physics_process(delta):
 	
 	if not is_controlling_player and can_move:
 		check_ball_attacking_half()
-		#update_ai_movement(delta)
-		#update_forward_tracking(delta)
+		update_ai_movement(delta)
+		update_forward_tracking(delta)
 		
 
 func update_forward_tracking(delta):
@@ -64,126 +64,132 @@ func update_ai_movement(delta):
 	
 	path_update_timer -= delta
 	if path_update_timer <= 0:
-		update_navigation_path()
+		update_behavior()
 		path_update_timer = 0.3 # Update path 3 times per second
-	
-	if navigation_agent.is_navigation_finished():
-		handle_arrival_behavior()
-		return
+	else:
+		perform_ai()
 	
 	var next_path_pos = navigation_agent.get_next_path_position()
 	var direction = global_position.direction_to(next_path_pos)
 	velocity = direction * attributes.speed
-	
-	# Handle defensive maneuvers
-	if current_behavior == "intercepting":
-		handle_intercept_movement(next_path_pos)
-	
 	move_and_slide()
 
-func update_navigation_path():
-	if mark_incapacitated:
-		if ball.global_position.distance_to(global_position) < 300:
+func update_behavior():
+	if !assigned_forward or !other_forward or !ball:
+		return
+	if mark_incapacitated or assigned_forward.global_position.distance_to(defending_goal_position) > 65 and global_position.distance_to(ball.global_position) < 90:
 			current_behavior = "ball_chase"
 			current_target = ball.global_position
+		
+	else:
+		var read = randi_range(0,100)
+		if read < attributes.positioning: #we get to know the opposing forward's behavior if our guy makes a good read
+			var choose = randi_range(0, 100)
+			if assigned_forward.current_behavior == "bull_rush" or assigned_forward.current_behavior == "speed_rush":
+				if choose < attributes.aggression:
+					current_behavior = "pressing"
+					pressure_defense()
+				else:
+					current_behavior = "marking"
+					cover_defense()
+			elif assigned_forward.current_behavior == "target_man"  and other_forward.current_behavior == "shooter":
+				current_behavior = "intercepting"
+				
+			elif should_help():
+				current_behavior = "helping"
+				handle_help_defense()
+			elif assigned_forward.current_behavior == "cower":
+				current_behavior = "doubling"
+				handle_double_team_defense()
+			elif assigned_forward.current_behavior == "rebound":
+				if choose < attributes.aggression:
+					current_behavior = "pressing"
+					pressure_defense()
+				else: #better get to that ball first
+					current_behavior = "chasing"
+					chase_ball()
+				
 		else:
 			current_behavior = "marking"
-			current_target = assigned_forward.global_position
-	else:
-		match forward_last_intent:
-			"positioning":
-				handle_positioning_defense()
-			"attacking_keeper":
-				handle_attack_defense()
-			_:
-				current_behavior = "marking"
-				current_target = assigned_forward.global_position
+			cover_defense()
 	
 	navigation_agent.target_position = current_target
-
-func handle_positioning_defense():
-	var ball_pos = ball.global_position
 	
-	# Make defensive decision
-	var decision_roll = randf()
-	if decision_roll < aggression * 0.6: # 60% max chance to attack
-		engagement_decision = "attack"
-		current_behavior = "engaging"
-		current_target = assigned_forward.global_position
-	elif decision_roll < aggression: # Remaining aggression % to double team
-		if other_forward:
-			engagement_decision = "double_team"
-			current_behavior = "engaging"
-			current_target = other_forward.global_position
-		else:
-			engagement_decision = "block"
-			current_behavior = "blocking"
-			current_target = calculate_block_position()
-	else:
-		engagement_decision = "block"
-		current_behavior = "blocking"
-		current_target = calculate_block_position()
-
-func handle_attack_defense():
-	# Predict forward's movement based on last velocity and anticipation skill
-	var predicted_direction = forward_last_velocity.normalized()
-	if forward_last_velocity.length() < 50: # Forward not moving much
-		predicted_direction = (buddy_keeper.global_position - assigned_forward.global_position).normalized()
-	
-	# Add some error based on anticipation skill
-	var angle_error = (1.0 - anticipation) * PI/4 * (1 if randf() > 0.5 else -1)
-	predicted_direction = predicted_direction.rotated(angle_error)
-	
-	# Decide to intercept or attack
-	var attack_chance = aggression * 0.8 # 80% max chance to attack
-	if randf() < attack_chance:
-		engagement_decision = "attack"
-		current_behavior = "engaging"
-		current_target = assigned_forward.global_position + predicted_direction * 100
-	else:
-		engagement_decision = "intercept"
-		current_behavior = "intercepting"
-		# Position between forward and keeper
-		var keeper_pos = buddy_keeper.global_position
-		current_target = keeper_pos + (assigned_forward.global_position - keeper_pos) * 0.7
-
-func calculate_block_position() -> Vector2:
-	var ball_pos = ball.global_position
-	var forward_pos = assigned_forward.global_position
-	
-	# Calculate position between forward and goal
-	var block_pos = defending_goal_position + (forward_pos - defending_goal_position).normalized() * 150
-	
-	# Adjust based on ball position
-	if ball_pos:
-		var ball_to_goal = (defending_goal_position - ball_pos).normalized()
-		block_pos = ball_pos + ball_to_goal * 120
-	
-	return block_pos
-
-func handle_arrival_behavior():
+func perform_ai():
 	match current_behavior:
-		"engaging":
-			if engagement_decision == "attack":
-				attempt_attack(assigned_forward.global_position)
-			elif engagement_decision == "double_team":
-				attempt_attack(other_forward.global_position)
+		"marking":
+			cover_defense()
+		"helping":
+			handle_help_defense()
+		"pressing":
+			pressure_defense()
+		"chasing":
+			chase_ball()
+		"doubling":
+			handle_double_team_defense()
 		"intercepting":
-			if randf() < 0.3: # 30% chance to dodge when intercepting
-				attempt_dodge()
+			handle_intercept_movement()
 
-func handle_intercept_movement(place):
-	# Use boost strategically when intercepting
-	if status.boost > 30 and randf_range(0,1) < 0.4:
-		if aggression > 0.7 and randf_range(0,1) < 0.6:
-			super.attempt_sprint(place)
-		else:
-			attempt_dodge()
+func pressure_defense():
+	if global_position.distance_to(assigned_forward.global_position) > attributes.aggression - 25:
+		navigation_agent.target_position = assigned_forward.global_position
+	else:
+		attempt_attack(assigned_forward.global_position)
+	
+func handle_help_defense():
+	if !assigned_forward or !other_forward or !ball:
+		return
+	var centerPos = (assigned_forward.global_position + other_forward.global_position)/2
+	var helpPos = (centerPos + defending_goal_position)/2
+	var rand = randi_range(0,100)
+	if rand > attributes.positioning:
+		var diff = rand - attributes.positioning
+		if diff > 10:
+			diff = 10
+		helpPos = helpPos + Vector2(randf_range(0 - diff, diff), randf_range(0 - diff, diff))
+	var cheat_direction
+	if assigned_forward.global_position.distance_squared_to(ball.global_position) <= other_forward.global_position.distance_squared_to(ball.global_position):
+		cheat_direction = (assigned_forward.global_position - global_position).normalized()
+	else:
+		cheat_direction = (other_forward.global_position - global_position).normalized()
+	helpPos = helpPos + cheat_direction * (attributes.aggression / 10)
+	navigation_agent.target_position = helpPos
+	
+#get between man and goal. Cheat to the middle a bit to push the forward away when it comes
+func cover_defense():
+	if !assigned_forward:
+		return
+	var default_position = (assigned_forward.global_position + defending_goal_position)/2
+	#if the forward's position isn't too threatening yet, cheat to the middle
+	if assigned_forward.global_position.distance_to(global_position) > attributes.aggression/2 and assigned_forward.global_position.distance_squared_to(global_position) > global_position.distance_squared_to(defending_goal_position):
+		var rand = randi_range(0,100)
+		if rand < attributes.positioning:
+			default_position.x = default_position.x * 5/6 #cheat to the middle a bit #TODO balance
+		elif rand - attributes.positioning > 10: #bad positioning roll
+			default_position.x = default_position.x * 3/4 #too much cheat #TODO balance
+		else: #close positioning roll
+			default_position.x = default_position.x * 7/8 #less than ideal cheating #TODO balance
+	else:
+		current_behavior = "pressing"
+	pass
+
+
+func handle_intercept_movement():
+	var middle = (assigned_forward.global_position + other_forward.global_position)/2
+	var half_assigned = (assigned_forward.global_position + middle)/2
+	var half_other = (assigned_forward.global_position + middle)/2
+	var middle_dist = global_position.distance_squared_to(middle)
+	var ass_dist = global_position.distance_squared_to(half_assigned)
+	var oth_dist = global_position.distance_squared_to(half_other)
+	if ass_dist < oth_dist and ass_dist < middle_dist:
+		navigation_agent.target_position = half_assigned
+	elif oth_dist < ass_dist and oth_dist < middle_dist:
+		navigation_agent.target_position = half_other
+	else:
+		navigation_agent.target_position = middle
 
 func attempt_dodge():
-	if status.boost > 15:
-		start_spin()
-		status.boost -= 15
+	super.attempt_dodge()
 
 func switch_forward():
 	var temp = other_forward
@@ -208,6 +214,12 @@ func _on_ball_entered_attacking_half():
 			current_behavior = "marking"
 		else:
 			current_behavior = "ball_chase"
+			
+func chase_ball():
+	if global_position.distance_squared_to(ball.global_position) > 160: #fartehr than 40
+		navigation_agent.target_position = ball.global_position
+	else: #ball close
+		attempt_attack(ball.global_position)
 
 func _on_mark_incapacitated():
 	current_behavior = "marking"
@@ -225,4 +237,23 @@ func get_attacking_threshhold():
 	if ball.global_position.y < 0:
 		return true
 	#TODO: update for different field shapes
+	return false
+
+func check_help_exit_behavior():
+	if mark_incapacitated:
+		current_behavior = "doubling"
+		
+func handle_double_team_defense():
+	if global_position.distance_to(other_forward.global_position) > attributes.aggression - 25:
+		navigation_agent.target_position = other_forward.global_position
+	else:
+		attempt_attack(other_forward.global_position)
+
+func should_help():
+	if assigned_forward.global_position.distance_to(defending_goal_position) > 50 and (other_forward.current_behavior == "bull_rush" or other_forward.current_behavior == "speed_rush"):
+		return true
+	if other_forward.global_position.distance_to(defending_goal_position) < 50 and (other_forward.current_behavior == "bull_rush" or other_forward.current_behavior == "speed_rush") and !(assigned_forward.current_behavior == "bull_rush" or assigned_forward.current_behavior == "speed_rush"):
+		return true
+	if other_forward.is_in_pass_mode and assigned_forward.is_in_pass_mode:
+		return true	 
 	return false

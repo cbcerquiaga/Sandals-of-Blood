@@ -62,7 +62,7 @@ class_name Player
 	"advance_speed": attributes.speed * 0.75,
 	"retreat_speed": attributes.speed,
 	"attack_cooldown": 1.0,
-	"ball_proximity_threshold": 30.0#TODO: base on reactions
+	"ball_proximity_threshold": 45
 }
 
 #in-match combat
@@ -135,9 +135,11 @@ var returnSpeed: float = 12
 func _ready():
 	collision_layer = 0b0100  # Layer 3 (players)
 	collision_mask = 0b0011  # Collide with obstacles (2) and balls (1)
+	$AttackArea.body_entered.connect(_on_attack_area_body_entered)
 	status.energy = max_energy
 	status.max_boost = status.energy * (attributes.endurance/100)
 	status.boost = status.max_boost
+	fencing_params.ball_proximity_threshold = attributes.reactions/2
 	update_ui()
 
 func _physics_process(delta):
@@ -203,10 +205,7 @@ func handle_human_input(delta):
 	if Input.is_action_just_pressed("attack_player") and not is_spinning:
 		if aim:
 			attempt_attack(aim)
-	
-	# Special moves (position-specific)
-	#if position_type == "pitcher" and is_controlling_player:
-		#handle_pitcher_input()
+
 
 func handle_ai_input():
 	# To be implemented by child classes
@@ -352,6 +351,7 @@ func attempt_attack(target_position: Vector2):
 	
 func _on_attack_area_body_entered(body: Node2D):
 	if body != self and body is Player and body.team != team:
+		print("collision detected")
 		# Calculate attack power (your force toward opponent)
 		var attack_dir = (body.global_position - global_position).normalized()
 		var my_velocity_toward_opponent = velocity.project(attack_dir).length()
@@ -374,9 +374,17 @@ func _on_attack_area_body_entered(body: Node2D):
 		# Apply the hit with calculated power
 		body.take_hit(self, attackPower)
 		
-		# If opponent was moving toward us, they also take counter-hit damage
+		# If opponent was moving toward us, roll for durability
 		if oppAttackPower > 0:
-			take_hit(body, oppAttackPower * 0.5)  # Reduced counter-hit damage
+			var rand = randi_range(0, 100)
+			if rand > attributes.durability: #roll failed
+				rand = randi_range(0, 100) #roll again
+				if rand > attributes.durability: #roll failed twice, bad luck
+					#get hurt
+					print("ouchie!")
+					#TODO: implement injury debuffs
+					#TODO: determine severity of injury debuff based on attackpower
+					#TODO: apply health damage
 		
 		# Stop the attack sprint
 		is_sprinting = false
@@ -384,42 +392,32 @@ func _on_attack_area_body_entered(body: Node2D):
 		
 
 func take_hit(attacker: Player, power: float):
-	if is_spinning:
-		# Counter-attack if spinning
-		attacker.take_hit(self, power * 0.5)
+	print("hit taken")
+	#if is_spinning:
+		## Counter-attack if spinning
+		#attacker.take_hit(self, power * 0.5)
+		#return
+	var knockback_power = power - (status.stability * attributes.power)#TODO: balance
+	if knockback_power < status.stability: #big boy don't budge
+		status.stability = status.stability - knockback_power #but he do be stumbling
+		print("stability remaining: " + str(status.stability))
 		return
-	
-	# Calculate damage - split between energy, balance, and health
-	var total_damage = power * (1.0 - (attributes.toughness / 200.0))
-	
-	# First drain energy
-	var energy_damage = min(total_damage * 0.7, status.energy)
-	status.energy -= energy_damage
-	total_damage -= energy_damage
-	
-	# Then affect balance (chance to stumble)
-	if total_damage > 0:
-		var balance_damage = total_damage * 0.5
-		status.stability = status.stability - balance_damage
-		if status.stability <= 0:
-			enter_stunned_state(balance_damage)
-		total_damage -= balance_damage
-	
-	# Any remaining damage affects health (potential injury)
-	if total_damage > 0:
-		apply_health_damage(total_damage)
-	
+	else: #big hit! more power than sta
+		var stun_time = (12-attributes.toughness/10) * 3 #21 for 50 toughness, 6.3 for 99 toughness
+		enter_stunned_state(stun_time)
+		print("stunned for " + str(stun_time))
 	# Knockback effect
 	var knockback_dir = (global_position - attacker.global_position).normalized()
-	velocity = knockback_dir * power * 2
+	velocity = knockback_dir * knockback_power
 
 func enter_stunned_state(duration: float):
 	is_stunned = true
 	stun_timer.start(duration)
-	$StunAnimation.play("stun")
+	#$StunAnimation.play("stun")
 
 func apply_health_damage(amount: float):
-	#TODO
+	#TODO: blood
+	status.health = status.health - amount
 	pass
 
 func _on_stun_timer_timeout():

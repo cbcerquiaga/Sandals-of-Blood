@@ -59,7 +59,7 @@ const ANTICIPATION_DISTANCE: float = 200.0  # how far ahead to look for ball pat
 var navigation_agent: NavigationAgent2D
 
 func _ready():
-	debug = true
+	debug = false
 	super._ready()
 	attributes.blocking = 85 #nice and wide
 	self.scale.x = 1 * (attributes.blocking/50)
@@ -136,7 +136,7 @@ func check_state():
 		return
 		
 	#DEBUG TODO: remove
-	current_behavior = "defending"
+	#current_behavior = "defending"
 	return
 	
 	var ball_speed = ball_last_velocity.length()

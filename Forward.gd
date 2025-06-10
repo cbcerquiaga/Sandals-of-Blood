@@ -80,8 +80,11 @@ func _physics_process(delta):
 	
 	if not is_controlling_player and can_move:
 		update_ai_behavior(delta)
+		if team == 1:
+			human_pass_control()
 	else:
 		handle_human_input(delta)
+		human_pass_control()
 	move_and_slide()
 
 func update_ai_behavior(delta):
@@ -136,7 +139,7 @@ func execute_bull_rush():
 	
 	if guard_is_blocking:
 		navigate_to(assigned_guard.global_position)
-		if global_position.distance_to(assigned_guard.global_position) < 150:
+		if global_position.distance_to(assigned_guard.global_position) < 60:
 			if randf() < 0.7:
 				attempt_attack(assigned_guard.global_position)
 			else:
@@ -435,7 +438,13 @@ func set_behavior(new_behavior: String):
 	if has_signal("behavior_changed"):
 		emit_signal("behavior_changed", current_behavior)
 
-# --- Original Helper Functions ---
+func human_pass_control():
+	if Input.is_action_pressed("LF_pass") and plays_left_side:
+		is_in_pass_mode = true
+	elif Input.is_action_pressed("RF_pass") and !plays_left_side:
+		is_in_pass_mode = true
+	else:
+		is_in_pass_mode = false
 
 func find_scoring_position():
 	var ideal_position = goal_position + Vector2(
@@ -480,10 +489,7 @@ func attempt_side_switch():
 	navigate_to(partner_pos)
 	forward_partner.navigate_to(my_pos)
 	
-	if position_type.ends_with("_l"):
-		position_type = position_type.replace("_l", "_r")
-	else:
-		position_type = position_type.replace("_r", "_l")
+	plays_left_side = !plays_left_side
 	
 	can_switch_sides = false
 	$SwitchCooldown.start()
