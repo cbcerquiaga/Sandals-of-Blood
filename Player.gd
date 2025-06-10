@@ -108,6 +108,7 @@ var is_in_brawl: bool = false
 var team: int = 1
 var position_type: String = ""
 var overall_state
+var behaviors: Array #lists all possible child type behaviors
 
 
 # Brawl Variables

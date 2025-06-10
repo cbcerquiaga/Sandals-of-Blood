@@ -60,6 +60,7 @@ var navigation_agent: NavigationAgent2D
 
 func _ready():
 	debug = false
+	behaviors = ["waiting", "defending", "sweeping", "avoiding", "fencing", "attacking"]
 	super._ready()
 	attributes.blocking = 85 #nice and wide
 	self.scale.x = 1 * (attributes.blocking/50)

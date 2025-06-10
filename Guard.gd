@@ -27,10 +27,9 @@ var path_update_timer: float = 0
 @onready var intent_timer: Timer = $DecisionTimer
 
 func _ready():
+	behaviors = ["chasing", "marking", "pressing", "helping", "doubling", "intercepting", "fencing"]
 	super._ready()
 	position_type = "guard"
-	intent_timer.wait_time = 0.5 # Reevaluate forward intent twice per second
-	intent_timer.timeout.connect(_on_intent_timer_timeout)
 
 func assign_forward(forward: Forward):
 	assigned_forward = forward
@@ -78,7 +77,7 @@ func update_behavior():
 	if !assigned_forward or !other_forward or !ball:
 		return
 	if mark_incapacitated or assigned_forward.global_position.distance_to(defending_goal_position) > 65 and global_position.distance_to(ball.global_position) < 90:
-			current_behavior = "ball_chase"
+			current_behavior = "chasing"
 			current_target = ball.global_position
 		
 	else:
@@ -196,24 +195,13 @@ func switch_forward():
 	other_forward = assigned_forward
 	assigned_forward = temp
 
-func _on_intent_timer_timeout():
-	if assigned_forward and not mark_incapacitated:
-		# Guess forward's intent based on movement patterns
-		var to_keeper = (buddy_keeper.global_position) - assigned_forward.global_position
-		var angle_to_keeper = forward_last_velocity.angle_to(to_keeper)
-		
-		if abs(angle_to_keeper) < PI/4 and forward_last_velocity.length() > 80:
-			forward_last_intent = "attacking_keeper"
-		else:
-			forward_last_intent = "positioning"
-
 func _on_ball_entered_attacking_half():
 	if mark_incapacitated:
 		# Check if should chase ball
 		if randf() < discipline:
 			current_behavior = "marking"
 		else:
-			current_behavior = "ball_chase"
+			current_behavior = "chasing"
 			
 func chase_ball():
 	if global_position.distance_squared_to(ball.global_position) > 160: #fartehr than 40

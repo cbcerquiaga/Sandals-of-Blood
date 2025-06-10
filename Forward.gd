@@ -20,7 +20,6 @@ var decision_frames: int = 0 #when the player will decide how to attack
 var current_decision_frame: int = 0
 
 # Behavior system variables
-var behaviors = ["bull_rush", "skill_rush", "target_man", "shooter", "rebound", "pick", "bully", "fencing", "cower"]
 var current_behavior = "bull_rush"
 var player_preference = {
 	"bull_rush": 0.0,
@@ -56,6 +55,7 @@ var is_avoiding_guard: bool = false
 
 
 func _ready():
+	behaviors = ["bull_rush", "skill_rush", "target_man", "shooter", "rebound", "pick", "bully", "fencing", "cower"]
 	super._ready()
 	position_type = "forward"
 	decision_frames = 100 - (attributes.reactions)/2 #between 50 and 75 frames
