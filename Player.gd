@@ -136,9 +136,12 @@ func _ready():
 	collision_layer = 0b0100  # Layer 3 (players)
 	collision_mask = 0b0011  # Collide with obstacles (2) and balls (1)
 	$AttackArea.body_entered.connect(_on_attack_area_body_entered)
+	$AttackArea.collision_mask = 0b0100  # Detect other players (layer 3)
+	$AttackArea.collision_layer = 0b0100  # Be detected by other players (layer 3)
 	status.energy = max_energy
 	status.max_boost = status.energy * (attributes.endurance/100)
 	status.boost = status.max_boost
+	status.stability = attributes.endurance
 	fencing_params.ball_proximity_threshold = attributes.reactions/2
 	update_ui()
 
@@ -216,16 +219,19 @@ func handle_stun_movement(delta):
 	velocity = velocity.move_toward(Vector2.ZERO, delta * 200)
 
 func recover_resources(delta):
-	# Energy recovers slowly all the time
-	status.energy = min(status.energy + delta * (0.5 + attributes.endurance * 0.01), max_energy)
 	status.max_boost = status.energy * (attributes.endurance/100)
+	
+	if status.boost > status.max_boost:
+		status.boost = status.max_boost
+	else:
+		status.boost = status.boost + 1
 	if status.stability >= attributes.balance:
 		status.stability = attributes.balance
 	else:
-		status.stability = min(status.stability + delta * (0.5 + attributes.balance * 0.01), attributes.balance)
+		status.stability = status.stability + 1
 	# Boost recovers when not sprinting
-	if not is_sprinting:
-		status.boost = min(status.boost + delta * (10 + attributes.endurance * 0.2), status.max_boost)
+	if is_sprinting:
+		status.boost = status.boost - 2
 
 #ai runs real fast at something, curves movement a bit
 func attempt_sprint(target_position: Vector2):
@@ -404,6 +410,7 @@ func take_hit(attacker: Player, power: float):
 		return
 	else: #big hit! more power than sta
 		var stun_time = (12-attributes.toughness/10) * 3 #21 for 50 toughness, 6.3 for 99 toughness
+		status.stability = 0
 		enter_stunned_state(stun_time)
 		print("stunned for " + str(stun_time))
 	# Knockback effect
