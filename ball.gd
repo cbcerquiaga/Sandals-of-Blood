@@ -74,27 +74,16 @@ func apply_pitching_physics(delta):
 		force_inbounds()
 		
 func force_inbounds():
-	if field_type == "road": #TODO: update for other field types
-		if global_position.x < -60:
-			if linear_velocity.x < 0:
-				linear_velocity.x = 0 - linear_velocity.x
-			elif linear_velocity.x == 0:
-				linear_velocity.x = 10
-		elif global_position.x > 60:
-			if linear_velocity.x > 0:
-				linear_velocity.x = 0 - linear_velocity.x
-			elif linear_velocity.x == 0:
-				linear_velocity.x = -10
-		if global_position.y < -120:
-			if linear_velocity.y < 0:
-				linear_velocity.y = 0 - linear_velocity.y
-			elif linear_velocity.y == 0:
-				linear_velocity.y = 10
-		elif global_position.y > 120:
-			if linear_velocity.y > 0:
-				linear_velocity.y = 0 - linear_velocity.y
-			elif linear_velocity.y == 0:
-				linear_velocity.y = -10
+	print("get in!")
+	if field_type == "road":#TODO: update for different field types
+		if global_position.x < -60 and linear_velocity.x < 0:
+			linear_velocity.x = abs(linear_velocity.x) * 0.9
+		elif global_position.x > 60 and linear_velocity.x > 0:
+			linear_velocity.x = -abs(linear_velocity.x) * 0.9
+		if global_position.y < -120 and linear_velocity.y < 0:
+			linear_velocity.y = abs(linear_velocity.y) * 0.9
+		elif global_position.y > 120 and linear_velocity.y > 0:
+			linear_velocity.y = -abs(linear_velocity.y) * 0.9
 
 func follow_special_trajectory(delta):
 	if not special_trajectory:
@@ -139,7 +128,7 @@ func handle_player_collision(player: Player):
 				enter_hockey_state()
 
 func handle_defender_collision(player: Player):
-	print("smack me, daddy")
+	#print("smack me, daddy")
 	var pass_target = player.aim
 	# Add randomness based on accuracy
 	var accuracy_offset = 1.0 - (player.attributes.accuracy / 100.0)	
@@ -192,15 +181,19 @@ func apply_forward_hit(forward: Player, direction: Vector2):
 
 func handle_wall_collision(wall: StaticBody2D):
 	#print("ball hit wall")
+	var add_spin_effect = false
+	
 	if current_state == BallState.WAITING:
 		return
 	# Get predefined wall normal based on wall name/groups
 	var wall_normal := Vector2.ZERO
-	
 	if current_state == BallState.PITCHING or current_state == BallState.SPECIAL_PITCH:
 		if wall.is_in_group("front") or wall.is_in_group("back"):
 			print("the ball careens off the back wall and onto the ground into play")
 			current_state = BallState.HOCKEY
+		if current_spin != 0:
+			add_spin_effect = true
+			
 	
 	var reverse = false
 	# Check which wall was hit (assuming you've named them appropriately)
@@ -215,16 +208,15 @@ func handle_wall_collision(wall: StaticBody2D):
 		#print("touched back wall")
 		wall_normal = Vector2.DOWN   # Bounce down when hitting back wall
 	else: #bounce backwards
-		print("where do I go? " + str(wall))
-		reverse = true
+		wall_normal = (global_position - wall.global_position).normalized()
 	
-	if !reverse: #bounce and apply drag
-		linear_velocity = linear_velocity.bounce(wall_normal)
-		linear_velocity = linear_velocity * bounce_drag
-	else: #turn around and apply lots of drag
-		linear_velocity = linear_velocity * -1
-		linear_velocity = linear_velocity * bounce_drag
-		linear_velocity = linear_velocity * bounce_drag
+	if add_spin_effect:
+		apply_spin_bounce(wall_normal)
+		return
+
+	linear_velocity = linear_velocity.bounce(wall_normal)
+	linear_velocity = linear_velocity * bounce_drag
+		
 		
 	
 	# Add spin effect from shallow angles
@@ -276,3 +268,30 @@ func reset_ball(position: Vector2):
 func apply_drag():
 	linear_velocity = linear_velocity * 0.95
 	print("stop that ball!")
+	
+func apply_spin_bounce(wall_normal: Vector2):
+	# Calculate reflection direction with spin influence
+	var incoming_angle = linear_velocity.angle_to(wall_normal)
+	var spin_effect = current_spin * 0.01  # Scale factor for spin effect
+	var spin_influence = abs(incoming_angle) / (PI/2) # The more perpendicular the impact, the more spin affects the bounce, 0-1 based on angle
+	# Combine normal bounce with spin effect
+	var base_bounce = linear_velocity.bounce(wall_normal)
+	var spin_adjusted = base_bounce.rotated(spin_effect * spin_influence * sign(incoming_angle))
+	var speed = linear_velocity.length() * bounce_drag
+	var new_velocity = spin_adjusted.normalized() * speed
+	# Enforce bounds by adjusting the direction if needed
+	var predicted_position = global_position + new_velocity * 0.1  # Look ahead slightly
+	if field_type == "road":
+		# Adjust X component if heading out of bounds horizontally
+		if predicted_position.x < -60 and new_velocity.x < 0:
+			new_velocity.x = abs(new_velocity.x) * 0.8  # Reverse and dampen
+		elif predicted_position.x > 60 and new_velocity.x > 0:
+			new_velocity.x = -abs(new_velocity.x) * 0.8  # Reverse and dampen
+		# Adjust Y component if heading out of bounds vertically
+		if predicted_position.y < -120 and new_velocity.y < 0:
+			new_velocity.y = abs(new_velocity.y) * 0.8  # Reverse and dampen
+		elif predicted_position.y > 120 and new_velocity.y > 0:
+			new_velocity.y = -abs(new_velocity.y) * 0.8  # Reverse and dampen
+	linear_velocity = new_velocity
+	current_spin *= 0.8  # Loses 20% of spin energy per bounce
+	print("Spin adjusted to keep in bounds (new vel: %s)" % linear_velocity)

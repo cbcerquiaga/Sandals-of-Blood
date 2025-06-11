@@ -399,7 +399,7 @@ func _on_attack_area_body_entered(body: Node2D):
 		
 
 func take_hit(attacker: Player, power: float):
-	print("hit taken")
+	#print("hit taken")
 	#if is_spinning:
 		## Counter-attack if spinning
 		#attacker.take_hit(self, power * 0.5)
@@ -407,13 +407,13 @@ func take_hit(attacker: Player, power: float):
 	var knockback_power = power - (status.stability * attributes.power)#TODO: balance
 	if knockback_power < status.stability: #big boy don't budge
 		status.stability = status.stability - knockback_power #but he do be stumbling
-		print("stability remaining: " + str(status.stability))
+		#print("stability remaining: " + str(status.stability))
 		return
 	else: #big hit! more power than sta
 		var stun_time = (12-attributes.toughness/10) * 3 #21 for 50 toughness, 6.3 for 99 toughness
 		status.stability = 0
 		enter_stunned_state(stun_time)
-		print("stunned for " + str(stun_time))
+		#print("stunned for " + str(stun_time))
 	# Knockback effect
 	var knockback_dir = (global_position - attacker.global_position).normalized()
 	velocity = knockback_dir * knockback_power

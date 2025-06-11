@@ -96,6 +96,8 @@ func _on_ball_exited_field():
 			aTeam.is_on_offense = false
 		reset_play()
 	else:
+		if ball.current_state == ball.BallState.PITCHING:
+			ball.force_inbounds()
 		out_of_bounds_frames += 1
 		ball.apply_drag()
 	
