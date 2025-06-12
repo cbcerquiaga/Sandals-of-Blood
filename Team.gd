@@ -288,11 +288,13 @@ func enlighten(aimTarget, ball, field, keeperWall, ownGoal, oppGoal, oppK, oppLG
 	LG.assigned_forward = oppRF
 	LG.other_forward = oppLF
 	LG.buddy_keeper = K
+	LG.opp_keeper = oppK
 	RG.defending_goal_position = ownGoal.global_position
 	RG.aim_target = aimTarget
 	RG.assigned_forward = oppLF
 	RG.other_forward = oppRF
 	RG.buddy_keeper = K
+	RG.opp_keeper = oppK
 	LF.goal_position = oppGoal.global_position
 	LF.assigned_guard = oppRG
 	LF.opposing_keeper = oppK

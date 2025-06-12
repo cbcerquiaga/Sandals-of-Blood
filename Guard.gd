@@ -16,6 +16,11 @@ var forward_last_position: Vector2
 var forward_last_velocity: Vector2
 var mark_incapacitated: bool = false
 
+#aiming
+var opp_keeper: Keeper = null
+var aim_point: Vector2
+var aim_selection
+
 # Navigation
 var current_target: Vector2
 var current_behavior: String = "marking"
@@ -245,3 +250,15 @@ func should_help():
 	if other_forward.is_in_pass_mode and assigned_forward.is_in_pass_mode:
 		return true	 
 	return false
+
+func set_aim_point():
+	var oppGoal = Vector2(defending_goal_position.x, 0 - defending_goal_position.y)
+	if opp_keeper.global_position.distance_squared_to(oppGoal) > buddy_keeper.distance_squared_to(defending_goal_position):
+		aim_point = oppGoal
+	else:
+		var rand = randi_range(0, 5)
+		if !plays_left_side:
+			rand = rand + 6 #right side aim points are in the second half of the array
+		aim_point = aim_selection[rand]
+		if aim_point.distance_squared_to(defending_goal_position) < global_position.distance_squared_to(defending_goal_position):
+			aim_point.y = randf_range(-20,20)#shoot it somewhere in the middle

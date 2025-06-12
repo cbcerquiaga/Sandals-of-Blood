@@ -46,6 +46,7 @@ var RBank3
 var RBank4
 var RBank5
 var RBank6
+var banks
 
 #collision areas
 var playerHalf
@@ -157,6 +158,7 @@ func _ready():
 	RBank4 = $AimingGuides/RBank4
 	RBank5 = $AimingGuides/RBank5
 	RBank6 = $AimingGuides/RBank6
+	banks = [LBank1, LBank2, LBank3, LBank4, LBank5, LBank6, RBank1, RBank2, RBank3, RBank4, RBank5, RBank6]
 	
 func _process(delta) -> void:
 	if ball:
