@@ -66,6 +66,7 @@ func _ready():
 	field.ball_exited_field.connect(_on_ball_exited_field)
 	field.player_goal.connect(_on_player_goal)
 	field.cpu_goal.connect(_on_cpu_goal)
+	fill_team_rosters()
 
 func _on_ball_crossed_midfield():
 	#print("game on!")
@@ -226,7 +227,7 @@ func reposition_players():
 	else:
 		position_player(aTeam.P, field.cpu_rhp_spawn, field.cpu_orientation)
 	position_player(aTeam.K, field.cpu_k_spawn, field.cpu_orientation)
-	position_player(aTeam.LG, field.cpu_k_spawn, field.cpu_orientation)
+	position_player(aTeam.LG, field.cpu_lg_spawn, field.cpu_orientation)
 	position_player(aTeam.RG, field.cpu_rg_spawn, field.cpu_orientation)
 	position_player(aTeam.LF, field.cpu_lf_spawn, field.cpu_orientation)
 	position_player(aTeam.RF, field.cpu_rf_spawn, field.cpu_orientation)
@@ -383,3 +384,26 @@ func on_team_ready_signal(id: int) -> void:
 
 func update_scoreboard():
 	scoreboard.text = str(team_scores[0]) + ":" + str(team_scores[1])
+	
+func fill_team_rosters():
+	#TODO: import player names, stats, and status from sheet
+	#TODO: import player sprites
+	#Debug only: color player polygons
+	var pGoalie = Color( 1, 1, 0, 1 )#yellow goalie jersey
+	var pUniform = Color( 0.93, 0.51, 0.93, 1 )#purple uniform
+	var aGoalie = Color( 1, 1, 0, 1 )#yellow goalie jersey
+	var aUniform = Color( 1, 0.71, 0.76, 1 )#pink jersey
+	pTeam.K.get_node("Polygon2D").color = pGoalie
+	pTeam.LG.get_node("Polygon2D").color = pUniform
+	pTeam.RG.get_node("Polygon2D").color = pUniform
+	pTeam.LF.get_node("Polygon2D").color = pUniform
+	pTeam.RF.get_node("Polygon2D").color = pUniform
+	pTeam.P.get_node("Polygon2D").color = pUniform
+	aTeam.K.get_node("Polygon2D").color = aGoalie
+	aTeam.LG.get_node("Polygon2D").color = aUniform
+	aTeam.RG.get_node("Polygon2D").color = aUniform
+	aTeam.LF.get_node("Polygon2D").color = aUniform
+	aTeam.RF.get_node("Polygon2D").color = aUniform
+	aTeam.P.get_node("Polygon2D").color = aUniform
+
+	
