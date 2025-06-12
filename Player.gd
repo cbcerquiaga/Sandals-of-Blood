@@ -191,16 +191,19 @@ func _physics_process(delta):
 func handle_human_input(delta):
 	# Movement
 	var input_dir = Input.get_vector("move_left", "move_right", "move_up", "move_down")
-	var move_speed = attributes.speed * (1.0 + (status.boost / 200.0)) if is_sprinting else attributes.speed
 	
-	velocity = input_dir.normalized() * move_speed
 	
 	# Sprinting
 	if Input.is_action_pressed("sprint") and status.boost > 5 and not is_spinning:
 		is_sprinting = true
 		status.boost -= delta * 20
+		velocity = input_dir.normalized() * attributes.sprint_speed
+	elif Input.is_action_pressed("walk"):
+		is_sprinting = false
+		velocity = input_dir.normalized() * attributes.speed / 2
 	else:
 		is_sprinting = false
+		velocity = input_dir.normalized() * attributes.speed
 	
 	# Spinning
 	if Input.is_action_just_pressed("move_dodge") and not is_sprinting and status.boost > 15 and spin_cooldown.is_stopped():
