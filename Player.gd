@@ -97,6 +97,7 @@ var current_sprint_target
 var current_sprint_curve
 var ball #every player knows about the ball
 var can_move: bool = true
+const toss_factor: float = 0.75
 
 # State Tracking
 var is_controlling_player: bool = false
@@ -337,15 +338,11 @@ func start_spin():
 	$Hitbox/CollisionShape2D.set_deferred("disabled", false)
 
 func attempt_attack(target_position: Vector2):
-	if not $AttackCooldown or not $AttackCooldown.is_stopped():
+	if status.boost < 0:
 		return
-	
-	$AttackCooldown.start()
-	$AttackAnimation.play("attack")
-	
 	# Start sprinting toward target
 	is_sprinting = true
-	status.boost -= 20
+	status.boost -= 2
 	var to_target = (target_position - global_position).normalized()
 	velocity = to_target * attributes.sprint_speed
 	
@@ -367,19 +364,16 @@ func _on_attack_area_body_entered(body: Node2D):
 		var opp_attack_dir = (global_position - body.global_position).normalized()
 		var opponent_velocity_toward_me = body.velocity.project(opp_attack_dir).length()
 		var oppAttackPower = opponent_velocity_toward_me * (body.attributes.power / 100.0)
-		# Calculate bounce effect (0-30 range)
-		var base_bounce = attackPower * 30.0  # Max potential bounce (30 when attackPower=1)
-		# Apply opponent's power and stability reduction (both 50-99 ranges)
-		var power_reduction = 1.0 - (body.attributes.power - 50) / 49.0  # Maps 50→1.0, 99→0.0
-		var stability_reduction = 1.0 - (body.status.stability - 50) / 49.0  # Maps 50→1.0, 99→0.0
-		var total_bounce = base_bounce * power_reduction * stability_reduction
-		# Clamp final bounce between 0-30
-		total_bounce = clamp(total_bounce, 0.0, 30.0)
 		# Apply bounce impulse to opponent
-		body.velocity += attack_dir * total_bounce
+		if my_velocity_toward_opponent > 0:
+			print("I hit you")
+			body.take_hit(self, attackPower)
+		if my_velocity_toward_opponent > opponent_velocity_toward_me:
+			print("I am the aggressor")
+			#aggressor 
 		
 		# Apply the hit with calculated power
-		body.take_hit(self, attackPower)
+		
 		
 		# If opponent was moving toward us, roll for durability
 		if oppAttackPower > 0:
@@ -405,8 +399,9 @@ func take_hit(attacker: Player, power: float):
 		#attacker.take_hit(self, power * 0.5)
 		#return
 	var knockback_power = power - (status.stability * attributes.power)#TODO: balance
-	if knockback_power < status.stability: #big boy don't budge
-		status.stability = status.stability - knockback_power #but he do be stumbling
+	print("power: " + str(power)+", knockback_power: " + str(knockback_power) + ", stability: " + str(status.stability))
+	if power < status.stability: #just a nudge
+		status.stability = status.stability - abs(knockback_power) #but he do be stumbling
 		#print("stability remaining: " + str(status.stability))
 		return
 	else: #big hit! more power than sta
@@ -414,9 +409,25 @@ func take_hit(attacker: Player, power: float):
 		status.stability = 0
 		enter_stunned_state(stun_time)
 		#print("stunned for " + str(stun_time))
-	# Knockback effect
 	var knockback_dir = (global_position - attacker.global_position).normalized()
-	velocity = knockback_dir * knockback_power
+	var units = power - (attributes.power/2)
+	if units < 0:#big boy don't budge
+		var min_distance = 12 - (attributes.power/10)
+		get_tossed(knockback_dir, min_distance)
+		return
+	else:
+		if units > 20:
+			units = 20
+		get_tossed(knockback_dir, units)
+		
+func get_tossed(direction: Vector2, units: int):
+	print("tosser " + str(units))
+	velocity = velocity * toss_factor
+	if units <= 0:
+		return
+	else:
+		global_position = global_position + (direction)
+		get_tossed(direction, units - 1)
 
 func enter_stunned_state(duration: float):
 	is_stunned = true

@@ -74,7 +74,7 @@ func apply_pitching_physics(delta):
 		force_inbounds()
 		
 func force_inbounds():
-	print("get in!")
+	#print("get in!")
 	if field_type == "road":#TODO: update for different field types
 		if global_position.x < -60 and linear_velocity.x < 0:
 			linear_velocity.x = abs(linear_velocity.x) * 0.9
