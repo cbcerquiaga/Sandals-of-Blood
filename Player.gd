@@ -98,6 +98,7 @@ var current_sprint_curve
 var ball #every player knows about the ball
 var can_move: bool = true
 const toss_factor: float = 0.75
+var assigned_half: Area2D
 
 # State Tracking
 var is_controlling_player: bool = false
@@ -408,7 +409,7 @@ func take_hit(attacker: Player, power: float):
 		#print("stability remaining: " + str(status.stability))
 		return
 	else: #big hit! more power than sta
-		var stun_time = (12-attributes.toughness/10) * 3 #21 for 50 toughness, 6.3 for 99 toughness
+		var stun_time = (12-attributes.toughness/10) #7 for 50 toughness, 2.1 for 99 toughness
 		status.stability = 0
 		enter_stunned_state(stun_time)
 		#print("stunned for " + str(stun_time))
@@ -563,6 +564,12 @@ func check_is_incapacitated() -> bool:
 	
 func reset_state():
 	overall_state = PlayerState.IDLE
+	is_stunned = false
+	is_sprinting = false
+	is_incapacitated = false
+	status.stability = attributes.balance
+	status.max_boost = status.energy
+	status.boost = status.max_boost
 	
 func child_state():
 	overall_state = PlayerState.CHILD_STATE
@@ -575,6 +582,38 @@ func out_fight():
 		overall_state = PlayerState.OUT_BRAWL
 	else:
 		overall_state = PlayerState.AI_OUT_BRAWL
+		
+func is_in_half()->bool:
+	if !assigned_half:
+		return false
+	else:
+		var half_extents = assigned_half.get_node("CollisionShape2D").shape.extents
+		var rect = Rect2(assigned_half.global_position - half_extents, half_extents * 2)
+		if rect.has_point(global_position):
+			#print("I'm where I go")
+			return true
+		else:
+			return false
+
+func move_towards_half():
+	if !assigned_half:
+		return
+	var half_extents = assigned_half.get_node("CollisionShape2D").shape.extents
+	var half_position = assigned_half.global_position
+	var half_rect = Rect2(half_position - half_extents, half_extents * 2)
+	var target_x = clamp(global_position.x, half_rect.position.x, half_rect.end.x)
+	var target_y = clamp(global_position.y, half_rect.position.y, half_rect.end.y)
+	velocity = Vector2.ZERO
+	if global_position.x < half_rect.position.x:  # Too far left
+		velocity.x = attributes.speed
+	elif global_position.x > half_rect.end.x:     # Too far right
+		velocity.x = -attributes.speed
+	if global_position.y < half_rect.position.y:  # Too far up
+		velocity.y = attributes.speed
+	elif global_position.y > half_rect.end.y:     # Too far down
+		velocity.y = -attributes.speed
+	if velocity.x != 0 and velocity.y != 0:
+		velocity = velocity.normalized() * attributes.speed
 
 # Signals
 signal player_hit(damage)

@@ -218,7 +218,7 @@ func check_ball_in_play(ball: Ball):
 				emit_signal("player_goal")
 				ball_in_play = false
 			else:
-				print("It's outta here!")
+				print("It's outta here! " + str(ball.global_position))
 				ball_in_play = false
 				emit_signal("ball_exited_field")
 

@@ -14,7 +14,7 @@ var current_settings := {
 	"extra_pitches": 5,
 	"sudden_death": true,
 	"play_length": 30.0, # seconds
-	"time_scale": 1.0,
+	"time_scale": 0.5,#0.8 works
 	"field_type": FieldType.ROAD
 }
 
@@ -175,6 +175,7 @@ func reset_play():
 	for player in pTeam.onfield_players + aTeam.onfield_players:
 		if player:
 			player.can_move = false
+			player.status.energy -= (100 - player.attributes.endurance)/10 #0.1 for 99 endurance, 5 for 50
 			player.reset_state()
 	pTeam.wipe_player_control()
 	aTeam.wipe_player_control()
@@ -278,6 +279,7 @@ func reset_ball():
 
 func apply_time_scale():
 	Engine.time_scale = current_settings.time_scale
+	#TODO: figure out if this messes up clock-based systems like 30 second play clock
 	# Adjust physics rates if needed
 	#PhysicsServer2D.set_active(!PhysicsServer2D.is_active()) # Force refresh
 
@@ -366,9 +368,8 @@ func set_time_scale(scale: float):
 	
 #players must know each other. More importantly, they must know ball
 func enlighten_players():
-	pTeam.enlighten(aimTarget, ball, field, field.frontWall, field.playerGoal, field.cpuGoal, aTeam.K, aTeam.LG, aTeam.RG, aTeam.LF, aTeam.RF, field.human_lf_waiting, field.human_rf_waiting, field.player_goal_post1.global_position, field.player_goal_post2.global_position)
-	aTeam.enlighten(aimTarget, ball, field, field.backWall, field.cpuGoal, field.playerGoal, pTeam.K, pTeam.LG, pTeam.RG, pTeam.LF, pTeam.RF, field.cpu_lf_waiting, field.cpu_rf_waiting, field.cpu_goal_post1.global_position, field.cpu_goal_post2.global_position)
-	
+	pTeam.enlighten(aimTarget, ball, field, field.frontWall, field.playerGoal, field.cpuGoal, aTeam.K, aTeam.LG, aTeam.RG, aTeam.LF, aTeam.RF, field.human_lf_waiting, field.human_rf_waiting, field.player_goal_post1.global_position, field.player_goal_post2.global_position, field.playerHalf, field.cpuHalf)
+	aTeam.enlighten(aimTarget, ball, field, field.backWall, field.cpuGoal, field.playerGoal, pTeam.K, pTeam.LG, pTeam.RG, pTeam.LF, pTeam.RF, field.cpu_lf_waiting, field.cpu_rf_waiting, field.cpu_goal_post1.global_position, field.cpu_goal_post2.global_position, field.cpuHalf, field.playerHalf)
 	
 
 #passing IDs didn't actually work, but as long as we get both signals we're good

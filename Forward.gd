@@ -22,15 +22,15 @@ var current_decision_frame: int = 0
 # Behavior system variables
 var current_behavior = "bull_rush"
 var player_preference = {
-	"bull_rush": 0.0,
-	"skill_rush": 0.0,
-	"target_man": 0.0,
+	"bull_rush": 50.0,
+	"skill_rush": 50.0,
+	"target_man": 50.0,
 	"shooter": 100.0,
-	"rebound": 0.0,
-	"pick": 0.0,
-	"bully": 0.0,
-	"fencing": 0.0,
-	"cower": 0.0
+	"rebound": 20.0,
+	"pick": 10.0,
+	"bully": 10.0,
+	"fencing": 10.0,
+	"cower": 5.0
 }
 var behavior_cooldowns = {}
 var last_behavior_change = 0.0
@@ -82,9 +82,13 @@ func _physics_process(delta):
 		update_ai_behavior(delta)
 		if team == 1:
 			human_pass_control()
-	else:
+		
+	elif is_controlling_player and can_move:
 		handle_human_input(delta)
 		human_pass_control()
+		#if !is_in_half():
+			#if !is_stunned:
+				#move_towards_half()
 	move_and_slide()
 
 func update_ai_behavior(delta):
@@ -325,6 +329,7 @@ func choose_behavior():
 	# Combine all weights
 	var combined_weights = {}
 	var total_weight = 0.0
+		
 	
 	for behavior in behaviors:
 		# Base weight is product of team strategy and player preference
@@ -344,6 +349,18 @@ func choose_behavior():
 	# Choose behavior based on weights
 	var random_val = randf()
 	var cumulative_weight = 0.0
+	
+	if forward_partner.current_behavior == "target_man": #favor shooting or rebounding
+		combined_weights["shooter"] *= 3
+		combined_weights["rebound"] *= 3
+	elif forward_partner.current_behavior == "shooter": #favor passing and picking
+		combined_weights["pick"] *= 3
+		combined_weights["target_man"] *= 3
+	elif forward_partner.current_behavior == "rebound": #prioritize picking or shooting
+		combined_weights["pick"] *= 3
+		combined_weights["shooter"] *= 3
+	elif forward_partner.current_behavior == "bull_rush" or forward_partner.current_behavior == "skill_rush":
+		combined_weights["target_man"] *= 0.3
 	
 	for behavior in behaviors:
 		cumulative_weight += normalized_weights[behavior]

@@ -260,7 +260,7 @@ func get_brawl_priority_players() -> Array[Player]:
 	priority.erase(null)
 	return priority
 
-func enlighten(aimTarget, ball, field, keeperWall, ownGoal, oppGoal, oppK, oppLG, oppRG, oppLF, oppRF, LfWaiting, RfWaiting, LPost, RPost):
+func enlighten(aimTarget, ball, field, keeperWall, ownGoal, oppGoal, oppK, oppLG, oppRG, oppLF, oppRF, LfWaiting, RfWaiting, LPost, RPost, dHalf, oHalf):
 	P.ball = ball
 	P.ball_pitched.connect(ball.be_pitched)
 	P.special_pitched.connect(ball.be_special_pitched)
@@ -268,6 +268,7 @@ func enlighten(aimTarget, ball, field, keeperWall, ownGoal, oppGoal, oppK, oppLG
 	P.left_wall = field.leftWall
 	P.right_wall = field.rightWall
 	K.ball = ball
+	K.assigned_half = dHalf
 	K.aim_target = aimTarget
 	K.own_goal = ownGoal.global_position
 	K.opp_goal = oppGoal.global_position
@@ -283,6 +284,7 @@ func enlighten(aimTarget, ball, field, keeperWall, ownGoal, oppGoal, oppK, oppLG
 	K.buddyLF = LF
 	K.buddyRF = RF
 	LG.defending_goal_position = ownGoal.global_position
+	LG.assigned_half = dHalf
 	LG.aim_target = aimTarget
 	LG.ball = ball
 	LG.assigned_forward = oppRF
@@ -295,11 +297,13 @@ func enlighten(aimTarget, ball, field, keeperWall, ownGoal, oppGoal, oppK, oppLG
 	RG.other_forward = oppRF
 	RG.buddy_keeper = K
 	RG.opp_keeper = oppK
+	RG.assigned_half = dHalf
 	LF.goal_position = oppGoal.global_position
 	LF.assigned_guard = oppRG
 	LF.opposing_keeper = oppK
 	LF.forward_partner = RF
 	LF.ball = ball
+	LF.assigned_half = oHalf
 	LF.waiting_point = LfWaiting.global_position
 	RF.waiting_point = RfWaiting.global_position
 	RF.goal_position = oppGoal.global_position
@@ -307,6 +311,7 @@ func enlighten(aimTarget, ball, field, keeperWall, ownGoal, oppGoal, oppK, oppLG
 	RF.opposing_keeper = oppK
 	RF.forward_partner = LF
 	RF.ball = ball
+	RF.assigned_half = oHalf
 
 func wipe_player_control():
 	P.is_controlling_player = false

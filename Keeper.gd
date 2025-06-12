@@ -99,6 +99,9 @@ func _physics_process(delta):
 				perform_fencing()
 			"attacking":
 				perform_attacking()
+		#if !is_in_half():
+			#if !is_stunned:
+				#move_towards_half()
 		if debug:
 			current_debug_frame += 1
 			if current_debug_frame >= debug_frames:

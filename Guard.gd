@@ -63,6 +63,10 @@ func update_forward_tracking(delta):
 		_on_mark_incapacitated()
 
 func update_ai_movement(delta):
+	#if !is_in_half():
+			#if !is_stunned:
+				#move_towards_half()
+				#return
 	if not assigned_forward:
 		return
 	
