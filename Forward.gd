@@ -519,7 +519,7 @@ func attempt_dodge():
 	var dodge_success_chance = calculate_dodge_success()
 	
 	if dodge_success_chance >= 0.65:
-		start_spin()
+		attempt_dodge()
 		
 		if is_guard_attacking_soon():
 			await get_tree().create_timer(0.2).timeout

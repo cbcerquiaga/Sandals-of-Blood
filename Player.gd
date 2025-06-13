@@ -70,6 +70,15 @@ var attack_target: Player = null
 var current_opponent: Player = null
 var fencing_timer: float = 0.0
 var attack_cooldown: float = 0.0
+const dodge_factor: float = 1.2
+var is_dodging: bool = false
+var is_juking:bool = false #true if using juke, false if using roll
+var is_clockwise:bool = false
+var dodge_phase: int = 0#juke has 2 phases
+var current_dodge_frame: int = 0
+var dodge_frames: int = 30
+var dodge_direction: Vector2
+
 
 enum PlayerState {
 	IDLE,
@@ -171,10 +180,12 @@ func _physics_process(delta):
 				if global_position.y < fieldHeight:
 					global_position.y += returnSpeed
 			
-	
-	if is_in_brawl:
-		handle_brawl_input()
+		
+	if is_dodging:
+		execute_dodging()
+		move_and_slide()
 		return
+				
 	
 	if is_controlling_player:
 		if can_move:
@@ -184,7 +195,7 @@ func _physics_process(delta):
 	
 	# Energy/boost recovery
 	if not is_sprinting:
-		recover_resources(delta)
+		recover_resources()
 	
 	move_and_slide()
 	update_ui()
@@ -197,7 +208,6 @@ func handle_human_input(delta):
 	# Sprinting
 	if Input.is_action_pressed("sprint") and status.boost > 5 and not is_spinning:
 		is_sprinting = true
-		status.boost -= delta * 20
 		velocity = input_dir.normalized() * attributes.sprint_speed
 	elif Input.is_action_pressed("walk"):
 		is_sprinting = false
@@ -206,12 +216,12 @@ func handle_human_input(delta):
 		is_sprinting = false
 		velocity = input_dir.normalized() * attributes.speed
 	
-	# Spinning
-	if Input.is_action_just_pressed("move_dodge") and not is_sprinting and status.boost > 15 and spin_cooldown.is_stopped():
-		start_spin()
+	# Dodging
+	if Input.is_action_just_pressed("dodge"):
+		attempt_dodge()
 	
 	# Attacking
-	if Input.is_action_just_pressed("attack_player") and not is_spinning:
+	if Input.is_action_just_pressed("attack_player"):
 		if aim:
 			attempt_attack(aim)
 
@@ -224,7 +234,7 @@ func handle_stun_movement(delta):
 	# Slow stumbling movement when stunned
 	velocity = velocity.move_toward(Vector2.ZERO, delta * 200)
 
-func recover_resources(delta):
+func recover_resources():
 	status.max_boost = status.energy * (attributes.endurance/100)
 	
 	if status.boost > status.max_boost:
@@ -237,16 +247,13 @@ func recover_resources(delta):
 		status.stability = status.stability + 1
 	# Boost recovers when not sprinting
 	if is_sprinting:
-		status.boost = status.boost - 2
+		status.boost = status.boost - 1
 
 #ai runs real fast at something, curves movement a bit
 func attempt_sprint(target_position: Vector2):
-	if status.boost < 20 or is_spinning:
+	if status.boost < 1 or is_spinning:
 		return
-	
-	# Start sprinting
 	is_sprinting = true
-	status.boost -= 20
 	
 	# Calculate base direction
 	var to_target = (target_position - global_position).normalized()
@@ -280,40 +287,6 @@ func attempt_sprint(target_position: Vector2):
 	current_sprint_target = target_position
 	current_sprint_curve = initial_curve * 0.5  # Reduce curve over time
 
-func _on_sprint_timer_timeout():
-	if not is_sprinting:
-		return
-	
-	# Update current curve (decaying over time)
-	current_sprint_curve *= 0.8
-	
-	# Recalculate direction with current curve
-	var to_target = (current_sprint_target - global_position).normalized()
-	velocity = velocity.lerp(to_target.rotated(current_sprint_curve) * velocity.length(), 0.1)
-	
-	# Add some random variance during sprint
-	var variance = 1.0 - (attributes.confidence / 100.0)
-	if randf() < 0.3:  # 30% chance to adjust per tick
-		velocity = velocity.rotated(randf_range(-0.05 * variance, 0.05 * variance))
-	
-	# Record path for visualization/debugging
-	$SprintPathCurve.add_point(global_position)
-	
-	# Continue sprint if we still have boost and aren't at target
-	if status.boost > 5 and global_position.distance_to(current_sprint_target) > 50:
-		status.boost -= 1  # Continuous boost drain
-		$SprintTimer.start(0.1)
-	else:
-		end_sprint()
-
-func end_sprint():
-	is_sprinting = false
-	$SprintParticles.emitting = false
-	$SprintCooldown.start()
-	
-	# Apply slight overshoot momentum
-	velocity *= 0.7  # Reduce speed but maintain direction
-
 func get_closest_point(line_start : Vector2, line_direction : Vector2, point_position : Vector2):
 	line_direction = line_direction.normalized()
 	var vector_to_object := point_position - line_start
@@ -322,24 +295,100 @@ func get_closest_point(line_start : Vector2, line_direction : Vector2, point_pos
 	return closest_position
 
 func attempt_dodge():
-	if status.boost > 15:
-		start_spin()
+	print("dodge: " + str(status.boost))
+	if status.boost < 0:
+		return
+	status.boost -= 1
+	
+	if randf() > 0.5:
+		juke(Vector2.LEFT)
+	else:
+		juke(Vector2.RIGHT)
 
-func start_spin():
-	is_spinning = true
-	status.boost -= 15
-	spin_cooldown.start()
+	#TODO: roll?
+	#if !(is_dodging and is_juking) or (is_dodging and !is_juking):#default is to juke
+		#if randf() > 0.5:
+			#juke(Vector2.LEFT)
+		#else:
+			#juke(Vector2.RIGHT)
+		#return
+	#else: #if one or both is blocked, roll
+		#var directions = [Vector2.UP, Vector2.DOWN, Vector2.LEFT, Vector2.RIGHT]
+		#var direction
+		#var random = randf()
+		#if random < 0.25:
+			#direction = directions[0]
+		#elif random < 0.5:
+			#direction = directions[1]
+		#elif random < 0.75:
+			#direction = directions[2]
+		#else:
+			#direction = directions[3]
+		#if randf() < 0.5:
+			#roll(true, direction)
+		#else:
+			#roll(false, direction)
+
+func juke(direction: Vector2):
+	print("juke")
+	dodge_frames = 5
+	is_dodging = true
+	is_juking = true
+	dodge_phase = 0
+	dodge_direction = direction
+
+func roll(clockwise: bool, direction: Vector2):
+	print("roll")
+	is_dodging = true
+	is_juking = false
+	dodge_frames = 5
+	dodge_phase = 0
+	is_clockwise = clockwise
+	dodge_direction = direction
 	
-	# Visual effect
-	$SpinParticles.emitting = true
-	$SpinAnimation.play("spin")
+func execute_dodging():
+	if !is_dodging:
+		return
+	current_dodge_frame += 1
 	
-	# Hitbox becomes intangible
-	$Hitbox/CollisionShape2D.set_deferred("disabled", true)
-	
-	await get_tree().create_timer(0.5).timeout
-	is_spinning = false
-	$Hitbox/CollisionShape2D.set_deferred("disabled", false)
+	if is_juking:
+		# Juke has two phases
+		if dodge_phase == 0: # First phase (fake)
+			if current_dodge_frame < dodge_frames:
+				velocity = dodge_direction * attributes.sprint_speed
+			else:
+				# Switch to second phase
+				dodge_phase = 1
+				current_dodge_frame = 0
+				dodge_direction *= -1 # Reverse direction
+				dodge_frames *= 2 # Longer movement for actual dodge
+		else: # Second phase (actual dodge)
+			if current_dodge_frame < dodge_frames:
+				velocity = Vector2(dodge_direction.x * attributes.sprint_speed * dodge_factor, velocity.y)
+			else:
+				# End dodge
+				is_dodging = false
+				dodge_phase = 0
+				current_dodge_frame = 0
+				velocity = Vector2(0, velocity.y)
+	else:
+		# Roll has four phases
+		if current_dodge_frame >= dodge_frames:
+			current_dodge_frame = 0
+			dodge_phase += 1
+			if is_clockwise:
+				dodge_direction = dodge_direction.rotated(PI/2).normalized()
+			else:
+				dodge_direction = dodge_direction.rotated(-PI/2).normalized()
+		
+		if dodge_phase < 4:
+			velocity = dodge_direction * attributes.sprint_speed * dodge_factor
+		else:
+			# End roll
+			is_dodging = false
+			velocity = Vector2.ZERO
+
+
 
 func attempt_attack(target_position: Vector2):
 	if status.boost < 0:
@@ -425,7 +474,7 @@ func take_hit(attacker: Player, power: float):
 		get_tossed(knockback_dir, units)
 		
 func get_tossed(direction: Vector2, units: int):
-	print("tosser " + str(units))
+	#print("tosser " + str(units))
 	velocity = velocity * toss_factor
 	if units <= 0:
 		return
@@ -458,91 +507,6 @@ func _make_combat_decision(opponent_position: Vector2, current_dist: float):
 		attempt_dodge()
 		fencing_timer = fencing_params["attack_cooldown"] * 0.5
 
-func start_brawl(opponent: Player):
-	is_in_brawl = true
-	brawl_opponents.append(opponent)
-	
-	# Initialize brawl stats
-	brawl_attack_power = attributes.fight
-	brawl_defense = attributes.toughness
-	brawl_health = 30 + (attributes.toughness * 0.5)
-	
-	# Lock movement
-	velocity = Vector2.ZERO
-
-func handle_brawl_input():
-	if not is_controlling_player:
-		return
-	
-	# Simple brawl controls
-	if Input.is_action_just_pressed("attack"):
-		brawl_attack()
-	elif Input.is_action_just_pressed("block"):
-		brawl_block()
-
-func brawl_attack():
-	for opponent in brawl_opponents:
-		var damage = brawl_attack_power * (0.8 + randf() * 0.4)
-		opponent.take_brawl_damage(damage)
-
-func take_brawl_damage(amount: float):
-	var mitigated = amount * (1.0 - (brawl_defense / 100.0))
-	brawl_health -= mitigated
-	
-	if brawl_health <= 0:
-		lose_brawl()
-
-func lose_brawl():
-	is_in_brawl = false
-	enter_stunned_state(3.0) # Longer stun for losing brawl
-	brawl_opponents.clear()
-	
-func in_brawl_behavior(delta):
-	# Stay engaged in brawl
-	velocity = Vector2.ZERO
-	#play_brawl_animation()
-
-func out_brawl_behavior(delta, brawl_target_position):
-	# Player-controlled movement to join brawl
-	var input_vector = Vector2.ZERO
-	input_vector.x = Input.get_axis("move_left", "move_right")
-	input_vector.y = Input.get_axis("move_up", "move_down")
-	
-	velocity = input_vector.normalized() * attributes.speed * delta
-	move_and_slide()
-	
-	# Check if reached brawl position
-	if global_position.distance_to(brawl_target_position) < 20.0:
-		join_brawl()
-	
-	# Brawl commands
-	if Input.is_action_just_pressed("brawl_attack"):
-		brawl_attack()
-	if Input.is_action_just_pressed("brawl_block"):
-		brawl_block()
-		
-func join_brawl():
-	#in brawl instead of out brawl
-		trigger_next_brawl_participant()
-
-func trigger_next_brawl_participant():
-	# Implement logic to find next closest player and set their state
-	pass
-
-func brawl_block():
-	if status.energy <= 0:
-		return
-	
-	# Calculate block effectiveness
-	var block_power = attributes.toughness * 0.8
-	var stun_duration = block_power * 0.5
-	
-	# Apply stun to opponents
-	apply_opponent_stun(stun_duration)
-	
-	# Consume energy
-	status.energy = max(0, status.energy - 10)
-
 func apply_opponent_stun(duration: float):
 	# Implement stun logic for opponents
 	pass
@@ -563,6 +527,7 @@ func check_is_incapacitated() -> bool:
 	return is_incapacitated or is_stunned
 	
 func reset_state():
+	print("Energy: " + str(status.energy))
 	overall_state = PlayerState.IDLE
 	is_stunned = false
 	is_sprinting = false

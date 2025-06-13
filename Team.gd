@@ -374,3 +374,11 @@ func default_ai_state():
 	LF.child_state()
 	LF.current_behavior = "rebound"
 	
+func nextPlayStatus():
+	K.reset_state()
+	LG.reset_state()
+	RG.reset_state()
+	LF.reset_state()
+	RF.reset_state()
+	P.reset_state()
+	

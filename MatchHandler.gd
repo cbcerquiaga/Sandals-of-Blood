@@ -170,6 +170,8 @@ func _process(delta: float) -> void:
 
 func reset_play():
 	update_scoreboard()
+	pTeam.nextPlayStatus()
+	aTeam.nextPlayStatus()
 	current_play_time = 0.0
 	out_of_bounds_frames = 0
 	# Reset player states
