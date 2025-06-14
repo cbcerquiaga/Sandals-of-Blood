@@ -166,39 +166,24 @@ func prepare_ai_to_pitch():
 	pitch_goal = pitch_frames + randi_range(0-random_effect, random_effect)
 
 func handle_ai_pitch_decision():
-	# Wait a moment to simulate "wind up" time
-	await get_tree().create_timer(0.5).timeout
-	
-	if false: #TODO: determine if can throw special pitch
-		pass
-		#TODO: throw a special pitch
-	elif len(successful_pitches) > 0:
-		pass
-		#TODO: decide how often to use an already used pitch
+	if !can_pitch: return
+	var target = Vector2(
+		randf_range(-60,60),
+		randf_range(-50,75)
+	)
+	if status.energy > 50:
+		current_power = randf_range(attributes.power*2, attributes.power*3)*4
+		status.energy -= (100-attributes.endurance)*5
 	else:
-		#TODO: change for different field types
-		var x = randf_range(-60,60)
-		var y = randf_range(-50, 75)
-		var current_target = Vector2(x, y)
-		if status.energy > 50: #high energy, high power
-			current_power = randf_range(attributes.power * 2, attributes.power * 3) * 4 #792-1188 at 99; 400-600 at 50
-			status.energy = status.energy - ((100 - attributes.endurance) * 5)
-		else: #low energy, lower power
-			current_power = randf_range(attributes.power , attributes.power * 2) * 4#396-792 at 99, 200-400 at 50
-			status.energy = status.energy - ((100 - attributes.endurance) * 2)
-		var weight_chance = randi_range(0, 10)
-		#lexx likely to throw wildly curved pitches
-		if weight_chance <= 6: #60% chance
-			current_curve = randf_range(0 -max_curve/4, max_curve/4)
-		elif weight_chance <= 9: #30% chance
-			current_curve = randf_range(0-max_curve/2, max_curve/2)
-		else: #10% chance
-			current_curve = randf_range(0-max_curve, max_curve)
-		lastCurve = current_curve
-		lastPower = current_power
-		lastTarget = current_target
-		perform_ai_normal_pitch(current_target)
-	#execute_pitch(pitch_to_use)
+		current_power = randf_range(attributes.power, attributes.power*2)*4
+		status.energy -= (100-attributes.endurance)*2
+	var weight_chance = randi_range(0,10)
+	if weight_chance <= 6: current_curve = randf_range(-max_curve/4, max_curve/4)
+	elif weight_chance <= 9: current_curve = randf_range(-max_curve/2, max_curve/2)
+	else: current_curve = randf_range(-max_curve, max_curve)
+	random_variance()
+	perform_ai_normal_pitch(target)
+	has_pitched = true
 
 
 func execute_pitch(pitch_type: String):

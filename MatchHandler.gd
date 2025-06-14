@@ -198,6 +198,7 @@ func reset_play():
 		aTeam.P.current_curve = 0.0
 		aTeam.P.target = Vector2.ZERO
 		field.touch_half("cpu")
+		aTeam.P.prepare_ai_to_pitch()
 	else:
 		print("human has control")
 		is_human_team_pitching = true
