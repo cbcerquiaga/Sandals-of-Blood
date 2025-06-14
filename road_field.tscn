@@ -172,6 +172,24 @@ position = Vector2(-40, 10)
 [node name="ALF_waiting" type="Node2D" parent="PositioningGuides"]
 position = Vector2(40, 10)
 
+[node name="PP_waiting" type="Node2D" parent="PositioningGuides"]
+position = Vector2(0, 140)
+
+[node name="AP_waiting" type="Node2D" parent="PositioningGuides"]
+position = Vector2(0, -140)
+
+[node name="P_NW" type="Node2D" parent="PositioningGuides"]
+position = Vector2(-80, -140)
+
+[node name="P_NE" type="Node2D" parent="PositioningGuides"]
+position = Vector2(80, -140)
+
+[node name="P_SW" type="Node2D" parent="PositioningGuides"]
+position = Vector2(-80, 140)
+
+[node name="P_SE" type="Node2D" parent="PositioningGuides"]
+position = Vector2(80, 140)
+
 [node name="Walls" type="Node2D" parent="."]
 
 [node name="Left" type="StaticBody2D" parent="Walls"]

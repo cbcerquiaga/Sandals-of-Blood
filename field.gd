@@ -12,6 +12,7 @@ var human_lhp_spawn
 var human_rhp_spawn
 var human_lf_waiting
 var human_rf_waiting
+var human_pitcher_waiting
 var cpu_orientation
 var cpu_k_spawn
 var cpu_lg_spawn
@@ -34,6 +35,7 @@ var cpu_goal_post1
 var cpu_goal_post2
 var cpu_goal_side_panel1
 var cpu_goal_side_panel2
+var cpu_pitcher_waiting
 var LBank1
 var LBank2
 var LBank3
@@ -47,6 +49,10 @@ var RBank4
 var RBank5
 var RBank6
 var banks
+var chaseNW
+var chaseNE
+var chaseSW
+var chaseSE
 
 #collision areas
 var playerHalf
@@ -159,6 +165,12 @@ func _ready():
 	RBank5 = $AimingGuides/RBank5
 	RBank6 = $AimingGuides/RBank6
 	banks = [LBank1, LBank2, LBank3, LBank4, LBank5, LBank6, RBank1, RBank2, RBank3, RBank4, RBank5, RBank6]
+	human_pitcher_waiting = $PositioningGuides/PP_waiting
+	cpu_pitcher_waiting = $PositioningGuides/AP_waiting
+	chaseNE = $PositioningGuides/P_NE
+	chaseNW = $PositioningGuides/P_NW
+	chaseSW = $PositioningGuides/P_SW
+	chaseSE = $PositioningGuides/P_SE
 	
 func _process(delta) -> void:
 	if ball:

@@ -49,6 +49,17 @@ var random_effect:int = 120 #maximum possible disstance from pitch_frames
 var current_frame:int = 0
 var can_pitch:bool = false
 
+#post-pitch combat and movement
+@export var rest_position: Vector2 = Vector2(-1000, -1000)  # Set this in editor or via code
+@onready var navigation_agent: NavigationAgent2D = $NavigationAgent2D
+@export var scrapping := {
+	"flee": 25,
+	"fight": 25,
+	"chill": 25
+	}
+var has_attacked = false
+var current_behavior: String = "waiting"
+
 
 # Nodes TODO
 #var aim_arrow = $AimArrow
@@ -57,7 +68,9 @@ var can_pitch:bool = false
 
 func _ready():
 	super._ready()
+	collision_mask = 0b0000  # Collide with players (3) but not obstacles (2) or balls (1)
 	position_type = "pitcher"
+	behaviors = ["pitching", "going_away", "waiting", "chilling", "chasing", "fleeing", "fighting"]
 	if bio.leftHanded:
 		hand_offset = hand_offset * -1
 	update_special_pitch_availability()
@@ -75,12 +88,12 @@ func _process(delta):
 		#update_aim_ui()
 
 func _physics_process(delta):
-	
 	super._physics_process(delta)
 	await ball
-	if has_pitched:
-		go_away()
-	if is_controlling_player and is_aiming:
+	
+	if current_behavior == "going_away":
+		handle_going_away()
+	elif is_controlling_player and is_aiming:
 		_handle_pitch_controls()
 		variance_timer()
 	elif !can_pitch:
@@ -88,11 +101,6 @@ func _physics_process(delta):
 	elif not is_controlling_player and has_ball:
 		random_variance()
 		handle_ai_pitch_decision()
-	else:
-		go_away()
-	#else:
-		#if team == 1:
-			#print(str(is_controlling_player) + " and " +str(is_aiming))
 
 func increment_pitch_time():
 	current_frame = current_frame + 1
@@ -222,6 +230,7 @@ func perform_ai_normal_pitch(target):
 	print("aim with variance: " + str(aim_direction))
 	release_ball()
 	ball_pitched.emit(huck, current_curve)
+	go_away()
 
 #normal pitch curves
 func perform_normal_pitch():
@@ -390,12 +399,55 @@ func release_ball():
 	ball.last_hit_by = self
 	
 func go_away():
-	global_position = Vector2(-1000,-1000)
+	set_physics_process(true)
+	current_behavior = "going_away"
 	is_controlling_player = false
 	has_ball = false
 	can_move = false
+	
 	
 #TODO: change this for different fields
 func prepare_target_position():
 	target = Vector2(0,0)
 	#print("target position: " + str(target))
+	
+func chase():
+	var clockwise
+	#TODO: if shortest path to opposing player is clockwise:
+	clockwise = true
+	move_around(clockwise)
+	
+func flee():
+	var clockwise
+	#TODO: if shortest path to opposing player is clockwise:
+	clockwise = false
+	move_around(clockwise)
+	
+	
+func chill():
+	#TODO: have some idle movement
+	pass
+	
+func fight_or_flight(opponent: Reworked_Pitcher):
+	var random
+	
+func move_around(clockwise:bool):
+	var navAgent = $NavigationAgent2D
+	if clockwise:
+		#run around clockwise
+		pass
+	else:
+		#run around counterclockwise
+		pass
+		
+func handle_going_away():
+	var move_direction: Vector2
+	move_direction = global_position.direction_to(rest_position)
+	velocity = move_direction * attributes.speed
+	move_and_slide()
+	
+	# Check if we've reached our destination
+	if global_position.distance_to(rest_position) <= 1:
+		print("alright, I'm outta here")
+		current_behavior = "chilling"
+		velocity = Vector2.ZERO

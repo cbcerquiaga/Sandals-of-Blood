@@ -254,7 +254,7 @@ func reset_ball():
 			pTeam.P.global_position = field.human_lhp_spawn
 		else:
 			pTeam.global_position = field.human_rhp_spawn
-		aTeam.P.go_away()
+		aTeam.P.global_position = field.cpu_pitcher_waiting.global_position
 		ball.reset_ball(Vector2(pTeam.P.global_position.x + pTeam.P.hand_offset, pTeam.P.global_position.y))
 		field.touch_half("human")
 		pTeam.P.has_ball = true
@@ -272,7 +272,7 @@ func reset_ball():
 			aTeam.P.global_position = field.cpu_lhp_spawn
 		else:
 			aTeam.P.global_position = field.cpu_rhp_spawn
-		pTeam.P.go_away()
+		pTeam.P.global_position = field.human_pitcher_waiting.global_position
 		ball.reset_ball(Vector2(aTeam.P.global_position.x + aTeam.P.hand_offset, aTeam.P.global_position.y))
 		field.touch_half("cpu")
 		aTeam.P.has_ball = true
@@ -372,8 +372,8 @@ func set_time_scale(scale: float):
 	
 #players must know each other. More importantly, they must know ball
 func enlighten_players():
-	pTeam.enlighten(aimTarget, ball, field, field.frontWall, field.playerGoal, field.cpuGoal, aTeam.K, aTeam.LG, aTeam.RG, aTeam.LF, aTeam.RF, field.human_lf_waiting, field.human_rf_waiting, field.player_goal_post1.global_position, field.player_goal_post2.global_position, field.playerHalf, field.cpuHalf)
-	aTeam.enlighten(aimTarget, ball, field, field.backWall, field.cpuGoal, field.playerGoal, pTeam.K, pTeam.LG, pTeam.RG, pTeam.LF, pTeam.RF, field.cpu_lf_waiting, field.cpu_rf_waiting, field.cpu_goal_post1.global_position, field.cpu_goal_post2.global_position, field.cpuHalf, field.playerHalf)
+	pTeam.enlighten(aimTarget, ball, field, field.frontWall, field.playerGoal, field.cpuGoal, aTeam.K, aTeam.LG, aTeam.RG, aTeam.LF, aTeam.RF, field.human_lf_waiting, field.human_rf_waiting, field.player_goal_post1.global_position, field.player_goal_post2.global_position, field.playerHalf, field.cpuHalf, field.human_pitcher_waiting.global_position)
+	aTeam.enlighten(aimTarget, ball, field, field.backWall, field.cpuGoal, field.playerGoal, pTeam.K, pTeam.LG, pTeam.RG, pTeam.LF, pTeam.RF, field.cpu_lf_waiting, field.cpu_rf_waiting, field.cpu_goal_post1.global_position, field.cpu_goal_post2.global_position, field.cpuHalf, field.playerHalf, field.cpu_pitcher_waiting.global_position)
 	
 
 #passing IDs didn't actually work, but as long as we get both signals we're good
