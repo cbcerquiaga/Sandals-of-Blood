@@ -260,7 +260,7 @@ func get_brawl_priority_players() -> Array[Player]:
 	priority.erase(null)
 	return priority
 
-func enlighten(aimTarget, ball, field, keeperWall, ownGoal, oppGoal, oppK, oppLG, oppRG, oppLF, oppRF, LfWaiting, RfWaiting, LPost, RPost, dHalf, oHalf, rest):
+func enlighten(aimTarget, ball, field, keeperWall, ownGoal, oppGoal, oppP, oppK, oppLG, oppRG, oppLF, oppRF, LfWaiting, RfWaiting, LPost, RPost, dHalf, oHalf, rest):
 	P.ball = ball
 	P.ball_pitched.connect(ball.be_pitched)
 	P.special_pitched.connect(ball.be_special_pitched)
@@ -268,6 +268,7 @@ func enlighten(aimTarget, ball, field, keeperWall, ownGoal, oppGoal, oppK, oppLG
 	P.left_wall = field.leftWall
 	P.right_wall = field.rightWall
 	P.rest_position = rest
+	P.opp_pitcher = oppP
 	K.ball = ball
 	K.assigned_half = dHalf
 	K.aim_target = aimTarget

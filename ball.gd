@@ -11,6 +11,13 @@ var bounce_drag = 0.95 #how much speed ball retains when bouncing off walls
 var center_influence = 0.5 #affects how close to 0,0 ball bounces when it's not sure where to go
 var spin_curve_factor: float = 180.0
 
+#special pitch stuff
+var special_curves: Array[float] = []
+var special_frames: Array[int] = []
+var current_sp_frame: int = 0
+var current_sp_index: int = 0
+var special_pitch_type: String = ""
+
 # Game State
 enum BallState { WAITING, PITCHING, SPECIAL_PITCH, HOCKEY }
 var current_state: BallState = BallState.WAITING
@@ -51,7 +58,7 @@ func _physics_process(delta):
 		BallState.PITCHING:
 			apply_pitching_physics(delta)
 		BallState.SPECIAL_PITCH:
-			follow_special_trajectory(delta)
+			apply_special_pitch_physics(delta)
 		BallState.HOCKEY:
 			apply_hockey_physics(delta)
 		BallState.WAITING:
@@ -85,19 +92,20 @@ func force_inbounds():
 		elif global_position.y > 120 and linear_velocity.y > 0:
 			linear_velocity.y = -abs(linear_velocity.y) * 0.9
 
-func follow_special_trajectory(delta):
-	if not special_trajectory:
-		return
+func apply_special_pitch_physics(delta):
+	current_sp_frame += 1
 	
-	trajectory_progress += delta
-	var trajectory_length = special_trajectory.get_baked_length()
-	var progress_ratio = trajectory_progress / (trajectory_length / base_speed)
+	# Check if we should advance to next curve
+	if current_sp_index < special_frames.size() - 1:
+		if current_sp_frame >= special_frames[current_sp_index]:
+			current_sp_index += 1
+	else:
+		current_spin = 0
 	
-	if progress_ratio >= 1.0:
-		enter_hockey_state()
-		return
-	
-	global_position = special_trajectory.sample_baked(trajectory_length * progress_ratio)
+	# Apply current curve
+	if current_sp_index < special_curves.size():
+		current_spin = special_curves[current_sp_index]
+	apply_pitching_physics(delta)
 
 func apply_hockey_physics(delta):
 	max_speed = hockey_max_speed
@@ -236,16 +244,22 @@ func be_pitched(huck: Vector2, curve: float):
 	current_spin = curve
 	freeze = false
 
-func be_special_pitched(power: float, path: Curve2D, place: Vector2):
-	reset_ball(place)
+func be_special_pitched(direction: Vector2, power: float, curves: Array[float], frames: Array[int], pitch_type: String):
+	print("here comes a doozy")
+	print("Type: ", pitch_type)
+	print("Direction: ", direction)
+	print("Power: ", power)
+	print("Curves: ", curves)
+	print("Frames: ", frames)
 	current_state = BallState.SPECIAL_PITCH
-	special_trajectory = path
-	trajectory_progress = 0.0
-	freeze = true
-	
-	# Apply pitch immunity
+	special_curves = curves
+	special_frames = frames
+	special_pitch_type = pitch_type
+	current_sp_frame = 0
+	current_sp_index = 0
+	linear_velocity = direction.normalized() * power
+	freeze = false
 	chill_timer = 10
-	collision_mask = 0b0010  # Only collide with obstacles during special pitch
 
 func enter_hockey_state():
 	if current_state != BallState.HOCKEY:

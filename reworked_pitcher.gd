@@ -2,7 +2,7 @@ extends Player
 class_name Reworked_Pitcher
 
 signal ball_pitched(power: float, spin: float, direction: Vector2, position: Vector2)
-signal special_pitched(position: Vector2)
+signal special_pitched(direction: Vector2, power: float, curves: Array[float], frames: Array[int], pitch_type: String)
 # Pitching Controls
 var true_max_power = 1200 * attributes.power/100 #maximum possible power at 100% energy
 @export var max_power: float = true_max_power * status.energy
@@ -12,7 +12,7 @@ var true_max_power = 1200 * attributes.power/100 #maximum possible power at 100%
 
 # Special Pitches
 @export var special_pitch_cooldowns: Array[float] = [10.0, 15.0] # Seconds
-@export var special_pitch_names: Array[String] = ["fake_curve", "zig_zag"]
+@export var special_pitch_names: Array[String] = ["snake_curve", "knuckler"]
 var special_pitch_timers: Array[float] = [0.0, 0.0]
 var special_pitch_available: Array[bool] = [false, false]
 
@@ -35,7 +35,7 @@ var increasing := true
 var variance_factor = ((100 - attributes.focus)/100 + 1)/4 #between 25% and 50% maximum error
 var current_variance = 0 #ranges from -100 to 100, then multiplied by variance factor
 var variance_increment = 5
-var hand_offset: float = 15.0 #how far to move the ball in the X to keep it from colliding
+var hand_offset: float = 5.0 #how far to move the ball in the X to keep it from colliding
 var aim_max_angle : float = 100
 var aim_increment: float = 2
 var target: Vector2
@@ -59,6 +59,7 @@ var can_pitch:bool = false
 	}
 var has_attacked = false
 var current_behavior: String = "waiting"
+var opp_pitcher: Reworked_Pitcher
 
 
 # Nodes TODO
@@ -203,18 +204,14 @@ func execute_pitch(pitch_type: String):
 		"normal":
 			perform_normal_pitch()
 			#ball_pitched.emit(current_power, current_curve, aim_direction, ball_position)
-		"fake_curve":
-			perform_fake_curve_pitch()
-			special_pitched.emit(ball_position)
+		"snake_curve":
+			perform_snake_pitch()
 		"zig_zag":
 			perform_zig_zag_pitch()
-			special_pitched.emit(ball_position)
 		"knuckler":
 			perform_knuckler_pitch()
-			special_pitched.emit(ball_position)
 		"bouncer":
 			perform_bouncer_pitch()
-			special_pitched.emit(ball_position)
 	
 	# Handle special pitch cooldown
 	var sp_index = special_pitch_names.find(pitch_type)
@@ -247,56 +244,32 @@ func perform_normal_pitch():
 	release_ball()
 	ball_pitched.emit(huck, current_curve)
 
-func perform_fake_curve_pitch():
-	var curve_dir = 1.0 if randf() > 0.5 else -1.0
-	var initial_curve = curve_dir * max_curve * 1.2
+func perform_snake_pitch():
+	print("throwing a snake curve")
+	aim_direction = global_position.direction_to(target).normalized()
+	status.energy = status.energy - (10 - attributes.endurance/10)
+	var curves: Array[float] = [-2.4, 8, 0.0]
+	var frames: Array[int] = [40, 10]
+	current_power = 300
 	
-	# Create a trajectory that starts curving then goes straight
-	var trajectory = Curve2D.new()
-	var start_pos = ball.global_position
-	var mid_pos = start_pos + aim_direction * 300
-	var end_pos = start_pos + aim_direction * 1500
-	
-	# Strong initial curve
-	trajectory.add_point(start_pos, Vector2.ZERO, aim_direction.rotated(initial_curve) * 500)
-	trajectory.add_point(mid_pos)
-	
-	# Then straight
-	trajectory.add_point(end_pos, aim_direction * 800)
-	
-	ball.be_special_pitched(current_power, trajectory, global_position)
+	special_pitched.emit(aim_direction, current_power, curves, frames, "snake_curve")
 	release_ball()
 
 func perform_zig_zag_pitch():
-	var trajectory = Curve2D.new()
-	var start_pos = self.global_position
-	var zig_dir = aim_direction.rotated(PI/2) # 90 degree turn
-	var zag_dir = aim_direction.rotated(-PI/2) # -90 degree turn
-	
-	# Create zig-zag path
-	trajectory.add_point(start_pos)
-	trajectory.add_point(start_pos + zig_dir * 200)
-	trajectory.add_point(start_pos + zig_dir * 200 + aim_direction * 300)
-	trajectory.add_point(start_pos + zag_dir * 200 + aim_direction * 600)
-	trajectory.add_point(start_pos + aim_direction * 1000)
-	
-	ball.be_special_pitched(current_power, trajectory, global_position)
-	release_ball()
+	#TODO
+	pass
 
 func perform_knuckler_pitch():
-	var power = current_power * (attributes.power / 100.0)
+	print("throwing a knuckleball")
+	aim_direction = global_position.direction_to(target).normalized()
+	status.energy = status.energy - (10 - attributes.endurance/10)
+	var curves: Array[float] = [-5, 5, -5, 5, -5, 5]
+	var frames: Array[int] = [5, 5, 5, 5, 5, 5]
+	current_power = 400
 	
-	# Apply random left/right curve changes
-	ball.apply_pitch(aim_direction * power, max_curve)
-	ball.current_curve = max_curve
-	
-	# Add periodic curve reversal
-	var tween = create_tween()
-	tween.set_loops(4) # Will reverse direction 4 times
-	tween.tween_property(ball, "current_curve", -max_curve, 0.15)
-	tween.tween_property(ball, "current_curve", max_curve, 0.15)
-	
+	special_pitched.emit(aim_direction, current_power, curves, frames, "knuckler")
 	release_ball()
+	pass
 	
 func find_wall_normal(wall:StaticBody2D) -> Vector2:
 	if wall.global_position.x < global_position.x:
@@ -306,45 +279,8 @@ func find_wall_normal(wall:StaticBody2D) -> Vector2:
 	
 
 func perform_bouncer_pitch():
-	var wall = get_closest_wall()
-	var wall_normal
-	wall_normal = find_wall_normal(wall)
-		
-	var reflect_dir = (wall.global_position - ball.global_position).normalized().bounce(wall_normal)
-	
-	var trajectory = Curve2D.new()
-	var start_pos = ball.global_position
-	# Create bounce path (3 bounces)
-	for i in 3:
-		var next_pos = start_pos + reflect_dir * 400
-		trajectory.add_point(start_pos)
-		trajectory.add_point(next_pos)
-		start_pos = next_pos
-		reflect_dir = reflect_dir.bounce(wall_normal) # Bounce again
-	release_ball()
-	ball.be_special_pitched(current_power, trajectory, global_position)
-
-func get_best_bank_angle() -> Vector2:
-	# AI calculates optimal bank shot off walls
-	var goal_pos = oppGoal
-	
-	# Get all wall segments
-	var walls = [left_wall, right_wall]
-	var best_wall = walls[0]
-	var best_angle = 0.0
-	var best_score = 0.0
-	
-	for wall in walls:
-		var wall_normal = find_wall_normal(wall)
-		var reflect_dir = (ball.global_position - wall.global_position).normalized().bounce(wall_normal)
-		var shot_angle = reflect_dir.angle_to((goal_pos - wall.global_position).normalized())
-		var angle_score = 1.0 - abs(shot_angle) / PI # Closer to 0 is better
-		
-		if angle_score > best_score:
-			best_score = angle_score
-			best_wall = wall
-	
-	return best_wall.position
+	#TODO
+	pass
 
 func update_special_pitch_availability():
 	for i in special_pitch_available.size():
@@ -394,7 +330,7 @@ func random_variance():
 func release_ball():
 	print("ball released")
 	has_ball = false
-	is_aiming = true
+	is_aiming = false
 	is_controlling_player = false
 	ball.last_hit_by = self
 	
