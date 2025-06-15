@@ -12,7 +12,7 @@ var true_max_power = 1200 * attributes.power/100 #maximum possible power at 100%
 
 # Special Pitches
 @export var special_pitch_cooldowns: Array[float] = [10.0, 15.0] # Seconds
-@export var special_pitch_names: Array[String] = ["snake_curve", "knuckler"]
+@export var special_pitch_names: Array[String] = ["corker", "boomerang"]
 var special_pitch_timers: Array[float] = [0.0, 0.0]
 var special_pitch_available: Array[bool] = [false, false]
 
@@ -204,14 +204,20 @@ func execute_pitch(pitch_type: String):
 		"normal":
 			perform_normal_pitch()
 			#ball_pitched.emit(current_power, current_curve, aim_direction, ball_position)
-		"snake_curve":
-			perform_snake_pitch()
+		"fake_curve":
+			perform_fake_curve_pitch()
 		"zig_zag":
 			perform_zig_zag_pitch()
 		"knuckler":
 			perform_knuckler_pitch()
 		"bouncer":
 			perform_bouncer_pitch()
+		"looper":
+			perform_looper_pitch()
+		"corker":
+			perform_corker_pitch()
+		"boomerang":
+			perform_boomerang_pitch()
 	
 	# Handle special pitch cooldown
 	var sp_index = special_pitch_names.find(pitch_type)
@@ -244,29 +250,50 @@ func perform_normal_pitch():
 	release_ball()
 	ball_pitched.emit(huck, current_curve)
 
-func perform_snake_pitch():
-	print("throwing a snake curve")
+#looks like it will curve but straightens out
+func perform_fake_curve_pitch():
+	print("throwing a fake curve")
 	aim_direction = global_position.direction_to(target).normalized()
 	status.energy = status.energy - (10 - attributes.endurance/10)
 	var curves: Array[float] = [-2.4, 8, 0.0]
-	var frames: Array[int] = [40, 10]
+	var frames: Array[int] = [40, 50, 60]
 	current_power = 300
-	
-	special_pitched.emit(aim_direction, current_power, curves, frames, "snake_curve")
+	special_pitched.emit(aim_direction, current_power, curves, frames, "fake_curve")
 	release_ball()
 
+#makes some sharp turns
 func perform_zig_zag_pitch():
-	#TODO
+	print("left, no the other left")
+	aim_direction = global_position.direction_to(target).normalized()
+	status.energy = status.energy - (10 - attributes.endurance/10)
+	var curves: Array[float] = [0, 100, 0, -100, 0]
+	var frames: Array[int] = [20, 22, 42, 44, 200]
+	current_power = 200
+	special_pitched.emit(aim_direction, current_power, curves, frames, "zig_zag")
+	release_ball()
+	pass
+	pass
+	
+#does a loop-the-loop
+func perform_looper_pitch():
+	print("throw a barrel roll")
+	aim_direction = global_position.direction_to(target).normalized()
+	status.energy = status.energy - (10 - attributes.endurance/10)
+	var curves: Array[float] = [0, 40, 0]
+	var frames: Array[int] = [50, 75, 120]
+	current_power = 200
+	special_pitched.emit(aim_direction, current_power, curves, frames, "looper")
+	release_ball()
 	pass
 
+#squiggles back and forth
 func perform_knuckler_pitch():
 	print("throwing a knuckleball")
 	aim_direction = global_position.direction_to(target).normalized()
 	status.energy = status.energy - (10 - attributes.endurance/10)
 	var curves: Array[float] = [-5, 5, -5, 5, -5, 5]
-	var frames: Array[int] = [5, 5, 5, 5, 5, 5]
-	current_power = 400
-	
+	var frames: Array[int] = [10, 20, 30, 40, 50, 60]
+	current_power = 300
 	special_pitched.emit(aim_direction, current_power, curves, frames, "knuckler")
 	release_ball()
 	pass
@@ -278,8 +305,40 @@ func find_wall_normal(wall:StaticBody2D) -> Vector2:
 		return Vector2.LEFT
 	
 
+#curves, then makes a sharp turn and goes straight, like it bounced off the ground
 func perform_bouncer_pitch():
-	#TODO
+	print("throwing a bouncer")
+	aim_direction = global_position.direction_to(target).normalized()
+	status.energy = status.energy - (10 - attributes.endurance/10)
+	var curves: Array[float] = [2.4, -100, 0.0]
+	var frames: Array[int] = [40, 42, 60]
+	current_power = 300
+	special_pitched.emit(aim_direction, current_power, curves, frames, "bouncer")
+	release_ball()
+	pass
+	
+#does a weird left turn, then curves straightish
+func perform_corker_pitch():
+	print("makes no sense but it's cool")
+	aim_direction = global_position.direction_to(target).normalized()
+	status.energy = status.energy - (10 - attributes.endurance/10)
+	var curves: Array[float] = [0.5, -120, 120, 0.5]
+	var frames: Array[int] = [40, 46, 58, 90]
+	current_power = 200
+	special_pitched.emit(aim_direction, current_power, curves, frames, "corker")
+	release_ball()
+	pass
+	
+#turns left and comes back
+func  perform_boomerang_pitch():
+	print("crikey")
+	aim_direction = global_position.direction_to(target).normalized()
+	status.energy = status.energy - (10 - attributes.endurance/10)
+	var curves: Array[float] = [0, -50, 0.0, -50, 0, -50, 0]
+	var frames: Array[int] = [50, 56, 58, 62, 74, 80]
+	current_power = 200
+	special_pitched.emit(aim_direction, current_power, curves, frames, "boomerang")
+	release_ball()
 	pass
 
 func update_special_pitch_availability():

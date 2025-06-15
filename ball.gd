@@ -93,18 +93,17 @@ func force_inbounds():
 			linear_velocity.y = -abs(linear_velocity.y) * 0.9
 
 func apply_special_pitch_physics(delta):
+	print(str(current_sp_index) + ", " + str(special_curves[current_sp_index])+ ", " + str(current_sp_frame)+ ", " + str(special_frames[current_sp_index]))
 	current_sp_frame += 1
-	
 	# Check if we should advance to next curve
 	if current_sp_index < special_frames.size() - 1:
 		if current_sp_frame >= special_frames[current_sp_index]:
 			current_sp_index += 1
+		else:
+			current_spin = special_curves[current_sp_index]
 	else:
 		current_spin = 0
-	
-	# Apply current curve
-	if current_sp_index < special_curves.size():
-		current_spin = special_curves[current_sp_index]
+	hockey_max_speed
 	apply_pitching_physics(delta)
 
 func apply_hockey_physics(delta):
