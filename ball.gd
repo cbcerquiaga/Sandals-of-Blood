@@ -277,6 +277,11 @@ func reset_ball(position: Vector2):
 	global_position = position
 	collision_mask = original_collision_mask
 	chill_timer = 0
+	special_curves = []
+	special_frames = []
+	current_sp_frame = 0
+	current_sp_index = 0
+	special_pitch_type = ""
 	
 func apply_drag():
 	linear_velocity = linear_velocity * 0.95

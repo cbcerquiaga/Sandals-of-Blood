@@ -60,6 +60,7 @@ var can_pitch:bool = false
 var has_attacked = false
 var current_behavior: String = "waiting"
 var opp_pitcher: Reworked_Pitcher
+var running_positions: Array
 
 
 # Nodes TODO

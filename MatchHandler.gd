@@ -78,24 +78,21 @@ func _on_ball_crossed_midfield():
 func _on_ball_exited_field():
 	if (out_of_bounds_frames > too_much_out_of_bounds):
 		print("and the ball goes out of bounds, we'll re-set")
+		# Determine who put the ball out of bounds and switch accordingly
 		if !ball or !ball.last_hit_by:
-			if is_human_team_pitching:
-				pTeam.is_on_offense = false
-				aTeam.is_on_offense = true
-				is_human_team_pitching = false
-			else:
-				is_human_team_pitching = true
-				pTeam.is_on_offense = true
-				aTeam.is_on_offense = false
-		elif ball.last_hit_by.team == 1: #out on player team
-			pTeam.is_on_offense = false
-			aTeam.is_on_offense = true
-			is_human_team_pitching = false
-		else:
-			is_human_team_pitching = true
-			pTeam.is_on_offense = true
-			aTeam.is_on_offense = false
-		reset_play()
+			# If no one hit it, switch pitching team
+			is_human_team_pitching = !is_human_team_pitching
+		elif ball.last_hit_by.team == 1: # Player team put it out
+			is_human_team_pitching = false # AI team pitches next
+		else: # AI team put it out
+			is_human_team_pitching = true # Human team pitches next
+		
+		# Update team offense/defense status
+		pTeam.is_on_offense = is_human_team_pitching
+		aTeam.is_on_offense = !is_human_team_pitching
+		
+		# Start next play
+		next_play()
 	else:
 		if ball.current_state == ball.BallState.PITCHING:
 			ball.force_inbounds()
@@ -105,12 +102,20 @@ func _on_ball_exited_field():
 func _on_player_goal():
 	if match_ended or not is_instance_valid(ball):
 		return
+	
+	var was_ace = false
 	if ball.last_hit_by == pTeam.P:
 		print("it's an ace!")
 		pTeam.P._on_goal_aced()
-		is_human_team_pitching = true
-	else:
-		is_human_team_pitching = !is_human_team_pitching
+		was_ace = true
+	
+	# If it was an ace, human team keeps pitching, otherwise switch
+	if !was_ace:
+		is_human_team_pitching = false
+	
+	pTeam.is_on_offense = is_human_team_pitching
+	aTeam.is_on_offense = !is_human_team_pitching
+	
 	#TODO: goal celebrations
 	score_goal(1)
 	print("Score: " + str(team_scores))
@@ -118,25 +123,34 @@ func _on_player_goal():
 func _on_cpu_goal():
 	if match_ended or not is_instance_valid(ball):
 		return
+	
+	var was_ace = false
 	if ball.last_hit_by == aTeam.P:
 		print("it's an ace!")
 		aTeam.P._on_goal_aced()
-		is_human_team_pitching = false
-	else:
-		is_human_team_pitching = !is_human_team_pitching
+		was_ace = true
+	
+	# If it was an ace, AI team keeps pitching, otherwise switch
+	if !was_ace:
+		is_human_team_pitching = true
+	
+	pTeam.is_on_offense = is_human_team_pitching
+	aTeam.is_on_offense = !is_human_team_pitching
+	
 	#TODO: goal celebrations
 	score_goal(2)
 	print("Score: " + str(team_scores))
 
-func reset_match():
+func reset_match(p_offense):
 	print("reset match")
 	team_scores = [0, 0]
 	pitches_remaining = current_settings.pitch_limit
 	is_in_extra_pitches = false
 	extra_pitches_used = 0
 	match_ended = false
-	pTeam.is_on_offense = true
-	aTeam.is_on_offense = false
+	is_human_team_pitching = p_offense
+	pTeam.is_on_offense = p_offense
+	aTeam.is_on_offense = !p_offense
 	enlighten_players()
 	reset_play()
 	
@@ -144,7 +158,7 @@ func reset_match():
 func _process(delta: float) -> void:
 	if Input.is_action_just_pressed("debug_reset"):
 		var tempScore = team_scores
-		reset_match()
+		reset_match(true)
 		team_scores = tempScore
 		update_scoreboard()
 	if !ready_to_start:
@@ -159,61 +173,125 @@ func _process(delta: float) -> void:
 			##problem
 			#
 	elif !has_started:
-		reset_match()
+		reset_match(true) # Start with human team pitching
 		has_started = true
 	else:
 		if ball.current_state == Ball.BallState.PITCHING or ball.current_state == Ball.BallState.SPECIAL_PITCH:
 			if field.ball_in_play == false:
-				field.ball_in_play = true
-				reset_play()
-	
+				print("Error: ball is not in play but ball is pitching")
 
-func reset_play():
-	update_scoreboard()
-	pTeam.nextPlayStatus()
-	aTeam.nextPlayStatus()
+func next_play():
+	print("Starting next play - Human pitching: " + str(is_human_team_pitching))
+	
+	# Reset play state but keep scores and pitching team assignment
 	current_play_time = 0.0
 	out_of_bounds_frames = 0
-	# Reset player states
+	
+	# Update team status for next play
+	pTeam.nextPlayStatus()
+	aTeam.nextPlayStatus()
+	
+	# Reset all players to their positions and disable movement
+	reset_players_for_next_play()
+	
+	# Reset ball and field state
+	reset_ball_and_field()
+	
+	# Position players correctly
+	reposition_players()
+	
+	# Set up the pitching team
+	setup_pitching_team()
+	
+	# Update UI
+	update_scoreboard()
+	
+	# Start play timer
+	play_timer.start(current_settings.play_length if current_settings.play_length > 0 else 9999)
+	
+	emit_signal("play_ended", "next_play")
+
+func reset_players_for_next_play():
+	# Reset player states and disable movement until ball is pitched
 	for player in pTeam.onfield_players + aTeam.onfield_players:
 		if player:
 			player.can_move = false
 			player.status.energy -= (100 - player.attributes.endurance)/10 #0.1 for 99 endurance, 5 for 50
 			player.reset_state()
+	
+	# Clear team control
 	pTeam.wipe_player_control()
 	aTeam.wipe_player_control()
-	pTeam.assign_player_control()
+
+func reset_ball_and_field():
 	# Reset ball completely
 	if is_instance_valid(ball):
 		ball.reset_ball(Vector2.ZERO)
 		ball.current_state = Ball.BallState.WAITING
-	if aTeam.is_on_offense:
-		field.ball_touched_player_half = false
-		field.ball_touched_cpu_half = true
-		field.ball_in_player_half = false
-		field.ball_in_cpu_half = true
-		print("robots are in control")
-		is_human_team_pitching = false
-		aTeam.P.current_power = 200
-		aTeam.P.current_curve = 0.0
-		aTeam.P.target = Vector2.ZERO
-		field.touch_half("cpu")
-		aTeam.P.prepare_ai_to_pitch()
+		field.ball_in_play = true
 	else:
-		print("human has control")
-		is_human_team_pitching = true
+		print("Error: ball not valid in match handler")
+
+func setup_pitching_team():
+	if is_human_team_pitching:
+		print("Human team is pitching")
+		# Set field state for human pitching
 		field.ball_touched_player_half = true
 		field.ball_touched_cpu_half = false
 		field.ball_in_player_half = true
 		field.ball_in_cpu_half = false
+		field.touch_half("human")
+		
+		# Setup human pitcher
 		pTeam.P.current_power = 200
 		pTeam.P.current_curve = 0.0
 		pTeam.P.target = Vector2.ZERO
-		field.touch_half("human")
-	reposition_players()
-	reset_ball()
-	play_timer.start(current_settings.play_length if current_settings.play_length > 0 else 9999)
-	emit_signal("play_ended", "reset")
+		pTeam.P.has_ball = true
+		pTeam.P.prepare_target_position()
+		pTeam.P.is_controlling_player = true
+		pTeam.P.is_aiming = true
+		pTeam.P.has_pitched = false
+		
+		# Setup human keeper and other players
+		pTeam.K.current_behavior = "waiting"
+		pTeam.K.is_controlling_player = false
+		
+		# Position AI pitcher in waiting area
+		aTeam.P.global_position = field.cpu_pitcher_waiting.global_position
+		
+		# Set ball position with pitcher
+		ball.reset_ball(Vector2(pTeam.P.global_position.x + pTeam.P.hand_offset, pTeam.P.global_position.y))
+		
+	else:
+		print("AI team is pitching")
+		# Set field state for AI pitching
+		field.ball_touched_player_half = false
+		field.ball_touched_cpu_half = true
+		field.ball_in_player_half = false
+		field.ball_in_cpu_half = true
+		field.touch_half("cpu")
+		
+		# Setup AI pitcher
+		aTeam.P.current_power = 200
+		aTeam.P.current_curve = 0.0
+		aTeam.P.target = Vector2.ZERO
+		aTeam.P.has_ball = true
+		aTeam.P.has_pitched = false
+		aTeam.P.prepare_ai_to_pitch()
+		aTeam.P.prepare_target_position()
+		
+		# Setup human keeper as controlling player
+		pTeam.K.is_controlling_player = true
+		
+		# Position human pitcher in waiting area
+		pTeam.P.global_position = field.human_pitcher_waiting.global_position
+		
+		# Set ball position with AI pitcher
+		ball.reset_ball(Vector2(aTeam.P.global_position.x + aTeam.P.hand_offset, aTeam.P.global_position.y))
+
+func reset_play():
+	print("Reset play called")
+	next_play()
 
 func reposition_players():
 	position_player(pTeam.K, field.human_k_spawn, field.human_orientation)
@@ -221,21 +299,23 @@ func reposition_players():
 	position_player(pTeam.RG, field.human_rg_spawn, field.human_orientation)
 	position_player(pTeam.LF, field.human_lf_spawn, field.human_orientation)
 	position_player(pTeam.RF, field.human_rf_spawn, field.human_orientation)
+	
+	# Position pitchers based on handedness
 	if pTeam.P.bio.leftHanded:
 		position_player(pTeam.P, field.human_lhp_spawn, field.human_orientation)
 	else:
 		position_player(pTeam.P, field.human_rhp_spawn, field.human_orientation)
+	
 	if aTeam.P.bio.leftHanded:
 		position_player(aTeam.P, field.cpu_lhp_spawn, field.cpu_orientation)
 	else:
 		position_player(aTeam.P, field.cpu_rhp_spawn, field.cpu_orientation)
+	
 	position_player(aTeam.K, field.cpu_k_spawn, field.cpu_orientation)
 	position_player(aTeam.LG, field.cpu_lg_spawn, field.cpu_orientation)
 	position_player(aTeam.RG, field.cpu_rg_spawn, field.cpu_orientation)
 	position_player(aTeam.LF, field.cpu_lf_spawn, field.cpu_orientation)
 	position_player(aTeam.RF, field.cpu_rf_spawn, field.cpu_orientation)
-
-
 
 func position_player(player: Player, position: Vector2, rotation: float):
 	if player:
@@ -245,41 +325,8 @@ func position_player(player: Player, position: Vector2, rotation: float):
 		player.reset_state()
 
 func reset_ball():
-	print("reset ball")
-	if is_human_team_pitching:
-		print("human is pitching")
-		pTeam.is_on_offense = true
-		aTeam.is_on_offense = false
-		if pTeam.P.bio.leftHanded:
-			pTeam.P.global_position = field.human_lhp_spawn
-		else:
-			pTeam.global_position = field.human_rhp_spawn
-		aTeam.P.global_position = field.cpu_pitcher_waiting.global_position
-		ball.reset_ball(Vector2(pTeam.P.global_position.x + pTeam.P.hand_offset, pTeam.P.global_position.y))
-		field.touch_half("human")
-		pTeam.P.has_ball = true
-		pTeam.P.prepare_target_position()
-		pTeam.P.is_controlling_player = true
-		pTeam.P.is_aiming = true
-		pTeam.P.has_pitched = false
-		pTeam.K.current_behavior = "waiting"
-		pTeam.K.is_controlling_player = false
-	else:
-		print("machine is pitching")
-		pTeam.is_on_offense = false
-		aTeam.is_on_offense = true
-		if aTeam.P.bio.leftHanded:
-			aTeam.P.global_position = field.cpu_lhp_spawn
-		else:
-			aTeam.P.global_position = field.cpu_rhp_spawn
-		pTeam.P.global_position = field.human_pitcher_waiting.global_position
-		ball.reset_ball(Vector2(aTeam.P.global_position.x + aTeam.P.hand_offset, aTeam.P.global_position.y))
-		field.touch_half("cpu")
-		aTeam.P.has_ball = true
-		aTeam.P.has_pitched = false
-		aTeam.P.prepare_ai_to_pitch()
-		aTeam.P.prepare_target_position()
-		pTeam.K.is_controlling_player = true
+	print("reset_ball() called - redirecting to setup_pitching_team()")
+	setup_pitching_team()
 
 func apply_time_scale():
 	Engine.time_scale = current_settings.time_scale
@@ -288,19 +335,27 @@ func apply_time_scale():
 	#PhysicsServer2D.set_active(!PhysicsServer2D.is_active()) # Force refresh
 
 func score_goal(team: int):
-	print("Goal! " + str(team_scores))
+	print("Goal! Team " + str(team) + " scored. New scores: " + str(team_scores))
 	team_scores[team-1] += 1
 	pitches_remaining -= 1
 	last_scoring_team = team
 	emit_signal("score_changed", team, team_scores[team-1])
-	
 	check_match_end()
-	reset_play()
+	if !match_ended:
+		next_play()
 
 func _on_play_timer_timeout():
-	# Play length expired
+	# Play length expired - switch pitching team
+	print("Play timer expired - switching pitching team")
+	is_human_team_pitching = !is_human_team_pitching
+	pTeam.is_on_offense = is_human_team_pitching
+	aTeam.is_on_offense = !is_human_team_pitching
 	emit_signal("play_ended", "timeout")
-	reset_play()
+	next_play()
+	
+func on_ball_out_of_bounds():
+	# This function seems incomplete in original - implementing based on _on_ball_exited_field logic
+	_on_ball_exited_field()
 
 func check_match_end():
 	if match_ended:
@@ -407,5 +462,3 @@ func fill_team_rosters():
 	aTeam.LF.get_node("Polygon2D").color = aUniform
 	aTeam.RF.get_node("Polygon2D").color = aUniform
 	aTeam.P.get_node("Polygon2D").color = aUniform
-
-	
