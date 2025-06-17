@@ -27,7 +27,8 @@ class_name Player
 	"boost": 100, #short-term endurance that applies to sprinting and dodging, recovers immediately
 	"max_energy": 100, #always 100
 	"max_boost": 100, #variable dependent on energy
-	"stability": 100 #fall chance, shoved chance
+	"stability": 100, #fall chance, shoved chance
+	"groove": 100 #affected by confidence
 }
 
 @export var bio := {
