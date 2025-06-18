@@ -258,7 +258,8 @@ func setup_pitching_team():
 		
 		# Position AI pitcher in waiting area
 		aTeam.P.global_position = field.cpu_pitcher_waiting.global_position
-		
+		aTeam.P.has_arrived = true
+		aTeam.P.current_behavior = "deciding"
 		# Set ball position with pitcher
 		ball.reset_ball(Vector2(pTeam.P.global_position.x + pTeam.P.hand_offset, pTeam.P.global_position.y))
 		
@@ -285,7 +286,8 @@ func setup_pitching_team():
 		
 		# Position human pitcher in waiting area
 		pTeam.P.global_position = field.human_pitcher_waiting.global_position
-		
+		pTeam.P.has_arrived = true
+		pTeam.P.current_behavior = "waiting"
 		# Set ball position with AI pitcher
 		ball.reset_ball(Vector2(aTeam.P.global_position.x + aTeam.P.hand_offset, aTeam.P.global_position.y))
 
@@ -429,6 +431,9 @@ func set_time_scale(scale: float):
 func enlighten_players():
 	pTeam.enlighten(aimTarget, ball, field, field.frontWall, field.playerGoal, field.cpuGoal, aTeam.P, aTeam.K, aTeam.LG, aTeam.RG, aTeam.LF, aTeam.RF, field.human_lf_waiting, field.human_rf_waiting, field.player_goal_post1.global_position, field.player_goal_post2.global_position, field.playerHalf, field.cpuHalf, field.human_pitcher_waiting.global_position)
 	aTeam.enlighten(aimTarget, ball, field, field.backWall, field.cpuGoal, field.playerGoal, pTeam.P, pTeam.K, pTeam.LG, pTeam.RG, pTeam.LF, pTeam.RF, field.cpu_lf_waiting, field.cpu_rf_waiting, field.cpu_goal_post1.global_position, field.cpu_goal_post2.global_position, field.cpuHalf, field.playerHalf, field.cpu_pitcher_waiting.global_position)
+	#TODO: field types
+	pTeam.P.legal_first_moves = [field.chaseSW.global_position, field.chaseSE.global_position]
+	aTeam.P.legal_first_moves = [field.chaseNW.global_position, field.chaseNE.global_position]
 
 #passing IDs didn't actually work, but as long as we get both signals we're good
 func on_team_ready_signal(id: int) -> void:

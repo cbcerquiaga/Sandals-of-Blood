@@ -28,6 +28,11 @@ var target_x_max: float = 60.0
 var target_y_min: float = -50.0
 var target_y_max: float = 75.0
 
+# Movement constants
+const MAX_DIRECTION_CHANGES := 300
+const REACTION_CHECK_INTERVAL := 2.0
+const CLOSE_DISTANCE_THRESHOLD := 0.4
+
 var oppGoal: Vector2
 var left_wall
 var right_wall
@@ -67,16 +72,33 @@ var can_pitch:bool = false
 	"fight": 25,
 	"chill": 25
 	}
+var current_path_index: int = 0
+var current_waypoint: Vector2
+var next_waypoint: Vector2
 var has_attacked = false
+var has_arrived = false #ready to fight
 var current_behavior: String = "waiting"
 var opp_pitcher: Reworked_Pitcher
 var running_positions: Array
+var moving_clockwise: bool
+var direction_changes: int = 0
+#chill specific
+var chill_area_min: Vector2 = Vector2(-10, -5)
+var chill_area_max: Vector2 = Vector2(10, 5)
+var current_chill_target: Vector2
+var chill_target_reached_threshold: float = 5.0
+#no chill
+var is_chasing: bool = false
+var is_fleeing: bool = false
+var last_reaction_check: float = 0.0
+var has_made_first_move: bool = false
+var legal_first_moves: Array
 
 func _ready():
 	super._ready()
 	collision_mask = 0b0000  # Collide with players (3) but not obstacles (2) or balls (1)
 	position_type = "pitcher"
-	behaviors = ["pitching", "going_away", "waiting", "chilling", "chasing", "fleeing", "fighting"]
+	behaviors = ["pitching", "going_away", "deciding", "waiting", "chilling", "chasing", "fleeing", "fighting"]
 	if bio.leftHanded:
 		hand_offset = hand_offset * -1
 	update_special_pitch_availability()
@@ -88,16 +110,31 @@ func _process(delta):
 			special_pitch_timers[i] -= delta
 			if special_pitch_timers[i] <= 0:
 				special_pitch_available[i] = true
-	#if is_aiming: TODO
-		#update_aim_ui()
 
 func _physics_process(delta):
 	super._physics_process(delta)
 	await ball
 	
-	if current_behavior == "going_away":
+	if current_behavior == "waiting":
+		has_arrived = false
+		has_attacked = false
+	elif current_behavior == "deciding":
+		if opp_pitcher.has_arrived == false:
+			return
+		velocity = Vector2.ZERO
+		if has_arrived and opp_pitcher.has_arrived == true:
+			fight_or_flight()
+	elif current_behavior == "chilling":
+		chill()
+	elif current_behavior == "chasing":
+		chase()
+	elif current_behavior == "fleeing":
+		flee()
+	elif current_behavior == "going_away":
 		handle_going_away()
-	elif is_controlling_player and is_aiming:
+	if is_controlling_player and is_aiming:
+		current_behavior = "pitching"
+		velocity = Vector2.ZERO
 		_handle_pitch_controls()
 		variance_timer()
 	elif !can_pitch:
@@ -112,13 +149,23 @@ func increment_pitch_time():
 		can_pitch = true
 
 func _on_pitch_phase_started():
+	has_made_first_move = false
 	max_power = true_max_power * status.energy
 	is_aiming = true
 	current_power = lerp(min_power, max_power, 0.5)
 	current_curve = 0.0
+	# Reset movement states when new pitch starts
+	is_chasing = false
+	is_fleeing = false
+	direction_changes = 0
+	current_behavior = "waiting"  # Add this line
+	prepare_target_position()
 
 func _handle_pitch_controls():
 	can_move = false
+	if target == Vector2.ZERO:
+		prepare_target_position()
+		aim_direction = global_position.direction_to(target).normalized()
 	# Power adjustment
 	if Input.is_action_pressed("move_up"):
 		current_power = min(max_power, current_power + 10)
@@ -149,15 +196,12 @@ func _handle_pitch_controls():
 		aim_direction = global_position.direction_to(target).normalized()
 		
 	if Input.is_action_just_pressed("pitch"):
-		print("throw it")
 		execute_pitch("normal")
 		has_pitched = true
 	elif Input.is_action_just_pressed("sp_pitch_1") and special_pitch_available[0]:
-		print("special pitch pressed")
 		execute_pitch(special_pitch_names[0])
 		has_pitched = true
 	elif Input.is_action_just_pressed("sp_pitch_2") and special_pitch_available[1]:
-		print("special pitch pressed")
 		execute_pitch(special_pitch_names[1])
 		has_pitched = true
 	if has_pitched:
@@ -167,18 +211,13 @@ func prepare_ai_to_pitch():
 	can_pitch = false
 	pitch_goal = pitch_frames + randi_range(0-random_effect, random_effect)
 
-# NEW AI PITCH DECISION SYSTEM
 func handle_ai_pitch_decision():
 	if !can_pitch: 
 		return
 	
-	# Determine pitch type based on groove and confidence
 	var pitch_type = ai_select_pitch_type()
-	
-	# Select target position
 	var selected_target = ai_select_target(pitch_type)
 	
-	# Execute the pitch
 	match pitch_type:
 		"normal":
 			ai_execute_normal_pitch(selected_target)
@@ -188,38 +227,29 @@ func handle_ai_pitch_decision():
 	has_pitched = true
 
 func ai_select_pitch_type() -> String:
-	# Calculate max groove based on confidence
 	var max_groove = attributes.confidence
 	var current_groove = min(status.groove, max_groove)
 	
-	# Check if we should favor a previously successful pitch
 	if randf() < favor_successful_chance and successful_pitches.size() > 0:
 		var favored_pitch = get_favored_pitch_type()
 		if favored_pitch != "" and can_use_pitch_type(favored_pitch):
-			print("AI using favored pitch: " + favored_pitch)
 			return favored_pitch
 	
-	# Determine available special pitches
 	var available_specials: Array[String] = []
 	for i in special_pitch_names.size():
 		if special_pitch_available[i]:
 			available_specials.append(special_pitch_names[i])
 	
-	# Calculate special pitch chance based on groove
-	var special_chance = current_groove / 100.0 * 0.4  # Max 40% chance at 100 groove
+	var special_chance = current_groove / 100.0 * 0.4
 	
 	if randf() < special_chance and available_specials.size() > 0:
-		var selected_special = available_specials[randi() % available_specials.size()]
-		print("AI selected special pitch: " + selected_special)
-		return selected_special
+		return available_specials[randi() % available_specials.size()]
 	else:
-		print("AI selected normal pitch")
 		return "normal"
 
 func get_favored_pitch_type() -> String:
 	var pitch_counts = {}
 	
-	# Count successful pitches by type
 	for pitch in successful_pitches:
 		var pitch_type = pitch.get("type", "normal")
 		if pitch_counts.has(pitch_type):
@@ -227,7 +257,6 @@ func get_favored_pitch_type() -> String:
 		else:
 			pitch_counts[pitch_type] = 1
 	
-	# Find pitch types with enough successes
 	var favored_pitches: Array[String] = []
 	for pitch_type in pitch_counts.keys():
 		if pitch_counts[pitch_type] >= pitch_success_threshold:
@@ -246,33 +275,23 @@ func can_use_pitch_type(pitch_type: String) -> bool:
 	return sp_index >= 0 and special_pitch_available[sp_index]
 
 func ai_select_target(pitch_type: String) -> Vector2:
-	# Check for successful targets with this pitch type
 	var successful_targets = get_successful_targets_for_pitch_type(pitch_type)
 	
-	if successful_targets.size() > 0 and randf() < 0.6:  # 60% chance to use successful target
-		var selected_target = successful_targets[randi() % successful_targets.size()]
-		print("AI using successful target: " + str(selected_target))
-		return selected_target
+	if successful_targets.size() > 0 and randf() < 0.6:
+		return successful_targets[randi() % successful_targets.size()]
 	
-	# Generate random target with aggression bias toward center
 	var aggression_factor = attributes.aggression / 100.0
 	
-	# For X coordinate: more aggressive = bias toward center (0)
 	var x_coord: float
 	if randf() < aggression_factor:
-		# Aggressive: bias toward center with smaller range
-		var center_range = lerp(30.0, 10.0, aggression_factor)  # Range gets smaller with more aggression
+		var center_range = lerp(30.0, 10.0, aggression_factor)
 		x_coord = randf_range(-center_range, center_range)
 	else:
-		# Non-aggressive: use full range
 		x_coord = randf_range(target_x_min, target_x_max)
 	
-	# Y coordinate remains fully random
 	var y_coord = randf_range(target_y_min, target_y_max)
 	
-	var selected_target = Vector2(x_coord, y_coord)
-	print("AI selected target (aggression: " + str(aggression_factor) + "): " + str(selected_target))
-	return selected_target
+	return Vector2(x_coord, y_coord)
 
 func get_successful_targets_for_pitch_type(pitch_type: String) -> Array[Vector2]:
 	var targets: Array[Vector2] = []
@@ -284,26 +303,19 @@ func get_successful_targets_for_pitch_type(pitch_type: String) -> Array[Vector2]
 	return targets
 
 func ai_execute_normal_pitch(target_pos: Vector2):
-	print("AI executing normal pitch")
-	
-	# Set target and aim direction
 	target = target_pos
 	aim_direction = global_position.direction_to(target).normalized()
 	
-	# Calculate power based on aggression and energy
 	var aggression_factor = attributes.aggression / 100.0
 	var energy_factor = status.energy / 100.0
 	
 	if energy_factor > 0.5:
-		# High energy: use aggression to determine power (more aggressive = more power)
 		current_power = lerp(attributes.power * 2, attributes.power * 4, aggression_factor) * 4
 		status.energy -= (100 - attributes.endurance) * 5
 	else:
-		# Low energy: conservative power regardless of aggression
 		current_power = randf_range(attributes.power, attributes.power * 2) * 4
 		status.energy -= (100 - attributes.endurance) * 2
 	
-	# Calculate curve based on focus (higher focus = more intentional curve)
 	var focus_factor = attributes.focus / 100.0
 	var curve_intensity = lerp(max_curve / 4, max_curve, focus_factor)
 	
@@ -315,29 +327,19 @@ func ai_execute_normal_pitch(target_pos: Vector2):
 	else:
 		current_curve = randf_range(-max_curve, max_curve)
 	
-	# Apply variance and execute
 	random_variance()
 	perform_ai_normal_pitch(target)
 
 func ai_execute_special_pitch(pitch_type: String, target_pos: Vector2):
-	print("AI executing special pitch: " + pitch_type)
-	
-	# Set target for special pitch
 	target = target_pos
-	
-	# Execute the specific special pitch
 	execute_pitch(pitch_type)
 
-# Store successful pitch data - called from external script
 func store_successful_pitch(pitch_data: Dictionary):
-	print("Storing successful pitch: " + str(pitch_data))
 	successful_pitches.append(pitch_data)
 	
-	# Optional: Limit stored pitches to prevent infinite growth
 	if successful_pitches.size() > 50:
 		successful_pitches.pop_front()
 
-# Helper function to create pitch data for storage
 func get_current_pitch_data(pitch_type: String) -> Dictionary:
 	return {
 		"type": pitch_type,
@@ -371,38 +373,36 @@ func execute_pitch(pitch_type: String):
 		"boomerang":
 			perform_boomerang_pitch()
 	
-	# Handle special pitch cooldown
 	var sp_index = special_pitch_names.find(pitch_type)
 	if sp_index >= 0:
 		special_pitch_available[sp_index] = false
 		special_pitch_timers[sp_index] = special_pitch_cooldowns[sp_index] * (1.2 - (attributes.confidence / 100.0))
 
 func perform_ai_normal_pitch(target):
-	print("AI launching ball")
 	aim_direction = global_position.direction_to(target).normalized()
 	var varied_direction = aim_direction.rotated(current_variance * variance_factor)   
 	var huck = current_power * varied_direction
-	print("AI aim with variance: " + str(varied_direction))
 	release_ball()
 	ball_pitched.emit(huck, current_curve)
+	has_pitched = true
 	go_away()
 
-# Rest of the existing special pitch functions remain unchanged
 func perform_normal_pitch():
-	print("tossing the ball")
-	status.energy = status.energy - (10 - attributes.endurance/10)#more endurance, less energy loss
+	# Ensure target and aim direction are properly set
+	if target == Vector2.ZERO:
+		target = global_position + Vector2(0, -100 if field_type != "road" else 100)  # Default direction based on field
+		aim_direction = global_position.direction_to(target).normalized()
+	status.energy = status.energy - (10 - attributes.endurance/10)
 	var varied_direction = aim_direction.normalized()
 	varied_direction = varied_direction.rotated(current_variance * variance_factor)   
 	if field_type == "road" || field_type == "wide_road":
 		if varied_direction.y > 0:
 			varied_direction.y = varied_direction.y * -1
 	var huck = current_power * varied_direction
-	print("aim with variance: " + str(aim_direction))
 	release_ball()
 	ball_pitched.emit(huck, current_curve)
 
 func perform_fake_curve_pitch():
-	print("throwing a fake curve")
 	aim_direction = global_position.direction_to(target).normalized()
 	status.energy = status.energy - (10 - attributes.endurance/10)
 	var curves: Array[float] = [-2.4, 8, 0.0]
@@ -412,7 +412,6 @@ func perform_fake_curve_pitch():
 	release_ball()
 
 func perform_zig_zag_pitch():
-	print("left, no the other left")
 	aim_direction = global_position.direction_to(target).normalized()
 	status.energy = status.energy - (10 - attributes.endurance/10)
 	var curves: Array[float] = [0, 100, 0, -100, 0]
@@ -422,7 +421,6 @@ func perform_zig_zag_pitch():
 	release_ball()
 	
 func perform_looper_pitch():
-	print("throw a barrel roll")
 	aim_direction = global_position.direction_to(target).normalized()
 	status.energy = status.energy - (10 - attributes.endurance/10)
 	var curves: Array[float] = [0, 40, 0]
@@ -432,7 +430,6 @@ func perform_looper_pitch():
 	release_ball()
 
 func perform_knuckler_pitch():
-	print("throwing a knuckleball")
 	aim_direction = global_position.direction_to(target).normalized()
 	status.energy = status.energy - (10 - attributes.endurance/10)
 	var curves: Array[float] = [-5, 5, -5, 5, -5, 5]
@@ -448,7 +445,6 @@ func find_wall_normal(wall:StaticBody2D) -> Vector2:
 		return Vector2.LEFT
 
 func perform_bouncer_pitch():
-	print("throwing a bouncer")
 	aim_direction = global_position.direction_to(target).normalized()
 	status.energy = status.energy - (10 - attributes.endurance/10)
 	var curves: Array[float] = [2.4, -100, 0.0]
@@ -458,7 +454,6 @@ func perform_bouncer_pitch():
 	release_ball()
 	
 func perform_corker_pitch():
-	print("makes no sense but it's cool")
 	aim_direction = global_position.direction_to(target).normalized()
 	status.energy = status.energy - (10 - attributes.endurance/10)
 	var curves: Array[float] = [0.5, -120, 120, 0.5]
@@ -468,7 +463,6 @@ func perform_corker_pitch():
 	release_ball()
 	
 func perform_boomerang_pitch():
-	print("crikey")
 	aim_direction = global_position.direction_to(target).normalized()
 	status.energy = status.energy - (10 - attributes.endurance/10)
 	var curves: Array[float] = [0, -50, 0.0, -50, 0, -50, 0]
@@ -482,7 +476,7 @@ func update_special_pitch_availability():
 		special_pitch_available[i] = special_pitch_timers[i] <= 0
 
 func _on_goal_aced():
-	print("aced it")
+	pass
 
 func get_closest_wall():
 	if bio.leftHanded:
@@ -508,42 +502,280 @@ func random_variance():
 	current_variance = randi_range(1,100)
 
 func release_ball():
-	print("ball released")
 	has_ball = false
 	is_aiming = false
 	is_controlling_player = false
 	ball.last_hit_by = self
 	
 func go_away():
+	if !has_pitched:
+		return
 	set_physics_process(true)
 	current_behavior = "going_away"
 	is_controlling_player = false
 	has_ball = false
 	can_move = false
+	has_arrived = false  # Add this line to ensure proper state reset
 
 func prepare_target_position():
 	target = Vector2(0,0)
 	
 func chase():
-	var clockwise = true
-	move_around(clockwise)
+	if !is_chasing:
+		initialize_chase()
 	
+	move_around(attributes.sprint_speed if status.boost > 0 else attributes.speed)
+	
+	last_reaction_check += get_process_delta_time()
+	if last_reaction_check >= REACTION_CHECK_INTERVAL && direction_changes < MAX_DIRECTION_CHANGES:
+		last_reaction_check = 0.0
+		reconsider_chase_direction()
+
+func initialize_chase():
+	is_chasing = true
+	is_fleeing = false
+	direction_changes = 0
+	moving_clockwise = randf() < 0.5
+
+func reconsider_chase_direction():
+	if running_positions.size() < 2:
+		return
+	var opp_predicted_pos = opp_pitcher.global_position + opp_pitcher.velocity * 0.5
+	var target_index = find_closest_position_index(opp_predicted_pos)
+	var target_waypoint = running_positions[target_index].global_position
+	var my_index = find_closest_position_index(global_position)
+	var clockwise_distance = calculate_clockwise_distance(my_index, target_index)
+	var counter_distance = calculate_counter_distance(my_index, target_index)
+	var should_change = (moving_clockwise && counter_distance < clockwise_distance * 0.8) || \
+					   (!moving_clockwise && clockwise_distance < counter_distance * 0.8)
+	
+	if should_change && direction_changes < MAX_DIRECTION_CHANGES:
+		direction_changes += 1
+		moving_clockwise = !moving_clockwise
+
 func flee():
-	var clockwise = false
-	move_around(clockwise)
+	if !is_fleeing:
+		initialize_flee()
 	
-func chill():
-	pass
+	var speed = calculate_flee_speed()
+	move_around(speed)
 	
-func fight_or_flight(opponent: Reworked_Pitcher):
-	var random
+	last_reaction_check += get_process_delta_time()
+	if last_reaction_check >= REACTION_CHECK_INTERVAL && direction_changes < MAX_DIRECTION_CHANGES:
+		last_reaction_check = 0.0
+		if randf_range(0,100) < attributes.reactions:
+			if opp_pitcher.current_behavior == "chilling":
+				current_behavior = "chilling"
+				print("bro relax")
+				return
+			reconsider_flee_direction()
+
+func initialize_flee():
+	is_fleeing = true
+	is_chasing = false
+	direction_changes = 0
+	moving_clockwise = randf() < 0.5
+
+func calculate_flee_speed() -> float:
+	var my_index = find_closest_position_index(global_position)
+	var opp_index = find_closest_position_index(opp_pitcher.global_position)
+	var current_distance = min(
+		calculate_clockwise_distance(opp_index, my_index),
+		calculate_counter_distance(opp_index, my_index)
+	)
 	
-func move_around(clockwise:bool):
-	var navAgent = $NavigationAgent2D
-	if clockwise:
-		pass
+	var path_length = running_positions.size()
+	var normalized_distance = float(current_distance) / path_length
+	
+	if normalized_distance < CLOSE_DISTANCE_THRESHOLD:
+		if status.boost > 0:
+			return attributes.sprint_speed
+		else:
+			return attributes.speed
 	else:
-		pass
+		return attributes.speed * 0.5 #walk
+
+func reconsider_flee_direction():
+	if running_positions.size() < 2 || direction_changes >= MAX_DIRECTION_CHANGES:
+		return
+	
+	var my_index = find_closest_position_index(global_position)
+	var opp_index = find_closest_position_index(opp_pitcher.global_position)
+	
+	var clockwise_distance = calculate_clockwise_distance(opp_index, my_index)
+	var counter_distance = calculate_counter_distance(opp_index, my_index)
+	
+	var should_change = (moving_clockwise && clockwise_distance < counter_distance * 0.8) || \
+					   (!moving_clockwise && counter_distance < clockwise_distance * 0.8)
+	
+	if should_change:
+		direction_changes += 1
+		moving_clockwise = !moving_clockwise
+
+func should_stop_fleeing() -> bool:
+	var my_index = find_closest_position_index(global_position)
+	var opp_index = find_closest_position_index(opp_pitcher.global_position)
+	var current_distance = min(
+		calculate_clockwise_distance(opp_index, my_index),
+		calculate_counter_distance(opp_index, my_index)
+	)
+	
+	var safe_distance = running_positions.size() * 0.4
+	if current_distance >= safe_distance:
+		if randf() < 0.6 or direction_changes >= MAX_DIRECTION_CHANGES:
+			return true
+		else:
+			reconsider_flee_direction()
+	return false
+
+func chill():
+	current_behavior = "chilling"
+	direction_changes = 0
+	if !current_chill_target or global_position.distance_to(current_chill_target) < chill_target_reached_threshold:
+		current_chill_target = get_random_chill_target()
+	var move_direction = global_position.direction_to(current_chill_target)
+	velocity = move_direction * (attributes.speed * 0.1)
+	move_and_slide()
+	
+	last_reaction_check += get_process_delta_time()
+	if last_reaction_check >= REACTION_CHECK_INTERVAL:
+		last_reaction_check = 0.0
+		check_chill_state()
+	
+func fight_or_flight():
+	var base_flee = scrapping["flee"]
+	var base_fight = scrapping["fight"]
+	var base_chill = scrapping["chill"]
+	var attribute_modifier = 0.0
+	
+	var tough_diff = opp_pitcher.attributes.toughness - attributes.toughness
+	var speed_diff = opp_pitcher.attributes.speed - attributes.speed
+	
+	if tough_diff > 0:
+		attribute_modifier = tough_diff / 100.0
+		base_flee += attribute_modifier * tough_diff
+		base_fight -= attribute_modifier * tough_diff
+	else:
+		attribute_modifier = abs(tough_diff) / 100.0
+		base_fight += attribute_modifier * tough_diff
+		base_flee -= attribute_modifier * tough_diff
+	
+	if speed_diff > 0:
+		var speed_mod = speed_diff / 100.0
+		base_fight -= speed_mod * speed_mod
+		base_chill += speed_mod * speed_mod
+	
+	base_flee = clamp(base_flee, 0, 100)
+	base_fight = clamp(base_fight, 0, 100)
+	base_chill = clamp(base_chill, 0, 100)
+	var total = base_flee + base_fight + base_chill
+	var flee_chance = base_flee / total
+	var fight_chance = base_fight / total
+
+	var roll = randf()
+	if roll < flee_chance:
+		current_behavior = "fleeing"
+		print("get the hell away from me you freak")
+		flee()
+	elif roll < flee_chance + fight_chance:
+		current_behavior = "chasing"
+		print("get over here you little shit")
+		chase()
+	else:
+		current_behavior = "chilling"
+		print("bro I ain't running")
+		chill()
+	
+func move_around(input_speed: float = -1.0):
+	if current_waypoint == Vector2.ZERO or current_path_index == 0:
+		initialize_waypoints()
+	if global_position.distance_to(current_waypoint) < 5.0:
+		advance_waypoints()
+	var speed
+	if input_speed == -1:
+		if status.boost > 0:
+			speed = attributes.sprint_speed
+		else:
+			speed = attributes.speed
+	else:
+		speed = input_speed
+	var base_direction = global_position.direction_to(current_waypoint)
+	if next_waypoint != Vector2.ZERO:
+		var turn_angle = calculate_turn_angle(base_direction, current_waypoint.direction_to(next_waypoint))
+		base_direction = apply_turn_anticipation(base_direction, turn_angle)
+	velocity = base_direction * speed
+	move_and_slide()
+	if status.boost > 0 and speed == attributes.sprint_speed:
+		status.boost = max(0, status.boost - 0.25)
+
+func initialize_waypoints():
+	if running_positions.size() == 0:
+		return
+	
+	# First move must be to one of the legal first positions
+	if !has_made_first_move && legal_first_moves.size() > 0:
+		var closest_dist = INF
+		var closest_move = legal_first_moves[0]
+		
+		for move in legal_first_moves:
+			var dist = global_position.distance_squared_to(move)
+			if dist < closest_dist:
+				closest_dist = dist
+				closest_move = move
+		
+		# Find which running position is closest to our legal first move
+		closest_dist = INF
+		var closest_index = 0
+		for i in running_positions.size():
+			var dist = running_positions[i].global_position.distance_squared_to(closest_move)
+			if dist < closest_dist:
+				closest_dist = dist
+				closest_index = i
+		
+		current_path_index = closest_index
+		has_made_first_move = true
+	else:
+		# Normal closest point finding
+		var closest_dist = INF
+		var closest_index = 0
+		for i in running_positions.size():
+			var dist = global_position.distance_squared_to(running_positions[i].global_position)
+			if dist < closest_dist:
+				closest_dist = dist
+				closest_index = i
+		current_path_index = closest_index
+	
+	current_waypoint = running_positions[current_path_index].global_position
+	next_waypoint = get_next_waypoint(current_path_index, moving_clockwise)
+	
+	# Force movement to the first waypoint to prevent corner cutting
+	var direction_to_waypoint = global_position.direction_to(current_waypoint)
+	velocity = direction_to_waypoint * attributes.speed
+
+func advance_waypoints():
+	current_path_index = get_next_index(current_path_index, moving_clockwise)
+	current_waypoint = running_positions[current_path_index].global_position
+	next_waypoint = get_next_waypoint(current_path_index, moving_clockwise)
+
+func get_next_index(current_index: int, clockwise: bool) -> int:
+	if clockwise:
+		return (current_index + 1) % running_positions.size()
+	else:
+		return (current_index - 1) if current_index > 0 else running_positions.size() - 1
+
+func get_next_waypoint(current_index: int, clockwise: bool) -> Vector2:
+	var next_index = get_next_index(current_index, clockwise)
+	return running_positions[next_index].global_position if running_positions.size() > 1 else Vector2.ZERO
+
+func calculate_turn_angle(current_dir: Vector2, next_dir: Vector2) -> float:
+	return abs(current_dir.angle_to(next_dir))
+
+func apply_turn_anticipation(base_direction: Vector2, turn_angle: float) -> Vector2:
+	if turn_angle > deg_to_rad(45):
+		var turn_direction = sign(base_direction.angle_to(next_waypoint.direction_to(current_waypoint)))
+		var adjustment_strength = clamp((turn_angle - deg_to_rad(45)) / deg_to_rad(45), 0, 0.3)
+		return base_direction.rotated(turn_direction * adjustment_strength).normalized()
+	return base_direction
 		
 func handle_going_away():
 	var move_direction: Vector2
@@ -552,6 +784,52 @@ func handle_going_away():
 	move_and_slide()
 	
 	if global_position.distance_to(rest_position) <= 1:
-		print("alright, I'm outta here")
-		current_behavior = "chilling"
+		current_behavior = "deciding"
+		has_arrived = true
 		velocity = Vector2.ZERO
+
+func find_closest_position_index(position: Vector2) -> int:
+	var closest_index = 0
+	var closest_distance = INF
+	for i in running_positions.size():
+		var dist = global_position.distance_to(running_positions[i].global_position)
+		if dist < closest_distance:
+			closest_distance = dist
+			closest_index = i
+	return closest_index
+	
+func calculate_clockwise_distance(from: int, to: int) -> int:
+	if to >= from:
+		return to - from
+	else:
+		return running_positions.size() - from + to
+
+func calculate_counter_distance(from: int, to: int) -> int:
+	if from >= to:
+		return from - to
+	else:
+		return running_positions.size() + from - to
+		
+
+func get_random_chill_target() -> Vector2:
+	var random_offset = Vector2(
+		randf_range(chill_area_min.x, chill_area_max.x),
+		randf_range(chill_area_min.y, chill_area_max.y)
+	)
+	var random_target = rest_position + random_offset
+	return Vector2(
+		clamp(random_target.x, rest_position.x + chill_area_min.x, rest_position.x + chill_area_max.x),
+		clamp(random_target.y, rest_position.y + chill_area_min.y, rest_position.y + chill_area_max.y)
+	)
+	
+func check_chill_state():
+	if randf() < 0.3 * attributes.reactions:
+		var my_index = find_closest_position_index(global_position)
+		var opp_index = find_closest_position_index(opp_pitcher.global_position)
+		var current_distance = min(
+			calculate_clockwise_distance(opp_index, my_index),
+			calculate_counter_distance(opp_index, my_index)
+		)
+		if current_distance < running_positions.size() * 0.1:
+			if randf() < 0.8 * attributes.toughness:
+				flee()
