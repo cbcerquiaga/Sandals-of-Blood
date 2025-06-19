@@ -218,7 +218,10 @@ func reset_players_for_next_play():
 func reset_ball_and_field():
 	# Reset ball completely
 	if is_instance_valid(ball):
-		ball.reset_ball(Vector2.ZERO)
+		if pTeam.is_on_offense:
+			ball.reset_ball(Vector2(pTeam.P.global_position.x + pTeam.P.hand_offset, pTeam.P.global_position.y))
+		else:
+			ball.reset_ball(Vector2(aTeam.P.global_position.x + aTeam.P.hand_offset, aTeam.P.global_position.y))
 		ball.current_state = Ball.BallState.WAITING
 		field.ball_in_play = true
 	else:
@@ -253,6 +256,10 @@ func setup_pitching_team():
 		aTeam.P.has_arrived = true
 		aTeam.P.current_behavior = "deciding"
 		# Set ball position with pitcher
+		if pTeam.P.bio.leftHanded:
+			position_player(pTeam.P, field.human_lhp_spawn, field.human_orientation)
+		else:
+			position_player(pTeam.P, field.human_rhp_spawn, field.human_orientation)
 		ball.reset_ball(Vector2(pTeam.P.global_position.x + pTeam.P.hand_offset, pTeam.P.global_position.y))
 		
 	else:
@@ -319,7 +326,6 @@ func position_player(player: Player, position: Vector2, rotation: float):
 		player.reset_state()
 
 func reset_ball():
-	print("reset_ball() called - redirecting to setup_pitching_team()")
 	setup_pitching_team()
 
 func apply_time_scale():

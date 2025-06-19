@@ -235,6 +235,10 @@ func be_pitched(huck: Vector2, curve: float):
 	max_speed = pitching_max_speed
 	current_state = BallState.PITCHING
 	
+	var current_pos = global_position
+	freeze = false  # Unfreeze to allow physics
+	global_position = current_pos  # Re-assert position
+	
 	# Apply pitch immunity
 	chill_timer = 10  # 10 frames of immunity
 	collision_mask = 0b0010  # Only collide with obstacles during pitch

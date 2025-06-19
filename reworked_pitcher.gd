@@ -392,7 +392,7 @@ func perform_ai_normal_pitch(target):
 func perform_normal_pitch():
 	# Ensure target and aim direction are properly set
 	if target == Vector2.ZERO:
-		target = global_position + Vector2(0, -100 if field_type != "road" else 100)  # Default direction based on field
+		target = global_position + Vector2(0, 0 if field_type != "road" else 100)  # Default direction based on field
 		aim_direction = global_position.direction_to(target).normalized()
 	status.energy = status.energy - (10 - attributes.endurance/10)
 	var varied_direction = aim_direction.normalized()
