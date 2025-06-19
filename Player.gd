@@ -581,6 +581,18 @@ func move_towards_half():
 	if velocity.x != 0 and velocity.y != 0:
 		velocity = velocity.normalized() * attributes.speed
 
+#used for bending runs. If the character knows where they are moving two moves in advance,
+#they can make a curved run to make that turn more natural
+func calculate_turn_angle(current_dir: Vector2, next_dir: Vector2) -> float:
+	return abs(current_dir.angle_to(next_dir))
+
+func apply_turn_anticipation(base_direction: Vector2, turn_angle: float, next_waypoint: Vector2, current_waypoint: Vector2) -> Vector2:
+	if turn_angle > deg_to_rad(45):
+		var turn_direction = sign(base_direction.angle_to(next_waypoint.direction_to(current_waypoint)))
+		var adjustment_strength = clamp((turn_angle - deg_to_rad(45)) / deg_to_rad(45), 0, 0.3)
+		return base_direction.rotated(turn_direction * adjustment_strength).normalized()
+	return base_direction
+
 # Signals
 signal player_hit(damage)
 signal player_stunned(duration)
