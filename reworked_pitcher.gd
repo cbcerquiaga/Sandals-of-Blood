@@ -70,7 +70,7 @@ var can_pitch:bool = false
 @export var scrapping := {
 	"flee": 25,
 	"fight": 25,
-	"chill": 0
+	"chill": 5
 	}
 var current_path_index: int = 0
 var current_waypoint: Vector2
