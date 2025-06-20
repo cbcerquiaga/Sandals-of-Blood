@@ -13,9 +13,9 @@ var true_max_power = 1200 * attributes.power/100 #maximum possible power at 100%
 
 # Special Pitches
 @export var special_pitch_cooldowns: Array[float] = [10.0, 15.0] # Seconds
-@export var special_pitch_names: Array[String] = ["corker", "boomerang"]
-var special_pitch_timers: Array[float] = [0.0, 0.0]
-var special_pitch_available: Array[bool] = [false, false]
+@export var special_pitch_names: Array[String] = ["corker", "boomerang", "zig-zag"]
+var special_pitch_groove: Array[float] = [89, 35, 40] #groove ratings needed to throw each pitch
+var special_pitch_available: Array[bool] = [true, true, true]
 
 # AI Memory and Decision Making
 var successful_pitches: Array[Dictionary] = []
@@ -104,14 +104,6 @@ func _ready():
 		hand_offset = hand_offset * -1
 	update_special_pitch_availability()
 
-func _process(delta):
-	# Update cooldowns
-	for i in special_pitch_timers.size():
-		if special_pitch_timers[i] > 0:
-			special_pitch_timers[i] -= delta
-			if special_pitch_timers[i] <= 0:
-				special_pitch_available[i] = true
-
 func _physics_process(delta):
 	super._physics_process(delta)
 	await ball
@@ -121,7 +113,10 @@ func _physics_process(delta):
 		has_attacked = false
 	elif current_behavior == "deciding":
 		if opp_pitcher.has_arrived == false:
+			can_move = false
 			return
+		else:
+			can_move = true
 		velocity = Vector2.ZERO
 		if has_arrived and opp_pitcher.has_arrived == true:
 			fight_or_flight()
@@ -135,12 +130,14 @@ func _physics_process(delta):
 		handle_going_away()
 	if is_controlling_player and is_aiming:
 		current_behavior = "pitching"
+		has_arrived = false
 		velocity = Vector2.ZERO
 		_handle_pitch_controls()
 		variance_timer()
 	elif !can_pitch:
 		increment_pitch_time()
 	elif not is_controlling_player and has_ball:
+		has_arrived = false
 		random_variance()
 		handle_ai_pitch_decision()
 
@@ -199,13 +196,12 @@ func _handle_pitch_controls():
 		
 	if Input.is_action_just_pressed("pitch"):
 		execute_pitch("normal")
-		has_pitched = true
 	elif Input.is_action_just_pressed("sp_pitch_1") and special_pitch_available[0]:
 		execute_pitch(special_pitch_names[0])
-		has_pitched = true
 	elif Input.is_action_just_pressed("sp_pitch_2") and special_pitch_available[1]:
 		execute_pitch(special_pitch_names[1])
-		has_pitched = true
+	elif Input.is_action_just_pressed("sp_pitch_3") and special_pitch_available[2]:
+		execute_pitch(special_pitch_names[2])
 	if has_pitched:
 		go_away()
 
@@ -362,7 +358,7 @@ func execute_pitch(pitch_type: String):
 			perform_normal_pitch()
 		"fake_curve":
 			perform_fake_curve_pitch()
-		"zig_zag":
+		"zig-zag":
 			perform_zig_zag_pitch()
 		"knuckler":
 			perform_knuckler_pitch()
@@ -374,11 +370,13 @@ func execute_pitch(pitch_type: String):
 			perform_corker_pitch()
 		"boomerang":
 			perform_boomerang_pitch()
+	has_pitched = true
 	
 	var sp_index = special_pitch_names.find(pitch_type)
 	if sp_index >= 0:
 		special_pitch_available[sp_index] = false
-		special_pitch_timers[sp_index] = special_pitch_cooldowns[sp_index] * (1.2 - (attributes.confidence / 100.0))
+		if status.groove >= special_pitch_groove[sp_index]:
+			special_pitch_available[sp_index] = true
 
 func perform_ai_normal_pitch(target):
 	aim_direction = global_position.direction_to(target).normalized()
@@ -419,7 +417,7 @@ func perform_zig_zag_pitch():
 	var curves: Array[float] = [0, 100, 0, -100, 0]
 	var frames: Array[int] = [20, 22, 42, 44, 200]
 	current_power = 200
-	special_pitched.emit(aim_direction, current_power, curves, frames, "zig_zag")
+	special_pitched.emit(aim_direction, current_power, curves, frames, "zig-zag")
 	release_ball()
 	
 func perform_looper_pitch():
@@ -475,7 +473,8 @@ func perform_boomerang_pitch():
 
 func update_special_pitch_availability():
 	for i in special_pitch_available.size():
-		special_pitch_available[i] = special_pitch_timers[i] <= 0
+		if status.groove >= special_pitch_groove[i]:
+			special_pitch_available[i] = true
 
 func _on_goal_aced():
 	pass
@@ -827,3 +826,13 @@ func check_chill_state():
 		if current_distance < running_positions.size() * 0.1:
 			if randf() < 0.8 * attributes.toughness:
 				flee()
+				
+func set_groove():
+	status.groove = attributes.confidence
+	
+func find_groove(effect: float):
+	status.groove = status.groove + effect
+	if status.groove > attributes.confidence:
+		status.groove = attributes.confidence
+	elif status.groove < 0:
+		status.groove = 0

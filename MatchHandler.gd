@@ -245,15 +245,17 @@ func setup_pitching_team():
 		pTeam.P.prepare_target_position()
 		pTeam.P.is_controlling_player = true
 		pTeam.P.is_aiming = true
+		pTeam.P.can_move = false
 		pTeam.P.has_pitched = false
 		pTeam.P.has_arrived = false
+		pTeam.P.current_behavior = "pitching"
 		# Setup human keeper and other players
 		pTeam.K.current_behavior = "waiting"
 		pTeam.K.is_controlling_player = false
-		
 		# Position AI pitcher in waiting area
 		aTeam.P.global_position = field.cpu_pitcher_waiting.global_position
 		aTeam.P.has_arrived = true
+		aTeam.P.can_move = false
 		aTeam.P.current_behavior = "deciding"
 		# Set ball position with pitcher
 		if pTeam.P.bio.leftHanded:
@@ -277,15 +279,18 @@ func setup_pitching_team():
 		aTeam.P.target = Vector2.ZERO
 		aTeam.P.has_ball = true
 		aTeam.P.has_pitched = false
+		aTeam.P.can_move = false
 		aTeam.P.prepare_ai_to_pitch()
 		aTeam.P.prepare_target_position()
 		aTeam.P.has_arrived = false
+		aTeam.P.current_behavior = "pitching"
 		# Setup human keeper as controlling player
 		pTeam.K.is_controlling_player = true
 		
 		# Position human pitcher in waiting area
 		pTeam.P.global_position = field.human_pitcher_waiting.global_position
 		pTeam.P.has_arrived = true
+		pTeam.P.can_move = false
 		pTeam.P.current_behavior = "deciding"
 		# Set ball position with AI pitcher
 		ball.reset_ball(Vector2(aTeam.P.global_position.x + aTeam.P.hand_offset, aTeam.P.global_position.y))
