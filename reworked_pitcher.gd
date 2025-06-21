@@ -68,9 +68,10 @@ var can_pitch:bool = false
 @export var rest_position: Vector2 = Vector2(-1000, -1000)  # Set this in editor or via code
 @onready var navigation_agent: NavigationAgent2D = $NavigationAgent2D
 @export var scrapping := {
-	"flee": 25,
-	"fight": 25,
-	"chill": 5
+	"flee": 20,
+	"fight": 50,
+	"chill": 5,
+	"track": 0
 	}
 var current_path_index: int = 0
 var current_waypoint: Vector2
@@ -111,7 +112,9 @@ func _physics_process(delta):
 	if current_behavior == "waiting":
 		has_arrived = false
 		has_attacked = false
+		current_waypoint = Vector2.ZERO
 	elif current_behavior == "deciding":
+		current_waypoint = Vector2.ZERO
 		if opp_pitcher.has_arrived == false:
 			can_move = false
 			return
@@ -126,11 +129,14 @@ func _physics_process(delta):
 		chase()
 	elif current_behavior == "fleeing":
 		flee()
+	elif current_behavior == "tracking":
+		track()
 	elif current_behavior == "going_away":
 		handle_going_away()
 	if is_controlling_player and is_aiming:
 		current_behavior = "pitching"
 		has_arrived = false
+		current_waypoint = Vector2.ZERO
 		velocity = Vector2.ZERO
 		_handle_pitch_controls()
 		variance_timer()
@@ -546,7 +552,7 @@ func chase():
 					velocity = direction * speed
 					move_and_slide()
 					return
-	move_around(attributes.sprint_speed if status.boost > 0 else attributes.speed)
+	move_around()
 	last_reaction_check += get_process_delta_time()
 	if last_reaction_check >= REACTION_CHECK_INTERVAL && direction_changes < MAX_DIRECTION_CHANGES:
 		last_reaction_check = 0.0
@@ -680,6 +686,7 @@ func fight_or_flight():
 	var base_flee = scrapping["flee"]
 	var base_fight = scrapping["fight"]
 	var base_chill = scrapping["chill"]
+	var base_track = scrapping["track"]
 	var attribute_modifier = 0.0
 	
 	var tough_diff = opp_pitcher.attributes.toughness - attributes.toughness
@@ -702,9 +709,11 @@ func fight_or_flight():
 	base_flee = clamp(base_flee, 0, 100)
 	base_fight = clamp(base_fight, 0, 100)
 	base_chill = clamp(base_chill, 0, 100)
+	base_track = clamp(base_track, 0, 100)
 	var total = base_flee + base_fight + base_chill
 	var flee_chance = base_flee / total
 	var fight_chance = base_fight / total
+	var track_chance = base_track / total
 
 	var roll = randf()
 	if roll < flee_chance:
@@ -715,10 +724,21 @@ func fight_or_flight():
 		current_behavior = "chasing"
 		print("get over here you little shit")
 		chase()
+	elif roll < flee_chance + fight_chance + track_chance:
+		current_behavior = "tracking"
+		print("time for a jog")
 	else:
 		current_behavior = "chilling"
 		print("bro I ain't running")
 		chill()
+
+#just go around the outside of the field like a track
+func track():
+	if current_waypoint == Vector2.ZERO:
+		moving_clockwise = randf() < 0.5
+		initialize_waypoints()
+	else:
+		move_around()
 	
 func move_around(input_speed: float = -1.0):
 	if current_waypoint == Vector2.ZERO:
@@ -741,28 +761,31 @@ func move_around(input_speed: float = -1.0):
 
 func initialize_waypoints():
 	if moving_clockwise:
-		current_waypoint = legal_first_moves[1]
+		current_waypoint = running_positions[legal_first_moves[0]].global_position
+		current_path_index = legal_first_moves[0]
 	else:
-		current_waypoint = legal_first_moves[0]
+		current_waypoint = running_positions[legal_first_moves[1]].global_position
+		current_path_index = legal_first_moves[1]
 	print("waypoing position at init: ", current_waypoint)
 	# Force movement to the first waypoint to prevent corner cutting
 	var direction_to_waypoint = global_position.direction_to(current_waypoint)
 	velocity = direction_to_waypoint * attributes.speed
 
 func advance_waypoints():
-	current_path_index = get_next_index(current_path_index, moving_clockwise)
-	current_waypoint = running_positions[current_path_index].global_position
-	next_waypoint = get_next_waypoint(current_path_index, moving_clockwise)
-
-func get_next_index(current_index: int, clockwise: bool) -> int:
-	if clockwise:
-		return (current_index + 1) % running_positions.size()
+	#print("team: ", team," old index: ", current_path_index, " clockwise: ", moving_clockwise)
+	var next_index = current_path_index
+	if moving_clockwise:
+		next_index = next_index + 1
+		if next_index > running_positions.size() - 1:
+			next_index = 0
 	else:
-		return (current_index - 1) if current_index > 0 else running_positions.size() - 1
+		next_index = next_index - 1
+		if next_index < 0:
+			next_index = running_positions.size() - 1
+	current_path_index = next_index
+	#print("team: ", team,  " next index: ", current_path_index)
+	current_waypoint = running_positions[current_path_index].global_position
 
-func get_next_waypoint(current_index: int, clockwise: bool) -> Vector2:
-	var next_index = get_next_index(current_index, clockwise)
-	return running_positions[next_index].global_position if running_positions.size() > 1 else Vector2.ZERO
 		
 func handle_going_away():
 	var speed
@@ -778,7 +801,9 @@ func handle_going_away():
 	
 	if global_position.distance_to(rest_position) <= 1:
 		current_behavior = "deciding"
+		current_waypoint = Vector2.ZERO
 		has_arrived = true
+		
 		velocity = Vector2.ZERO
 
 func find_closest_position_index(position: Vector2) -> int:
