@@ -16,7 +16,6 @@ class_name Player
 	"balance": 55,		# 1-100, affects damage taken from hits
 	"focus": 50,        # 1-100, affects curve control
 	"shooting": 50,		# 1-100, affects shot and pass speed for forwards
-	"fight": 40,        # 1-100, brawl attack power
 	"toughness": 60,    # 1-100, brawl defense
 	"confidence": 50    # 1-100, affects special moves
 }
@@ -65,6 +64,14 @@ class_name Player
 	"attack_cooldown": 1.0,
 	"ball_proximity_threshold": 45
 }
+
+#character appearance
+var portrait: Sprite2D
+var head: Sprite2D
+var haircut: Sprite2D
+var glove: Sprite2D
+var shoe: Sprite2D
+var body_type: int
 
 #in-match combat
 var attack_target: Player = null
