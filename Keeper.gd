@@ -25,7 +25,6 @@ class_name Keeper
 }
 
 # State
-var current_behavior: String = "waiting"
 var own_goal: Vector2
 var opp_goal: Vector2
 var leftPost: Vector2
@@ -57,6 +56,7 @@ const BASE_AGGRESSION_DISTANCE: float = 100.0  # pixels
 const POSITIONING_VARIANCE: float = 30.0  # max variance in pixels
 const ANTICIPATION_DISTANCE: float = 200.0  # how far ahead to look for ball path
 const BLOCKING_BONUS: float = 1.5 #bonus speed when blocking
+const HUMAN_EFFECT: float = 4 #more bonus for blocking to overcome natural desire not to move
 
 # Navigation
 var navigation_agent: NavigationAgent2D
@@ -64,7 +64,8 @@ var ignore_x_input: bool = false
 
 func _ready():
 	debug = false
-	behaviors = ["waiting", "defending", "sweeping", "avoiding", "fencing", "attacking", "blocking"]
+	behaviors = ["waiting", "defending", "sweeping", "avoiding", "fencing", "attacking", "blocking", "returning"]
+	current_behavior = "waiting"
 	super._ready()
 	attributes.blocking = 85 #nice and wide
 	self.scale.x = 1 * (attributes.blocking/50)
@@ -121,7 +122,6 @@ func _physics_process(delta):
 
 #region Behavior Implementations
 func perform_waiting():
-	"""Waiting behavior - the keeper does nothing in this state"""
 	navigation_agent.target_position = global_position
 	velocity = Vector2.ZERO
 	
@@ -135,15 +135,12 @@ func perform_waiting():
 		#current_behavior = "defending"
 		
 
-
+#decide what state to be in
 func check_state():
-	"""Determines when to transition from defending to other states"""
 	if !ball:
 		return
 	if current_behavior == "waiting": #sit down and wait!
 		return
-		
-	#DEBUG TODO: remove
 	
 	var ball_speed = ball_last_velocity.length()
 	var ball_to_goal = (own_goal - ball.global_position).normalized()
@@ -154,29 +151,15 @@ func check_state():
 	var keeper_dist_to_goal = global_position.distance_squared_to(own_goal)
 	var keeper_dist_to_ball = global_position.distance_to(ball.global_position)
 	
-	# Check for blocking conditions (urgent defense) #TODO: see if this is necessary, rework if it is
-	#if (ball_speed > 500 and goal_threat > 0.7) or ball_dist_to_goal < keeper_dist_to_goal:
-		#current_behavior = "blocking"
-		#return
-	
 	# Check for avoiding conditions (forward pressure)
 	var closest_opponent = get_closest_opponent()
 	if closest_opponent and global_position.distance_to(closest_opponent.global_position) < avoidance_weights["panic_threshold"]:
 		current_behavior = "avoiding"
 		return
-	
-	# Check for sweeping conditions (ball stagnation)
-	var sweep_chance = 0.0
-	sweep_chance += 0.4 * (1.0 - clamp(ball_speed / sweeping_params.slow, 0.0, 1.0))  # Slow ball
-	sweep_chance += 0.3 * (1.0 - abs(ball_direction.x))  # Lateral movement
-	sweep_chance += 0.3 * clamp(time_since_last_touch / sweeping_params.grumpy_frames, 0.0, 1.0)  # Time since touch
-	
-	if keeper_dist_to_ball <= sweeping_params.max_distance and keeper_dist_to_ball >= sweeping_params.min_distance:
-		if randf() < sweep_chance * (attributes.aggression / 99.0):
-			current_behavior = "sweeping"
+	else:
+		current_behavior = "defending"
 
 func perform_sweeping():
-	"""Sweeping behavior - aggressively pursues ball with anticipation"""
 	if !ball:
 		current_behavior = "defending"
 		return
@@ -212,7 +195,6 @@ func perform_avoiding():
 		super.attempt_dodge()
 
 func perform_fencing():
-	"""Fencing behavior - duels with a specific forward"""
 	if !current_opponent or current_opponent.is_stunned:
 		current_behavior = "defending"
 		current_opponent = null
@@ -236,7 +218,6 @@ func perform_fencing():
 		_make_combat_decision(current_opponent.global_position, current_dist)
 
 func perform_attacking():
-	"""Attacking behavior - aggressively charges and attacks forwards"""
 	if attack_cooldown > 0:
 		attack_cooldown -= get_physics_process_delta_time()
 		velocity *= 0.9
@@ -255,7 +236,6 @@ func perform_attacking():
 #endregion
 
 func _make_sweeping_decision(anticipated_pos: Vector2):
-	"""Decides whether to strike or clear during sweeping"""
 	var ball_speed = ball_last_velocity.length()
 	var opponent_dist = global_position.distance_to(get_closest_opponent().global_position)
 	var goal_dist = global_position.distance_to(own_goal)
@@ -266,7 +246,6 @@ func _make_sweeping_decision(anticipated_pos: Vector2):
 	current_behavior = "defending"
 
 func _execute_sweeping_clearance(pos: Vector2):
-	"""Performs a clearance while in motion"""
 	if global_position.distance_to(ball.global_position) > 100:
 		return
 	
@@ -275,7 +254,6 @@ func _execute_sweeping_clearance(pos: Vector2):
 	time_since_last_touch = 0.0
 
 func _determine_strike_target() -> Vector2:
-	"""Determines where to aim the ball"""
 	if _can_shoot_directly():
 		return opp_goal
 	
@@ -296,13 +274,11 @@ func _determine_strike_target() -> Vector2:
 	return opp_goal
 
 func _execute_strike(strike_vector: Vector2):
-	"""Applies force to ball when striking"""
 	if global_position.distance_to(ball.global_position) < 50:
 		ball.apply_force(strike_vector)
 		time_since_last_touch = 0.0
 
 func _execute_attack(target: Vector2):
-	"""Performs attack against current target"""
 	super.attempt_attack(target)
 	attack_cooldown = attack_params["cooldown_time"]
 	
@@ -314,13 +290,11 @@ func _execute_attack(target: Vector2):
 
 #region Utility Functions
 func _is_ball_near_wall() -> bool:
-	"""Checks if ball is near any wall"""
 	return (ball.global_position.distance_to(left_wall.global_position) < 100 or
 			ball.global_position.distance_to(right_wall.global_position) < 100 or
 			ball.global_position.distance_to(back_wall.global_position) < 100)
 
 func _calculate_forward_threat(forward: Player) -> float:
-	"""Calculates threat level from a forward (0-1)"""
 	if !forward:
 		return 0.0
 	
@@ -343,7 +317,6 @@ func get_closest_opponent() -> Player:
 		return oppRF
 
 func _calculate_avoidance_position(threat_left: float, threat_right: float) -> Vector2:
-	"""Calculates optimal avoidance position"""
 	var goal_center = (leftPost + rightPost) / 2
 	var repulsion = Vector2.ZERO
 	
@@ -357,11 +330,9 @@ func _calculate_avoidance_position(threat_left: float, threat_right: float) -> V
 	return goal_center + (target_pos - goal_center).limit_length(leftPost.distance_to(goal_center) * 1.5)
 
 func _should_break_fencing() -> bool:
-	"""Checks if fencing should be interrupted"""
 	return ball and global_position.distance_to(ball.global_position) < fencing_params["ball_proximity_threshold"] * (1.1 - attributes.reactions/100.0)
 
 func _select_attack_target() -> Player:
-	"""Selects most appropriate forward to attack"""
 	var valid_targets = []
 	if oppLF and !oppLF.is_stunned:
 		valid_targets.append(oppLF)
@@ -376,7 +347,6 @@ func _select_attack_target() -> Player:
 	return valid_targets[0]
 
 func _find_secondary_target() -> Player:
-	"""Finds another forward to attack after a stun"""
 	var potential_targets = []
 	if oppLF and !oppLF.is_stunned and global_position.distance_to(oppLF.global_position) < attack_params["target_switch_threshold"]:
 		potential_targets.append(oppLF)
@@ -391,7 +361,6 @@ func _find_secondary_target() -> Player:
 	return potential_targets[0]
 
 func _can_shoot_directly() -> bool:
-	"""Checks if direct shot at goal is viable"""
 	if _path_clearness(global_position, opp_goal) > (0.7 - (0.3 * attributes.aggression/99.0)) or oppKeeper.global_position.distance_to(opp_goal) > 250:
 		return true
 	else:
@@ -409,26 +378,21 @@ func _calculate_bank_shot_target() -> Vector2:
 		return (Vector2(right_wall.global_position.x if use_left else left_wall.global_position.x, back_wall.global_position.y) - wall_pos).bounce(wall_normal) * 1.8
 
 func _find_pass_target() -> Variant:
-	"""Finds viable pass target or returns null"""
 	var options = []
 	var weights = []
-	
 	if buddyLF:
 		var left_clear = _path_clearness(ball.global_position, buddyLF.global_position)
 		if left_clear > (0.5 - (0.2 * attributes.aggression/99.0)):
 			options.append(buddyLF.global_position)
 			weights.append(left_clear)
-	
 	if buddyRF:
 		var right_clear = _path_clearness(ball.global_position, buddyRF.global_position)
 		if right_clear > (0.5 - (0.2 * attributes.aggression/99.0)):
 			options.append(buddyRF.global_position)
 			weights.append(right_clear)
-	
 	return options[weighted_random_choice(range(options.size()), weights)] if !options.is_empty() else null
 
 func _calculate_miss_target() -> Vector2:
-	"""Calculates target for intentional miss"""
 	var use_left = randf() > 0.5
 	return Vector2(
 		left_wall.global_position.x + 100 if use_left else right_wall.global_position.x - 100,
@@ -436,7 +400,6 @@ func _calculate_miss_target() -> Vector2:
 	)
 
 func _calculate_strike_parameters(target_pos: Vector2) -> Variant:
-	"""Calculates intercept point and strike vector"""
 	var ball_future = ball.global_position + ball_last_velocity * 1.0
 	var strike_dir = (target_pos - ball_future).normalized()
 	var intercept = ball_future - (strike_dir * 30.0)
@@ -446,8 +409,8 @@ func _calculate_strike_parameters(target_pos: Vector2) -> Variant:
 	
 	return [intercept, strike_dir * (800 + 200 * attributes.aggression/99.0)]
 
+#returns a float between 0 to 1 representing how open the ball's path is
 func _path_clearness(from_pos: Vector2, to_pos: Vector2) -> float:
-	"""Returns 0-1 value representing path clearness"""
 	var space = 1.0
 	var dir = (to_pos - from_pos).normalized()
 	var dist = from_pos.distance_to(to_pos)
@@ -462,7 +425,6 @@ func _path_clearness(from_pos: Vector2, to_pos: Vector2) -> float:
 	return clamp(space, 0.0, 1.0)
 
 func weighted_random_choice(options: Array, weights: Array):
-	"""Returns a random option with weighted probability"""
 	var total = weights.reduce(func(a, b): return a + b, 0.0)
 	var roll = randf() * total
 	var cumulative = 0.0
@@ -492,30 +454,31 @@ func on_shot_at_goal(shot_from: Vector2, shot_direction: Vector2, shooter_team: 
 func human_assisted_block(shot_from: Vector2, shot_direction: Vector2, intercept: Vector2):
 	print("human assisted")
 	var diff = global_position.x - intercept.x
-	if (diff <= 0 and velocity.x <=0) or (diff >=0 and velocity.x >=0): #not moving away from the ball, can block
-		var block_distance = (15*(attributes.blocking - 50))/49 + 5 #if 50, bd is 5; if 99, bd is 20
+	if (diff <= 0 and velocity.x ==0) or (diff >=0 and velocity.x ==0): #feet are set, can block
+		var block_distance = (25*(attributes.blocking - 50))/49 + 5 #if 50, bd is 5; if 99, bd is 30
 		var block_direction = global_position.direction_to(intercept).normalized()
 		if block_distance <= global_position.distance_to(intercept):
 			if diff <= 0:
-				navigation_agent.target_position = intercept + Vector2(block_distance, 0)
+				navigation_agent.target_position = Vector2(intercept.x + block_distance, global_position.y)
 			else:
-				navigation_agent.target_position = intercept - Vector2(block_distance, 0)
+				navigation_agent.target_position = Vector2(intercept.x - block_distance, global_position.y)
 		else:
 			navigation_agent.target_position = intercept
-		velocity = block_direction * attributes.sprint_speed * BLOCKING_BONUS #slight bonus speed for blocking
+		velocity = block_direction * attributes.sprint_speed * BLOCKING_BONUS * HUMAN_EFFECT #slight bonus speed for blocking
+		move_and_slide()
 
 			
 func perform_blocking():
-	print("Not in my house")
+	#print("Not in my house")
 	var intercept = ball_last_sighted + ball_direction_projection * ((leftPost.y - ball_last_sighted.y) / ball_direction_projection.y)
 	var block_distance = (15*(attributes.blocking - 50))/49 + 5 #if 50, bd is 5; if 99, bd is 20
 	var block_direction = global_position.direction_to(intercept).normalized()
 	if block_distance <= global_position.distance_to(intercept):
 		var diff = global_position.x - intercept.x
 		if diff <= 0:
-			navigation_agent.target_position = intercept + Vector2(block_distance, 0)
+			navigation_agent.target_position = Vector2(intercept.x + block_distance, global_position.y)
 		else:
-			navigation_agent.target_position = intercept - Vector2(block_distance, 0)
+			navigation_agent.target_position = Vector2(intercept.x - block_distance, global_position.y)
 	else:
 		navigation_agent.target_position = intercept
 	velocity = block_direction * attributes.sprint_speed * BLOCKING_BONUS #slight bonus speed for blocking
@@ -524,15 +487,9 @@ func perform_blocking():
 func defending_behavior(delta: float):
 	if !ball:
 		return
-	
-	# Calculate goal characteristics
 	var goal_center: Vector2 = (leftPost + rightPost) / 2
 	var goal_width: float = rightPost.distance_to(leftPost)
-	
-	# Get ball position and velocity
-	var ball_pos: Vector2 = ball.global_position
-	var ball_vel: Vector2 = ball.linear_velocity
-	
+		
 	#initial position: goal line, x as far as ball is across field
 	var ball_field_distance
 	if fieldType == "road":

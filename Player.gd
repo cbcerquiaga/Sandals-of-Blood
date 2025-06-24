@@ -73,6 +73,9 @@ var glove: Sprite2D
 var shoe: Sprite2D
 var body_type: int
 
+#universal fields
+var current_behavior: String #used for state machine
+
 #in-match combat
 var attack_target: Player = null
 var current_opponent: Player = null
@@ -179,14 +182,6 @@ func _physics_process(delta):
 		handle_stun_movement(delta)
 		move_and_slide()
 		return
-	else: #if not stunned, go back to player's half
-		if fieldType == "road" or fieldType == "wideRoad":
-			if (team == 2 and (position_type == "guard" or position_type == "keeper")) or (team == 1 and position_type == "forward"):
-				if global_position.y > fieldHeight:
-					global_position.y -= returnSpeed
-			elif (team == 1 and (position_type == "guard" or position_type == "keeper")) or (team == 2 and position_type == "forward"):
-				if global_position.y < fieldHeight:
-					global_position.y += returnSpeed
 			
 		
 	if is_dodging:
@@ -535,7 +530,7 @@ func check_is_incapacitated() -> bool:
 	return is_incapacitated or is_stunned
 	
 func reset_state():
-	print("Energy: " + str(status.energy))
+	#print("Energy: " + str(status.energy))
 	overall_state = PlayerState.IDLE
 	is_stunned = false
 	is_sprinting = false
@@ -563,7 +558,6 @@ func is_in_half()->bool:
 		var half_extents = assigned_half.get_node("CollisionShape2D").shape.extents
 		var rect = Rect2(assigned_half.global_position - half_extents, half_extents * 2)
 		if rect.has_point(global_position):
-			#print("I'm where I go")
 			return true
 		else:
 			return false
@@ -571,6 +565,8 @@ func is_in_half()->bool:
 func move_towards_half():
 	if !assigned_half:
 		return
+	$CollisionPolygon2D.disabled = true
+	$AttackArea/CollisionPolygon2D.disabled = true
 	var half_extents = assigned_half.get_node("CollisionShape2D").shape.extents
 	var half_position = assigned_half.global_position
 	var half_rect = Rect2(half_position - half_extents, half_extents * 2)
@@ -585,8 +581,12 @@ func move_towards_half():
 		velocity.y = attributes.speed
 	elif global_position.y > half_rect.end.y:     # Too far down
 		velocity.y = -attributes.speed
-	if velocity.x != 0 and velocity.y != 0:
+	if velocity.x != 0 or velocity.y != 0:
+		current_behavior = "returning"
 		velocity = velocity.normalized() * attributes.speed
+	if is_in_half():
+		$CollisionPolygon2D.disabled = false
+		$AttackArea/CollisionPolygon2D.disabled = false
 
 #used for bending runs. If the character knows where they are moving two moves in advance,
 #they can make a curved run to make that turn more natural

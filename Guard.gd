@@ -24,7 +24,6 @@ var oppGoal: Vector2
 
 # Navigation
 var current_target: Vector2
-var current_behavior: String = "marking"
 var engagement_decision: String = ""
 var path_update_timer: float = 0
 
@@ -33,7 +32,8 @@ var path_update_timer: float = 0
 @onready var intent_timer: Timer = $DecisionTimer
 
 func _ready():
-	behaviors = ["chasing", "marking", "pressing", "helping", "doubling", "intercepting", "fencing"]
+	behaviors = ["chasing", "marking", "pressing", "helping", "doubling", "intercepting", "fencing", "returning"]
+	current_behavior = "marking"
 	super._ready()
 	position_type = "guard"
 	oppGoal = Vector2(defending_goal_position.x, 0 - defending_goal_position.y)

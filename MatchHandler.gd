@@ -216,7 +216,6 @@ func reset_players_for_next_play():
 	aTeam.wipe_player_control()
 
 func reset_ball_and_field():
-	# Reset ball completely
 	if is_instance_valid(ball):
 		if pTeam.is_on_offense:
 			ball.reset_ball(Vector2(pTeam.P.global_position.x + pTeam.P.hand_offset, pTeam.P.global_position.y))
@@ -226,6 +225,7 @@ func reset_ball_and_field():
 		field.ball_in_play = true
 	else:
 		print("Error: ball not valid in match handler")
+
 
 func setup_pitching_team():
 	if is_human_team_pitching:

@@ -20,7 +20,6 @@ var decision_frames: int = 0 #when the player will decide how to attack
 var current_decision_frame: int = 0
 
 # Behavior system variables
-var current_behavior = "bull_rush"
 var player_preference = {
 	"bull_rush": 50.0,
 	"skill_rush": 50.0,
@@ -55,7 +54,8 @@ var is_avoiding_guard: bool = false
 
 
 func _ready():
-	behaviors = ["bull_rush", "skill_rush", "target_man", "shooter", "rebound", "pick", "bully", "fencing", "cower"]
+	behaviors = ["bull_rush", "skill_rush", "target_man", "shooter", "rebound", "pick", "bully", "fencing", "cower", "returning"]
+	current_behavior = "bull_rush"
 	super._ready()
 	position_type = "forward"
 	decision_frames = 100 - (attributes.reactions)/2 #between 50 and 75 frames
@@ -94,6 +94,9 @@ func _physics_process(delta):
 func update_ai_behavior(delta):
 	if !ball:
 		return
+	#if is_in_half() == false:
+		#current_behavior = "returning"
+		#return
 	
 	if team == 2 and ball.global_position.y > get_defensive_threshold() or team == 1 and ball.global_position.y < get_defensive_threshold():
 		make_strategy_decision()
@@ -123,6 +126,9 @@ func execute_attack_plan():
 			perform_fencing()
 		"cower":
 			execute_cower()
+		#"returning":
+			#print("forward out of position")
+			#move_towards_half()
 		_:
 			var target_position = opposing_keeper.global_position
 			navigate_to(target_position)
@@ -801,7 +807,7 @@ func predict_ball_path_with_rebounds():
 				"type": "bounce"
 			})
 			
-			current_vel = current_vel.bounce(result.normal.normalized()) * 0.8
+			current_vel = current_vel.bounce(result.normal).normalized() * 0.8
 			
 			if rebound_projection_accuracy < 1.0:
 				current_vel = current_vel.rotated(randf_range(-PI/6, PI/6) * (1.0 - rebound_projection_accuracy))

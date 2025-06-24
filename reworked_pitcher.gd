@@ -78,7 +78,6 @@ var current_waypoint: Vector2
 var next_waypoint: Vector2
 var has_attacked = false
 var has_arrived = false #ready to fight
-var current_behavior: String = "waiting"
 var opp_pitcher: Reworked_Pitcher
 var running_positions: Array
 var moving_clockwise: bool
@@ -98,6 +97,7 @@ var legal_first_moves: Array
 
 func _ready():
 	super._ready()
+	current_behavior = "waiting"
 	collision_mask = 0b0000  # Collide with players (3) but not obstacles (2) or balls (1)
 	position_type = "pitcher"
 	behaviors = ["pitching", "going_away", "deciding", "waiting", "chilling", "chasing", "fleeing", "fighting"]
@@ -384,8 +384,8 @@ func execute_pitch(pitch_type: String):
 		if status.groove >= special_pitch_groove[sp_index]:
 			special_pitch_available[sp_index] = true
 
-func perform_ai_normal_pitch(target):
-	aim_direction = global_position.direction_to(target).normalized()
+func perform_ai_normal_pitch(point):
+	aim_direction = global_position.direction_to(point).normalized()
 	var varied_direction = aim_direction.rotated(current_variance * variance_factor)   
 	var huck = current_power * varied_direction
 	release_ball()
@@ -578,7 +578,6 @@ func reconsider_chase_direction():
 		return
 	var opp_predicted_pos = opp_pitcher.global_position + opp_pitcher.velocity * 0.5
 	var target_index = find_closest_position_index(opp_predicted_pos)
-	var target_waypoint = running_positions[target_index].global_position
 	var my_index = find_closest_position_index(global_position)
 	var clockwise_distance = calculate_clockwise_distance(my_index, target_index)
 	var counter_distance = calculate_counter_distance(my_index, target_index)
