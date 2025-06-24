@@ -801,7 +801,7 @@ func predict_ball_path_with_rebounds():
 				"type": "bounce"
 			})
 			
-			current_vel = current_vel.bounce(result.normal) * 0.8
+			current_vel = current_vel.bounce(result.normal.normalized()) * 0.8
 			
 			if rebound_projection_accuracy < 1.0:
 				current_vel = current_vel.rotated(randf_range(-PI/6, PI/6) * (1.0 - rebound_projection_accuracy))

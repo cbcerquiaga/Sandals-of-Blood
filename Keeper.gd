@@ -48,19 +48,23 @@ var reacting: bool = false
 var last_ball_direction: Vector2 = Vector2.ZERO
 var target_position: Vector2 = Vector2.ZERO
 var current_position: Vector2 = Vector2.ZERO
+var ball_last_sighted: Vector2 = Vector2.ZERO
+var ball_direction_projection: Vector2 = Vector2.ZERO
 # Constants
 const MAX_REACTION_TIME: float = 0.5  # seconds
 const MIN_REACTION_TIME: float = 0.1  # seconds
 const BASE_AGGRESSION_DISTANCE: float = 100.0  # pixels
 const POSITIONING_VARIANCE: float = 30.0  # max variance in pixels
 const ANTICIPATION_DISTANCE: float = 200.0  # how far ahead to look for ball path
+const BLOCKING_BONUS: float = 1.5 #bonus speed when blocking
 
 # Navigation
 var navigation_agent: NavigationAgent2D
+var ignore_x_input: bool = false
 
 func _ready():
 	debug = false
-	behaviors = ["waiting", "defending", "sweeping", "avoiding", "fencing", "attacking"]
+	behaviors = ["waiting", "defending", "sweeping", "avoiding", "fencing", "attacking", "blocking"]
 	super._ready()
 	attributes.blocking = 85 #nice and wide
 	self.scale.x = 1 * (attributes.blocking/50)
@@ -89,8 +93,8 @@ func _physics_process(delta):
 			"defending":
 				defending_behavior(delta)
 				check_state()
-			#"blocking":
-				#perform_blocking()
+			"blocking":
+				perform_blocking()
 			"sweeping":
 				perform_sweeping()
 			"avoiding":
@@ -140,8 +144,6 @@ func check_state():
 		return
 		
 	#DEBUG TODO: remove
-	#current_behavior = "defending"
-	return
 	
 	var ball_speed = ball_last_velocity.length()
 	var ball_to_goal = (own_goal - ball.global_position).normalized()
@@ -472,6 +474,52 @@ func weighted_random_choice(options: Array, weights: Array):
 	
 	return options[0]
 #endregion
+
+#called when the ball is shot by an opposing forward
+func on_shot_at_goal(shot_from: Vector2, shot_direction: Vector2, shooter_team: int):
+	if shooter_team == team: #not my problem
+		return 
+	var reaction_time = map_attribute_to_reaction_time(attributes.reactions)
+	await get_tree().create_timer(reaction_time).timeout
+	var intercept = shot_from + shot_direction * ((leftPost.y - shot_from.y) / shot_direction.y)
+	if !is_controlling_player:
+		ball_last_sighted = shot_from
+		ball_direction_projection = shot_direction
+		current_behavior = "blocking"
+	else:
+		human_assisted_block(shot_from, shot_direction, intercept)
+
+func human_assisted_block(shot_from: Vector2, shot_direction: Vector2, intercept: Vector2):
+	print("human assisted")
+	var diff = global_position.x - intercept.x
+	if (diff <= 0 and velocity.x <=0) or (diff >=0 and velocity.x >=0): #not moving away from the ball, can block
+		var block_distance = (15*(attributes.blocking - 50))/49 + 5 #if 50, bd is 5; if 99, bd is 20
+		var block_direction = global_position.direction_to(intercept).normalized()
+		if block_distance <= global_position.distance_to(intercept):
+			if diff <= 0:
+				navigation_agent.target_position = intercept + Vector2(block_distance, 0)
+			else:
+				navigation_agent.target_position = intercept - Vector2(block_distance, 0)
+		else:
+			navigation_agent.target_position = intercept
+		velocity = block_direction * attributes.sprint_speed * BLOCKING_BONUS #slight bonus speed for blocking
+
+			
+func perform_blocking():
+	print("Not in my house")
+	var intercept = ball_last_sighted + ball_direction_projection * ((leftPost.y - ball_last_sighted.y) / ball_direction_projection.y)
+	var block_distance = (15*(attributes.blocking - 50))/49 + 5 #if 50, bd is 5; if 99, bd is 20
+	var block_direction = global_position.direction_to(intercept).normalized()
+	if block_distance <= global_position.distance_to(intercept):
+		var diff = global_position.x - intercept.x
+		if diff <= 0:
+			navigation_agent.target_position = intercept + Vector2(block_distance, 0)
+		else:
+			navigation_agent.target_position = intercept - Vector2(block_distance, 0)
+	else:
+		navigation_agent.target_position = intercept
+	velocity = block_direction * attributes.sprint_speed * BLOCKING_BONUS #slight bonus speed for blocking
+
 
 func defending_behavior(delta: float):
 	if !ball:

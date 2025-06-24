@@ -37,6 +37,7 @@ signal goal_scored(team)
 signal ball_entered_play
 signal special_pitch_interrupted
 signal area_entered(area: Area2D)
+signal shot_at_goal(ball_position: Vector2, shot_direction: Vector2, shooter_team: int)
 
 func _ready():
 	collision_layer = 0b0001  # Layer 1 (balls)
@@ -137,11 +138,14 @@ func handle_player_collision(player: Player):
 func handle_defender_collision(player: Player):
 	#print("smack me, daddy")
 	var pass_target = player.aim
+	var emit = false
+	if (player.position_type == "guard" and player.aim_point == player.oppGoal) or (player.position_type == "keeper" and player.aim.distance_to(player.opp_goal) < 10):
+		emit = true
 	# Add randomness based on accuracy
 	var accuracy_offset = 1.0 - (player.attributes.accuracy / 100.0)	
 	var pass_dir = (pass_target - global_position).normalized()
 	pass_dir = pass_dir.rotated(randf_range(-accuracy_offset * 0.1, accuracy_offset * 0.1))
-	apply_forward_hit(player, pass_dir)
+	apply_forward_hit(player, pass_dir, emit)
 	# Enter hockey state if not already
 	if current_state != BallState.HOCKEY:
 		enter_hockey_state()
@@ -158,11 +162,11 @@ func handle_forward_collision(forward: Player):
 	else:
 		# Shoot at goal
 		var shot_dir = (goal_pos - global_position).normalized()
-		apply_forward_hit(forward, shot_dir)
+		apply_forward_hit(forward, shot_dir, true)
 	if current_state != BallState.HOCKEY:
 		enter_hockey_state()
 
-func apply_forward_hit(forward: Player, direction: Vector2):
+func apply_forward_hit(forward: Player, direction: Vector2, emit: bool = false):
 	# Calculate power - combination of shooting skill and movement
 	var forward_speed_toward_goal = forward.velocity.dot(direction)
 	forward_speed_toward_goal = max(0, forward_speed_toward_goal)
@@ -185,6 +189,8 @@ func apply_forward_hit(forward: Player, direction: Vector2):
 	var final_power = clamp(combined_power, min_power, max_power)
 	
 	linear_velocity = direction * final_power
+	if emit:
+		emit_signal("shot_at_goal", global_position, direction, forward.team)
 
 func handle_wall_collision(wall: StaticBody2D):
 	#print("ball hit wall")

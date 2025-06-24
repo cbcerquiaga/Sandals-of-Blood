@@ -20,6 +20,7 @@ var mark_incapacitated: bool = false
 var opp_keeper: Keeper = null
 var aim_point: Vector2
 var aim_selection
+var oppGoal: Vector2
 
 # Navigation
 var current_target: Vector2
@@ -35,6 +36,7 @@ func _ready():
 	behaviors = ["chasing", "marking", "pressing", "helping", "doubling", "intercepting", "fencing"]
 	super._ready()
 	position_type = "guard"
+	oppGoal = Vector2(defending_goal_position.x, 0 - defending_goal_position.y)
 
 func assign_forward(forward: Forward):
 	assigned_forward = forward
@@ -256,7 +258,6 @@ func should_help():
 	return false
 
 func set_aim_point():
-	var oppGoal = Vector2(defending_goal_position.x, 0 - defending_goal_position.y)
 	if opp_keeper.global_position.distance_squared_to(oppGoal) > buddy_keeper.distance_squared_to(defending_goal_position):
 		aim_point = oppGoal
 	else:

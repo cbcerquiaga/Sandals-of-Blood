@@ -437,6 +437,8 @@ func enlighten_players():
 	#TODO: field types
 	pTeam.P.legal_first_moves = [2, 1] #SE, SW
 	aTeam.P.legal_first_moves = [0, 3] #NW, NE
+	ball.shot_at_goal.connect(pTeam.K.on_shot_at_goal)
+	ball.shot_at_goal.connect(aTeam.K.on_shot_at_goal)
 
 #passing IDs didn't actually work, but as long as we get both signals we're good
 func on_team_ready_signal(id: int) -> void:
