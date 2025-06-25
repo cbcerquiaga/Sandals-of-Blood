@@ -165,6 +165,7 @@ func _ready():
 	status.max_boost = status.energy * (attributes.endurance/100)
 	status.boost = status.max_boost
 	status.stability = attributes.endurance
+	status.groove = 0#start the game with no groove
 	fencing_params.ball_proximity_threshold = attributes.reactions/2
 	update_ui()
 
@@ -599,6 +600,16 @@ func apply_turn_anticipation(base_direction: Vector2, turn_angle: float, next_wa
 		var adjustment_strength = clamp((turn_angle - deg_to_rad(45)) / deg_to_rad(45), 0, 0.3)
 		return base_direction.rotated(turn_direction * adjustment_strength).normalized()
 	return base_direction
+	
+func add_groove(amount: int):
+	status.groove += amount
+	if status.groove > attributes.confidence:
+		status.groove = attributes.confidence
+		
+func lose_groove(amount: int):
+	status.groove -= abs(amount) #in case I forget whether I want to pass positives or negatives. Doesn't matter now
+	if status.groove < 0:
+		status.groove = 0
 
 # Signals
 signal player_hit(damage)

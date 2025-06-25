@@ -74,6 +74,8 @@ func _on_ball_crossed_midfield():
 	aTeam.allow_movement()
 	pTeam.default_human_state()
 	aTeam.default_ai_state()
+	if is_human_team_pitching:
+		aTeam.K.current_behavior = "guessing"
 
 func _on_ball_exited_field():
 	if (out_of_bounds_frames > too_much_out_of_bounds):
@@ -108,6 +110,15 @@ func _on_player_goal():
 		print("it's an ace!")
 		pTeam.P._on_goal_aced()
 		was_ace = true
+		aTeam.K.lose_groove(5)#sucks to get aced on
+	elif ball.last_hit_by == pTeam.K or ball.assist_by == pTeam.K:
+		pTeam.K.add_groove(5)
+		aTeam.K.lose_groove(2) #sucks a little if your matchup scores on you
+	else: #everybody gets some groove for good teamwork
+		pTeam.P.add_groove(2)
+		pTeam.K.add_groove(2)
+		
+	
 	
 	# If it was an ace, human team keeps pitching, otherwise switch
 	if !was_ace:
@@ -129,10 +140,21 @@ func _on_cpu_goal():
 		print("it's an ace!")
 		aTeam.P._on_goal_aced()
 		was_ace = true
+		pTeam.K.lose_groove(5)#sucks to get aced on
+	elif ball.last_hit_by == aTeam.K or ball.assist_by == aTeam.K:
+		aTeam.K.add_groove(5)
+		pTeam.K.lose_groove(2) #sucks a little if your matchup scores on you
+	else: #everybody gets some groove for good teamwork
+		aTeam.P.add_groove(2)
+		aTeam.K.add_groove(2)
 	
 	# If it was an ace, AI team keeps pitching, otherwise switch
 	if !was_ace:
 		is_human_team_pitching = true
+		pTeam.P.store_successful_pitch()
+		aTeam.K.status.groove -= 10
+		if aTeam.K.status.groove < 0:
+			aTeam.K.status.groove = 0
 	
 	pTeam.is_on_offense = is_human_team_pitching
 	aTeam.is_on_offense = !is_human_team_pitching
@@ -439,6 +461,7 @@ func enlighten_players():
 	aTeam.P.legal_first_moves = [0, 3] #NW, NE
 	ball.shot_at_goal.connect(pTeam.K.on_shot_at_goal)
 	ball.shot_at_goal.connect(aTeam.K.on_shot_at_goal)
+	ball.pitch_side.connect(aTeam.K.save_pitch_from_ball)
 
 #passing IDs didn't actually work, but as long as we get both signals we're good
 func on_team_ready_signal(id: int) -> void:

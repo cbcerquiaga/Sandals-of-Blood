@@ -24,6 +24,14 @@ class_name Keeper
 	"cooldown_time": 0.8
 }
 
+@export var guess_preferences := {
+	"left": 0.4,
+	"middle": 0.2,
+	"right": 0.4,
+	"memory": 0.3
+}
+var has_guessed: bool = false
+
 # State
 var own_goal: Vector2
 var opp_goal: Vector2
@@ -49,6 +57,10 @@ var target_position: Vector2 = Vector2.ZERO
 var current_position: Vector2 = Vector2.ZERO
 var ball_last_sighted: Vector2 = Vector2.ZERO
 var ball_direction_projection: Vector2 = Vector2.ZERO
+var pitches_left: int = 0 #counts number of pitches that went left
+var pitches_middle: int = 0
+var pitches_right: int = 0
+var last_guess: String
 # Constants
 const MAX_REACTION_TIME: float = 0.5  # seconds
 const MIN_REACTION_TIME: float = 0.1  # seconds
@@ -104,6 +116,8 @@ func _physics_process(delta):
 				perform_fencing()
 			"attacking":
 				perform_attacking()
+			"guessing":
+				perform_guessing()
 		#if !is_in_half():
 			#if !is_stunned:
 				#move_towards_half()
@@ -552,3 +566,61 @@ func inverse_lerp(a: float, b: float, value: float) -> float:
 	if a == b:
 		return 0.0
 	return clamp((value - a) / (b - a), 0.0, 1.0)
+	
+	
+#have to guess to make saves
+func perform_guessing():
+	if has_guessed:
+		return
+	var sum = pitches_left + pitches_middle + pitches_right
+	if sum == 0:
+		sum = 1
+	var left_hist_weight = pitches_left / sum
+	var mid_hist_weight = pitches_middle / sum
+	var right_hist_weight = pitches_right / sum
+	var roll = randf()
+	if randf() < guess_preferences.memory: #use memory
+		if roll < left_hist_weight:
+			last_guess = "left"
+			dive_left()
+		elif roll < left_hist_weight + mid_hist_weight:
+			last_guess = "middle"
+			current_behavior = "defending"
+		else:
+			last_guess = "right"
+			dive_right()
+	else:
+		if roll < guess_preferences.left:
+			last_guess = "left"
+			dive_left()
+		elif roll < guess_preferences.left + guess_preferences.right:
+			last_guess = "middle"
+			current_behavior = "defending"
+		else:
+			last_guess = "right"
+			dive_right()
+	print("dive: " + last_guess)
+			
+func dive_left():
+	var threeQuarters = (leftPost.x * 3 + global_position.x)/3
+	var place = Vector2(threeQuarters, global_position.y)
+	navigation_agent.target_position = place
+	var dir = global_position.direction_to(place)
+	velocity = dir * attributes.sprint_speed * attributes.blocking / 45 #2.2 for 99; 1 for 50
+	move_and_slide()
+
+func dive_right():
+	var threeQuarters = (rightPost.x * 3 + global_position.x)/3
+	var place = Vector2(threeQuarters, global_position.y)
+	navigation_agent.target_position = place
+	var dir = global_position.direction_to(place)
+	velocity = dir * attributes.sprint_speed * attributes.blocking / 45 #2.2 for 99; 1 for 50
+	move_and_slide()
+	
+func save_pitch_from_ball(side: String):
+	if side == "left":
+		pitches_left += 1
+	if side == "middle":
+		pitches_middle += 1
+	if side == "right":
+		pitches_right += 1

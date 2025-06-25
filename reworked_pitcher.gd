@@ -21,6 +21,7 @@ var special_pitch_available: Array[bool] = [true, true, true]
 var successful_pitches: Array[Dictionary] = []
 var pitch_success_threshold: int = 3 # How many times a pitch needs to succeed to be "favored"
 var favor_successful_chance: float = 0.3 # 30% chance to use a favored pitch type
+var most_recent_pitch #dictionary of the data from current pitch
 
 # AI Target Range (relative to pitcher position)
 var target_x_min: float = -60.0
@@ -229,6 +230,7 @@ func handle_ai_pitch_decision():
 			ai_execute_special_pitch(pitch_type, selected_target)
 	
 	has_pitched = true
+	status.groove += 2
 
 func ai_select_pitch_type() -> String:
 	var max_groove = attributes.confidence
@@ -338,19 +340,17 @@ func ai_execute_special_pitch(pitch_type: String, target_pos: Vector2):
 	target = target_pos
 	execute_pitch(pitch_type)
 
-func store_successful_pitch(pitch_data: Dictionary):
-	successful_pitches.append(pitch_data)
-	
-	if successful_pitches.size() > 50:
-		successful_pitches.pop_front()
+func store_successful_pitch():
+	if !most_recent_pitch:
+		return
+	successful_pitches.append(most_recent_pitch)
 
 func get_current_pitch_data(pitch_type: String) -> Dictionary:
 	return {
 		"type": pitch_type,
 		"target": target,
 		"power": current_power,
-		"curve": current_curve,
-		"energy_used": (100 - attributes.endurance) * (5 if status.energy > 50 else 2)
+		"curve": current_curve
 	}
 
 func execute_pitch(pitch_type: String):
@@ -391,6 +391,7 @@ func perform_ai_normal_pitch(point):
 	release_ball()
 	ball_pitched.emit(huck, current_curve)
 	has_pitched = true
+	most_recent_pitch = {"pitch_type": "normal", "power": current_power, "curve": current_curve, "direction": aim_direction}
 	go_away()
 
 func perform_normal_pitch():
@@ -415,6 +416,7 @@ func perform_fake_curve_pitch():
 	var frames: Array[int] = [40, 50, 60]
 	current_power = 300
 	special_pitched.emit(aim_direction, current_power, curves, frames, "fake_curve")
+	most_recent_pitch = {"pitch_type": "fake_curve", "power": current_power, "curve": 0, "direction": aim_direction}
 	release_ball()
 
 func perform_zig_zag_pitch():
@@ -424,6 +426,7 @@ func perform_zig_zag_pitch():
 	var frames: Array[int] = [20, 22, 42, 44, 200]
 	current_power = 200
 	special_pitched.emit(aim_direction, current_power, curves, frames, "zig-zag")
+	most_recent_pitch = {"pitch_type": "zif-zag", "power": current_power, "curve": 0, "direction": aim_direction}
 	release_ball()
 	
 func perform_looper_pitch():
@@ -433,6 +436,7 @@ func perform_looper_pitch():
 	var frames: Array[int] = [50, 75, 120]
 	current_power = 200
 	special_pitched.emit(aim_direction, current_power, curves, frames, "looper")
+	most_recent_pitch = {"pitch_type": "looper", "power": current_power, "curve": 0, "direction": aim_direction}
 	release_ball()
 
 func perform_knuckler_pitch():
@@ -442,6 +446,7 @@ func perform_knuckler_pitch():
 	var frames: Array[int] = [10, 20, 30, 40, 50, 60]
 	current_power = 300
 	special_pitched.emit(aim_direction, current_power, curves, frames, "knuckler")
+	most_recent_pitch = {"pitch_type": "knuckler", "power": current_power, "curve": 0, "direction": aim_direction}
 	release_ball()
 	
 func find_wall_normal(wall:StaticBody2D) -> Vector2:
@@ -457,6 +462,7 @@ func perform_bouncer_pitch():
 	var frames: Array[int] = [40, 42, 60]
 	current_power = 300
 	special_pitched.emit(aim_direction, current_power, curves, frames, "bouncer")
+	most_recent_pitch = {"pitch_type": "bouncer", "power": current_power, "curve": 0, "direction": aim_direction}
 	release_ball()
 	
 func perform_corker_pitch():
@@ -466,6 +472,7 @@ func perform_corker_pitch():
 	var frames: Array[int] = [40, 46, 58, 90]
 	current_power = 200
 	special_pitched.emit(aim_direction, current_power, curves, frames, "corker")
+	most_recent_pitch = {"pitch_type": "bouncer", "power": current_power, "curve": 0, "direction": aim_direction}
 	release_ball()
 	
 func perform_boomerang_pitch():
@@ -475,6 +482,7 @@ func perform_boomerang_pitch():
 	var frames: Array[int] = [50, 56, 58, 62, 74, 80]
 	current_power = 200
 	special_pitched.emit(aim_direction, current_power, curves, frames, "boomerang")
+	most_recent_pitch = {"pitch_type": "boomerang", "power": current_power, "curve": 0, "direction": aim_direction}
 	release_ball()
 
 func update_special_pitch_availability():
@@ -483,6 +491,10 @@ func update_special_pitch_availability():
 			special_pitch_available[i] = true
 
 func _on_goal_aced():
+	status.groove += 10
+	if status.groove > attributes.confidence:
+		status.groove = attributes.confidence
+	successful_pitches.append(most_recent_pitch)
 	pass
 
 func get_closest_wall():

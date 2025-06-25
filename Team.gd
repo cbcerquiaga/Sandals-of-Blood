@@ -379,6 +379,7 @@ func default_ai_state():
 	
 func nextPlayStatus():
 	K.reset_state()
+	K.has_guessed = false
 	LG.reset_state()
 	RG.reset_state()
 	LF.reset_state()

@@ -22,7 +22,8 @@ var special_pitch_type: String = ""
 enum BallState { WAITING, PITCHING, SPECIAL_PITCH, HOCKEY }
 var current_state: BallState = BallState.WAITING
 var current_spin: float = 0.0
-var last_hit_by: Player = null
+var last_hit_by: Player = null #most recent player to hit the ball
+var assist_by: Player = null #second most recent player to hit the ball
 var special_trajectory: Curve2D
 var trajectory_progress: float = 0.0
 var pitcher_position: Vector2
@@ -38,6 +39,7 @@ signal ball_entered_play
 signal special_pitch_interrupted
 signal area_entered(area: Area2D)
 signal shot_at_goal(ball_position: Vector2, shot_direction: Vector2, shooter_team: int)
+signal pitch_side(side: String)
 
 func _ready():
 	collision_layer = 0b0001  # Layer 1 (balls)
@@ -122,7 +124,9 @@ func _on_area_entered(area: Area2D):
 func handle_player_collision(player: Player):
 	if current_state == BallState.WAITING:
 		return
-		
+	elif current_state == BallState.PITCHING:
+		save_value_for_keeper(player)
+	assist_by = last_hit_by
 	last_hit_by = player
 	
 	match player.position_type:
@@ -282,6 +286,7 @@ func reset_ball(position: Vector2):
 	current_spin = 0.0
 	current_state = BallState.WAITING
 	last_hit_by = null
+	assist_by = null
 	special_trajectory = null
 	freeze = true
 	global_position = position
@@ -323,3 +328,11 @@ func apply_spin_bounce(wall_normal: Vector2):
 	linear_velocity = new_velocity
 	current_spin *= 0.8  # Loses 20% of spin energy per bounce
 	print("Spin adjusted to keep in bounds (new vel: %s)" % linear_velocity)
+	
+func save_value_for_keeper(player: Player):
+	if player.plays_left_side:
+		pitch_side.emit("left")
+	elif player.position_type == "guard":
+		pitch_side.emit("right")
+	elif player.position_type == "keeper" and player.team == 2:
+		pitch_side.emit(player.last_guess)
