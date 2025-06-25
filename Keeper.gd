@@ -48,6 +48,7 @@ var buddyRF
 var oppLF
 var oppRF
 var oppKeeper
+var desperate: bool = false #activated depending on game state. Impacts decision making
 
 # defending the ball
 var reaction_timer: float = 0
@@ -76,6 +77,7 @@ var ignore_x_input: bool = false
 
 func _ready():
 	debug = false
+	desperate = false #TODO: figure out when to set desperate
 	behaviors = ["waiting", "defending", "sweeping", "avoiding", "fencing", "attacking", "blocking", "returning"]
 	current_behavior = "waiting"
 	super._ready()
@@ -91,6 +93,9 @@ func _physics_process(delta):
 	if !can_move:
 		velocity = Vector2.ZERO
 		return
+	if is_special_active():
+		use_special_ability()
+	
 	
 	if not is_controlling_player and can_move:
 		time_since_last_touch += delta
@@ -130,6 +135,9 @@ func _physics_process(delta):
 		if aim_target:
 			aim_target.on = true
 			aim = aim_target.global_position
+		if Input.is_action_just_pressed("activate_special_ability"):
+			if status.groove > 0:
+				activate_special_ability()
 				
 		
 		move_and_slide()
@@ -189,7 +197,6 @@ func perform_sweeping():
 		_make_sweeping_decision(anticipated_pos)
 
 func perform_avoiding():
-	"""Avoiding behavior - evades opposing forwards while positioning"""
 	var closest_opponent = get_closest_opponent()
 	if !closest_opponent or global_position.distance_squared_to(closest_opponent.global_position) >= avoidance_weights.chill_threshold :
 		current_behavior = "defending"
@@ -381,7 +388,6 @@ func _can_shoot_directly() -> bool:
 		return false
 
 func _calculate_bank_shot_target() -> Vector2:
-	"""Calculates target for bank shot off walls"""
 	var use_left = randf() > 0.5
 	var wall_pos = left_wall.global_position if use_left else right_wall.global_position
 	var wall_normal = Vector2(1, 0) if use_left else Vector2(-1, 0)
@@ -624,3 +630,36 @@ func save_pitch_from_ball(side: String):
 		pitches_middle += 1
 	if side == "right":
 		pitches_right += 1
+		
+func activate_special_ability():
+	match special_ability:
+		"maestro":
+			is_maestro = true
+		"anchor":
+			is_anchor = true
+		"tireless":
+			is_tireless = true
+			
+func is_special_active():
+	if is_maestro:
+		return true
+	elif is_anchor:
+		return true
+	elif is_tireless:
+		return true
+	else:
+		return false
+
+func use_special_ability():
+	status.groove = status.groove - 0.25
+	if status.groove <= 0:
+		is_maestro = false
+		is_anchor = false
+		is_tireless = false
+		
+func ai_check_special_ability():
+	if status.groove >= attributes.confidence / 2:
+		var activate_chance = status.groove / attributes.confidence
+		if randf() < activate_chance or desperate == true:
+			print("AI using special ability")
+			activate_special_ability()

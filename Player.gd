@@ -42,6 +42,20 @@ class_name Player
 	"years": 25
 }
 
+@export var game_stats := {
+	"goals": 0, #scored goal
+	"assists": 0, #passed to teammate who scored
+	"sacks": 0, #stun opposing keeper
+	"hits": 0, #aggressor in a collision
+	"sacks_allowed": 0,#mark gets a sack
+	"pitches_played": 0, #number of plays on field
+	"pitches_thrown": 0,
+	"aces": 0, #goals directly off pitch
+	"knockouts": 0, #knocked out opposing pitcher
+	"goals_for":0, #team scored while on field
+	"goals_against":0 #team scored against while on field
+}
+
 #TODO: update for different parts of strategy
 #TODO: import from team.gd
 @export var team_strategy := {
@@ -89,6 +103,11 @@ var dodge_phase: int = 0#juke has 2 phases
 var current_dodge_frame: int = 0
 var dodge_frames: int = 30
 var dodge_direction: Vector2
+#keeper only, but in this class because that's where collision is
+var special_ability: String #determines which of the 
+var is_anchor: bool = false #halves impact against in collisions
+var is_tireless: bool = false #infinite boost
+var is_maestro: bool = false #slows down time
 
 
 enum PlayerState {
@@ -197,6 +216,12 @@ func _physics_process(delta):
 	else:
 		handle_ai_input()
 	
+	if is_sprinting:
+		status.boost = status.boost -0.25
+		
+	if is_tireless:
+		status.energy = 100
+		status.boost = status.max_boost
 	# Energy/boost recovery
 	if not is_sprinting:
 		recover_resources()
@@ -224,11 +249,23 @@ func handle_human_input(delta):
 	if Input.is_action_just_pressed("dodge"):
 		attempt_dodge()
 	
-	# Attacking
-	if Input.is_action_just_pressed("attack_player"):
-		if aim:
-			attempt_attack(aim)
+	## Attacking
+	#if Input.is_action_just_pressed("attack_player"):
+		#if aim:
+			#attempt_attack(aim)
 
+func reset_game_stats():
+	game_stats.goals = 0
+	game_stats.assists = 0
+	game_stats.sacks = 0
+	game_stats.hits = 0
+	game_stats.sacks_allowed = 0
+	game_stats.pitches_played = 0
+	game_stats.pitches_thrown = 0
+	game_stats.aces = 0
+	game_stats.knockouts = 0
+	game_stats.goals_for = 0
+	game_stats.goals_against = 0
 
 func handle_ai_input():
 	# To be implemented by child classes
@@ -427,7 +464,7 @@ func _on_attack_area_body_entered(body: Node2D):
 			body.take_hit(self, attackPower)
 		if my_velocity_toward_opponent > opponent_velocity_toward_me:
 			print("I am the aggressor")
-			#aggressor 
+			game_stats.hits += 1
 		
 		# Apply the hit with calculated power
 		
@@ -450,6 +487,9 @@ func _on_attack_area_body_entered(body: Node2D):
 		
 
 func take_hit(attacker: Player, power: float):
+	if is_anchor:
+		power = power/2
+		status.stability = 100
 	#print("hit taken")
 	#if is_spinning:
 		## Counter-attack if spinning

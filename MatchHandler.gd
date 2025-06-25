@@ -74,6 +74,7 @@ func _on_ball_crossed_midfield():
 	aTeam.allow_movement()
 	pTeam.default_human_state()
 	aTeam.default_ai_state()
+	aTeam.K.ai_check_special_ability()
 	if is_human_team_pitching:
 		aTeam.K.current_behavior = "guessing"
 
@@ -198,9 +199,20 @@ func _process(delta: float) -> void:
 		reset_match(true) # Start with human team pitching
 		has_started = true
 	else:
+		if pTeam.K.is_special_active() or aTeam.K.is_special_active():
+			if pTeam.K.is_maestro and !aTeam.K.is_maestro:
+				Engine.time_scale = current_settings.time_scale * 0.5 #50% game speed for duration of play
+			elif !pTeam.K.is_maestro and aTeam.K.is_maestro:
+				Engine.time_scale = current_settings.time_scale * 1.2 #120% game speed for duration of play
+			else:
+				Engine.time_scale = current_settings.time_scale
 		if ball.current_state == Ball.BallState.PITCHING or ball.current_state == Ball.BallState.SPECIAL_PITCH:
 			if field.ball_in_play == false:
-				print("Error: ball is not in play but ball is pitching")
+				if field.is_position_in_bounds(ball.global_position):
+					field.ball_in_play = true
+				else:
+					reset_play()
+					print("something has gone wrong")
 
 func next_play():
 	print("Starting next play - Human pitching: " + str(is_human_team_pitching))
@@ -273,6 +285,7 @@ func setup_pitching_team():
 		pTeam.P.current_behavior = "pitching"
 		# Setup human keeper and other players
 		pTeam.K.current_behavior = "waiting"
+		pTeam.K.add_groove(100)#TODO: testing only. remove
 		pTeam.K.is_controlling_player = false
 		# Position AI pitcher in waiting area
 		aTeam.P.global_position = field.cpu_pitcher_waiting.global_position
@@ -366,6 +379,10 @@ func score_goal(team: int):
 	team_scores[team-1] += 1
 	pitches_remaining -= 1
 	last_scoring_team = team
+	if pTeam.K.is_special_active():
+		pTeam.K.status.groove = 0
+	if aTeam.K.is_special_active():
+		aTeam.K.status.groove = 0
 	emit_signal("score_changed", team, team_scores[team-1])
 	check_match_end()
 	if !match_ended:
@@ -477,6 +494,8 @@ func update_scoreboard():
 	
 func fill_team_rosters():
 	#TODO: import player names, stats, and status from sheet
+	pTeam.K.special_ability = "maestro"
+	aTeam.K.special_ability = "anchor"
 	#TODO: import player sprites
 	#Debug only: color player polygons
 	var pGoalie = Color( 1, 1, 0, 1 )#yellow goalie jersey

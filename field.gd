@@ -268,3 +268,31 @@ func _on_cpu_goal_exited(body: Node):
 		ball = body
 		goal_to_check = null
 		check_ball_goal = false
+		
+func is_position_in_bounds(position: Vector2) -> bool:
+	var field_bounds = get_field_bounds()
+	return field_bounds.has_point(position)
+			
+func get_field_bounds() -> Rect2:
+	var player_bounds = _get_area_bounds(playerHalf)
+	var cpu_bounds = _get_area_bounds(cpuHalf)
+	return player_bounds.merge(cpu_bounds)
+
+func _get_area_bounds(area: Area2D) -> Rect2:
+	# Get the CollisionShape2D child of the area
+	var shape = area.get_child(0) as CollisionShape2D
+	if not shape:
+		return Rect2()
+	
+	# Get the shape's global transform and extents
+	var transform = shape.global_transform
+	var extents = Vector2.ZERO
+	
+	if shape.shape is RectangleShape2D:
+		extents = shape.shape.extents
+	elif shape.shape is CapsuleShape2D:
+		extents = Vector2(shape.shape.radius, shape.shape.height * 0.5)
+	# TODO: Add other shape types as needed
+	var global_pos = transform.get_origin()
+	var global_rect = Rect2(global_pos - extents, extents * 2)
+	return global_rect
