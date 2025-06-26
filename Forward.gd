@@ -518,7 +518,7 @@ func attempt_side_switch():
 	$SwitchCooldown.start()
 	last_switch_time = Time.get_ticks_msec() / 1000.0
 
-func attempt_dodge():
+func decide_dodge():
 	if not assigned_guard or is_spinning or status.boost < 15:
 		return
 	
@@ -537,7 +537,7 @@ func calculate_dodge_success() -> float:
 	
 	var confidence_bonus = attributes.confidence / 200.0
 	var speed_advantage = (attributes.speed - assigned_guard.attributes.speed) / 500.0
-	var energy_advantage = (status.energy - assigned_guard.energy) / 200.0
+	var energy_advantage = (status.energy - assigned_guard.status.energy) / 200.0
 	var distance_factor = 1.0 - (global_position.distance_to(assigned_guard.global_position) / 300.0)
 	
 	var success_chance = clamp(
@@ -587,8 +587,8 @@ func attempt_counterattack():
 	status.boost -= 20
 	$AttackArea.monitoring = true
 	$CounterattackTimer.start(0.3)
-	$CounterattackParticles.emitting = true
-	$CounterattackAnimation.play("counter")
+	#$CounterattackParticles.emitting = true
+	#$CounterattackAnimation.play("counter")
 
 func _on_counterattack_timer_timeout():
 	$AttackArea.monitoring = false
@@ -723,7 +723,7 @@ func decide_defensive_response(guard_dist: float, keeper_dist: float):
 		elif guard_dist < keeper_dist && randf() < 0.6:
 			attempt_attack(assigned_guard.global_position)
 		else:
-			attempt_dodge()
+			decide_dodge()
 
 func calculate_target_man_position():
 	var min_x = min(0, waiting_point.x)

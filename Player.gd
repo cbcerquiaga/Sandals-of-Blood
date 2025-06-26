@@ -184,7 +184,7 @@ func _ready():
 	$AttackArea.collision_mask = 0b0100  # Detect other players (layer 3)
 	$AttackArea.collision_layer = 0b0100  # Be detected by other players (layer 3)
 	status.energy = max_energy
-	status.max_boost = status.energy * (attributes.endurance/100)
+	status.max_boost = attributes.endurance * (status.energy/100)
 	status.boost = status.max_boost
 	status.stability = attributes.endurance
 	status.groove = 0#start the game with no groove
@@ -206,6 +206,16 @@ func _physics_process(delta):
 		move_and_slide()
 		status.stability = attributes.balance #re-set to 100% after being knocked over
 		return
+		
+	if status.stability <0:
+		status.stability = 0
+	elif status.stability > attributes.balance:
+		status.stability = attributes.balance
+	
+	if status.boost < 0:
+		status.boost = 0
+	elif status.boost > status.max_boost:
+		status.boost = status.max_boost
 			
 		
 	if is_dodging:
@@ -225,6 +235,7 @@ func _physics_process(delta):
 		
 	if is_tireless:
 		status.energy = 100
+		status.max_boost = attributes.endurance * (status.energy/100)
 		status.boost = status.max_boost
 	# Energy/boost recovery
 	if not is_sprinting:
@@ -280,19 +291,16 @@ func handle_stun_movement(delta):
 	velocity = velocity.move_toward(Vector2.ZERO, delta * 200)
 
 func recover_resources():
-	status.max_boost = status.energy * (attributes.endurance/100)
+	status.max_boost = attributes.endurance * (status.energy/100)
 	
 	if status.boost > status.max_boost:
 		status.boost = status.max_boost
 	else:
-		status.boost = status.boost + 1
+		status.boost = status.boost + 2
 	if status.stability >= attributes.balance:
 		status.stability = attributes.balance
 	else:
-		status.stability = status.stability + 1
-	# Boost recovers when not sprinting
-	if is_sprinting:
-		status.boost = status.boost - 1
+		status.stability = status.stability + 0.25
 
 #ai runs real fast at something, curves movement a bit
 func attempt_sprint(target_position: Vector2):
@@ -449,7 +457,7 @@ func attempt_attack(target_position: Vector2):
 		$AttackArea.body_entered.connect(_on_attack_area_body_entered)
 	
 	# Stamina cost
-	status.energy -= 10
+	status.boost -= 10
 	
 func _on_attack_area_body_entered(body: Node2D):
 	if body != self and body is Player and body.team != team:
@@ -505,8 +513,8 @@ func take_hit(attacker: Player, power: float):
 		status.stability = status.stability - abs(knockback_power) #but he do be stumbling
 		#print("stability remaining: " + str(status.stability))
 		return
-	else: #big hit! more power than sta
-		var stun_time = (12-attributes.toughness/10) #7 for 50 toughness, 2.1 for 99 toughness
+	else: #big hit! more power than stability
+		var stun_time = (445 - 4*attributes.toughness)/49 #5 for 50 toughness, 1 for 99 toughness
 		status.stability = 0
 		enter_stunned_state(stun_time)
 		#print("stunned for " + str(stun_time))
@@ -581,7 +589,7 @@ func reset_state():
 	is_sprinting = false
 	is_incapacitated = false
 	status.stability = attributes.balance
-	status.max_boost = status.energy
+	status.max_boost = status.energy * attributes.endurance/100
 	status.boost = status.max_boost
 	
 func child_state():

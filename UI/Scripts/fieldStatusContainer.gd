@@ -35,6 +35,7 @@ func _process(delta: float) -> void:
 		return
 	update_boost_bars()
 	update_balance_bars()
+	update_groove_bars()
 	
 func assign_player(character: Player):
 	if character.position_type == "forward" or character.position_type == "guard":
@@ -43,10 +44,6 @@ func assign_player(character: Player):
 	player = character
 	make_name_string()
 	get_player_portrait()
-	var balance_container_scale = player.attributes.balance / 99 * 100 * (0.0035657) + 0.001
-	var balance_container_position = player.attributes.balance / 99 * 300 - 1
-	balanceContainer.scale = Vector2(balance_container_scale, base_texture_size.y)
-	balanceContainer.position = Vector2(balance_container_position, balanceContainer.position.y)
 	
 func make_name_string():
 	var str = ""
@@ -90,9 +87,26 @@ func update_boost_bars():
 	boostContainer.position = Vector2(boost_container_position, boostContainer.position.y)
 	
 func update_balance_bars():
-	var stability_percent = player.status.stability / 99 * 100 #max is 99 because of attributes
-	var balance_bar_position = stability_percent * 3 - 1 #100 is 300, 0 is -1
-	var balance_bar_scale = stability_percent * (0.0035657) + 0.001
-	
+	var stability_percent = player.status.stability / 99.0 * 100.0  # max is 99
+	var balance_percent = player.attributes.balance / 99.0 * 100.0  # max is 99
+	var balance_bar_position = stability_percent * 3 - 1  # 100 is 300, 0 is -1
+	var balance_bar_scale = stability_percent * 0.0035657 + 0.001
+	var balance_container_scale = balance_percent * 0.0035657 + 0.001
+	var balance_container_position = balance_percent * 3 - 1
 	balanceBar.scale = Vector2(balance_bar_scale, base_texture_size.y)
 	balanceBar.position = Vector2(balance_bar_position, balanceBar.position.y)
+	balanceContainer.scale = Vector2(balance_container_scale, base_texture_size.y)
+	balanceContainer.position = Vector2(balance_container_position, balanceContainer.position.y)
+	print("stability: ", player.status.stability, " balance: ", player.attributes.balance, " position: " + str(balance_container_position))
+	
+func update_groove_bars():
+	var groove_percent = player.status.groove / 99.0 * 100.0  # max is 99
+	var confidence_percent = player.attributes.confidence / 99.0 * 100.0  # max is 99
+	var groove_bar_position = groove_percent * 3 - 1  # 100 is 300, 0 is -1
+	var groove_bar_scale = groove_percent * 0.0035657 + 0.001
+	var groove_container_scale = confidence_percent * 0.0035657 + 0.001
+	var groove_container_position = confidence_percent * 3 - 1
+	grooveBar.scale = Vector2(groove_bar_scale, base_texture_size.y)
+	grooveBar.position = Vector2(groove_bar_position, balanceBar.position.y)
+	grooveContainer.scale = Vector2(groove_container_scale, base_texture_size.y)
+	grooveContainer.position = Vector2(groove_container_position, balanceContainer.position.y)
