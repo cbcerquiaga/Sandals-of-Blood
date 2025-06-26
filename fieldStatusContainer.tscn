@@ -1,0 +1,67 @@
+[gd_scene load_steps=10 format=3 uid="uid://dy76b3bdg14qa"]
+
+[ext_resource type="Script" path="res://UI/Scripts/fieldStatusContainer.gd" id="1_igps3"]
+[ext_resource type="Texture2D" uid="uid://jgf6i5tfatbh" path="res://UI/StatusUI/PortraitHolder1.png" id="2_afxa4"]
+[ext_resource type="Texture2D" uid="uid://cqfyni2hv32rm" path="res://UI/StatusUI/nameTag.png" id="3_ol6kl"]
+[ext_resource type="Texture2D" uid="uid://clon0jjrs3moo" path="res://UI/StatusUI/boostContainer.png" id="4_s3r33"]
+[ext_resource type="Texture2D" uid="uid://b3646j4hrb6no" path="res://UI/StatusUI/balanceContainer.png" id="5_06nsm"]
+[ext_resource type="Texture2D" uid="uid://cnhmbr2rep8w0" path="res://UI/StatusUI/grooveContainer.png" id="6_ykt1i"]
+[ext_resource type="Texture2D" uid="uid://crawht8hr5i6q" path="res://UI/StatusUI/grooveBar.png" id="7_1somp"]
+[ext_resource type="Texture2D" uid="uid://cxorpejtr0q0l" path="res://UI/StatusUI/balanceBar.png" id="8_5m3tt"]
+[ext_resource type="Texture2D" uid="uid://yswbn1k05twd" path="res://UI/StatusUI/boostBar.png" id="9_0jdsi"]
+
+[node name="Container" type="Container"]
+offset_right = 40.0
+offset_bottom = 40.0
+script = ExtResource("1_igps3")
+
+[node name="BoostContainer" type="Sprite2D" parent="."]
+position = Vector2(300, 93)
+scale = Vector2(0.353, 0.311)
+texture = ExtResource("4_s3r33")
+
+[node name="BalanceContainer" type="Sprite2D" parent="."]
+position = Vector2(301, 58)
+scale = Vector2(0.353005, 0.311)
+texture = ExtResource("5_06nsm")
+
+[node name="GrooveContainer" type="Sprite2D" parent="."]
+position = Vector2(300, 128)
+scale = Vector2(0.353, 0.311)
+texture = ExtResource("6_ykt1i")
+
+[node name="GrooveBar" type="Sprite2D" parent="."]
+position = Vector2(300, 128)
+scale = Vector2(0.353, 0.311)
+texture = ExtResource("7_1somp")
+
+[node name="BalanceBar" type="Sprite2D" parent="."]
+position = Vector2(300, 58)
+scale = Vector2(0.354178, 0.311)
+texture = ExtResource("8_5m3tt")
+
+[node name="BoostBar" type="Sprite2D" parent="."]
+position = Vector2(300, 93)
+scale = Vector2(0.353, 0.311)
+texture = ExtResource("9_0jdsi")
+
+[node name="StatusSymbol" type="Sprite2D" parent="."]
+position = Vector2(-172, -879)
+
+[node name="PortraitHolder1" type="Sprite2D" parent="."]
+position = Vector2(-72, 72.1335)
+scale = Vector2(0.153165, 0.149197)
+texture = ExtResource("2_afxa4")
+
+[node name="Portrait" type="Sprite2D" parent="PortraitHolder1"]
+position = Vector2(2428.75, 374.449)
+scale = Vector2(2.3047, 2.0845)
+
+[node name="NameTag" type="Sprite2D" parent="."]
+position = Vector2(298.5, 19.2191)
+scale = Vector2(0.355803, 0.386413)
+texture = ExtResource("3_ol6kl")
+
+[node name="NameLabel" type="Label" parent="."]
+layout_mode = 2
+text = "Position: Last Name"

@@ -45,6 +45,7 @@ var aTeam : Team
 
 #UI
 @onready var scoreboard = $UI/Score
+@onready var statusUI = $UI/MatchStatusUI
 
 signal emit_match_ended(winning_team)
 signal play_ended(reason)
@@ -67,6 +68,7 @@ func _ready():
 	field.player_goal.connect(_on_player_goal)
 	field.cpu_goal.connect(_on_cpu_goal)
 	fill_team_rosters()
+	statusUI.assign_team(self)
 
 func _on_ball_crossed_midfield():
 	#print("game on!")

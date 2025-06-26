@@ -1,12 +1,7 @@
-[gd_scene load_steps=8 format=3 uid="uid://2e4rsr57cdf"]
+[gd_scene load_steps=3 format=3 uid="uid://2e4rsr57cdf"]
 
 [ext_resource type="Script" path="res://match_status_ui.gd" id="1_stxjv"]
-[ext_resource type="Texture2D" uid="uid://jgf6i5tfatbh" path="res://UI/StatusUI/PortraitHolder1.png" id="2_6bmg6"]
-[ext_resource type="Texture2D" uid="uid://cqfyni2hv32rm" path="res://UI/StatusUI/nameTag.png" id="3_vi2bu"]
-[ext_resource type="Texture2D" uid="uid://clon0jjrs3moo" path="res://UI/StatusUI/boostContainer.png" id="4_5yg4i"]
-[ext_resource type="Texture2D" uid="uid://b3646j4hrb6no" path="res://UI/StatusUI/balanceContainer.png" id="5_cg4v4"]
-[ext_resource type="Texture2D" uid="uid://cxorpejtr0q0l" path="res://UI/StatusUI/balanceBar.png" id="6_8w5oc"]
-[ext_resource type="Texture2D" uid="uid://yswbn1k05twd" path="res://UI/StatusUI/boostBar.png" id="7_gy08l"]
+[ext_resource type="PackedScene" uid="uid://dy76b3bdg14qa" path="res://fieldStatusContainer.tscn" id="2_s5og7"]
 
 [node name="MatchStatusUI" type="Control"]
 layout_mode = 3
@@ -17,41 +12,20 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_stxjv")
 
-[node name="Container" type="Container" parent="."]
+[node name="LF_Container" parent="." instance=ExtResource("2_s5og7")]
 layout_mode = 0
-offset_right = 40.0
-offset_bottom = 40.0
 
-[node name="PortraitHolder1" type="Sprite2D" parent="Container"]
-position = Vector2(100, 956)
-scale = Vector2(0.153165, 0.158767)
-texture = ExtResource("2_6bmg6")
+[node name="P_Container" parent="." instance=ExtResource("2_s5og7")]
+layout_mode = 0
 
-[node name="NameTag" type="Sprite2D" parent="Container"]
-position = Vector2(470.5, 898.219)
-scale = Vector2(0.355803, 0.386413)
-texture = ExtResource("3_vi2bu")
+[node name="RF_Container" parent="." instance=ExtResource("2_s5og7")]
+layout_mode = 0
 
-[node name="BoostContainer" type="Sprite2D" parent="Container"]
-position = Vector2(476.227, 986.883)
-scale = Vector2(0.358734, 0.310869)
-texture = ExtResource("4_5yg4i")
+[node name="LG_Container" parent="." instance=ExtResource("2_s5og7")]
+layout_mode = 0
 
-[node name="BalanceContainer" type="Sprite2D" parent="Container"]
-position = Vector2(477.227, 941.883)
-scale = Vector2(0.359, 0.311)
-texture = ExtResource("5_cg4v4")
+[node name="K_Container" parent="." instance=ExtResource("2_s5og7")]
+layout_mode = 0
 
-[node name="BalanceBar" type="Sprite2D" parent="Container"]
-position = Vector2(477.227, 942.882)
-scale = Vector2(0.359, 0.311)
-texture = ExtResource("6_8w5oc")
-
-[node name="BoostBar" type="Sprite2D" parent="Container"]
-position = Vector2(474.227, 985.882)
-scale = Vector2(0.359, 0.311)
-texture = ExtResource("7_gy08l")
-
-[node name="NameLabel" type="Label" parent="Container"]
-layout_mode = 2
-text = "Position: Last Name"
+[node name="RG_Container" parent="." instance=ExtResource("2_s5og7")]
+layout_mode = 0

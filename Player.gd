@@ -79,12 +79,12 @@ class_name Player
 	"ball_proximity_threshold": 45
 }
 
-#character appearance
-var portrait: Sprite2D
-var head: Sprite2D
-var haircut: Sprite2D
-var glove: Sprite2D
-var shoe: Sprite2D
+#character appearance. paths to assets
+var portrait: String = "res://Assets/Player Portraits/placeholder portrait.png"
+var head: String
+var haircut: String
+var glove: String
+var shoe: String
 var body_type: int
 
 #universal fields
