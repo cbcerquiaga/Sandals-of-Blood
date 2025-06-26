@@ -14,8 +14,11 @@ var statusSymbol: Sprite2D #if character has a status, shows it
 var nameLabel: Label #shows player's name
 var player: Player
 
+var base_texture_size: Vector2 = Vector2(0.353, 0.311)
+
 func _ready() -> void:
 	portrait_holder = $PortraitHolder1
+	portrait = $PortraitHolder1/Portrait
 	name_tag = $NameTag
 	boostContainer = $BoostContainer
 	boostBar = $BoostBar
@@ -28,6 +31,7 @@ func _ready() -> void:
 	
 func _process(delta: float) -> void:
 	if !player:
+		print("no player in UI container")
 		return
 	update_boost_bars()
 	update_balance_bars()
@@ -39,6 +43,10 @@ func assign_player(character: Player):
 	player = character
 	make_name_string()
 	get_player_portrait()
+	var balance_container_scale = player.attributes.balance / 99 * 100 * (0.0035657) + 0.001
+	var balance_container_position = player.attributes.balance / 99 * 300 - 1
+	balanceContainer.scale = Vector2(balance_container_scale, base_texture_size.y)
+	balanceContainer.position = Vector2(balance_container_position, balanceContainer.position.y)
 	
 func make_name_string():
 	var str = ""
@@ -60,12 +68,15 @@ func make_name_string():
 	str += " "
 	str += player.bio.last_name
 	nameLabel.text = str
+	nameLabel.scale = Vector2(2.5, 2)
 	
 func get_player_portrait():
 	if !player or !player.portrait:
 		print("error loading player portrait for ", player.first_name, " ", player.last_name)
 		return
 	portrait.texture = load(player.portrait)
+	portrait.scale = Vector2(0.7, 0.7)
+	portrait.position = Vector2(position.x - 30, position.y +10)
 	
 func update_boost_bars():
 	var boost_percent = player.status.boost / 99 * 100 #max is 99 because of attributes
@@ -73,20 +84,15 @@ func update_boost_bars():
 	var boost_bar_scale = boost_percent * (0.0035657) + 0.001
 	var boost_container_scale = player.status.max_boost / 99 * 100 * (0.0035657) + 0.001
 	var boost_container_position = player.status.max_boost / 99 * 300 - 1
-	var base_texture_size = boostBar.texture.get_size()
 	boostBar.scale = Vector2(boost_bar_scale, base_texture_size.y)
-	boostBar.position = Vector2(boost_bar_position, position.y)
+	boostBar.position = Vector2(boost_bar_position, boostBar.position.y)
 	boostContainer.scale = Vector2(boost_container_scale, base_texture_size.y)
-	boostContainer.position = Vector2(boost_container_position, position.y)
+	boostContainer.position = Vector2(boost_container_position, boostContainer.position.y)
 	
 func update_balance_bars():
 	var stability_percent = player.status.stability / 99 * 100 #max is 99 because of attributes
 	var balance_bar_position = stability_percent * 3 - 1 #100 is 300, 0 is -1
 	var balance_bar_scale = stability_percent * (0.0035657) + 0.001
-	var balance_container_scale = player.attributes.balance / 99 * 100 * (0.0035657) + 0.001
-	var balance_container_position = player.attributes.balance / 99 * 300 - 1
-	var base_texture_size = balanceBar.texture.get_size()
+	
 	balanceBar.scale = Vector2(balance_bar_scale, base_texture_size.y)
-	balanceBar.position = Vector2(balance_bar_position, position.y)
-	balanceContainer.scale = Vector2(balance_container_scale, base_texture_size.y)
-	balanceContainer.position = Vector2(balance_container_position, position.y)
+	balanceBar.position = Vector2(balance_bar_position, balanceBar.position.y)

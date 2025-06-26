@@ -80,12 +80,15 @@ class_name Player
 }
 
 #character appearance. paths to assets
-var portrait: String = "res://Assets/Player Portraits/placeholder portrait.png"
-var head: String
-var haircut: String
-var glove: String
-var shoe: String
-var body_type: int
+@onready var portrait: String = "res://Assets/Player Portraits/placeholder portrait.png"
+@onready var head: String
+@onready var haircut: String
+@onready var glove: String
+@onready var shoe: String
+@onready var body_type: String
+@onready var skin_tone_primary: String
+@onready var skin_tone_secondary: String
+@onready var complexion: String
 
 #universal fields
 var current_behavior: String #used for state machine
@@ -201,6 +204,7 @@ func _physics_process(delta):
 	if is_stunned:
 		handle_stun_movement(delta)
 		move_and_slide()
+		status.stability = attributes.balance #re-set to 100% after being knocked over
 		return
 			
 		
@@ -449,7 +453,7 @@ func attempt_attack(target_position: Vector2):
 	
 func _on_attack_area_body_entered(body: Node2D):
 	if body != self and body is Player and body.team != team:
-		print("collision detected")
+		#print("collision detected")
 		# Calculate attack power (your force toward opponent)
 		var attack_dir = (body.global_position - global_position).normalized()
 		var my_velocity_toward_opponent = velocity.project(attack_dir).length()
@@ -460,10 +464,10 @@ func _on_attack_area_body_entered(body: Node2D):
 		var oppAttackPower = opponent_velocity_toward_me * (body.attributes.power / 100.0)
 		# Apply bounce impulse to opponent
 		if my_velocity_toward_opponent > 0:
-			print("I hit you")
+			#print("I hit you")
 			body.take_hit(self, attackPower)
 		if my_velocity_toward_opponent > opponent_velocity_toward_me:
-			print("I am the aggressor")
+			#print("I am the aggressor")
 			game_stats.hits += 1
 		
 		# Apply the hit with calculated power
@@ -496,7 +500,7 @@ func take_hit(attacker: Player, power: float):
 		#attacker.take_hit(self, power * 0.5)
 		#return
 	var knockback_power = power - (status.stability * attributes.power)#TODO: balance
-	print("power: " + str(power)+", knockback_power: " + str(knockback_power) + ", stability: " + str(status.stability))
+	#print("power: " + str(power)+", knockback_power: " + str(knockback_power) + ", stability: " + str(status.stability))
 	if power < status.stability: #just a nudge
 		status.stability = status.stability - abs(knockback_power) #but he do be stumbling
 		#print("stability remaining: " + str(status.stability))
