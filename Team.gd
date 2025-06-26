@@ -316,6 +316,10 @@ func enlighten(aimTarget, ball, field, keeperWall, ownGoal, oppGoal, oppP, oppK,
 	RF.ball = ball
 	RF.assigned_half = oHalf
 
+func default_grooves():
+	P.set_default_groove()
+	K.set_default_groove()
+
 func wipe_player_control():
 	P.is_controlling_player = false
 	K.is_controlling_player = false

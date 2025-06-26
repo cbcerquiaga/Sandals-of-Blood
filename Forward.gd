@@ -581,10 +581,10 @@ func is_guard_attacking_soon() -> bool:
 	return attack_prob > 0.75 and global_position.distance_to(assigned_guard.global_position) < 150
 
 func attempt_counterattack():
-	if status.boost < 20 or is_spinning:
+	if status.boost < 2 or is_spinning:
 		return
 	
-	status.boost -= 20
+	status.boost -= 2
 	$AttackArea.monitoring = true
 	$CounterattackTimer.start(0.3)
 	#$CounterattackParticles.emitting = true

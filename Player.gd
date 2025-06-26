@@ -17,7 +17,7 @@ class_name Player
 	"focus": 50,        # 1-100, affects curve control
 	"shooting": 50,		# 1-100, affects shot and pass speed for forwards
 	"toughness": 60,    # 1-100, brawl defense
-	"confidence": 50    # 1-100, affects special moves
+	"confidence": 90    # 1-100, affects special moves
 }
 
 @export var status := {
@@ -662,6 +662,9 @@ func lose_groove(amount: int):
 	status.groove -= abs(amount) #in case I forget whether I want to pass positives or negatives. Doesn't matter now
 	if status.groove < 0:
 		status.groove = 0
+
+func set_default_groove():
+	status.groove = int(attributes.confidence/4)
 
 # Signals
 signal player_hit(damage)

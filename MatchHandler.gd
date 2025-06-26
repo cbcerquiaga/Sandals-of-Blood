@@ -115,11 +115,11 @@ func _on_player_goal():
 		was_ace = true
 		aTeam.K.lose_groove(5)#sucks to get aced on
 	elif ball.last_hit_by == pTeam.K or ball.assist_by == pTeam.K:
-		pTeam.K.add_groove(5)
+		pTeam.K.add_groove(10)
 		aTeam.K.lose_groove(2) #sucks a little if your matchup scores on you
 	else: #everybody gets some groove for good teamwork
-		pTeam.P.add_groove(2)
-		pTeam.K.add_groove(2)
+		pTeam.P.add_groove(5)
+		pTeam.K.add_groove(5)
 		
 	
 	
@@ -177,6 +177,8 @@ func reset_match(p_offense):
 	pTeam.is_on_offense = p_offense
 	aTeam.is_on_offense = !p_offense
 	enlighten_players()
+	pTeam.default_grooves()
+	aTeam.default_grooves()
 	reset_play()
 	
 	
@@ -287,7 +289,6 @@ func setup_pitching_team():
 		pTeam.P.current_behavior = "pitching"
 		# Setup human keeper and other players
 		pTeam.K.current_behavior = "waiting"
-		pTeam.K.add_groove(100)#TODO: testing only. remove
 		pTeam.K.is_controlling_player = false
 		# Position AI pitcher in waiting area
 		aTeam.P.global_position = field.cpu_pitcher_waiting.global_position

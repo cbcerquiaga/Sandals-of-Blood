@@ -1,7 +1,11 @@
-[gd_scene load_steps=3 format=3 uid="uid://2e4rsr57cdf"]
+[gd_scene load_steps=7 format=3 uid="uid://2e4rsr57cdf"]
 
 [ext_resource type="Script" path="res://match_status_ui.gd" id="1_stxjv"]
+[ext_resource type="Script" path="res://special_pitch_availability.gd" id="2_8plra"]
 [ext_resource type="PackedScene" uid="uid://dy76b3bdg14qa" path="res://fieldStatusContainer.tscn" id="2_s5og7"]
+[ext_resource type="Texture2D" uid="uid://bvcbh4m2hgoie" path="res://UI/StatusUI/Pitch_available_1.png" id="3_3dorj"]
+[ext_resource type="Texture2D" uid="uid://x52tn85q00q" path="res://UI/StatusUI/pitch_available_2.png" id="4_rslfv"]
+[ext_resource type="Texture2D" uid="uid://cykmplics4xiy" path="res://UI/StatusUI/pitch_available_3.png" id="5_gdw3e"]
 
 [node name="MatchStatusUI" type="Control"]
 layout_mode = 3
@@ -11,6 +15,21 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_stxjv")
+
+[node name="Special_Pitch_availability" type="Container" parent="."]
+layout_mode = 2
+offset_right = 40.0
+offset_bottom = 40.0
+script = ExtResource("2_8plra")
+
+[node name="1" type="Sprite2D" parent="Special_Pitch_availability"]
+texture = ExtResource("3_3dorj")
+
+[node name="2" type="Sprite2D" parent="Special_Pitch_availability"]
+texture = ExtResource("4_rslfv")
+
+[node name="3" type="Sprite2D" parent="Special_Pitch_availability"]
+texture = ExtResource("5_gdw3e")
 
 [node name="LF_Container" parent="." instance=ExtResource("2_s5og7")]
 layout_mode = 0

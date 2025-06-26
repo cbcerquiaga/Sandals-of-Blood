@@ -15,7 +15,7 @@ var true_max_power = 1200 * attributes.power/100 #maximum possible power at 100%
 @export var special_pitch_cooldowns: Array[float] = [10.0, 15.0] # Seconds
 @export var special_pitch_names: Array[String] = ["corker", "boomerang", "zig-zag"]
 var special_pitch_groove: Array[float] = [89, 35, 40] #groove ratings needed to throw each pitch
-var special_pitch_available: Array[bool] = [true, true, true]
+var special_pitch_available: Array[bool] = [false, false, false]
 
 # AI Memory and Decision Making
 var successful_pitches: Array[Dictionary] = []
@@ -104,12 +104,11 @@ func _ready():
 	behaviors = ["pitching", "going_away", "deciding", "waiting", "chilling", "chasing", "fleeing", "fighting"]
 	if bio.leftHanded:
 		hand_offset = hand_offset * -1
-	update_special_pitch_availability()
 
 func _physics_process(delta):
 	super._physics_process(delta)
 	await ball
-	
+	update_special_pitch_availability()
 	if current_behavior == "waiting":
 		has_arrived = false
 		has_attacked = false
@@ -491,7 +490,7 @@ func update_special_pitch_availability():
 			special_pitch_available[i] = true
 
 func _on_goal_aced():
-	status.groove += 10
+	status.groove += 15
 	if status.groove > attributes.confidence:
 		status.groove = attributes.confidence
 	successful_pitches.append(most_recent_pitch)

@@ -8,6 +8,7 @@ var team: Team
 @onready var RF_container: FieldStatusContainer = $RF_Container
 @onready var P_container: FieldStatusContainer = $P_Container
 @onready var K_container: FieldStatusContainer = $K_Container
+@onready var specials: SpecialPitches = $Special_Pitch_availability
 
 func assign_team(handler: MatchHandler):
 	if !matchHandler:
@@ -18,6 +19,8 @@ func assign_team(handler: MatchHandler):
 	LF_container.assign_player(matchHandler.pTeam.LF)
 	RF_container.assign_player(matchHandler.pTeam.RF)
 	P_container.assign_player(matchHandler.pTeam.P)
+	specials.assign_pitcher(matchHandler.pTeam.P)
+	
 
 
 func _process(delta: float) -> void:

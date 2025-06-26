@@ -107,6 +107,6 @@ func update_groove_bars():
 	var groove_container_scale = confidence_percent * 0.0035657 + 0.001
 	var groove_container_position = confidence_percent * 3 - 1
 	grooveBar.scale = Vector2(groove_bar_scale, base_texture_size.y)
-	grooveBar.position = Vector2(groove_bar_position, balanceBar.position.y)
+	grooveBar.position = Vector2(groove_bar_position, grooveBar.position.y)
 	grooveContainer.scale = Vector2(groove_container_scale, base_texture_size.y)
-	grooveContainer.position = Vector2(groove_container_position, balanceContainer.position.y)
+	grooveContainer.position = Vector2(groove_container_position, grooveContainer.position.y)
