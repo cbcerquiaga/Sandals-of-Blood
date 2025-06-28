@@ -49,6 +49,7 @@ func _physics_process(delta):
 		check_ball_attacking_half()
 		update_ai_movement(delta)
 		update_forward_tracking(delta)
+		clamp_target_position()
 		
 
 func update_forward_tracking(delta):
@@ -78,6 +79,7 @@ func update_ai_movement(delta):
 		path_update_timer = 0.3 # Update path 3 times per second
 	else:
 		perform_ai()
+		clamp_target_position()
 	
 	var next_path_pos = navigation_agent.get_next_path_position()
 	var direction = global_position.direction_to(next_path_pos)
@@ -267,3 +269,11 @@ func set_aim_point():
 		aim_point = aim_selection[rand]
 		if aim_point.distance_squared_to(defending_goal_position) < global_position.distance_squared_to(defending_goal_position):
 			aim_point.y = randf_range(-20,20)#shoot it somewhere in the middle
+
+func clamp_target_position():
+	if defending_goal_position.y < 0:
+		if navigation_agent.target_position.y > 0:
+			navigation_agent.target_position = Vector2(navigation_agent.target_position.x, 0)
+	elif defending_goal_position.y > 0:
+		if navigation_agent.target_position.y < 0:
+			navigation_agent.target_position = Vector2(navigation_agent.target_position.x, 0)

@@ -92,7 +92,7 @@ class_name Player
 
 #universal fields
 var current_behavior: String #used for state machine
-
+var needs_go_home: bool = false #overrides current behavior when stunned and out of bounds
 #in-match combat
 var attack_target: Player = null
 var current_opponent: Player = null
@@ -195,6 +195,12 @@ func _physics_process(delta):
 	if !can_move:
 		velocity = Vector2.ZERO
 		return
+	elif needs_go_home and assigned_half:
+		print("ET Go HOOME")
+		var direction = global_position.direction_to(assigned_half.global_position)
+		velocity = velocity + direction.normalized() * attributes.sprint_speed * 1.1
+		return
+		
 
 	if is_incapacitated:
 		velocity = Vector2.ZERO
@@ -259,15 +265,18 @@ func handle_human_input(delta):
 	else:
 		is_sprinting = false
 		velocity = input_dir.normalized() * attributes.speed
+	if !is_in_half() and can_move:
+		print("go home, player!")
+		if fieldType == "road" or fieldType == "wideRoad":
+			if velocity.y <= 0:
+				velocity.y = 0
+		
 	
 	# Dodging
 	if Input.is_action_just_pressed("dodge"):
 		attempt_dodge()
 	
-	## Attacking
-	#if Input.is_action_just_pressed("attack_player"):
-		#if aim:
-			#attempt_attack(aim)
+
 
 func reset_game_stats():
 	game_stats.goals = 0
@@ -606,10 +615,12 @@ func out_fight():
 		
 func is_in_half()->bool:
 	if !assigned_half:
-		return false
+		return true #assume they're in the right place, don't mess with them
 	else:
 		var half_extents = assigned_half.get_node("CollisionShape2D").shape.extents
+		half_extents = half_extents * 2 #add buffer
 		var rect = Rect2(assigned_half.global_position - half_extents, half_extents * 2)
+		#print("rect: ", rect, " position: ", global_position)
 		if rect.has_point(global_position):
 			return true
 		else:

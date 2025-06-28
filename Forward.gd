@@ -80,6 +80,7 @@ func _physics_process(delta):
 	
 	if not is_controlling_player and can_move:
 		update_ai_behavior(delta)
+		clamp_target_position()
 		if team == 1:
 			human_pass_control()
 		
@@ -100,8 +101,8 @@ func update_ai_behavior(delta):
 	
 	if team == 2 and ball.global_position.y > get_defensive_threshold() or team == 1 and ball.global_position.y < get_defensive_threshold():
 		make_strategy_decision()
-		
 		execute_attack_plan()
+		clamp_target_position()
 
 func make_strategy_decision():
 	choose_behavior()
@@ -958,3 +959,11 @@ func perform_fencing():
 func _should_break_fencing() -> bool:
 	"""Checks if fencing should be interrupted"""
 	return ball and global_position.distance_to(ball.global_position) < fencing_params["ball_proximity_threshold"] * (1.1 - attributes.reactions/100.0)
+
+func clamp_target_position():
+	if goal_position.y < 0:
+		if navigation_agent.target_position.y > 0:
+			navigation_agent.target_position = Vector2(navigation_agent.target_position.x, 0)
+	elif goal_position.y > 0:
+		if navigation_agent.target_position.y < 0:
+			navigation_agent.target_position = Vector2(navigation_agent.target_position.x, 0)

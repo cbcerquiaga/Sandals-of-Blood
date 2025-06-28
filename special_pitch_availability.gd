@@ -33,9 +33,9 @@ func _process(delta: float) -> void:
 	indicator2.scale = Vector2(0.05, 0.05)
 	indicator3.scale = Vector2(0.05, 0.05)
 	var x = 20
-	indicator1.position = Vector2(x + pitcher.special_pitch_groove[0], 352)
-	indicator2.position = Vector2(x + pitcher.special_pitch_groove[1], 352)
-	indicator3.position = Vector2(x + pitcher.special_pitch_groove[2], 352)
+	indicator1.position = Vector2(x + pitcher.special_pitch_groove[0], 382)
+	indicator2.position = Vector2(x + pitcher.special_pitch_groove[1], 382)
+	indicator3.position = Vector2(x + pitcher.special_pitch_groove[2], 382)
 	indicator1.z_index = 100
 	indicator2.z_index = 100
 	indicator3.z_index = 100

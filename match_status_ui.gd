@@ -33,11 +33,11 @@ func _process(delta: float) -> void:
 	RF_container.scale = Vector2(0.18,0.18)
 	K_container.scale = Vector2(0.18,0.18)
 	P_container.scale = Vector2(0.18,0.18)
-	LF_container.global_position = Vector2(-180, 140)
-	P_container.global_position = Vector2(-40, 140)
-	RF_container.global_position = Vector2(100, 140)
-	LG_container.global_position = Vector2(-180, 175)
-	K_container.global_position = Vector2(-40, 175)
-	RG_container.global_position = Vector2(100, 175)
+	LF_container.global_position = Vector2(-180, 170)
+	P_container.global_position = Vector2(-40, 170)
+	RF_container.global_position = Vector2(100, 170)
+	LG_container.global_position = Vector2(-180, 205)
+	K_container.global_position = Vector2(-40, 205)
+	RG_container.global_position = Vector2(100, 205)
 	pass
 	

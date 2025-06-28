@@ -290,6 +290,7 @@ func enlighten(aimTarget, ball, field, keeperWall, ownGoal, oppGoal, oppP, oppK,
 	LG.assigned_half = dHalf
 	LG.aim_target = aimTarget
 	LG.ball = ball
+	LG.plays_left_side = true
 	LG.assigned_forward = oppRF
 	LG.other_forward = oppLF
 	LG.buddy_keeper = K
@@ -306,6 +307,7 @@ func enlighten(aimTarget, ball, field, keeperWall, ownGoal, oppGoal, oppP, oppK,
 	LF.opposing_keeper = oppK
 	LF.forward_partner = RF
 	LF.ball = ball
+	LF.plays_left_side = true
 	LF.assigned_half = oHalf
 	LF.waiting_point = LfWaiting.global_position
 	RF.waiting_point = RfWaiting.global_position

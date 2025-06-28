@@ -197,6 +197,9 @@ func _on_player_half_entered(body: Node):
 			ball_touched_player_half = true
 			print("touched player half")
 			_check_midfield_crossing()
+	elif body is Player:
+		if body.position_type != "pitcher" and body.assigned_half == playerHalf:
+			body.needs_go_home = false
 
 func _on_cpu_half_entered(body: Node):
 	if body is Ball:
@@ -206,18 +209,28 @@ func _on_cpu_half_entered(body: Node):
 			ball_touched_cpu_half = true
 			print("touched CPU half")
 			_check_midfield_crossing()
+	elif body is Player:
+		print("player entered cpu half")
+		if body.position_type != "pitcher" and body.assigned_half == cpuHalf:
+			body.needs_go_home = false
 
 func _on_cpu_half_exited(body: Node):
 	if body is Ball:
 		ball = body
 		ball_in_cpu_half = false
 		check_ball_in_play(body)
+	elif body is Player:
+		if body.position_type != "pitcher" and body.assigned_half == cpuHalf:
+			body.needs_go_home = true
 		
 func _on_player_half_exited(body:Node):
 	if body is Ball:
 		ball = body
 		ball_in_player_half = false
 		check_ball_in_play(body)
+	elif body is Player:
+		if body.position_type != "pitcher" and body.assigned_half == playerHalf:
+			body.needs_go_home = true
 		
 func check_ball_in_play(ball: Ball):
 	if !ball_in_cpu_half && !ball_in_player_half:

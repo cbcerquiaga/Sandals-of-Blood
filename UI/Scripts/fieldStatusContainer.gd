@@ -36,6 +36,7 @@ func _process(delta: float) -> void:
 	update_boost_bars()
 	update_balance_bars()
 	update_groove_bars()
+	make_name_string()
 	
 func assign_player(character: Player):
 	if character.position_type == "forward" or character.position_type == "guard":
@@ -97,7 +98,7 @@ func update_balance_bars():
 	balanceBar.position = Vector2(balance_bar_position, balanceBar.position.y)
 	balanceContainer.scale = Vector2(balance_container_scale, base_texture_size.y)
 	balanceContainer.position = Vector2(balance_container_position, balanceContainer.position.y)
-	print("stability: ", player.status.stability, " balance: ", player.attributes.balance, " position: " + str(balance_container_position))
+	#print("stability: ", player.status.stability, " balance: ", player.attributes.balance, " position: " + str(balance_container_position))
 	
 func update_groove_bars():
 	var groove_percent = player.status.groove / 99.0 * 100.0  # max is 99
