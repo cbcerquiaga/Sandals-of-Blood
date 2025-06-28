@@ -33,6 +33,8 @@ var team1Ready:bool
 var team2Ready:bool
 var out_of_bounds_frames: int = 0
 var too_much_out_of_bounds: int = 20
+var fighting_frame = 0
+var max_fighting_frame = 15 #TODO: update based on refresh rate
 
 # References
 @onready var ball= $Ball as Ball
@@ -217,6 +219,11 @@ func _process(delta: float) -> void:
 				else:
 					reset_play()
 					print("something has gone wrong")
+		if pTeam.P.current_behavior == "fighting" and aTeam.P.current_behavior == "fighting":
+			fighting_frame += 1
+			if fighting_frame >= max_fighting_frame:
+				fighting_frame = 0
+				pitchers_fight()
 
 func next_play():
 	print("Starting next play - Human pitching: " + str(is_human_team_pitching))
@@ -238,7 +245,7 @@ func next_play():
 	
 	# Start play timer
 	play_timer.start(current_settings.play_length if current_settings.play_length > 0 else 9999)
-	
+	fighting_frame = 0
 	emit_signal("play_ended", "next_play")
 
 func reset_players_for_next_play():
@@ -246,9 +253,10 @@ func reset_players_for_next_play():
 	for player in pTeam.onfield_players + aTeam.onfield_players:
 		if player:
 			player.can_move = false
-			player.status.energy -= (100 - player.attributes.endurance)/10 #0.1 for 99 endurance, 5 for 50
+			player.lose_energy((100 - player.attributes.endurance)/10) #0.1 for 99 endurance, 5 for 50
 			player.reset_state()
-	
+	pTeam.bench_rest() #resting players regain energy
+	aTeam.bench_rest()
 	# Clear team control
 	pTeam.wipe_player_control()
 	aTeam.wipe_player_control()
@@ -517,3 +525,79 @@ func fill_team_rosters():
 	aTeam.LF.get_node("Polygon2D").color = aUniform
 	aTeam.RF.get_node("Polygon2D").color = aUniform
 	aTeam.P.get_node("Polygon2D").color = aUniform
+
+func pitchers_fight():
+	var tough_diff = pTeam.P.attributes.toughness - aTeam.P.attributes.toughness
+	#punch power and survivability degrade as players get tired. Mostly based on fighting skill (toughness) but also other athletic traits
+	var p_punch_power = pTeam.P.attributes.toughness * 2 + pTeam.P.attributes.power + pTeam.P.attributes.shooting + pTeam.P.status.boost #between 200 and 495
+	var a_punch_power = aTeam.P.attributes.toughness * 2 + aTeam.P.attributes.power + aTeam.P.attributes.shooting + aTeam.P.status.boost
+	var p_chin = pTeam.P.attributes.toughness * 2 + pTeam.P.attributes.durability + pTeam.P.status.boost#between 150 and 396
+	var a_chin = aTeam.P.attributes.toughness * 2 + aTeam.P.attributes.durability + aTeam.P.status.boost
+	var p_hit_chance = 0.5 + (tough_diff * 0.48)/49.0
+	var a_hit_chance = 1 - p_hit_chance
+	var p_roll = randf()
+	var a_roll = randf()
+	if p_roll < p_hit_chance and a_roll < a_hit_chance: #Rocky
+		#take stability damage, roll for injury
+		pTeam.P.get_socked(a_punch_power - p_chin)
+		pTeam.P.lose_stability(sqrt(a_punch_power)/5)#between 2.8 and 4.5, relatively minor stability loss
+		aTeam.P.get_socked(p_punch_power - a_chin)
+		aTeam.P.lose_stability(sqrt(p_punch_power)/5)
+	elif p_roll < p_hit_chance:
+		aTeam.P.get_socked(p_punch_power - a_chin)
+		pTeam.P.lose_stability(1)  #almost no stability loss
+		aTeam.P.lose_stability(sqrt(p_punch_power)/5)
+	elif a_roll < a_hit_chance:
+		pTeam.P.get_socked(a_punch_power - p_chin)
+		aTeam.P.lose_stability(1)  #almost no stability loss
+		pTeam.P.lose_stability(sqrt(a_punch_power)/5)
+	else:
+		#between 2 and 296
+		var rastle = pTeam.P.attributes.power + aTeam.P.attributes.power + pTeam.P.attributes.toughness + aTeam.P.attributes.toughness -pTeam.P.attributes.balance -aTeam.P.attributes.balance
+		pTeam.P.lose_stability(sqrt(rastle))
+		aTeam.P.lose_stability(sqrt(rastle))
+	#always lose some boost
+	var p_loss = (100 - pTeam.P.attributes.endurance)/10 + 2 #between 2.1 and 7; between 7 and 47 punches before using up all boost if at max boost to start
+	var a_loss = (100 - aTeam.P.attributes.endurance)/10 + 2
+	pTeam.P.lose_boost(p_loss)
+	aTeam.P.lose_boost(a_loss)
+	#check if anybody has fallen over
+	if pTeam.P.status.stability <= 0 and aTeam.P.status.stability <= 0:
+		fight_fall_over()
+	elif pTeam.P.status.stability <= 0:
+		cpu_team_wins_fight()
+	elif aTeam.P.status.stability <= 0:
+		human_team_wins_fight()
+	
+func human_team_wins_fight():
+	print("Robot got KO'd")
+	pTeam.P.add_groove(20)
+	pTeam.K.add_groove(10)
+	aTeam.P.lose_groove(50)
+	aTeam.P.lose_energy(20)
+	#aTeam.P. injury chance
+	pTeam.fire_up_bench()
+	aTeam.P.current_behavior = "fallen"
+	pTeam.P.current_behavior = ""
+	pTeam.P.overall_state = Player.PlayerState.SOLO_CELEBRATION
+	
+func cpu_team_wins_fight():
+	print("Suck on this shiny metal fist")
+	aTeam.P.add_groove(20)
+	aTeam.K.add_groove(10)
+	pTeam.P.lose_groove(50)
+	pTeam.P.lose_energy(20)
+	#pTeam.P. injury chance
+	aTeam.fire_up_bench()
+	pTeam.P.current_behavior = "fallen"
+	aTeam.P.current_behavior = ""
+	aTeam.P.overall_state = Player.PlayerState.SOLO_CELEBRATION
+	
+func fight_fall_over():
+	print("anticlimax")
+	aTeam.P.current_behavior = "fallen"
+	pTeam.P.current_behavior = "fallen"
+	aTeam.P.add_groove(1)
+	pTeam.P.add_groove(1)
+	#injury chance for both
+	

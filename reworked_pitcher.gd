@@ -69,9 +69,9 @@ var can_pitch:bool = false
 @export var rest_position: Vector2 = Vector2(-1000, -1000)  # Set this in editor or via code
 @onready var navigation_agent: NavigationAgent2D = $NavigationAgent2D
 @export var scrapping := {
-	"flee": 20,
+	"flee": 0,
 	"fight": 50,
-	"chill": 5,
+	"chill": 25,
 	"track": 0
 	}
 var current_path_index: int = 0
@@ -123,6 +123,10 @@ func _physics_process(delta):
 		velocity = Vector2.ZERO
 		if has_arrived and opp_pitcher.has_arrived == true:
 			fight_or_flight()
+	elif current_behavior == "fallen":
+		return
+	elif current_behavior == "fighting":
+		fight_footwork()
 	elif current_behavior == "chilling":
 		chill()
 	elif current_behavior == "chasing":
@@ -691,6 +695,18 @@ func chill():
 	if last_reaction_check >= REACTION_CHECK_INTERVAL:
 		last_reaction_check = 0.0
 		check_chill_state()
+		
+func fight_footwork():
+	current_behavior = "fighting"
+	if !opp_pitcher:
+		return
+	var direction: Vector2
+	if global_position.distance_to(opp_pitcher.global_position) > 30:
+		direction = global_position.direction_to(opp_pitcher.global_position)
+	else:
+		direction = Vector2(randf_range(-1,1), randf_range(-1,1))
+	velocity = direction * (attributes.speed * 0.1)
+	move_and_slide()
 	
 func fight_or_flight():
 	var base_flee = scrapping["flee"]

@@ -391,4 +391,14 @@ func nextPlayStatus():
 	LF.reset_state()
 	RF.reset_state()
 	P.reset_state()
+	bench_rest()
 	
+func fire_up_bench():
+	for player in bench:
+		player.add_groove(20)
+		player.add_energy(10)
+		
+func bench_rest():
+	for player in bench:
+		player.lose_groove(1)
+		player.add_energy(5)

@@ -470,6 +470,10 @@ func attempt_attack(target_position: Vector2):
 	
 func _on_attack_area_body_entered(body: Node2D):
 	if body != self and body is Player and body.team != team:
+		if body.position_type == "pitcher" and position_type == "pitcher":
+			current_behavior = "fighting"
+			print("why I oughta")
+			return
 		#print("collision detected")
 		# Calculate attack power (your force toward opponent)
 		var attack_dir = (body.global_position - global_position).normalized()
@@ -664,6 +668,11 @@ func apply_turn_anticipation(base_direction: Vector2, turn_angle: float, next_wa
 		return base_direction.rotated(turn_direction * adjustment_strength).normalized()
 	return base_direction
 	
+func add_energy(amount: int):
+	status.energy += amount
+	if status.energy > 100:
+		status.energy = 100
+	
 func add_groove(amount: int):
 	status.groove += amount
 	if status.groove > attributes.confidence:
@@ -673,9 +682,39 @@ func lose_groove(amount: int):
 	status.groove -= abs(amount) #in case I forget whether I want to pass positives or negatives. Doesn't matter now
 	if status.groove < 0:
 		status.groove = 0
+		
+func lose_stability(amount: float):
+	status.stability -= abs(amount) #in case I forget whether I want to pass positives or negatives. Doesn't matter now
+	if status.stability < 0:
+		status.stability = 0
+		
+func lose_energy(amount: float):
+	status.energy -= abs(amount) #in case I forget whether I want to pass positives or negatives. Doesn't matter now
+	if status.energy < 0:
+		status.energy = 0
+	status.max_boost = status.energy
+	if status.boost > status.max_boost:
+		status.boost = status.max_boost
+		
+func lose_boost(amount: float):
+	status.boost -= abs(amount)
+	if status.boost < 0:
+		status.boost = 0
 
 func set_default_groove():
 	status.groove = int(attributes.confidence/4)
+	
+func get_socked(impact: float):
+	if impact < 0:
+		print("you are pathetic")
+		return
+	var impact_sqrt = sqrt(impact) 
+	var num_injury_rolls = int(impact_sqrt) #vaguely between 1 and 18
+	var roll
+	for i in range(0, num_injury_rolls):
+		roll = randf()
+		if roll > attributes.durability/100.0: #taking some injury here
+			print("injury acquired on roll ", i, " of ", num_injury_rolls)
 
 # Signals
 signal player_hit(damage)
