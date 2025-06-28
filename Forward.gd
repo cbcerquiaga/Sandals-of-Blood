@@ -217,11 +217,15 @@ func execute_shooter():
 func execute_rebound():
 	if !ball:
 		return
+	if goal_position.y > 0 and ball.global_position.y < 0 or goal_position.y < 0 and ball.global_position.y > 0:
+		current_behavior = "target_man"
+		return
 	
 	check_pass_opportunity()
 	rebound_projection_accuracy = 0.5 + (attributes.positioning / 200.0)
 	predict_ball_path_with_rebounds()
 	find_intercept_point()
+		
 	
 	if current_intercept_point != Vector2.ZERO:
 		navigate_to(current_intercept_point)
@@ -432,7 +436,7 @@ func is_under_pressure() -> bool:
 	return pressure >= 2
 
 func is_near_goal() -> bool:
-	return global_position.distance_to(goal_position) < 400
+	return global_position.distance_to(goal_position) < 50
 
 func set_behavior(new_behavior: String):
 	if current_behavior == new_behavior:
@@ -729,11 +733,16 @@ func decide_defensive_response(guard_dist: float, keeper_dist: float):
 func calculate_target_man_position():
 	var min_x = min(0, waiting_point.x)
 	var max_x = max(0, waiting_point.x)
+	var goal_y_diff
+	if goal_position.y < 0:
+		goal_y_diff = -30
+	else:
+		goal_y_diff = 30
 	var positioning_randomness = 1.0 - (attributes.positioning / 100.0)
 	var random_x = randf_range(min_x, max_x) * positioning_randomness
 	target_man_position = Vector2(
 		random_x,
-		lerp(-50, 50, randf())
+		lerp(-50, 50, randf_range(0,goal_y_diff))
 	)
 
 func create_passing_lane():

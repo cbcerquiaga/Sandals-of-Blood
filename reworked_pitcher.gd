@@ -13,8 +13,8 @@ var true_max_power = 1200 * attributes.power/100 #maximum possible power at 100%
 
 # Special Pitches
 @export var special_pitch_cooldowns: Array[float] = [10.0, 15.0] # Seconds
-@export var special_pitch_names: Array[String] = ["corker", "boomerang", "zig-zag"]
-var special_pitch_groove: Array[float] = [89, 35, 40] #groove ratings needed to throw each pitch
+@export var special_pitch_names: Array[String] = ["knuckler", "fake_curve", "looper"]
+var special_pitch_groove: Array[float] = [20, 40, 60] #groove ratings needed to throw each pitch
 var special_pitch_available: Array[bool] = [false, false, false]
 
 # AI Memory and Decision Making
@@ -69,10 +69,10 @@ var can_pitch:bool = false
 @export var rest_position: Vector2 = Vector2(-1000, -1000)  # Set this in editor or via code
 @onready var navigation_agent: NavigationAgent2D = $NavigationAgent2D
 @export var scrapping := {
-	"flee": 0,
+	"flee": 20,
 	"fight": 50,
 	"chill": 25,
-	"track": 0
+	"track": 5
 	}
 var current_path_index: int = 0
 var current_waypoint: Vector2
