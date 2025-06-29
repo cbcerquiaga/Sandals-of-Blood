@@ -51,6 +51,7 @@ var oppKeeper
 var desperate: bool = false #activated depending on game state. Impacts decision making
 
 # defending the ball
+const max_goal_offset: float = 29.5
 var reaction_timer: float = 0
 var reacting: bool = false
 var last_ball_direction: Vector2 = Vector2.ZERO
@@ -62,6 +63,12 @@ var pitches_left: int = 0 #counts number of pitches that went left
 var pitches_middle: int = 0
 var pitches_right: int = 0
 var last_guess: String
+var hold_frame: int = 15
+var is_human_blocking: bool = false
+var human_block_timer: float = 0.0
+var human_block_target: Vector2
+var human_block_speed_multiplier: float = 1.2
+const HUMAN_BLOCK_DURATION: float = 0.6  # How long to override input
 # Constants
 const MAX_REACTION_TIME: float = 0.5  # seconds
 const MIN_REACTION_TIME: float = 0.1  # seconds
@@ -93,11 +100,16 @@ func _physics_process(delta):
 	if !can_move:
 		velocity = Vector2.ZERO
 		return
+	if is_human_blocking:
+		if handle_human_blocking(delta):
+			move_and_slide()
+			return  # Skip normal input processing while blocking
 	if is_special_active():
 		use_special_ability()
 	
 	
 	if not is_controlling_player and can_move:
+		print("current behavior: ", current_behavior)
 		time_since_last_touch += delta
 		
 		# Update ball tracking
@@ -108,6 +120,8 @@ func _physics_process(delta):
 		match current_behavior:
 			"waiting":
 				perform_waiting()
+			"holding":
+				perform_holding(hold_frame)
 			"defending":
 				defending_behavior(delta)
 				check_state()
@@ -472,25 +486,46 @@ func on_shot_at_goal(shot_from: Vector2, shot_direction: Vector2, shooter_team: 
 		human_assisted_block(shot_from, shot_direction, intercept)
 
 func human_assisted_block(shot_from: Vector2, shot_direction: Vector2, intercept: Vector2):
-	print("human assisted")
+	print("human assisted block initiated")
+	
+	# Calculate the intercept point
 	var diff = global_position.x - intercept.x
-	if (diff <= 0 and velocity.x ==0) or (diff >=0 and velocity.x ==0): #feet are set, can block
-		var block_distance = (25*(attributes.blocking - 50))/49 + 5 #if 50, bd is 5; if 99, bd is 30
-		var block_direction = global_position.direction_to(intercept).normalized()
-		if block_distance <= global_position.distance_to(intercept):
-			if diff <= 0:
-				navigation_agent.target_position = Vector2(intercept.x + block_distance, global_position.y)
-			else:
-				navigation_agent.target_position = Vector2(intercept.x - block_distance, global_position.y)
+	var block_distance = (25*(attributes.blocking - 50))/49 + 5
+	
+	# Determine target position
+	if block_distance <= global_position.distance_to(intercept):
+		if diff <= 0:
+			human_block_target = Vector2(intercept.x + block_distance, global_position.y)
 		else:
-			navigation_agent.target_position = intercept
-		velocity = block_direction * attributes.sprint_speed * BLOCKING_BONUS * HUMAN_EFFECT #slight bonus speed for blocking
-		move_and_slide()
-
+			human_block_target = Vector2(intercept.x - block_distance, global_position.y)
+	else:
+		human_block_target = intercept
+	is_human_blocking = true #override human input
+	human_block_timer = HUMAN_BLOCK_DURATION
+	navigation_agent.target_position = human_block_target
+	var block_direction = global_position.direction_to(human_block_target).normalized()
+	velocity = block_direction * attributes.sprint_speed * human_block_speed_multiplier
+	
+func handle_human_blocking(delta: float):
+	if not is_human_blocking:
+		return false
+		
+	human_block_timer -= delta
+	if human_block_timer <= 0 or global_position.distance_to(human_block_target) < 10.0:
+		is_human_blocking = false
+		return false
+	var block_direction = global_position.direction_to(human_block_target).normalized()
+	velocity = block_direction * attributes.sprint_speed * human_block_speed_multiplier
+	return true  # Return true to indicate we're still overriding input
 			
 func perform_blocking():
 	#print("Not in my house")
-	var intercept = ball_last_sighted + ball_direction_projection * ((leftPost.y - ball_last_sighted.y) / ball_direction_projection.y)
+	var goal_line = leftPost.y
+	var time_to_goal = (goal_line - ball_last_sighted.y) / ball_direction_projection.y
+	var intercept = ball_last_sighted + (ball_direction_projection * time_to_goal)
+	if intercept.distance_to(own_goal) > max_goal_offset:
+		current_behavior = "defending"
+		return
 	var block_distance = (15*(attributes.blocking - 50))/49 + 5 #if 50, bd is 5; if 99, bd is 20
 	var block_direction = global_position.direction_to(intercept).normalized()
 	if block_distance <= global_position.distance_to(intercept):
@@ -533,6 +568,7 @@ func defending_behavior(delta: float):
 		#account for positioning skill
 		var variance_x = (100 - attributes.positioning)/10
 		variance_x = randf_range(0 -variance_x, variance_x)
+		#relative_x = clamp(variance_x, goal_center.x - max_goal_offset, goal_center.x + max_goal_offset)
 		navigation_agent.target_position = Vector2(relative_x + variance_x, leftPost.y + 10)
 
 	#project a path of the ball
@@ -608,6 +644,8 @@ func perform_guessing():
 	print("dive: " + last_guess)
 			
 func dive_left():
+	current_behavior = "holding"
+	hold_frame = 15
 	var threeQuarters = (leftPost.x * 3 + global_position.x)/3
 	var place = Vector2(threeQuarters, global_position.y)
 	navigation_agent.target_position = place
@@ -616,6 +654,8 @@ func dive_left():
 	move_and_slide()
 
 func dive_right():
+	current_behavior = "holding"
+	hold_frame = 15
 	var threeQuarters = (rightPost.x * 3 + global_position.x)/3
 	var place = Vector2(threeQuarters, global_position.y)
 	navigation_agent.target_position = place
@@ -639,6 +679,8 @@ func activate_special_ability():
 			is_anchor = true
 		"tireless":
 			is_tireless = true
+	if status.groove <= 0:
+		deactivate_special()
 			
 func is_special_active():
 	if is_maestro:
@@ -657,9 +699,29 @@ func use_special_ability():
 		is_anchor = false
 		is_tireless = false
 		
+func deactivate_special():
+	is_maestro = false
+	is_anchor = false
+	is_tireless = false
+		
 func ai_check_special_ability():
 	if status.groove >= attributes.confidence / 2:
 		var activate_chance = status.groove / attributes.confidence
 		if randf() < activate_chance or desperate == true:
 			print("AI using special ability")
 			activate_special_ability()
+
+#hold in place for x frames
+func perform_holding(frame: int):
+	if !ball: return
+	print("hold frame: ", hold_frame)
+	if frame > 0:
+		hold_frame = hold_frame - 1
+		if global_position.distance_to(navigation_agent.target_position) < 3.0:
+			current_behavior = "holding"
+			velocity = Vector2.ZERO
+		if global_position.distance_to(ball.global_position) < sqrt(attributes.reactions) - attributes.reactions/10:
+			current_behavior = "defending"
+			return
+	else:
+		current_behavior = "defending"

@@ -111,6 +111,7 @@ func _on_player_goal():
 		return
 	
 	var was_ace = false
+	pTeam.K.deactivate_special()
 	if ball.last_hit_by == pTeam.P:
 		print("it's an ace!")
 		pTeam.P._on_goal_aced()
@@ -141,6 +142,7 @@ func _on_cpu_goal():
 		return
 	
 	var was_ace = false
+	aTeam.K.deactivate_special()
 	if ball.last_hit_by == aTeam.P:
 		print("it's an ace!")
 		aTeam.P._on_goal_aced()
@@ -208,8 +210,12 @@ func _process(delta: float) -> void:
 		if pTeam.K.is_special_active() or aTeam.K.is_special_active():
 			if pTeam.K.is_maestro and !aTeam.K.is_maestro:
 				Engine.time_scale = current_settings.time_scale * 0.5 #50% game speed for duration of play
+				if pTeam.K.status.boost < 0.5:
+					pTeam.K.is_maestro = false
 			elif !pTeam.K.is_maestro and aTeam.K.is_maestro:
 				Engine.time_scale = current_settings.time_scale * 1.2 #120% game speed for duration of play
+				if aTeam.K.status.boost < 0.5:
+					pTeam.K.is_maestro = false
 			else:
 				Engine.time_scale = current_settings.time_scale
 		if ball.current_state == Ball.BallState.PITCHING or ball.current_state == Ball.BallState.SPECIAL_PITCH:
