@@ -290,6 +290,10 @@ func enlighten(aimTarget, ball, field, keeperWall, ownGoal, oppGoal, oppP, oppK,
 	LG.assigned_half = dHalf
 	LG.aim_target = aimTarget
 	LG.ball = ball
+	LG.leftPost = LPost
+	LG.rightPost = RPost
+	LG.buddy_guard = RG
+	LG.is_lead_guard = true
 	LG.plays_left_side = true
 	LG.assigned_forward = oppRF
 	LG.other_forward = oppLF
@@ -297,17 +301,22 @@ func enlighten(aimTarget, ball, field, keeperWall, ownGoal, oppGoal, oppP, oppK,
 	LG.opp_keeper = oppK
 	RG.defending_goal_position = ownGoal.global_position
 	RG.aim_target = aimTarget
+	RG.buddy_guard = LF
 	RG.assigned_forward = oppLF
 	RG.other_forward = oppRF
+	RG.leftPost = LPost
+	RG.rightPost = RPost
 	RG.buddy_keeper = K
 	RG.opp_keeper = oppK
 	RG.assigned_half = dHalf
+	RG.plays_left_side = false
 	LF.goal_position = oppGoal.global_position
 	LF.assigned_guard = oppRG
 	LF.opposing_keeper = oppK
 	LF.forward_partner = RF
 	LF.ball = ball
 	LF.plays_left_side = true
+	LF.buddy_keeper = K
 	LF.assigned_half = oHalf
 	LF.waiting_point = LfWaiting.global_position
 	RF.waiting_point = RfWaiting.global_position
@@ -316,7 +325,9 @@ func enlighten(aimTarget, ball, field, keeperWall, ownGoal, oppGoal, oppP, oppK,
 	RF.opposing_keeper = oppK
 	RF.forward_partner = LF
 	RF.ball = ball
+	RF.buddy_keeper = K
 	RF.assigned_half = oHalf
+	RG.plays_left_side = false
 
 func default_grooves():
 	P.set_default_groove()

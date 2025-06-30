@@ -244,6 +244,8 @@ func execute_rebound():
 	rebound_projection_accuracy = 0.5 + (attributes.positioning / 200.0)
 	predict_ball_path_with_rebounds()
 	var intercept = find_intercept_point()
+	if intercept == null:
+		return
 	if goal_position.y < 0 and intercept.y > 0 or goal_position.y > 0 and intercept.y < 0:
 		current_behavior = "waiting"
 		choose_behavior()
@@ -605,12 +607,14 @@ func predict_guard_attack() -> float:
 func is_guard_attacking_soon() -> bool:
 	if not assigned_guard:
 		return false
-	
-	if assigned_guard.has_method("is_attacking") and assigned_guard.is_attacking():
-		return true
-	
+	if assigned_guard.status.momentum > 20:
+		var to_player = (global_position - assigned_guard.global_position).normalized()
+		var guard_direction = assigned_guard.velocity.normalized() if assigned_guard.velocity.length() > 10 else Vector2.ZERO
+		# If guard is moving generally toward me (within 90 degrees)
+		if guard_direction != Vector2.ZERO and to_player.dot(guard_direction) > 0.5:
+			return true
 	var attack_prob = predict_guard_attack()
-	return attack_prob > 0.75 and global_position.distance_to(assigned_guard.global_position) < 150
+	return attack_prob > 0.75 and global_position.distance_to(assigned_guard.global_position) < 50
 
 func attempt_counterattack():
 	if status.boost < 2 or is_spinning:
@@ -869,7 +873,7 @@ func predict_ball_path_with_rebounds():
 	var remaining_speed = current_vel.length()
 	var time_step = 0.1  # seconds per prediction step
 	var max_time = 3.0   # maximum prediction time (3 seconds)
-	var field_bounds = Rect2(Vector2(-60, -120), Vector2(120, 240))  # Assuming road field dimensions
+	var field_bounds = Rect2(Vector2(-60, -120), Vector2(60, 120))  # TODO: other types of field
 	var projection_error = (1.0 - rebound_projection_accuracy) * 0.5
 	var elapsed_time = 0.0
 	var steps = 0
@@ -919,9 +923,9 @@ func predict_ball_path_with_rebounds():
 		steps += 1
 
 func find_intercept_point():
-	current_intercept_point = Vector2.ZERO
+	current_intercept_point = waiting_point
 	if predicted_ball_path.is_empty():
-		return
+		return current_intercept_point
 	
 	var best_intercept = null
 	var best_time = INF

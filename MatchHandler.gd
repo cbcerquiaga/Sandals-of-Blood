@@ -494,7 +494,11 @@ func enlighten_players():
 	pTeam.P.legal_first_moves = [2, 1] #SE, SW
 	aTeam.P.legal_first_moves = [0, 3] #NW, NE
 	ball.shot_at_goal.connect(pTeam.K.on_shot_at_goal)
+	ball.shot_at_goal.connect(pTeam.LG.on_shot_at_goal)
+	ball.shot_at_goal.connect(pTeam.RG.on_shot_at_goal)
 	ball.shot_at_goal.connect(aTeam.K.on_shot_at_goal)
+	ball.shot_at_goal.connect(aTeam.LG.on_shot_at_goal)
+	ball.shot_at_goal.connect(aTeam.RG.on_shot_at_goal)
 	ball.pitch_side.connect(aTeam.K.save_pitch_from_ball)
 
 #passing IDs didn't actually work, but as long as we get both signals we're good
