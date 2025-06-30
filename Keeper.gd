@@ -109,7 +109,7 @@ func _physics_process(delta):
 	
 	
 	if not is_controlling_player and can_move:
-		print("current behavior: ", current_behavior)
+		#print("current behavior: ", current_behavior)
 		time_since_last_touch += delta
 		
 		# Update ball tracking
@@ -479,11 +479,11 @@ func on_shot_at_goal(shot_from: Vector2, shot_direction: Vector2, shooter_team: 
 	await get_tree().create_timer(reaction_time).timeout
 	var intercept = shot_from + shot_direction * ((leftPost.y - shot_from.y) / shot_direction.y)
 	var goal_width = leftPost.distance_to(rightPost)
-	if !is_controlling_player:
+	if !is_controlling_player and !is_stunned:
 		ball_last_sighted = shot_from
 		ball_direction_projection = shot_direction
 		current_behavior = "blocking"
-	elif velocity == Vector2(0,0) and intercept.distance_to(own_goal) < goal_width * 0.6:#slight buffer but has to be basically on goal
+	elif !is_stunned and !is_dodging and velocity == Vector2(0,0) and intercept.distance_to(own_goal) < goal_width * 0.6:#slight buffer but has to be basically on goal
 		human_assisted_block(shot_from, shot_direction, intercept)
 
 func human_assisted_block(shot_from: Vector2, shot_direction: Vector2, intercept: Vector2):

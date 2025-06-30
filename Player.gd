@@ -180,6 +180,7 @@ var returnSpeed: float = 12
 func _ready():
 	collision_layer = 0b0100  # Layer 3 (players)
 	collision_mask = 0b0011  # Collide with obstacles (2) and balls (1)
+	stun_timer.timeout.connect(_on_stun_timer_timeout)
 	$AttackArea.body_entered.connect(_on_attack_area_body_entered)
 	$AttackArea.collision_mask = 0b0100  # Detect other players (layer 3)
 	$AttackArea.collision_layer = 0b0100  # Be detected by other players (layer 3)
@@ -484,12 +485,7 @@ func _on_attack_area_body_entered(body: Node2D):
 		var opponent_velocity_toward_me = body.velocity.project(opp_attack_dir).length()
 		var oppAttackPower = opponent_velocity_toward_me * (body.attributes.power / 100.0)
 		# Apply bounce impulse to opponent
-		if my_velocity_toward_opponent > 0:
-			#print("I hit you")
-			body.take_hit(self, attackPower)
-		if my_velocity_toward_opponent > opponent_velocity_toward_me:
-			#print("I am the aggressor")
-			game_stats.hits += 1
+		body.take_hit(self, attackPower)
 		
 		# Apply the hit with calculated power
 		
@@ -513,46 +509,55 @@ func _on_attack_area_body_entered(body: Node2D):
 
 func take_hit(attacker: Player, power: float):
 	if is_anchor:
-		power = power/2
+		power = power/5
 		status.stability = 100
 	#print("hit taken")
-	#if is_spinning:
-		## Counter-attack if spinning
-		#attacker.take_hit(self, power * 0.5)
-		#return
-	var knockback_power = power - (status.stability * attributes.power)#TODO: balance
-	#print("power: " + str(power)+", knockback_power: " + str(knockback_power) + ", stability: " + str(status.stability))
-	if power < status.stability: #just a nudge
-		status.stability = status.stability - abs(knockback_power) #but he do be stumbling
-		#print("stability remaining: " + str(status.stability))
-		return
-	else: #big hit! more power than stability
-		var stun_time = (445 - 4*attributes.toughness)/49 #5 for 50 toughness, 1 for 99 toughness
-		status.stability = 0
-		enter_stunned_state(stun_time)
-		#print("stunned for " + str(stun_time))
 	var knockback_dir = (global_position - attacker.global_position).normalized()
+	var knockback_power = abs(power * 2) - (status.stability + attributes.power)
+	#if attacker.is_sprinting:
+		#knockback_power *= 1.5
+	if velocity.length() == 0:
+		knockback_power *= 1.5
 	var units = power - (attributes.power/2)
-	if units < 0:#big boy don't budge
-		var min_distance = 12 - (attributes.power/10)
-		get_tossed(knockback_dir, min_distance)
-		return
-	else:
-		if units > 20:
-			units = 20
-		get_tossed(knockback_dir, units)
+	if units > 30:
+		units = 30
+	#print("power: " + str(power)+", knockback: " + str(knockback_power) + ", stability: " + str(status.stability), " my power: ", attributes.power, " units: ", units)
+	if knockback_power > status.stability * 2: #big hit!
+		print("big hit-", units, ", ", knockback_power * 2)
+		get_tossed(knockback_dir, units, 200)
+		attacker.game_stats.hits += 1
+		status.stability = 0
+		var stun_time = (445 - 4*attributes.toughness)/49 * 0.75 #3.35 for 50 toughness, 0.675 for 99 toughness
+		enter_stunned_state(stun_time)
+	elif knockback_power > status.stability: #hefty bump
+		print("bump-", units, ", ", 150)
+		status.stability -= knockback_power/2
+		if status.stability < 0:
+			attacker.game_stats.hits += 1
+			status.stability = 0
+			var stun_time = (445 - 4*attributes.toughness)/49 * 0.75 #3.35 for 50 toughness, 0.675 for 99 toughness
+			enter_stunned_state(stun_time)
+		get_tossed(knockback_dir, units, knockback_power * 2)
+	elif knockback_power > 0: #shove
+		print("shove-", units, ", ", knockback_power * 2)
+		status.stability = status.stability - knockback_power
+		get_tossed(knockback_dir, units, 100)
+	else: #just a step back
+		print("just a step")
+		get_tossed(knockback_dir, 5, 50)
 		
-func get_tossed(direction: Vector2, units: int):
+func get_tossed(direction: Vector2, units: int, speed: float):
 	#print("tosser " + str(units))
-	velocity = velocity * toss_factor
+	var nav = $NavigationAgent2D
+	nav.target_position = global_position + direction.normalized() * units
+	velocity = direction * speed
 	if units <= 0:
 		return
-	else:
-		global_position = global_position + (direction)
-		get_tossed(direction, units - 1)
 
 func enter_stunned_state(duration: float):
 	is_stunned = true
+	if position_type == "keeper":
+		print("stunned for ", duration)
 	stun_timer.start(duration)
 	#$StunAnimation.play("stun")
 
@@ -562,6 +567,8 @@ func apply_health_damage(amount: float):
 	pass
 
 func _on_stun_timer_timeout():
+	if position_type == "keeper":
+		print("should be able to move now")
 	is_stunned = false
 	
 func _make_combat_decision(opponent_position: Vector2, current_dist: float):

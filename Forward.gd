@@ -21,15 +21,15 @@ var current_decision_frame: int = 0
 
 # Behavior system variables
 var player_preference = {
-	"bull_rush": 50.0,
+	"bull_rush": 500.0,
 	"skill_rush": 50.0,
 	"target_man": 50.0,
 	"shooter": 100.0,
 	"rebound": 20.0,
 	"pick": 10.0,
 	"bully": 10.0,
-	"fencing": 10.0,
-	"cower": 5.0
+	"fencing": 00.0,
+	"cower": 0.0
 }
 var behavior_cooldowns = {}
 var last_behavior_change = 0.0

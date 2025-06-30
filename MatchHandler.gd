@@ -511,7 +511,7 @@ func update_scoreboard():
 	
 func fill_team_rosters():
 	#TODO: import player names, stats, and status from sheet
-	pTeam.K.special_ability = "maestro"
+	pTeam.K.special_ability = "anchor"
 	aTeam.K.special_ability = "anchor"
 	#TODO: import player sprites
 	#Debug only: color player polygons
