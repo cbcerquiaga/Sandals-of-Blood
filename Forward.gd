@@ -10,6 +10,7 @@ var assigned_guard: Guard = null
 var opposing_keeper: Keeper = null
 var forward_partner: Forward = null
 var other_guard: Guard = null
+var buddy_keeper: Keeper = null
 var can_switch_sides: bool = true
 var last_switch_time: float = 0.0
 var current_strategy: String = "positioning"  # "positioning" or "attacking"
@@ -21,15 +22,15 @@ var current_decision_frame: int = 0
 
 # Behavior system variables
 var player_preference = {
-	"bull_rush": 500.0,
-	"skill_rush": 50.0,
-	"target_man": 50.0,
+	"bull_rush": 50.0,
+	"skill_rush": 100.0,
+	"target_man": 100.0,
 	"shooter": 100.0,
-	"rebound": 20.0,
+	"rebound": 50.0,
 	"pick": 10.0,
 	"bully": 10.0,
-	"fencing": 00.0,
-	"cower": 0.0
+	"fencing": 5.0,
+	"cower": 5.0
 }
 var behavior_cooldowns = {}
 var last_behavior_change = 0.0
@@ -168,13 +169,27 @@ func execute_skill_rush():
 	
 	check_pass_opportunity()
 	
+	#if we've beaten our man, make a break for it
+	if global_position.distance_squared_to(opposing_keeper.global_position) < assigned_guard.global_position.distance_squared_to(opposing_keeper.global_position):
+		navigation_agent.target_position = opposing_keeper.global_position
+		var direction = global_position.direction_to(opposing_keeper.global_position)
+		var speed
+		if status.boost > 25:
+			is_sprinting = true
+			speed = attributes.sprint_speed
+		else:
+			is_sprinting = false
+			speed = attributes.speed
+		velocity = direction * speed
+		return
+	
 	if shooter_position == Vector2.ZERO:
 		choose_shooter_position()
 		return
 	
 	navigate_to(shooter_position)
 	
-	if global_position.distance_to(shooter_position) < 50:
+	if global_position.distance_to(shooter_position) < 10:
 		handle_shooter_positioning()
 	
 	handle_defensive_pressure()
@@ -182,14 +197,18 @@ func execute_skill_rush():
 func execute_target_man():
 	if !ball:
 		return
-	
 	is_in_pass_mode = true
-	
-	calculate_target_man_position()
+	#recalculate target man position every few frames
+	if Engine.get_frames_drawn() % 60 == 0:
+		calculate_target_man_position()
+	#TODO: if distance to target man position is low, focus on avoiding guard and creating passing lane
 	
 	if assigned_guard && global_position.distance_to(assigned_guard.global_position) < 6:
 		if !is_avoiding_guard:
 			start_avoiding_guard()
+		return
+	if global_position.distance_to(ball.global_position) < 20:
+		current_behavior = "rebound"
 		return
 	
 	if is_avoiding_guard && (!assigned_guard || global_position.distance_to(assigned_guard.global_position) >= 180):
@@ -224,12 +243,20 @@ func execute_rebound():
 	check_pass_opportunity()
 	rebound_projection_accuracy = 0.5 + (attributes.positioning / 200.0)
 	predict_ball_path_with_rebounds()
-	find_intercept_point()
+	var intercept = find_intercept_point()
+	if goal_position.y < 0 and intercept.y > 0 or goal_position.y > 0 and intercept.y < 0:
+		current_behavior = "waiting"
+		choose_behavior()
+		return
+	elif global_position.distance_to(intercept) < 5: #close enough, wait for the ball
+		velocity = Vector2.ZERO
+	else:
+		var direction = global_position.direction_to(intercept)
+		navigation_agent.target_position = intercept
+		velocity = attributes.speed * direction
+		is_sprinting = false
+		move_and_slide()
 		
-	
-	if current_intercept_point != Vector2.ZERO:
-		navigate_to(current_intercept_point)
-		handle_obstacles_to_intercept()
 
 func execute_pick():
 	if !other_guard:
@@ -711,7 +738,7 @@ func handle_defensive_pressure():
 	var guard_distance = global_position.distance_to(assigned_guard.global_position)
 	var keeper_distance = global_position.distance_to(opposing_keeper.global_position) if opposing_keeper else INF
 	
-	if guard_distance < 120 || keeper_distance < 150:
+	if guard_distance < 20 || keeper_distance < 15:
 		decide_defensive_response(guard_distance, keeper_distance)
 
 func decide_defensive_response(guard_dist: float, keeper_dist: float):
@@ -731,18 +758,61 @@ func decide_defensive_response(guard_dist: float, keeper_dist: float):
 			decide_dodge()
 
 func calculate_target_man_position():
+	var path_start = ball.global_position if ball else Vector2.ZERO
+	var path_end = goal_position
+	if buddy_keeper && buddy_keeper.aim != Vector2.ZERO:
+		path_start = buddy_keeper.global_position
+		path_end = buddy_keeper.aim
+	var path_dir = (path_end - path_start).normalized()
+	var path_length = path_start.distance_to(path_end)
+	# Find potential intercept points along the path
 	var min_x = min(0, waiting_point.x)
 	var max_x = max(0, waiting_point.x)
-	var goal_y_diff
-	if goal_position.y < 0:
-		goal_y_diff = -30
-	else:
-		goal_y_diff = 30
-	var positioning_randomness = 1.0 - (attributes.positioning / 100.0)
-	var random_x = randf_range(min_x, max_x) * positioning_randomness
+	var goal_y_diff = -20 if goal_position.y < 0 else 20
+	
+	# Try to find a point along the path between y=0 and goal_y_diff
+	var ideal_intercept = null
+	var t_values = []
+	
+	# Sample points along the path
+	for i in range(1, 10):
+		var t = i / 10.0
+		var point = path_start + path_dir * (path_length * t)
+		
+		# Check if point is between 0 and goal_y_diff on y-axis
+		if (goal_position.y < 0 && point.y <= 0 && point.y >= goal_y_diff) || \
+		   (goal_position.y > 0 && point.y >= 0 && point.y <= goal_y_diff):
+			
+			# Check if x and waiting_point.x have same sign
+			if (point.x * waiting_point.x >= 0) || abs(point.x) < 20:
+				ideal_intercept = point
+				break
+			else:
+				t_values.append(t)
+	
+	# If no perfect intercept found, find the closest one
+	if !ideal_intercept && !t_values.is_empty():
+		var mid_t = t_values[t_values.size() / 2]
+		ideal_intercept = path_start + path_dir * (path_length * mid_t)
+	
+	# If still no intercept, choose a random position between 0 and waiting point
+	if !ideal_intercept:
+		var positioning_randomness = 1.0 - (attributes.positioning / 100.0)
+		var random_x = randf_range(min_x, max_x) * positioning_randomness
+		ideal_intercept = Vector2(
+			random_x,
+			lerp(0, goal_y_diff, randf()))
+	
+	# If too close to assigned guard or opposing keeper, drift wide
+	if (assigned_guard and !assigned_guard.is_stunned and ideal_intercept.distance_to(assigned_guard.global_position) < 10) or (opposing_keeper and ideal_intercept.distance_to(opposing_keeper.global_position) < 10 and !opposing_keeper.is_stunned):
+		var drift_direction = sign(waiting_point.x) if waiting_point.x != 0 else (1 if randf() > 0.5 else -1)
+		var drift_amount = randf_range(50, 150) * (1.0 - (attributes.positioning / 100.0))
+		ideal_intercept.x += drift_direction * drift_amount
+	# Apply some randomness based on positioning skill
+	var positioning_variance = (100 - attributes.positioning) / 2.0
 	target_man_position = Vector2(
-		random_x,
-		lerp(-50, 50, randf_range(0,goal_y_diff))
+		ideal_intercept.x + randf_range(-positioning_variance, positioning_variance),
+		ideal_intercept.y + randf_range(-positioning_variance, positioning_variance)
 	)
 
 func create_passing_lane():
@@ -788,56 +858,69 @@ func switch_to_fencing_mode():
 	perform_fencing()
 
 func predict_ball_path_with_rebounds():
-	predicted_ball_path = []
-	var max_bounces = 2
+	if !ball:
+		predicted_ball_path = [waiting_point]#if in dobut, go to happy place
+		return
+	predicted_ball_path = [] # Clear previous prediction
+	# Get current ball state
 	var current_pos = ball.global_position
 	var current_vel = ball.linear_velocity
-	var time_step = 0.1
-	var total_time = 0.0
-	var max_prediction_time = 3.0
+	var current_spin = ball.current_spin
+	var remaining_speed = current_vel.length()
+	var time_step = 0.1  # seconds per prediction step
+	var max_time = 3.0   # maximum prediction time (3 seconds)
+	var field_bounds = Rect2(Vector2(-60, -120), Vector2(120, 240))  # Assuming road field dimensions
+	var projection_error = (1.0 - rebound_projection_accuracy) * 0.5
+	var elapsed_time = 0.0
+	var steps = 0
+	var max_steps = int(max_time / time_step)
 	
-	if rebound_projection_accuracy < 1.0:
-		current_vel = current_vel.rotated(randf_range(-PI/8, PI/8) * (1.0 - rebound_projection_accuracy))
-	
-	while total_time < max_prediction_time && predicted_ball_path.size() < 100:
+	while remaining_speed > 50 and steps < max_steps and elapsed_time < max_time:
 		var next_pos = current_pos + current_vel * time_step
-		
-		var space_state = get_world_2d().direct_space_state
-		var query = PhysicsRayQueryParameters2D.create(current_pos, next_pos)
-		query.collision_mask = 0b111
-		query.exclude = [ball]
-		
-		var result = space_state.intersect_ray(query)
-		
-		if result:
-			current_pos = result.position
-			predicted_ball_path.append({
-				"position": current_pos,
-				"time": total_time,
-				"type": "bounce"
-			})
-			
-			current_vel = current_vel.bounce(result.normal).normalized() * 0.8
-			
-			if rebound_projection_accuracy < 1.0:
-				current_vel = current_vel.rotated(randf_range(-PI/6, PI/6) * (1.0 - rebound_projection_accuracy))
-			
-			max_bounces -= 1
-			if max_bounces <= 0:
-				break
+		var collision = false
+		var wall_normal = Vector2.ZERO
+		if next_pos.x < field_bounds.position.x:
+			wall_normal = Vector2.RIGHT
+			collision = true
+		elif next_pos.x > field_bounds.end.x:
+			wall_normal = Vector2.LEFT
+			collision = true
+		elif next_pos.y < field_bounds.position.y:
+			wall_normal = Vector2.UP
+			collision = true
+		elif next_pos.y > field_bounds.end.y:
+			wall_normal = Vector2.DOWN
+			collision = true
+		if collision:
+			var bounce_vel = current_vel.bounce(wall_normal)
+			if current_spin != 0:
+				var spin_effect = current_spin * ball.spin_curve_factor * time_step * (1.0 + randf_range(-projection_error, projection_error))
+				var perpendicular = bounce_vel.normalized().rotated(PI/2)
+				bounce_vel += perpendicular * spin_effect
+			var drag = ball.bounce_drag * (1.0 + randf_range(-projection_error*0.5, projection_error*0.5))
+			bounce_vel = bounce_vel * drag
+			current_vel = bounce_vel
+			current_spin *= 0.8 * (1.0 + randf_range(-projection_error*0.5, projection_error*0.5))
+			if wall_normal.x != 0:  # Left/right wall
+				next_pos.x = field_bounds.position.x if wall_normal.x > 0 else field_bounds.end.x
+			else:  # Front/back wall
+				next_pos.y = field_bounds.position.y if wall_normal.y > 0 else field_bounds.end.y
 		else:
-			current_pos = next_pos
-			predicted_ball_path.append({
-				"position": current_pos,
-				"time": total_time,
-				"type": "move"
-			})
-		
-		total_time += time_step
+			var drag = 0.98 * (1.0 + randf_range(-projection_error*0.2, projection_error*0.2))
+			current_vel = current_vel * drag
+		predicted_ball_path.append({
+			"position": next_pos,
+			"time": elapsed_time,
+			"velocity": current_vel
+		})
+		current_pos = next_pos
+		remaining_speed = current_vel.length()
+		elapsed_time += time_step
+		steps += 1
 
 func find_intercept_point():
+	current_intercept_point = Vector2.ZERO
 	if predicted_ball_path.is_empty():
-		current_intercept_point = Vector2.ZERO
 		return
 	
 	var best_intercept = null
@@ -855,7 +938,9 @@ func find_intercept_point():
 				best_time = point_time
 				best_intercept = point_pos
 	
-	current_intercept_point = best_intercept if best_intercept else predicted_ball_path[-1].position
+	if best_intercept:
+		current_intercept_point = best_intercept
+	return current_intercept_point
 
 func handle_obstacles_to_intercept():
 	if current_intercept_point == Vector2.ZERO:
@@ -942,14 +1027,8 @@ func has_clear_path_to(target: Vector2, from_pos: Vector2 = global_position) -> 
 	return !result
 	
 func perform_fencing():
-	"""Fencing behavior - duels with a specific forward"""
-	if !current_opponent or current_opponent.is_stunned:
-		current_behavior = "defending"
-		current_opponent = null
-		return
-	
-	if _should_break_fencing():
-		current_behavior = "rebound"
+	if !current_opponent or current_opponent.is_stunned or _should_break_fencing():
+		choose_behavior()
 		current_opponent = null
 		return
 	
@@ -966,7 +1045,6 @@ func perform_fencing():
 		_make_combat_decision(current_opponent.global_position,current_dist)
 		
 func _should_break_fencing() -> bool:
-	"""Checks if fencing should be interrupted"""
 	return ball and global_position.distance_to(ball.global_position) < fencing_params["ball_proximity_threshold"] * (1.1 - attributes.reactions/100.0)
 
 func clamp_target_position():

@@ -637,13 +637,14 @@ func _on_stun_timer_timeout():
 	is_stunned = false
 	
 func _make_combat_decision(opponent_position: Vector2, current_dist: float):
-	"""Decides to attack or dodge during fencing"""
-	var attack_prob = (0.4*attributes.aggression/99.0) + (0.3*(1.0 - current_dist/fencing_params["ideal_distance"]))
 	
-	if attack_prob > 0.65:
+	var attack_prob = randf()
+	
+	if attack_prob < attributes.aggression:
 		attempt_attack(opponent_position)
 		fencing_timer = 0.0
-		velocity += (global_position - current_opponent.global_position).normalized() * 100.0
+		velocity = (global_position - current_opponent.global_position).normalized() * attributes.sprint_speed
+		status.momentum += 10
 	else:
 		attempt_dodge()
 		fencing_timer = fencing_params["attack_cooldown"] * 0.5
