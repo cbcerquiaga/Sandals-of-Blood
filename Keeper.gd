@@ -68,7 +68,7 @@ var is_human_blocking: bool = false
 var human_block_timer: float = 0.0
 var human_block_target: Vector2
 var human_block_speed_multiplier: float = 1.2
-const HUMAN_BLOCK_DURATION: float = 0.6  # How long to override input
+const HUMAN_BLOCK_DURATION: float = 0.2  # How long to override input
 # Constants
 const MAX_REACTION_TIME: float = 0.5  # seconds
 const MIN_REACTION_TIME: float = 0.1  # seconds
@@ -478,11 +478,12 @@ func on_shot_at_goal(shot_from: Vector2, shot_direction: Vector2, shooter_team: 
 	var reaction_time = map_attribute_to_reaction_time(attributes.reactions)
 	await get_tree().create_timer(reaction_time).timeout
 	var intercept = shot_from + shot_direction * ((leftPost.y - shot_from.y) / shot_direction.y)
+	var goal_width = leftPost.distance_to(rightPost)
 	if !is_controlling_player:
 		ball_last_sighted = shot_from
 		ball_direction_projection = shot_direction
 		current_behavior = "blocking"
-	else:
+	elif velocity == Vector2(0,0) and intercept.distance_to(own_goal) < goal_width * 0.6:#slight buffer but has to be basically on goal
 		human_assisted_block(shot_from, shot_direction, intercept)
 
 func human_assisted_block(shot_from: Vector2, shot_direction: Vector2, intercept: Vector2):
@@ -490,7 +491,7 @@ func human_assisted_block(shot_from: Vector2, shot_direction: Vector2, intercept
 	
 	# Calculate the intercept point
 	var diff = global_position.x - intercept.x
-	var block_distance = (25*(attributes.blocking - 50))/49 + 5
+	var block_distance = (25*(attributes.blocking - 50))/49 + 5 #maximum distance we'll block
 	
 	# Determine target position
 	if block_distance <= global_position.distance_to(intercept):
@@ -499,7 +500,7 @@ func human_assisted_block(shot_from: Vector2, shot_direction: Vector2, intercept
 		else:
 			human_block_target = Vector2(intercept.x - block_distance, global_position.y)
 	else:
-		human_block_target = intercept
+		human_block_target = global_position.direction_to(intercept).normalized() * block_distance + global_position
 	is_human_blocking = true #override human input
 	human_block_timer = HUMAN_BLOCK_DURATION
 	navigation_agent.target_position = human_block_target
