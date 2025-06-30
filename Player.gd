@@ -21,6 +21,7 @@ class_name Player
 }
 
 @export var status := {
+	"momentum": 0,#builds up as the player moves
 	"energy": 100, #long-term endurance that depletes every pitch, also used for fighting
 	"health": 100, #used for injuries
 	"boost": 100, #short-term endurance that applies to sprinting and dodging, recovers immediately
@@ -179,7 +180,7 @@ var returnSpeed: float = 12
 
 func _ready():
 	collision_layer = 0b0100  # Layer 3 (players)
-	collision_mask = 0b0011  # Collide with obstacles (2) and balls (1)
+	collision_mask = 0b0111  # Collide withplayers (3) obstacles (2) and balls (1)
 	stun_timer.timeout.connect(_on_stun_timer_timeout)
 	$AttackArea.body_entered.connect(_on_attack_area_body_entered)
 	$AttackArea.collision_mask = 0b0100  # Detect other players (layer 3)
@@ -193,6 +194,12 @@ func _ready():
 	update_ui()
 
 func _physics_process(delta):
+	if velocity.length() > 0:
+		status.momentum += 1
+		if status.momentum > 100 :
+			status.momentum = 100
+	else:
+		status.momentum = 0
 	if !can_move:
 		velocity = Vector2.ZERO
 		return
@@ -358,7 +365,7 @@ func get_closest_point(line_start : Vector2, line_direction : Vector2, point_pos
 	return closest_position
 
 func attempt_dodge():
-	print("dodge: " + str(status.boost))
+	#print("dodge: " + str(status.boost))
 	if status.boost < 0:
 		return
 	status.boost -= 1
@@ -484,12 +491,13 @@ func _on_attack_area_body_entered(body: Node2D):
 		var opp_attack_dir = (global_position - body.global_position).normalized()
 		var opponent_velocity_toward_me = body.velocity.project(opp_attack_dir).length()
 		var oppAttackPower = opponent_velocity_toward_me * (body.attributes.power / 100.0)
+		#momentum mechanic
+		var combined_momentum = status.momentum + body.status.momentum
+		if combined_momentum < 25:
+			scrum(body)
+			return
 		# Apply bounce impulse to opponent
 		body.take_hit(self, attackPower)
-		
-		# Apply the hit with calculated power
-		
-		
 		# If opponent was moving toward us, roll for durability
 		if oppAttackPower > 0:
 			var rand = randi_range(0, 100)
@@ -501,11 +509,66 @@ func _on_attack_area_body_entered(body: Node2D):
 					#TODO: implement injury debuffs
 					#TODO: determine severity of injury debuff based on attackpower
 					#TODO: apply health damage
-		
-		# Stop the attack sprint
-		is_sprinting = false
+	elif  body != self and body is Player and body.team == team:
+		var combined_momentum = status.momentum + body.status.momentum
+		if combined_momentum < 25:
+			scrum(body)
+			return
+			
+
+func scrum(body: Player):
+	var intended_velocity: Vector2 = Vector2.ZERO
+	var opp_intended_velocity: Vector2 = Vector2.ZERO
+	if is_controlling_player:
+		intended_velocity = Input.get_vector("move_left", "move_right", "move_up", "move_down")
+	else:
+		var nav = $NavigationAgent2D
+		intended_velocity = global_position.direction_to(nav.target_position).normalized()
+	if body.is_controlling_player:
+		opp_intended_velocity = Input.get_vector("move_left", "move_right", "move_up", "move_down")
+	else:
+		var nav = body.get_node("NavigationAgent2D")
+		opp_intended_velocity = body.global_position.direction_to(nav.target_position).normalized()
+	var scrumming_axis = (body.global_position - global_position).normalized()
+	#only movement towards the opponent really matters for this
+	var my_push = intended_velocity.project(scrumming_axis).length() * sign(intended_velocity.dot(scrumming_axis))
+	var opp_push = opp_intended_velocity.project(-scrumming_axis).length() * sign(opp_intended_velocity.dot(-scrumming_axis))
+	var my_power = (my_push * status.momentum * attributes.power) / 100.0
+	var opp_power = (opp_push * body.status.momentum * body.attributes.power) / 100.0
+	var power_diff = my_power - opp_power
+	
+	# someone who steps away gets tossed. Somebody who steps sideways or holds ground (push of 0) just gets pushed
+	if opp_push < 0 and my_push > 0:
+		print("come on, man")
+		body.get_tossed(scrumming_axis, int(my_power/10), my_power * 10)
+		return
+	# If I'm not pushing but opponent has momentum, I get tossed
+	elif my_push < 0 and opp_push > 0:
+		get_tossed(-scrumming_axis, int(opp_power/10), opp_power * 10)
+		return
+	
+	# Apply slow movement based on power difference
+	if power_diff > 0:  # I'm stronger
+		var move_amount = my_push * 10
+		velocity = scrumming_axis * move_amount
+		body.velocity = scrumming_axis * move_amount * 1.1  # Opponent moves slightly more
+	elif power_diff < 0:  # Opponent is stronger
+		var move_amount =  body.status.momentum/10
+		velocity = -scrumming_axis * move_amount * 1.1
+		body.velocity = -scrumming_axis * move_amount
+	else:  #nobody move
 		velocity = Vector2.ZERO
-		
+		body.velocity = Vector2.ZERO
+	#shit is tiring
+	var exhaust = 0.1
+	lose_boost(exhaust)
+	body.lose_boost(exhaust)
+	# Small stability loss for both players
+	var stability_loss = 0.5
+	lose_stability(stability_loss)
+	body.lose_stability(stability_loss)
+	print("we scrumming. my push: ", my_push, " your push: ", opp_push)
+	
 
 func take_hit(attacker: Player, power: float):
 	if is_anchor:
@@ -533,7 +596,10 @@ func take_hit(attacker: Player, power: float):
 		print("bump-", units, ", ", 150)
 		status.stability -= knockback_power/2
 		if status.stability < 0:
-			attacker.game_stats.hits += 1
+			if attacker.team != team:
+				attacker.game_stats.hits += 1
+				if position_type == "keeper":
+					attacker.game_stats.sacks +=1
 			status.stability = 0
 			var stun_time = (445 - 4*attributes.toughness)/49 * 0.75 #3.35 for 50 toughness, 0.675 for 99 toughness
 			enter_stunned_state(stun_time)
@@ -543,8 +609,7 @@ func take_hit(attacker: Player, power: float):
 		status.stability = status.stability - knockback_power
 		get_tossed(knockback_dir, units, 100)
 	else: #just a step back
-		print("just a step")
-		get_tossed(knockback_dir, 5, 50)
+		scrum(attacker)
 		
 func get_tossed(direction: Vector2, units: int, speed: float):
 	#print("tosser " + str(units))
