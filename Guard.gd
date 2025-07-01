@@ -9,10 +9,9 @@ var strategy = {
 	"zone": true,  # true or false, whether to play zone or man
 	"lg_trap": false, #in a zone, if the LG will trap. if false, RG plays gk
 	"rg_trap": true,#in a zone, if the RG will trap. if false, RG plays gk
-	"goalkeeping": 0.5,  # 0-1, likelihood to play goalkeeper when needed
-	"chasing": 0.1,  # 0-1, likelihood to chase loose balls
-	"trapping": 10, #0-1, try to keep the ball in the opposing half so you don't have to play defense
-	"goal_defense_threshold": 15  # Distance at which keeper is considered out of position
+	"chasing": 0.1,  # 0-inf, likelihood to chase loose balls
+	"goal_defense_threshold": 35,  # Distance at which keeper is considered out of position
+	"escort_distance": 10#how closely an escorting guard will follow the keeper
 }
 
 # Mark tracking
@@ -57,7 +56,7 @@ var path_update_timer: float = 0
 @onready var intent_timer: Timer = $DecisionTimer
 
 func _ready():
-	behaviors = ["chasing", "marking", "pressing", "helping", "doubling", "intercepting", "fencing", "returning", "goalkeeping", "trapping"]
+	behaviors = ["chasing", "marking", "pressing", "helping", "doubling", "intercepting", "fencing", "returning", "goalkeeping", "trapping", "escorting", "hunting"]
 	current_behavior = "marking"
 	super._ready()
 	position_type = "guard"
@@ -109,14 +108,11 @@ func update_ai_movement(delta):
 
 func update_behavior():
 	if !assigned_forward or !other_forward or !ball or !buddy_keeper:
+		print("Missing somebody. F1: ", assigned_forward, ", F2: ", other_forward, ", Ball: ", ball, "buddy: ", buddy_keeper)
 		return
 	
 	if should_play_zone:
 		handle_zone_defense_behavior()
-		if team == 1 and plays_left_side:
-			print("I am the LG and I am ", current_behavior)
-		elif team == 1:
-			print("I am the RG and I am ", current_behavior)
 	else:
 		handle_man_defense_behavior()
 	
@@ -124,13 +120,18 @@ func update_behavior():
 
 #in zone defense, one player will take over the goal and the other will usually trap midfield, but may go rogue
 func handle_zone_defense_behavior():
-	if should_play_goalkeeper():
-		current_behavior = "goalkeeping"
-		handle_goalkeeping_movement()
+	if should_play_escort():
+		current_behavior = "escorting"
+		#buddy_guard.current_behavior = "trapping" #shouldn't have to do this
 	elif should_trap():
-		current_behavior = "trapping"
-		if randf() < strategy.chasing:
+		if ball.global_position.distance_to(global_position) < attributes.aggression * strategy.chasing:
 			current_behavior = "chasing"
+		else:
+			current_behavior = "trapping"
+	if team == 1 and plays_left_side:
+		print("I am the LG and I am ", current_behavior)
+	elif team == 1 and !plays_left_side:
+		print("I am the RG and I am ", current_behavior, " and I'm on team: ", team)
 
 #regular defensive behavior. LG covers RF, RG covers LF, but they may help each other, switch, or go after the ball
 func handle_man_defense_behavior():
@@ -139,7 +140,7 @@ func handle_man_defense_behavior():
 			current_behavior = "goalkeeping"
 			handle_goalkeeping_movement()
 	elif buddy_guard.current_behavior == "goalkeeping":
-		if global_position.distance_to(ball) < 20:
+		if global_position.distance_to(ball.global_position) < 20:
 			current_behavior = "chasing"
 		else:
 			current_behavior = "helping"
@@ -180,13 +181,15 @@ func handle_man_defense_behavior():
 			current_behavior = "marking"
 			cover_defense()
 
-func should_play_goalkeeper() -> bool:
+func should_play_escort() -> bool:
+	#print("should I play escort? ", plays_left_side, " and L:", strategy.lg_trap, " and R:", strategy.rg_trap)
 	# Check if we should play goalkeeper in zone defense
 	if plays_left_side and !strategy.lg_trap:
 		return true
-	if !plays_left_side and !strategy.rg_trap:
+	elif !plays_left_side and !strategy.rg_trap:
 		return true
-	return false
+	else:
+		return false
 
 func should_trap() -> bool:
 	if plays_left_side and strategy.lg_trap:
@@ -215,6 +218,12 @@ func perform_ai():
 			handle_trapping()
 		"blocking":
 			perform_blocking()
+		"escorting":
+			perform_escorting()
+		"fencing":
+			perform_fencing()
+		"hunting":
+			perform_hunting()
 
 func pressure_defense():
 	if global_position.distance_to(assigned_forward.global_position) > attributes.aggression - 25:
@@ -378,16 +387,26 @@ func handle_goalkeeping_movement():
 		navigation_agent.target_position = Vector2(relative_x + variance_x, leftPost.y + 10)
 		
 func handle_trapping():
+	print("I'm trapping")
 	if !ball:
 		return
 		
 	var trap_position = Vector2.ZERO
 	
+	if assigned_forward.global_position.distance_to(global_position) < attributes.aggression / 3: #16-33
+		last_behavior = "trapping"
+		current_behavior = "fencing"
+		return
+	elif other_forward.global_position.distance_to(global_position) < attributes.aggression / 3:
+		last_behavior = "trapping"
+		current_behavior = "fencing"
+		return
+	
 	# Basic position based on defending goal side
 	if defending_goal_position.y < 0:
-		trap_position.y = -5  # Just over midfield on our defensive side
+		trap_position.y = -8  # Just over midfield on our defensive side
 	else:
-		trap_position.y = 5   # Just over midfield on our defensive side
+		trap_position.y = 8   # Just over midfield on our defensive side
 	trap_position.x = ball.global_position.x
 	
 	# Add some randomness based on positioning skill
@@ -396,6 +415,7 @@ func handle_trapping():
 	
 	navigation_agent.target_position = trap_position
 	var direction = global_position.direction_to(trap_position)
+	velocity = direction * attributes.speed
 	move_and_slide()
 
 func chase_ball():
@@ -520,16 +540,23 @@ func find_intercept_point():
 	return current_intercept_point
 	
 func on_shot_at_goal(shot_from: Vector2, shot_direction: Vector2, shooter_team: int):
+	if current_behavior != "trapping" and current_behavior != "goalkeeping" and current_behavior != "blocking" and current_behavior != "escorting":#not my job
+		return
 	if shooter_team == team: #not my problem
 		return 
+	var intercept
 	var reaction_time = map_attribute_to_reaction_time(attributes.reactions)
 	await get_tree().create_timer(reaction_time).timeout
-	var intercept = shot_from + shot_direction * ((leftPost.y - shot_from.y) / shot_direction.y)
+	if current_behavior == "goalkeeping": #meet the ball at the goal
+		intercept = shot_from + shot_direction * ((leftPost.y - shot_from.y) / shot_direction.y)
+	else: #meet the ball where we are
+		intercept = shot_from + shot_direction * ((global_position.y - shot_from.y) / shot_direction.y)
 	var goal_width = leftPost.distance_to(rightPost)
 	if !is_controlling_player and !is_stunned:
 		ball_last_sighted = shot_from
 		ball_direction_projection = shot_direction
-		last_behavior = current_behavior
+		if current_behavior != "blocking":
+			last_behavior = current_behavior
 		current_behavior = "blocking"
 
 func map_attribute_to_reaction_time(reaction_rating: float) -> float:
@@ -560,3 +587,73 @@ func perform_blocking():
 	else:
 		navigation_agent.target_position = intercept
 	velocity = block_direction * attributes.sprint_speed * BLOCKING_BONUS #slight bonus speed for blocking
+	
+func perform_fencing():
+	if assigned_forward.global_position.distance_squared_to(global_position) < other_forward.global_position.distance_squared_to(global_position):
+		current_opponent = assigned_forward
+	else:
+		current_opponent = other_forward
+	if !current_opponent or current_opponent.is_stunned or _should_break_fencing():
+		current_behavior = last_behavior
+		current_opponent = null
+		return
+	
+	fencing_timer += get_physics_process_delta_time()
+	var current_dist = global_position.distance_to(current_opponent.global_position)
+	var spacing_error = current_dist - fencing_params["ideal_distance"]
+	
+	if spacing_error > 0:  # Advance
+		velocity = (current_opponent.global_position - global_position).normalized() * attributes.speed * fencing_params["advance_speed"]
+	else:  # Retreat
+		velocity = (global_position - current_opponent.global_position).normalized() * attributes.speed * fencing_params["retreat_speed"]
+	
+	if fencing_timer > fencing_params["attack_cooldown"]:
+		_make_combat_decision(current_opponent.global_position,current_dist)
+		
+func _should_break_fencing() -> bool:
+	return ball and global_position.distance_to(ball.global_position) < fencing_params["ball_proximity_threshold"] * (1.1 - attributes.reactions/100.0)
+	
+func perform_escorting():
+	print("I'm here baby")
+	if buddy_keeper.is_stunned and global_position.distance_squared_to(defending_goal_position) < buddy_guard.global_position.distance_squared_to(defending_goal_position):
+		handle_goalkeeping_movement()
+		return
+	var rel_position = Vector2(0,0)
+	if defending_goal_position.y < 0:
+		if plays_left_side:
+			rel_position = Vector2(strategy.escort_distance, -strategy.escort_distance)
+		else:
+			rel_position = Vector2(-strategy.escort_distance, -strategy.escort_distance)
+	else:
+		if plays_left_side:
+			rel_position = Vector2(-strategy.escort_distance, strategy.escort_distance)
+		else:
+			rel_position = Vector2(strategy.escort_distance, strategy.escort_distance)
+	if assigned_forward.global_position.distance_to(buddy_keeper.global_position) < attributes.aggression/2 or other_forward.global_position.distance_to(buddy_keeper.global_position) < attributes.aggression/2:
+		last_behavior = "escorting"
+		current_behavior = "hunting"
+	else:
+		navigation_agent.target_position = buddy_keeper.global_position + rel_position
+		var direction = global_position.direction_to(buddy_keeper.global_position + rel_position)
+		if buddy_keeper.is_sprinting and status.boost > 0.5:
+			is_sprinting = true
+			velocity = direction * attributes.sprint_speed
+		else:
+			velocity = attributes.speed * direction
+
+func perform_hunting():
+	if !current_opponent or current_opponent.is_stunned:
+		current_behavior = "escorting"
+		return
+	else:
+		var direction = global_position.direction_to(current_opponent.global_position)
+		var distance = global_position.distance_to(current_opponent.global_position)
+		if distance < attributes.aggression / 3 and status.momentum < 10:
+			last_behavior = "escorting"
+			current_behavior = "fencing"
+		elif status.boost > 0:
+			is_sprinting = true
+			velocity = direction * attributes.sprint_speed
+		else:
+			is_sprinting = false
+			velocity = direction * attributes.speed

@@ -301,13 +301,14 @@ func enlighten(aimTarget, ball, field, keeperWall, ownGoal, oppGoal, oppP, oppK,
 	LG.opp_keeper = oppK
 	RG.defending_goal_position = ownGoal.global_position
 	RG.aim_target = aimTarget
-	RG.buddy_guard = LF
+	RG.buddy_guard = LG
 	RG.assigned_forward = oppLF
 	RG.other_forward = oppRF
 	RG.leftPost = LPost
 	RG.rightPost = RPost
 	RG.buddy_keeper = K
 	RG.opp_keeper = oppK
+	RG.ball = ball
 	RG.assigned_half = dHalf
 	RG.plays_left_side = false
 	LF.goal_position = oppGoal.global_position
