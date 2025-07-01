@@ -128,10 +128,10 @@ func handle_zone_defense_behavior():
 			current_behavior = "chasing"
 		else:
 			current_behavior = "trapping"
-	if team == 1 and plays_left_side:
-		print("I am the LG and I am ", current_behavior)
-	elif team == 1 and !plays_left_side:
-		print("I am the RG and I am ", current_behavior, " and I'm on team: ", team)
+	#if team == 1 and plays_left_side:
+		#print("I am the LG and I am ", current_behavior)
+	#elif team == 1 and !plays_left_side:
+		#print("I am the RG and I am ", current_behavior, " and I'm on team: ", team)
 
 #regular defensive behavior. LG covers RF, RG covers LF, but they may help each other, switch, or go after the ball
 func handle_man_defense_behavior():
@@ -387,7 +387,7 @@ func handle_goalkeeping_movement():
 		navigation_agent.target_position = Vector2(relative_x + variance_x, leftPost.y + 10)
 		
 func handle_trapping():
-	print("I'm trapping")
+	#print("I'm trapping")
 	if !ball:
 		return
 		
@@ -614,7 +614,7 @@ func _should_break_fencing() -> bool:
 	return ball and global_position.distance_to(ball.global_position) < fencing_params["ball_proximity_threshold"] * (1.1 - attributes.reactions/100.0)
 	
 func perform_escorting():
-	print("I'm here baby")
+	#print("I'm here baby")
 	if buddy_keeper.is_stunned and global_position.distance_squared_to(defending_goal_position) < buddy_guard.global_position.distance_squared_to(defending_goal_position):
 		handle_goalkeeping_movement()
 		return

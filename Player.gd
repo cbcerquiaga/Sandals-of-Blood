@@ -786,8 +786,10 @@ func get_socked(impact: float):
 	var roll
 	for i in range(0, num_injury_rolls):
 		roll = randf()
-		if roll > attributes.durability/100.0: #taking some injury here
-			print("injury acquired on roll ", i, " of ", num_injury_rolls)
+		if roll > attributes.durability/100.0: #not looking good
+			roll = randf()
+			if roll > attributes.durability/100.0:#taking some kind of injury here
+				print("injury acquired on roll ", i, " of ", num_injury_rolls)
 
 # Signals
 signal player_hit(damage)
