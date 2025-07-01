@@ -263,6 +263,17 @@ func execute_rebound():
 func execute_pick():
 	if !other_guard:
 		return
+	if other_guard.is_stunned:
+		var sum = player_preference.shooter + player_preference.bull_rush + player_preference.bully + player_preference.rebound
+		var random = randf_range(0,sum)
+		if random < player_preference.shooter:
+			current_behavior = "shooter"
+		elif random < player_preference.shooter + player_preference.bull_rush:
+			current_behavior = "bull_rush"
+		elif random < player_preference.shooter + player_preference.bull_rush + player_preference.bully:
+			current_behavior = "bully"
+		else:
+			current_behavior = "rebound"
 	
 	var pick_line = Line2D.new()
 	pick_line.add_point(global_position)
