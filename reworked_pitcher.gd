@@ -445,7 +445,8 @@ func perform_looper_pitch():
 func perform_knuckler_pitch():
 	aim_direction = global_position.direction_to(target).normalized()
 	status.energy = status.energy - (10 - attributes.endurance/10)
-	var curves: Array[float] = [-5, 5, -5, 5, -5, 5]
+	var knuckle = attributes.focus/5 #10 for 50, 19.8 for 99
+	var curves: Array[float] = [0, 0, randf_range(-knuckle, knuckle),randf_range(-knuckle, knuckle), randf_range(-knuckle, knuckle), randf_range(-knuckle, knuckle)]
 	var frames: Array[int] = [10, 20, 30, 40, 50, 60]
 	current_power = 300
 	special_pitched.emit(aim_direction, current_power, curves, frames, "knuckler")
