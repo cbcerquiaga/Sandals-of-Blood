@@ -1,4 +1,15 @@
-[gd_scene format=3 uid="uid://csyirpbcdrnoo"]
+[gd_scene load_steps=9 format=3 uid="uid://csyirpbcdrnoo"]
+
+[ext_resource type="Script" path="res://pause_menu.gd" id="1_2e70y"]
+[ext_resource type="Texture2D" uid="uid://3mobcbc75wt5" path="res://UI/PauseUI/Resume_button_base.png" id="1_l1b0n"]
+[ext_resource type="Texture2D" uid="uid://c72kjwsxqkkoj" path="res://UI/PauseUI/Strategy_button_base.png" id="2_ljhkn"]
+[ext_resource type="Texture2D" uid="uid://7e44eg3lk0xt" path="res://UI/PauseUI/Statistics_button_base.png" id="3_4fnrc"]
+[ext_resource type="Texture2D" uid="uid://d5xkjtgqnhjt" path="res://UI/PauseUI/Options_button_base.png" id="4_2adj8"]
+[ext_resource type="Texture2D" uid="uid://b530okb827gvu" path="res://UI/PauseUI/Export_button_base.png" id="5_lqvu2"]
+[ext_resource type="Texture2D" uid="uid://msxwiftij82j" path="res://UI/PauseUI/Exit_button_base.png" id="6_xi0u8"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_htnlx"]
+size = Vector2(1042, 273)
 
 [node name="PauseMenu" type="Control"]
 layout_mode = 3
@@ -7,3 +18,63 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+script = ExtResource("1_2e70y")
+
+[node name="Resume" type="Sprite2D" parent="."]
+texture = ExtResource("1_l1b0n")
+
+[node name="Area2D" type="Area2D" parent="Resume"]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Resume/Area2D"]
+position = Vector2(8, 5.5)
+shape = SubResource("RectangleShape2D_htnlx")
+
+[node name="Strategy" type="Sprite2D" parent="."]
+position = Vector2(0, 300)
+texture = ExtResource("2_ljhkn")
+
+[node name="Area2D" type="Area2D" parent="Strategy"]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Strategy/Area2D"]
+position = Vector2(8, 5.5)
+shape = SubResource("RectangleShape2D_htnlx")
+
+[node name="Statistics" type="Sprite2D" parent="."]
+position = Vector2(0, 600)
+texture = ExtResource("3_4fnrc")
+
+[node name="Area2D" type="Area2D" parent="Statistics"]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Statistics/Area2D"]
+position = Vector2(8, 5.5)
+shape = SubResource("RectangleShape2D_htnlx")
+
+[node name="Options" type="Sprite2D" parent="."]
+position = Vector2(0, 900)
+texture = ExtResource("4_2adj8")
+
+[node name="Area2D" type="Area2D" parent="Options"]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Options/Area2D"]
+position = Vector2(8, 5.5)
+shape = SubResource("RectangleShape2D_htnlx")
+
+[node name="Export" type="Sprite2D" parent="."]
+position = Vector2(0, 1200)
+texture = ExtResource("5_lqvu2")
+
+[node name="Area2D" type="Area2D" parent="Export"]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Export/Area2D"]
+position = Vector2(8, 5.5)
+shape = SubResource("RectangleShape2D_htnlx")
+
+[node name="Exit" type="Sprite2D" parent="."]
+position = Vector2(0, 1500)
+texture = ExtResource("6_xi0u8")
+
+[node name="Area2D" type="Area2D" parent="Exit"]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Exit/Area2D"]
+position = Vector2(8, 5.5)
+shape = SubResource("RectangleShape2D_htnlx")

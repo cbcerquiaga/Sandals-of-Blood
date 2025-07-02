@@ -84,6 +84,7 @@ var ignore_x_input: bool = false
 
 func _ready():
 	debug = false
+	z_index = 2
 	desperate = false #TODO: figure out when to set desperate
 	behaviors = ["waiting", "defending", "sweeping", "avoiding", "fencing", "attacking", "blocking", "returning"]
 	current_behavior = "waiting"

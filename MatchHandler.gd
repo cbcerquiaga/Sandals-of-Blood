@@ -193,8 +193,10 @@ func reset_match(p_offense):
 	
 	
 func _process(delta: float) -> void:
-	if Input.is_action_just_pressed("switch_zone"):
-		pTeam.switch_zone()
+	if Input.is_action_just_pressed("pause"):
+		get_tree().paused = true
+	#if Input.is_action_just_pressed("switch_zone"):
+		#pTeam.switch_zone()
 	if is_play_live:
 		current_play_time += delta / Engine.time_scale#adjust for time scale so it's always one second per second
 		if current_play_time > max_play_time:

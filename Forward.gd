@@ -55,6 +55,7 @@ var is_avoiding_guard: bool = false
 
 
 func _ready():
+	z_index = 2
 	behaviors = ["bull_rush", "skill_rush", "target_man", "shooter", "rebound", "pick", "bully", "fencing", "cower", "returning"]
 	current_behavior = "bull_rush"
 	super._ready()

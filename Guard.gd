@@ -56,6 +56,7 @@ var path_update_timer: float = 0
 @onready var intent_timer: Timer = $DecisionTimer
 
 func _ready():
+	z_index = 2
 	behaviors = ["chasing", "marking", "pressing", "helping", "doubling", "intercepting", "fencing", "returning", "goalkeeping", "trapping", "escorting", "hunting"]
 	current_behavior = "marking"
 	super._ready()

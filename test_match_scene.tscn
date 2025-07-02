@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3 uid="uid://cgfb6numfby87"]
+[gd_scene load_steps=9 format=3 uid="uid://cgfb6numfby87"]
 
 [ext_resource type="Script" path="res://MatchHandler.gd" id="1_v8xhv"]
 [ext_resource type="PackedScene" uid="uid://bje6o4s6rvh85" path="res://road_field.tscn" id="1_wmjeh"]
@@ -7,6 +7,7 @@
 [ext_resource type="PackedScene" uid="uid://cetfl640qv42t" path="res://ball.tscn" id="4_uyrol"]
 [ext_resource type="PackedScene" uid="uid://c5gldnftsuhcm" path="res://aim_target.tscn" id="6_mpo6o"]
 [ext_resource type="PackedScene" uid="uid://2e4rsr57cdf" path="res://match_status_ui.tscn" id="7_46orc"]
+[ext_resource type="PackedScene" uid="uid://csyirpbcdrnoo" path="res://pause_menu.tscn" id="8_h76e2"]
 
 [node name="Node2D" type="Node2D"]
 script = ExtResource("1_v8xhv")
@@ -33,7 +34,10 @@ position = Vector2(-63, -189)
 
 [node name="MatchStatusUI" parent="UI" instance=ExtResource("7_46orc")]
 
+[node name="PauseMenu" parent="UI" instance=ExtResource("8_h76e2")]
+
 [node name="Score" type="RichTextLabel" parent="UI"]
+visible = false
 offset_right = 40.0
 offset_bottom = 40.0
 
