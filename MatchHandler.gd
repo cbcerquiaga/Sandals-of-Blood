@@ -57,6 +57,8 @@ signal score_changed(team, new_score)
 
 func _ready():
 	ball= $Ball as Ball
+	ball.current_state = Ball.BallState.WAITING
+	ball.freeze = true
 	pTeam = $PlayerTeam as Team
 	pTeam.set_team_id(1)
 	pTeam.is_player_team = true
@@ -211,6 +213,7 @@ func _process(delta: float) -> void:
 				if pTeam.K != null and field.cpuGoal != null and ball.global_position != null:
 					print("We're ready")
 					ready_to_start = true
+					reset_match(true)
 		#else:
 			##problem
 			#

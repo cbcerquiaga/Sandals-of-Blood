@@ -194,3 +194,7 @@ activate_special_ability={
 2d_physics/layer_2="obstacles"
 2d_physics/layer_3="players"
 2d_physics/layer_4="areas"
+
+[rendering]
+
+textures/vram_compression/import_etc2_astc=true

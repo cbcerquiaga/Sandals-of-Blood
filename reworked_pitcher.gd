@@ -22,6 +22,7 @@ var successful_pitches: Array[Dictionary] = []
 var pitch_success_threshold: int = 3 # How many times a pitch needs to succeed to be "favored"
 var favor_successful_chance: float = 0.3 # 30% chance to use a favored pitch type
 var most_recent_pitch #dictionary of the data from current pitch
+var human_ready: bool = false #AI pitcher won't throw until the player is ready
 
 # AI Target Range (relative to pitcher position)
 var target_x_min: float = -60.0
@@ -59,9 +60,9 @@ var field_type: String = "road"
 var has_pitched: bool = false
 
 #waiting to pitch
-var pitch_frames: int = 240 #4 seconds at 60fps
+var pitch_frames: int = 60 #1 second at 60fps
 var pitch_goal: int = 0 #modified target time taking into account random_effect
-var random_effect:int = 120 #maximum possible disstance from pitch_frames
+var random_effect:int = 60 #maximum possible distance from pitch_frames
 var current_frame:int = 0
 var can_pitch:bool = false
 
@@ -109,6 +110,9 @@ func _physics_process(delta):
 	super._physics_process(delta)
 	await ball
 	update_special_pitch_availability()
+	if Input.is_action_pressed("pitch"):
+		human_ready = true
+		prepare_ai_to_pitch()
 	if current_behavior == "waiting":
 		has_arrived = false
 		has_attacked = false
@@ -217,9 +221,12 @@ func _handle_pitch_controls():
 
 func prepare_ai_to_pitch():
 	can_pitch = false
-	pitch_goal = pitch_frames + randi_range(0-random_effect, random_effect)
+	pitch_goal = pitch_frames + randi_range(0-random_effect, random_effect) #0-120 frames
 
 func handle_ai_pitch_decision():
+	if !human_ready:
+		#be a gentleman. dont throw until the human is ready
+		return
 	if !can_pitch: 
 		return
 	
@@ -234,6 +241,7 @@ func handle_ai_pitch_decision():
 	
 	has_pitched = true
 	status.groove += 2
+	human_ready = false
 
 func ai_select_pitch_type() -> String:
 	var max_groove = attributes.confidence

@@ -403,6 +403,7 @@ func nextPlayStatus():
 	LF.reset_state()
 	RF.reset_state()
 	P.reset_state()
+	P.human_ready = false
 	bench_rest()
 	
 func fire_up_bench():
