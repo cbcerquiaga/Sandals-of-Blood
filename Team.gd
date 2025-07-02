@@ -415,3 +415,12 @@ func bench_rest():
 	for player in bench:
 		player.lose_groove(1)
 		player.add_energy(5)
+
+func switch_zone():
+	if LG.strategy.zone:
+		LG.strategy.zone = false
+		RG.strategy.zone = false
+	else:
+		LG.strategy.zone = true
+		RG.strategy.zone = true
+	print("Zone? ", LG.strategy.zone)
