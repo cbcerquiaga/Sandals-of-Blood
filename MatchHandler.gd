@@ -19,9 +19,12 @@ var current_settings := {
 }
 
 # Match State
+var is_player_home: bool = true
 var team_scores := [0, 0]
 var pitches_remaining: int
 var current_play_time: float = 0.0
+var max_play_time: float = 30.0
+var is_play_live: bool = false
 var is_in_extra_pitches: bool = false
 var extra_pitches_used: int = 0
 var last_scoring_team: int = -1
@@ -46,7 +49,6 @@ var aTeam : Team
 @onready var aimTarget: AimTarget = $Aim_Target
 
 #UI
-@onready var scoreboard = $UI/Score
 @onready var statusUI = $UI/MatchStatusUI
 
 signal emit_match_ended(winning_team)
@@ -74,11 +76,13 @@ func _ready():
 
 func _on_ball_crossed_midfield():
 	#print("game on!")
+	is_play_live = true
 	pTeam.allow_movement()
 	aTeam.allow_movement()
 	pTeam.default_human_state()
 	aTeam.default_ai_state()
 	aTeam.K.ai_check_special_ability()
+	
 	if is_human_team_pitching:
 		aTeam.K.current_behavior = "guessing"
 
@@ -187,11 +191,18 @@ func reset_match(p_offense):
 	
 	
 func _process(delta: float) -> void:
+	if is_play_live:
+		current_play_time += delta / Engine.time_scale#adjust for time scale so it's always one second per second
+		if current_play_time > max_play_time:
+			print("time's up!")
+			is_human_team_pitching = !is_human_team_pitching
+			pTeam.is_on_offense = !pTeam.is_on_offense
+			aTeam.is_on_offense = !aTeam.is_on_offense
+			next_play()
 	if Input.is_action_just_pressed("debug_reset"):
 		var tempScore = team_scores
 		reset_match(true)
 		team_scores = tempScore
-		update_scoreboard()
 	if !ready_to_start:
 		if pTeam and aTeam and ball and field:
 			#print("everybody is here" + str(pTeam.has_readied) + "/"+str(aTeam.has_readied))
@@ -233,7 +244,7 @@ func _process(delta: float) -> void:
 
 func next_play():
 	print("Starting next play - Human pitching: " + str(is_human_team_pitching))
-	
+	is_play_live = false
 	# Reset play state but keep scores and pitching team assignment
 	current_play_time = 0.0
 	out_of_bounds_frames = 0
@@ -246,15 +257,13 @@ func next_play():
 	reposition_players()
 	setup_pitching_team()
 	
-	# Update UI
-	update_scoreboard()
-	
 	# Start play timer
 	play_timer.start(current_settings.play_length if current_settings.play_length > 0 else 9999)
 	fighting_frame = 0
 	emit_signal("play_ended", "next_play")
 
 func reset_players_for_next_play():
+	is_play_live = false
 	# Reset player states and disable movement until ball is pitched
 	for player in pTeam.onfield_players + aTeam.onfield_players:
 		if player:
@@ -509,9 +518,6 @@ func on_team_ready_signal(id: int) -> void:
 	elif (team1Ready):
 		team2Ready = true
 	pass
-
-func update_scoreboard():
-	scoreboard.text = str(team_scores[0]) + ":" + str(team_scores[1])
 	
 func fill_team_rosters():
 	#TODO: import player names, stats, and status from sheet

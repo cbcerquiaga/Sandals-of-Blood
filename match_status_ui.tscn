@@ -1,4 +1,4 @@
-[gd_scene load_steps=7 format=3 uid="uid://2e4rsr57cdf"]
+[gd_scene load_steps=8 format=3 uid="uid://2e4rsr57cdf"]
 
 [ext_resource type="Script" path="res://match_status_ui.gd" id="1_stxjv"]
 [ext_resource type="Script" path="res://special_pitch_availability.gd" id="2_8plra"]
@@ -6,6 +6,7 @@
 [ext_resource type="Texture2D" uid="uid://bvcbh4m2hgoie" path="res://UI/StatusUI/Pitch_available_1.png" id="3_3dorj"]
 [ext_resource type="Texture2D" uid="uid://x52tn85q00q" path="res://UI/StatusUI/pitch_available_2.png" id="4_rslfv"]
 [ext_resource type="Texture2D" uid="uid://cykmplics4xiy" path="res://UI/StatusUI/pitch_available_3.png" id="5_gdw3e"]
+[ext_resource type="PackedScene" uid="uid://m5w1mmk5s0tv" path="res://Scoreboard.tscn" id="7_xoicv"]
 
 [node name="MatchStatusUI" type="Control"]
 layout_mode = 3
@@ -48,3 +49,6 @@ layout_mode = 0
 
 [node name="RG_Container" parent="." instance=ExtResource("2_s5og7")]
 layout_mode = 0
+
+[node name="Scoreboard" parent="." instance=ExtResource("7_xoicv")]
+layout_mode = 1

@@ -115,7 +115,7 @@ func _physics_process(delta):
 		current_waypoint = Vector2.ZERO
 	elif current_behavior == "deciding":
 		current_waypoint = Vector2.ZERO
-		if opp_pitcher.has_arrived == false:
+		if !opp_pitcher or opp_pitcher.has_arrived == false:
 			can_move = false
 			return
 		else:

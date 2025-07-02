@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://UI/Scripts/fieldStatusContainer.gd" id="1_igps3"]
 [ext_resource type="Texture2D" uid="uid://jgf6i5tfatbh" path="res://UI/StatusUI/PortraitHolder1.png" id="2_afxa4"]
-[ext_resource type="Texture2D" uid="uid://cqfyni2hv32rm" path="res://UI/StatusUI/nameTag.png" id="3_ol6kl"]
+[ext_resource type="Texture2D" uid="uid://cqfyni2hv32rm" path="res://UI/StatusUI/nameTag1.png" id="3_ol6kl"]
 [ext_resource type="Texture2D" uid="uid://clon0jjrs3moo" path="res://UI/StatusUI/boostContainer.png" id="4_s3r33"]
 [ext_resource type="Texture2D" uid="uid://b3646j4hrb6no" path="res://UI/StatusUI/balanceContainer.png" id="5_06nsm"]
 [ext_resource type="Texture2D" uid="uid://cnhmbr2rep8w0" path="res://UI/StatusUI/grooveContainer.png" id="6_ykt1i"]

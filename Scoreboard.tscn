@@ -1,0 +1,54 @@
+[gd_scene load_steps=5 format=3 uid="uid://m5w1mmk5s0tv"]
+
+[ext_resource type="Script" path="res://scoreboard.gd" id="1_niowp"]
+[ext_resource type="Texture2D" uid="uid://ck6tifoiflo7h" path="res://UI/ScorebugUI/Home_score_1.png" id="2_g7ef6"]
+[ext_resource type="Texture2D" uid="uid://cyaqg6b5lyx81" path="res://UI/ScorebugUI/Away_score_1.png" id="3_2njmh"]
+[ext_resource type="Texture2D" uid="uid://bihfi6c0ksf3j" path="res://UI/ScorebugUI/Pitch_Indicator_Arrow.png" id="4_uw3le"]
+
+[node name="Scoreboard" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_niowp")
+
+[node name="Home_holder" type="Sprite2D" parent="."]
+texture = ExtResource("2_g7ef6")
+
+[node name="HomeLabel" type="Label" parent="Home_holder"]
+offset_left = -200.0
+offset_top = -400.0
+offset_right = 400.0
+offset_bottom = 200.0
+
+[node name="Away_holder" type="Sprite2D" parent="."]
+position = Vector2(929, 0)
+texture = ExtResource("3_2njmh")
+
+[node name="AwayLabel" type="Label" parent="Away_holder"]
+offset_left = -200.0
+offset_top = -400.0
+offset_right = 400.0
+offset_bottom = 200.0
+
+[node name="GameTime_holder" type="Sprite2D" parent="."]
+position = Vector2(483, 461.625)
+scale = Vector2(1.10258, 2.48044)
+
+[node name="PlayClockLabel" type="Label" parent="GameTime_holder"]
+offset_left = -1200.0
+offset_top = -200.0
+offset_right = -1160.0
+offset_bottom = -177.0
+
+[node name="PitchesLeftLabel" type="Label" parent="GameTime_holder"]
+offset_left = -1400.0
+offset_top = -400.0
+offset_right = -1360.0
+offset_bottom = -377.0
+
+[node name="Arrow" type="Sprite2D" parent="."]
+position = Vector2(1694, -35)
+texture = ExtResource("4_uw3le")

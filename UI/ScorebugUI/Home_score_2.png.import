@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cqfyni2hv32rm"
-path="res://.godot/imported/nameTag.png-2df4d01346f9661926b754641c1e1d13.ctex"
+uid="uid://dgmo1ig0pt40p"
+path="res://.godot/imported/Home_score_2.png-a2741af3ef0ec2ba4666d1ee9c7e01c2.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://UI/StatusUI/nameTag.png"
-dest_files=["res://.godot/imported/nameTag.png-2df4d01346f9661926b754641c1e1d13.ctex"]
+source_file="res://UI/ScorebugUI/Home_score_2.png"
+dest_files=["res://.godot/imported/Home_score_2.png-a2741af3ef0ec2ba4666d1ee9c7e01c2.ctex"]
 
 [params]
 
