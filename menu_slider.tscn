@@ -1,0 +1,41 @@
+[gd_scene load_steps=6 format=3 uid="uid://dbutif5v6g3k2"]
+
+[ext_resource type="Texture2D" uid="uid://bamacvhhy5ori" path="res://UI/GeneralPurposeUI/SlidyGuy.png" id="1_00jyg"]
+[ext_resource type="Script" path="res://menu_slider.gd" id="1_78xuq"]
+[ext_resource type="Texture2D" uid="uid://dqo0sopbj0abe" path="res://UI/GeneralPurposeUI/SlidyTrack.png" id="2_dbauc"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_k5sl6"]
+size = Vector2(2012, 142)
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_upolq"]
+radius = 291.08
+height = 695.59
+
+[node name="Menu_Slider" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_78xuq")
+
+[node name="SlidingPath" type="Sprite2D" parent="."]
+scale = Vector2(2, 1)
+texture = ExtResource("2_dbauc")
+
+[node name="Area2D" type="Area2D" parent="SlidingPath"]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="SlidingPath/Area2D"]
+position = Vector2(0, 7)
+shape = SubResource("RectangleShape2D_k5sl6")
+
+[node name="Slider" type="Sprite2D" parent="."]
+scale = Vector2(0.6, 0.8)
+texture = ExtResource("1_00jyg")
+
+[node name="Area2D" type="Area2D" parent="Slider"]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Slider/Area2D"]
+position = Vector2(0, 6)
+shape = SubResource("CapsuleShape2D_upolq")

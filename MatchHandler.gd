@@ -73,6 +73,7 @@ func _ready():
 	field.ball_exited_field.connect(_on_ball_exited_field)
 	field.player_goal.connect(_on_player_goal)
 	field.cpu_goal.connect(_on_cpu_goal)
+	
 	fill_team_rosters()
 	statusUI.assign_team(self)
 

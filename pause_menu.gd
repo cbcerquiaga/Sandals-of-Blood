@@ -11,6 +11,14 @@ class_name PauseMenu
 @onready var cooldown_frame: int = 0
 const input_cooldown: int = 3
 
+#submenus
+@onready var submenu: String = ""
+@onready var strategy_menu = $Submenus/Strategy_Menu
+@onready var stats_screen
+@onready var options_menu
+@onready var export_screen
+@onready var quit_popup
+
 func _ready():
 	z_index = 100
 	process_mode = Node.PROCESS_MODE_WHEN_PAUSED
@@ -21,7 +29,10 @@ func _ready():
 
 func _process(delta):
 	if get_tree().paused == true:
-		show()
+		if submenu == "strategy":
+			hide()
+		else:
+			show()
 	if cooldown_frame < input_cooldown:
 		cooldown_frame += 1
 	check_mouse_collision()
@@ -113,8 +124,18 @@ func check_mouse_collision():
 				match current_index:
 					0:
 						resume_game()
+					1:
+						show_strategy_menu()
 			break
 	
 func resume_game():
 	hide()
 	get_tree().paused = false
+
+func show_strategy_menu():
+	print("show me the strategy menu!")
+	submenu = "strategy"
+	strategy_menu.show()
+	hide()
+	
+	

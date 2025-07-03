@@ -1,0 +1,60 @@
+[gd_scene load_steps=3 format=3 uid="uid://c0rw2e6hmue5i"]
+
+[ext_resource type="Script" path="res://tactics_section.gd" id="1_3n75g"]
+[ext_resource type="PackedScene" uid="uid://dbutif5v6g3k2" path="res://menu_slider.tscn" id="1_3pt1v"]
+
+[node name="TacticsSection" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_3n75g")
+
+[node name="Left_Forward" type="Control" parent="."]
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="RushSlider" parent="Left_Forward" instance=ExtResource("1_3pt1v")]
+layout_mode = 1
+offset_top = 700.0
+offset_bottom = 700.0
+
+[node name="LinkSlider" parent="Left_Forward" instance=ExtResource("1_3pt1v")]
+layout_mode = 1
+
+[node name="PickSlider" parent="Left_Forward" instance=ExtResource("1_3pt1v")]
+layout_mode = 1
+offset_top = 1400.0
+offset_bottom = 1400.0
+
+[node name="BallSlider" parent="Left_Forward" instance=ExtResource("1_3pt1v")]
+layout_mode = 1
+offset_top = 2100.0
+offset_bottom = 2100.0
+
+[node name="Right_Forward" type="Control" parent="."]
+anchors_preset = 0
+offset_left = 9000.0
+offset_right = 9040.0
+offset_bottom = 40.0
+
+[node name="RushSlider" parent="Right_Forward" instance=ExtResource("1_3pt1v")]
+layout_mode = 1
+offset_top = 700.0
+offset_bottom = 700.0
+
+[node name="LinkSlider" parent="Right_Forward" instance=ExtResource("1_3pt1v")]
+layout_mode = 1
+
+[node name="PickSlider" parent="Right_Forward" instance=ExtResource("1_3pt1v")]
+layout_mode = 1
+offset_top = 1400.0
+offset_bottom = 1400.0
+
+[node name="BallSlider" parent="Right_Forward" instance=ExtResource("1_3pt1v")]
+layout_mode = 1
+offset_top = 2100.0
+offset_bottom = 2100.0
