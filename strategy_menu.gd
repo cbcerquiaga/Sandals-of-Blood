@@ -12,7 +12,8 @@ class_name StrategyMenu
 @onready var save_button
 
 func _ready():
-	
-	scale = Vector2(0.05, 0.05)
+	tacticsSection.scale = Vector2(0.3, 0.3)
+	tacticsSection.position = Vector2(-180, 100)
+	#scale = Vector2(0.05, 0.05)
 	position = Vector2(0,-200)
 	pass

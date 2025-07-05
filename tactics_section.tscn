@@ -1,7 +1,8 @@
-[gd_scene load_steps=3 format=3 uid="uid://c0rw2e6hmue5i"]
+[gd_scene load_steps=4 format=3 uid="uid://c0rw2e6hmue5i"]
 
 [ext_resource type="Script" path="res://tactics_section.gd" id="1_3n75g"]
-[ext_resource type="PackedScene" uid="uid://dbutif5v6g3k2" path="res://menu_slider.tscn" id="1_3pt1v"]
+[ext_resource type="Texture2D" uid="uid://cqfhq5hj3ofqv" path="res://UI/StrategyUI/PreviousButton_base.png" id="2_26ub7"]
+[ext_resource type="Texture2D" uid="uid://gb8htff5kf03" path="res://UI/StrategyUI/NextButton_base.png" id="3_2lp76"]
 
 [node name="TacticsSection" type="Control"]
 layout_mode = 3
@@ -12,49 +13,124 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_3n75g")
 
-[node name="Left_Forward" type="Control" parent="."]
+[node name="LF" type="Control" parent="."]
 anchors_preset = 0
 offset_right = 40.0
 offset_bottom = 40.0
 
-[node name="RushSlider" parent="Left_Forward" instance=ExtResource("1_3pt1v")]
-layout_mode = 1
-offset_top = 700.0
-offset_bottom = 700.0
+[node name="LB" type="Button" parent="LF"]
+layout_mode = 0
+offset_left = -108.0
+offset_top = 79.0
+offset_right = 790.0
+offset_bottom = 582.0
+scale = Vector2(0.1, 0.1)
+icon = ExtResource("2_26ub7")
 
-[node name="LinkSlider" parent="Left_Forward" instance=ExtResource("1_3pt1v")]
-layout_mode = 1
+[node name="RB" type="Button" parent="LF"]
+layout_mode = 0
+offset_left = 90.0
+offset_top = 81.0
+offset_right = 988.0
+offset_bottom = 584.0
+scale = Vector2(0.1, 0.1)
+icon = ExtResource("3_2lp76")
 
-[node name="PickSlider" parent="Left_Forward" instance=ExtResource("1_3pt1v")]
-layout_mode = 1
-offset_top = 1400.0
-offset_bottom = 1400.0
+[node name="Assignment" type="Label" parent="LF"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0
+text = "Movinator"
 
-[node name="BallSlider" parent="Left_Forward" instance=ExtResource("1_3pt1v")]
-layout_mode = 1
-offset_top = 2100.0
-offset_bottom = 2100.0
+[node name="Explanation" type="Label" parent="LF"]
+layout_mode = 0
+offset_left = -105.0
+offset_top = 26.0
+offset_right = 493.0
+offset_bottom = 101.0
+scale = Vector2(0.5, 0.5)
+text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. In condimentum, mauris sit amet efficitur convallis, neque nibh sagittis arcu, a posuere purus erat vel sapien. Nullam eros erat, fringilla in lacinia vitae, tempor ac arcu"
+horizontal_alignment = 3
+autowrap_mode = 3
 
-[node name="Right_Forward" type="Control" parent="."]
+[node name="RF" type="Control" parent="."]
 anchors_preset = 0
-offset_left = 9000.0
-offset_right = 9040.0
+offset_left = 650.0
+offset_right = 690.0
 offset_bottom = 40.0
 
-[node name="RushSlider" parent="Right_Forward" instance=ExtResource("1_3pt1v")]
-layout_mode = 1
-offset_top = 700.0
-offset_bottom = 700.0
+[node name="LB" type="Button" parent="RF"]
+layout_mode = 0
+offset_left = -90.0
+offset_top = 76.0
+offset_right = 808.0
+offset_bottom = 579.0
+scale = Vector2(0.1, 0.1)
+icon = ExtResource("2_26ub7")
 
-[node name="LinkSlider" parent="Right_Forward" instance=ExtResource("1_3pt1v")]
-layout_mode = 1
+[node name="RB" type="Button" parent="RF"]
+layout_mode = 0
+offset_left = 108.0
+offset_top = 78.0
+offset_right = 1006.0
+offset_bottom = 581.0
+scale = Vector2(0.1, 0.1)
+icon = ExtResource("3_2lp76")
 
-[node name="PickSlider" parent="Right_Forward" instance=ExtResource("1_3pt1v")]
-layout_mode = 1
-offset_top = 1400.0
-offset_bottom = 1400.0
+[node name="Assignment" type="Label" parent="RF"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0
+text = "Movinator"
 
-[node name="BallSlider" parent="Right_Forward" instance=ExtResource("1_3pt1v")]
-layout_mode = 1
-offset_top = 2100.0
-offset_bottom = 2100.0
+[node name="Explanation" type="Label" parent="RF"]
+layout_mode = 0
+offset_left = -105.0
+offset_top = 26.0
+offset_right = 493.0
+offset_bottom = 101.0
+scale = Vector2(0.5, 0.5)
+text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. In condimentum, mauris sit amet efficitur convallis, neque nibh sagittis arcu, a posuere purus erat vel sapien. Nullam eros erat, fringilla in lacinia vitae, tempor ac arcu"
+horizontal_alignment = 3
+autowrap_mode = 3
+
+[node name="D" type="Control" parent="."]
+anchors_preset = 0
+offset_left = 325.0
+offset_right = 365.0
+offset_bottom = 40.0
+
+[node name="LB" type="Button" parent="D"]
+layout_mode = 0
+offset_left = -100.0
+offset_top = 80.0
+offset_right = 798.0
+offset_bottom = 583.0
+scale = Vector2(0.1, 0.1)
+icon = ExtResource("2_26ub7")
+
+[node name="RB" type="Button" parent="D"]
+layout_mode = 0
+offset_left = 98.0
+offset_top = 82.0
+offset_right = 996.0
+offset_bottom = 585.0
+scale = Vector2(0.1, 0.1)
+icon = ExtResource("3_2lp76")
+
+[node name="Assignment" type="Label" parent="D"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0
+text = "Movinator"
+
+[node name="Explanation" type="Label" parent="D"]
+layout_mode = 0
+offset_left = -105.0
+offset_top = 26.0
+offset_right = 493.0
+offset_bottom = 101.0
+scale = Vector2(0.5, 0.5)
+text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. In condimentum, mauris sit amet efficitur convallis, neque nibh sagittis arcu, a posuere purus erat vel sapien. Nullam eros erat, fringilla in lacinia vitae, tempor ac arcu"
+horizontal_alignment = 3
+autowrap_mode = 3

@@ -2,8 +2,6 @@ extends Player
 class_name Guard
 
 var strategy = {
-	"aggression": 0.6,  # 0-1, determines attack tendency
-	"anticipation": 0.5,  # 0-1, predicts forward movement
 	"marking": 0.7,  # 0-1, likelihood to stay with mark (replaces discipline)
 	"fluidity": 0.6,  # 0-1, preference to switch forwards on a pick, preference to fill in for keeper
 	"zone": true,  # true or false, whether to play zone or man
