@@ -59,6 +59,8 @@ var D_strategy = {
 	"escort_distance": 10
 }
 
+var team: Team
+
 
 var forward_assignments = ["Classic Forward", "Rusher", "Shooting Forward", "Rebounder", "Attacking Forward", "Target Forward", "Support Forward", "Roving Menace", "Pick and Roller", "Pick and Popper"]
 var defense_schemes = ["Positional Man to Man", "Fluid Man to Man", "Left Guard Trap Zone", "Right Guard Trap Zone", "Tight Triangle Zone"]
@@ -224,14 +226,14 @@ func update_forward_directions(directions: Dictionary, assignment: String):
 				}
 		"Rebounder":
 			directions = {
-				"bull_rush": 30.0,
-				"skill_rush": 30.0,
-				"target_man": 30.0,
-				"shooter": 30.0,
+				"bull_rush": 20.0,
+				"skill_rush": 20.0,
+				"target_man": 40.0,
+				"shooter": 20.0,
 				"rebound": 250.0,
 				"pick": 10.0,
 				"bully": 10.0,
-				"fencing": 5.0,
+				"fencing": 40.0,
 				"cower": 5.0
 				}
 		"Attacking Forward":
@@ -334,3 +336,7 @@ func update_defense_directions(assignment:String):
 			}
 		
 	pass
+
+func import_team(importedTeam: Team):
+	team = importedTeam
+	import_assignments(team.strategy.tactics.LF, team.strategy.tactics.RF, team.strategy.tactics.D)

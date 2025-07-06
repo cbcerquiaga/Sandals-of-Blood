@@ -3,19 +3,20 @@ class_name Player
 
 # Player Attributes
 @export var attributes := {
-	"speed": 110.0,
-	"sprint_speed": 140.0,
-	"blocking": 50, #scales player size?
+	"speedRating" : 75, #what's shown on the attributes screen
+	"speed": 110.0, #actual move speed, speedRating+35
+	"sprint_speed": 140.0, #max speed, (speedRating-5 * 2)
+	"blocking": 50, #shot blocking skill
 	"positioning" : 90, #player's positioning ability
 	"aggression": 50, #1-100, impacts decision making
 	"reactions": 90, #1-100, impacts AI speed
 	"durability": 75,	#1-100, impacts injury chance
-	"power": 70,        # 1-100, affects hit strength
+	"power": 70,        # 1-100, affects hit strength, pitch power
 	"endurance": 60,    # 1-100, affects boost recovery and maximum boost
-	"accuracy": 65,     # 1-100, affects shot precision  
-	"balance": 55,		# 1-100, affects damage taken from hits
+	"accuracy": 65,     # 1-100, affects shot precision and pitch accuracy
+	"balance": 55,		# 1-100, affects damage taken from hits and stability in fights
 	"focus": 50,        # 1-100, affects curve control
-	"shooting": 50,		# 1-100, affects shot and pass speed for forwards
+	"shooting": 50,		# 1-100, affects shot and pass speed, punch power in fights
 	"toughness": 60,    # 1-100, brawl defense
 	"confidence": 90    # 1-100, affects special moves
 }

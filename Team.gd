@@ -26,6 +26,11 @@ var strategy: Dictionary = {
 		"urgency": 0.7,  # 0-1 (1 = immediate)
 		"attack_tendency": 0.6,
 		"block_tendency": 0.3
+	},
+	"tactics" : {
+		"LF": "Classic Forward",
+		"RF": "Rusher",
+		"D": "Positional Man to Man"
 	}
 }
 
@@ -424,3 +429,106 @@ func switch_zone():
 		LG.strategy.zone = true
 		RG.strategy.zone = true
 	print("Zone? ", LG.strategy.zone)
+
+func debug_default_roster():
+	# Clear existing roster first
+	roster.clear()
+	bench.clear()
+	
+	# P1 is an enforcer pitcher
+	var P1 = Reworked_Pitcher.new()
+	P1.position_type = "pitcher"
+	P1.bio = {"first_name": "Billy", "last_name": "Knuckles", "leftHanded": false}
+	P1.attributes = {
+		"speedRating": 65, 
+		"speed": 100.0, 
+		"sprint_speed": 120.0, 
+		"blocking": 50, 
+		"positioning": 50,
+		"aggression": 90,
+		"reactions": 50,
+		"durability": 75,
+		"power": 70,  
+		"endurance": 60, 
+		"accuracy": 55,   
+		"balance": 85,	
+		"focus": 60,  
+		"shooting": 90,	
+		"toughness": 90,
+		"confidence": 60 
+	}
+	
+	# P2 is a lightweight pitcher
+	var P2 = Reworked_Pitcher.new()
+	P2.position_type = "pitcher"
+	P2.bio = {"first_name": "Randy", "last_name": "Runningham", "leftHanded": true}
+	P2.attributes = {
+		"speedRating": 85, 
+		"speed": 120.0, 
+		"sprint_speed": 160.0, 
+		"blocking": 50, 
+		"positioning": 50,
+		"aggression": 50,
+		"reactions": 70,
+		"durability": 55,
+		"power": 60,  
+		"endurance": 80, 
+		"accuracy": 65,   
+		"balance": 65,	
+		"focus": 80,  
+		"shooting": 50,	
+		"toughness": 52,
+		"confidence": 71 
+	}
+	
+	# P3 is an anti-keeper forward
+	var P3 = Forward.new()
+	P3.position_type = "forward"
+	P3.bio = {"first_name": "Mike", "last_name": "Torpedo", "leftHanded": false}
+	P3.attributes = {
+		"speedRating": 80, 
+		"speed": 115.0, 
+		"sprint_speed": 150.0, 
+		"blocking": 50, 
+		"positioning": 50,
+		"aggression": 87,
+		"reactions": 60,
+		"durability": 75,
+		"power": 87,  
+		"endurance": 66, 
+		"accuracy": 75,   
+		"balance": 85,	
+		"focus": 60,  
+		"shooting": 60,	
+		"toughness": 90,
+		"confidence": 60 
+	}
+	
+	# P4 is a solid guard
+	var P4 = Guard.new()
+	P4.position_type = "guard"
+	P4.bio = {"first_name": "Kyle", "last_name": "Korpisalo", "leftHanded": false}
+	P4.attributes = {
+		"speedRating": 70, 
+		"speed": 105.0, 
+		"sprint_speed": 130.0, 
+		"blocking": 70, 
+		"positioning": 84,
+		"aggression": 87,
+		"reactions": 65,
+		"durability": 95,
+		"power": 80,  
+		"endurance": 76, 
+		"accuracy": 70,   
+		"balance": 80,	
+		"focus": 60,  
+		"shooting": 65,	
+		"toughness": 80,
+		"confidence": 60 
+	}
+	
+	# Add players to roster and bench
+	add_player(P1)
+	add_player(P2)
+	add_player(P3)
+	add_player(P4)

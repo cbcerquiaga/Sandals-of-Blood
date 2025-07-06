@@ -19,6 +19,9 @@ const input_cooldown: int = 3
 @onready var export_screen
 @onready var quit_popup
 
+#
+var team: Team
+
 func _ready():
 	z_index = 100
 	process_mode = Node.PROCESS_MODE_WHEN_PAUSED
@@ -138,4 +141,7 @@ func show_strategy_menu():
 	strategy_menu.show()
 	hide()
 	
+func set_team(importedTeam: Team):
+	team = importedTeam
+	strategy_menu.set_team_info(team)
 	

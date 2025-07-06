@@ -1,7 +1,8 @@
-[gd_scene load_steps=3 format=3 uid="uid://e818m1s2f5xp"]
+[gd_scene load_steps=4 format=3 uid="uid://e818m1s2f5xp"]
 
 [ext_resource type="PackedScene" uid="uid://c0rw2e6hmue5i" path="res://tactics_section.tscn" id="1_lmtvj"]
 [ext_resource type="Script" path="res://strategy_menu.gd" id="1_p0u7q"]
+[ext_resource type="PackedScene" uid="uid://1jmpobhku6vc" path="res://bench_section.tscn" id="2_e2hd3"]
 
 [node name="Strategy_Menu" type="Control"]
 layout_mode = 3
@@ -11,6 +12,9 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_p0u7q")
+
+[node name="Bench_Section" parent="." instance=ExtResource("2_e2hd3")]
+layout_mode = 1
 
 [node name="TacticsSection" parent="." instance=ExtResource("1_lmtvj")]
 layout_mode = 1

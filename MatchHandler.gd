@@ -50,6 +50,7 @@ var aTeam : Team
 
 #UI
 @onready var statusUI = $UI/MatchStatusUI
+@onready var pauseMenu = $UI/PauseMenu
 
 signal emit_match_ended(winning_team)
 signal play_ended(reason)
@@ -67,6 +68,7 @@ func _ready():
 	aTeam.is_player_team = false
 	pTeam.set_process(true)
 	aTeam.set_process(true)
+	pTeam.debug_default_roster()
 	print("process: pteam " + str(pTeam.process_mode) + "/ateam " + str(aTeam.has_readied) + "/field " + str(field))
 	apply_time_scale()
 	field.free_movement.connect(_on_ball_crossed_midfield)
@@ -76,6 +78,7 @@ func _ready():
 	
 	fill_team_rosters()
 	statusUI.assign_team(self)
+	pauseMenu.set_team(pTeam)
 
 func _on_ball_crossed_midfield():
 	#print("game on!")

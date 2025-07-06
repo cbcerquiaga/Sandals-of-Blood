@@ -1,0 +1,167 @@
+[gd_scene load_steps=6 format=3 uid="uid://1jmpobhku6vc"]
+
+[ext_resource type="Script" path="res://bench_section.gd" id="1_43wi8"]
+[ext_resource type="Texture2D" uid="uid://cf0qf4e00oaby" path="res://UI/StrategyUI/Bullpen_Header.png" id="1_xb54t"]
+[ext_resource type="Texture2D" uid="uid://b8k8juf4515jk" path="res://UI/StrategyUI/Bench_Header.png" id="2_7derk"]
+[ext_resource type="Texture2D" uid="uid://bd0jj1wb323lr" path="res://UI/StrategyUI/ClippedHolder_grey.png" id="2_msjcq"]
+[ext_resource type="Texture2D" uid="uid://ciia045odxt0f" path="res://UI/StrategyUI/RosterHolder_grey.png" id="4_jbrg2"]
+
+[node name="Bench_Section" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_43wi8")
+
+[node name="BullpenHeader" type="Sprite2D" parent="."]
+texture = ExtResource("1_xb54t")
+
+[node name="Button1" type="Button" parent="BullpenHeader"]
+offset_left = -844.0
+offset_top = 147.0
+offset_right = 898.0
+offset_bottom = 478.0
+icon = ExtResource("2_msjcq")
+
+[node name="Label" type="Label" parent="BullpenHeader/Button1"]
+layout_mode = 0
+offset_left = 283.0
+offset_top = 99.0
+offset_right = 1109.0
+offset_bottom = 215.0
+theme_override_font_sizes/font_size = 85
+text = "OPEN ROSTER SPOT"
+
+[node name="Button2" type="Button" parent="BullpenHeader"]
+offset_left = -844.0
+offset_top = 547.0
+offset_right = 898.0
+offset_bottom = 878.0
+icon = ExtResource("2_msjcq")
+
+[node name="Label" type="Label" parent="BullpenHeader/Button2"]
+layout_mode = 0
+offset_left = 283.0
+offset_top = 99.0
+offset_right = 1109.0
+offset_bottom = 215.0
+theme_override_font_sizes/font_size = 85
+text = "OPEN ROSTER SPOT"
+
+[node name="Button3" type="Button" parent="BullpenHeader"]
+offset_left = -844.0
+offset_top = 947.0
+offset_right = 898.0
+offset_bottom = 1278.0
+icon = ExtResource("2_msjcq")
+
+[node name="Label" type="Label" parent="BullpenHeader/Button3"]
+layout_mode = 0
+offset_left = 283.0
+offset_top = 99.0
+offset_right = 1109.0
+offset_bottom = 215.0
+theme_override_font_sizes/font_size = 85
+text = "OPEN ROSTER SPOT"
+
+[node name="BenchHeader" type="Sprite2D" parent="."]
+position = Vector2(2, 1463)
+texture = ExtResource("2_7derk")
+
+[node name="Button4" type="Button" parent="BenchHeader"]
+offset_left = -844.0
+offset_top = 192.0
+offset_right = 898.0
+offset_bottom = 523.0
+icon = ExtResource("4_jbrg2")
+
+[node name="Label" type="Label" parent="BenchHeader/Button4"]
+layout_mode = 0
+offset_left = 459.0
+offset_top = 98.0
+offset_right = 1285.0
+offset_bottom = 214.0
+theme_override_font_sizes/font_size = 85
+text = "OPEN ROSTER SPOT"
+
+[node name="Button5" type="Button" parent="BenchHeader"]
+offset_left = -844.0
+offset_top = 592.0
+offset_right = 898.0
+offset_bottom = 923.0
+icon = ExtResource("4_jbrg2")
+
+[node name="Label" type="Label" parent="BenchHeader/Button5"]
+layout_mode = 0
+offset_left = 459.0
+offset_top = 98.0
+offset_right = 1285.0
+offset_bottom = 214.0
+theme_override_font_sizes/font_size = 85
+text = "OPEN ROSTER SPOT"
+
+[node name="Button6" type="Button" parent="BenchHeader"]
+offset_left = -844.0
+offset_top = 992.0
+offset_right = 898.0
+offset_bottom = 1323.0
+icon = ExtResource("4_jbrg2")
+
+[node name="Label" type="Label" parent="BenchHeader/Button6"]
+layout_mode = 0
+offset_left = 459.0
+offset_top = 98.0
+offset_right = 1285.0
+offset_bottom = 214.0
+theme_override_font_sizes/font_size = 85
+text = "OPEN ROSTER SPOT"
+
+[node name="Button7" type="Button" parent="BenchHeader"]
+offset_left = -844.0
+offset_top = 1392.0
+offset_right = 898.0
+offset_bottom = 1723.0
+icon = ExtResource("4_jbrg2")
+
+[node name="Label" type="Label" parent="BenchHeader/Button7"]
+layout_mode = 0
+offset_left = 459.0
+offset_top = 98.0
+offset_right = 1285.0
+offset_bottom = 214.0
+theme_override_font_sizes/font_size = 85
+text = "OPEN ROSTER SPOT"
+
+[node name="Button8" type="Button" parent="BenchHeader"]
+offset_left = -844.0
+offset_top = 1792.0
+offset_right = 898.0
+offset_bottom = 2123.0
+icon = ExtResource("4_jbrg2")
+
+[node name="Label" type="Label" parent="BenchHeader/Button8"]
+layout_mode = 0
+offset_left = 459.0
+offset_top = 98.0
+offset_right = 1285.0
+offset_bottom = 214.0
+theme_override_font_sizes/font_size = 85
+text = "OPEN ROSTER SPOT"
+
+[node name="Button9" type="Button" parent="BenchHeader"]
+offset_left = -844.0
+offset_top = 2192.0
+offset_right = 898.0
+offset_bottom = 2523.0
+icon = ExtResource("4_jbrg2")
+
+[node name="Label" type="Label" parent="BenchHeader/Button9"]
+layout_mode = 0
+offset_left = 459.0
+offset_top = 98.0
+offset_right = 1285.0
+offset_bottom = 214.0
+theme_override_font_sizes/font_size = 85
+text = "OPEN ROSTER SPOT"
