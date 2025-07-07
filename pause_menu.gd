@@ -62,6 +62,8 @@ func _process(delta):
 		elif Input.is_action_just_pressed("move_up") and cooldown_frame >= input_cooldown:
 			cooldown_frame = 0
 			current_index = 0
+		elif Input.is_action_just_pressed("UI_enter") and cooldown_frame >= input_cooldown:
+			show_strategy_menu()
 	else:
 		strategy.texture = load("res://UI/PauseUI/Strategy_button_base.png")
 	if current_index == 2:
@@ -136,9 +138,11 @@ func resume_game():
 	get_tree().paused = false
 
 func show_strategy_menu():
-	print("show me the strategy menu!")
 	submenu = "strategy"
 	strategy_menu.show()
+	strategy_menu.current_section = "tactics"
+	strategy_menu.tacticsSection.using_menu = true
+	strategy_menu.tacticsSection.LF_L_highlighted = true
 	hide()
 	
 func set_team(importedTeam: Team):

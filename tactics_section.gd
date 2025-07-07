@@ -1,9 +1,8 @@
 extends Control
 class_name TacticsSection
 
-#assignment- left forward
 @onready var LF_Lbutton = $LF/LB
-var LF_L_highlighted: bool = false
+var LF_L_highlighted: bool = true
 @onready var LF_assignment = $LF/Assignment
 @onready var LF_explanation = $LF/Explanation
 @onready var LF_Rbutton = $LF/RB
@@ -20,7 +19,7 @@ var LF_directions = {
 	"fencing": 5.0,
 	"cower": 5.0
 }
-#assignment- right forward
+
 @onready var RF_Lbutton = $RF/LB
 var RF_L_highlighted: bool = false
 @onready var RF_assignment = $RF/Assignment
@@ -40,7 +39,6 @@ var RF_directions = {
 	"cower": 5.0
 }
 
-#assignment- defense scheme
 @onready var D_Lbutton = $D/LB
 var D_L_highlighted: bool = false
 @onready var D_assignment = $D/Assignment
@@ -60,12 +58,13 @@ var D_strategy = {
 }
 
 var team: Team
-
+var using_menu: bool = true
 
 var forward_assignments = ["Classic Forward", "Rusher", "Shooting Forward", "Rebounder", "Attacking Forward", "Target Forward", "Support Forward", "Roving Menace", "Pick and Roller", "Pick and Popper"]
 var defense_schemes = ["Positional Man to Man", "Fluid Man to Man", "Left Guard Trap Zone", "Right Guard Trap Zone", "Tight Triangle Zone"]
 
 func _ready() -> void:
+	process_mode = Node.PROCESS_MODE_WHEN_PAUSED
 	LF_Lbutton.pressed.connect(LFL_pressed)
 	LF_Rbutton.pressed.connect(LFR_pressed)
 	RF_Lbutton.pressed.connect(RFL_pressed)
@@ -73,20 +72,24 @@ func _ready() -> void:
 	D_Lbutton.pressed.connect(DL_pressed)
 	D_Rbutton.pressed.connect(DR_pressed)
 
-func _update(delta):
-	if D_L_highlighted:
-		D_Lbutton.texture = load("res://UI/StrategyUI/PreviousButton_highlighted.png")
-		D_R_highlighted = false
-		D_Rbutton.texture = load("res://UI/StrategyUI/NextButton_base.png")
-		if Input.is_action_just_pressed("UI_enter"):
-			DL_pressed()
-	elif D_R_highlighted:
-		D_Lbutton.texture = load("res://UI/StrategyUI/PreviousButton_base.png")
-		D_L_highlighted = false
-		D_Rbutton.texture = load("res://UI/StrategyUI/NextButton_highlighted.png")
-		if Input.is_action_just_pressed("UI_enter"):
-			DR_pressed()
-			
+
+func _process(delta):
+	if !using_menu:
+		LF_Lbutton.set_button_icon(load("res://UI/StrategyUI/PreviousButton_base.png"))
+		LF_Rbutton.set_button_icon(load("res://UI/StrategyUI/NextButton_base.png"))
+		D_Lbutton.set_button_icon(load("res://UI/StrategyUI/PreviousButton_base.png"))
+		D_Rbutton.set_button_icon(load("res://UI/StrategyUI/NextButton_base.png"))
+		RF_Lbutton.set_button_icon(load("res://UI/StrategyUI/PreviousButton_base.png"))
+		RF_Rbutton.set_button_icon(load("res://UI/StrategyUI/NextButton_base.png"))
+		return
+		
+	LF_Lbutton.set_button_icon(load("res://UI/StrategyUI/PreviousButton_highlighted.png") if LF_L_highlighted else load("res://UI/StrategyUI/PreviousButton_base.png"))
+	LF_Rbutton.set_button_icon(load("res://UI/StrategyUI/Next_button_highlighted.png") if LF_R_highlighted else load("res://UI/StrategyUI/NextButton_base.png"))
+	D_Lbutton.set_button_icon(load("res://UI/StrategyUI/PreviousButton_highlighted.png") if D_L_highlighted else load("res://UI/StrategyUI/PreviousButton_base.png"))
+	D_Rbutton.set_button_icon(load("res://UI/StrategyUI/Next_button_highlighted.png") if D_R_highlighted else load("res://UI/StrategyUI/NextButton_base.png"))
+	RF_Lbutton.set_button_icon(load("res://UI/StrategyUI/PreviousButton_highlighted.png") if RF_L_highlighted else load("res://UI/StrategyUI/PreviousButton_base.png"))
+	RF_Rbutton.set_button_icon(load("res://UI/StrategyUI/Next_button_highlighted.png") if RF_R_highlighted else load("res://UI/StrategyUI/NextButton_base.png"))
+
 func import_assignments(lf: String, rf: String, d: String):
 	LF_assignment.text = lf
 	RF_assignment.text = rf
@@ -101,54 +104,83 @@ func import_assignments(lf: String, rf: String, d: String):
 	update_forward_directions(RF_directions, RF_assignment.text)
 	update_defense_directions(D_assignment.text)
 	
-		
 func LFL_pressed():
+	if !using_menu:
+		return
+	get_viewport().set_input_as_handled()
 	LF_tactic_index -= 1
 	if LF_tactic_index < 0:
 		LF_tactic_index = 9
 	LF_assignment.text = forward_assignments[LF_tactic_index]
 	update_forward_explanation_text(LF_explanation, LF_assignment.text)
 	update_forward_directions(LF_directions, LF_assignment.text)
+	clear_all_highlights()
+	set_highlight("LF_L")
 	
 func RFL_pressed():
+	if !using_menu:
+		return
+	get_viewport().set_input_as_handled()
 	RF_tactic_index -= 1
 	if RF_tactic_index < 0:
 		RF_tactic_index = 9
 	RF_assignment.text = forward_assignments[RF_tactic_index]
 	update_forward_explanation_text(RF_explanation, RF_assignment.text)
 	update_forward_directions(RF_directions, RF_assignment.text)
+	clear_all_highlights()
+	set_highlight("RF_L")
 	
 func DL_pressed():
+	if !using_menu:
+		return
+	get_viewport().set_input_as_handled()
 	D_tactic_index -= 1
 	if D_tactic_index < 0:
 		D_tactic_index = 4
 	D_assignment.text = defense_schemes[D_tactic_index]
 	update_defense_explanation_text(D_assignment.text)
 	update_defense_directions(D_assignment.text)
+	clear_all_highlights()
+	set_highlight("D_L")
 	
 func LFR_pressed():
+	if !using_menu:
+		return
+	get_viewport().set_input_as_handled()
 	LF_tactic_index += 1
 	if LF_tactic_index > 9:
 		LF_tactic_index = 0
 	LF_assignment.text = forward_assignments[LF_tactic_index]
 	update_forward_explanation_text(LF_explanation, LF_assignment.text)
 	update_forward_directions(LF_directions, LF_assignment.text)
+	clear_all_highlights()
+	set_highlight("LF_R")
 	
 func RFR_pressed():
+	if !using_menu:
+		return
+	get_viewport().set_input_as_handled()
 	RF_tactic_index += 1
 	if RF_tactic_index > 9:
 		RF_tactic_index = 0
 	RF_assignment.text = forward_assignments[RF_tactic_index]
 	update_forward_explanation_text(RF_explanation, RF_assignment.text)
 	update_forward_directions(RF_directions, RF_assignment.text)
+	clear_all_highlights()
+	set_highlight("RF_R")
 	
 func DR_pressed():
+	if !using_menu:
+		return
+	get_viewport().set_input_as_handled()
 	D_tactic_index += 1
 	if D_tactic_index > 4:
 		D_tactic_index = 0
 	D_assignment.text = defense_schemes[D_tactic_index]
 	update_defense_explanation_text(D_assignment.text)
 	update_defense_directions(D_assignment.text)
+	clear_all_highlights()
+	set_highlight("D_R")
 
 func update_forward_explanation_text(label: Label, assignment: String):
 	match assignment:
@@ -187,9 +219,10 @@ func update_defense_explanation_text(assignment: String):
 			D_explanation.text = "A zone defense where both guards stick close to the goalkeeper and every player wants to block shots."
 			
 func update_forward_directions(directions: Dictionary, assignment: String):
+	var new_directions = {}
 	match assignment:
 		"Classic Forward":
-			directions = {
+			new_directions = {
 				"bull_rush": 50.0,
 				"skill_rush": 100.0,
 				"target_man": 100.0,
@@ -201,7 +234,7 @@ func update_forward_directions(directions: Dictionary, assignment: String):
 				"cower": 5.0
 				}
 		"Rusher":
-			directions = {
+			new_directions = {
 				"bull_rush": 100.0,
 				"skill_rush": 200.0,
 				"target_man": 10.0,
@@ -213,7 +246,7 @@ func update_forward_directions(directions: Dictionary, assignment: String):
 				"cower": 5.0
 				}
 		"Shooting Forward":
-			directions = {
+			new_directions = {
 				"bull_rush": 5.0,
 				"skill_rush": 25.0,
 				"target_man": 20.0,
@@ -225,7 +258,7 @@ func update_forward_directions(directions: Dictionary, assignment: String):
 				"cower": 5.0
 				}
 		"Rebounder":
-			directions = {
+			new_directions = {
 				"bull_rush": 20.0,
 				"skill_rush": 20.0,
 				"target_man": 40.0,
@@ -237,7 +270,7 @@ func update_forward_directions(directions: Dictionary, assignment: String):
 				"cower": 5.0
 				}
 		"Attacking Forward":
-			directions = {
+			new_directions = {
 				"bull_rush": 50.0,
 				"skill_rush": 100.0,
 				"target_man": 0.0,
@@ -249,7 +282,7 @@ func update_forward_directions(directions: Dictionary, assignment: String):
 				"cower": 5.0
 				}
 		"Target Forward":
-			directions = {
+			new_directions = {
 				"bull_rush": 25.0,
 				"skill_rush": 50.0,
 				"target_man": 200.0,
@@ -261,7 +294,7 @@ func update_forward_directions(directions: Dictionary, assignment: String):
 				"cower": 5.0
 				}
 		"Support Forward":
-			directions = {
+			new_directions = {
 				"bull_rush": 5.0,
 				"skill_rush": 10.0,
 				"target_man": 100.0,
@@ -273,7 +306,7 @@ func update_forward_directions(directions: Dictionary, assignment: String):
 				"cower": 5.0
 				}
 		"Roving Menace":
-			directions = {
+			new_directions = {
 				"bull_rush": 50.0,
 				"skill_rush": 100.0,
 				"target_man": 0.0,
@@ -285,7 +318,7 @@ func update_forward_directions(directions: Dictionary, assignment: String):
 				"cower": 5.0
 				}
 		"Pick and Roller":
-			directions = {
+			new_directions = {
 				"bull_rush": 60.0,
 				"skill_rush": 100.0,
 				"target_man": 10.0,
@@ -297,7 +330,7 @@ func update_forward_directions(directions: Dictionary, assignment: String):
 				"cower": 5.0
 				}
 		"Pick and Popper":
-			directions = {
+			new_directions = {
 				"bull_rush": 10.0,
 				"skill_rush": 20.0,
 				"target_man": 80.0,
@@ -308,7 +341,8 @@ func update_forward_directions(directions: Dictionary, assignment: String):
 				"fencing": 5.0,
 				"cower": 5.0
 				}
-	pass
+	directions.clear()
+	directions.merge(new_directions)
 	
 func update_defense_directions(assignment:String):
 	match assignment:
@@ -334,8 +368,30 @@ func update_defense_directions(assignment:String):
 			"goal_defense_threshold": 35,
 			"escort_distance": 10
 			}
-		
-	pass
+
+func clear_all_highlights():
+	LF_L_highlighted = false
+	LF_R_highlighted = false
+	D_L_highlighted = false
+	D_R_highlighted = false
+	RF_L_highlighted = false
+	RF_R_highlighted = false
+	
+func set_highlight(position: String):
+	clear_all_highlights()
+	match position:
+		"LF_L":
+			LF_L_highlighted = true
+		"LF_R":
+			LF_R_highlighted = true
+		"D_L":
+			D_L_highlighted = true
+		"D_R":
+			D_R_highlighted = true
+		"RF_L":
+			RF_L_highlighted = true
+		"RF_R":
+			RF_R_highlighted = true
 
 func import_team(importedTeam: Team):
 	team = importedTeam
