@@ -140,9 +140,8 @@ func resume_game():
 func show_strategy_menu():
 	submenu = "strategy"
 	strategy_menu.show()
-	strategy_menu.current_section = "tactics"
-	strategy_menu.tacticsSection.using_menu = true
-	strategy_menu.tacticsSection.LF_L_highlighted = true
+	strategy_menu.highlighted_item = "tactics_LFL"
+	strategy_menu.tacticsSection.set_highlight("LF_L")
 	hide()
 	
 func set_team(importedTeam: Team):

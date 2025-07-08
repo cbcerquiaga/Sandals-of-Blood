@@ -12,8 +12,11 @@ class_name StrategyMenu
 @onready var discard_button
 @onready var save_button
 
-var current_section = "tactics"
-var last_tactics_position = "LF_L"
+var highlighted_item = "tactics_LFL"
+
+var playerOff: Player
+var playerOn: Player
+
 
 func _ready():
 	process_mode = Node.PROCESS_MODE_WHEN_PAUSED
@@ -27,7 +30,7 @@ func _ready():
 	subOn.position = Vector2(-180, 200)
 	position = Vector2(0,-200)
 	tacticsSection.set_highlight("LF_L")
-	benchSection.using_menu = false
+	highlighted_item = "tactics_LFL"
 	hide()
 
 func _process(delta):
@@ -35,97 +38,296 @@ func _process(delta):
 		return
 		
 	if Input.is_action_just_pressed("ui_cancel"):
-		hide()
+		#TODO: bring back the pause menu
+		#hide()
 		return
+	if Input.is_action_just_pressed("move_left"):
+		navigate_left()
+	elif Input.is_action_just_pressed("move_right"):
+		navigate_right()
+	elif Input.is_action_just_pressed("move_up"):
+		navigate_up()
+	elif Input.is_action_just_pressed("move_down"):
+		navigate_down()
+	elif Input.is_action_just_pressed("UI_enter"):
+		handle_enter()
 		
-	match current_section:
-		"tactics":
-			handle_tactics_input()
-			get_viewport().set_input_as_handled()
-		"bench":
-			handle_bench_input()
-			get_viewport().set_input_as_handled()
-
-func handle_tactics_input():
-	if Input.is_action_just_pressed("move_left"):
-		match last_tactics_position:
-			"LF_L":
-				current_section = "bench"
-				benchSection.using_menu = true
-				benchSection.menu_index = 0
-				tacticsSection.using_menu = false
-			"LF_R":
-				last_tactics_position = "LF_L"
-				tacticsSection.set_highlight("LF_L")
-			"D_L":
-				last_tactics_position = "LF_R"
-				tacticsSection.set_highlight("LF_R")
-			"D_R":
-				last_tactics_position = "D_L"
-				tacticsSection.set_highlight("D_L")
-			"RF_L":
-				last_tactics_position = "D_R"
-				tacticsSection.set_highlight("D_R")
-			"RF_R":
-				last_tactics_position = "RF_L"
-				tacticsSection.set_highlight("RF_L")
-	elif Input.is_action_just_pressed("move_right"):
-		match last_tactics_position:
-			"LF_L":
-				last_tactics_position = "LF_R"
-				tacticsSection.set_highlight("LF_R")
-			"LF_R":
-				last_tactics_position = "D_L"
-				tacticsSection.set_highlight("D_L")
-			"D_L":
-				last_tactics_position = "D_R"
-				tacticsSection.set_highlight("D_R")
-			"D_R":
-				last_tactics_position = "RF_L"
-				tacticsSection.set_highlight("RF_L")
-			"RF_L":
-				last_tactics_position = "RF_R"
+func navigate_left():
+	match highlighted_item:
+		"tactics_LFL":
+			if benchSection.bullpenPlayer1:
+				highlighted_item = "bullpen1"
+				benchSection.highlight_position(0)
+			elif benchSection.benchPlayer1:
+				highlighted_item = "bench1"
+				benchSection.highlight_position(3)
+			else:
+				highlighted_item = "tactics_RFR"
 				tacticsSection.set_highlight("RF_R")
-			"RF_R":
-				current_section = "bench"
-				benchSection.using_menu = true
-				benchSection.menu_index = 0
-				tacticsSection.using_menu = false
-	elif Input.is_action_just_pressed("UI_enter"):
-		if current_section == "tactics":
-			match last_tactics_position:
-				"LF_L":
-					tacticsSection.LFL_pressed()
-				"LF_R":
-					tacticsSection.LFR_pressed()
-				"D_L":
-					tacticsSection.DL_pressed()
-				"D_R":
-					tacticsSection.DR_pressed()
-				"RF_L":
-					tacticsSection.RFL_pressed()
-				"RF_R":
-					tacticsSection.RFR_pressed()
-
-func handle_bench_input():
-	if Input.is_action_just_pressed("move_left"):
-		if benchSection.menu_index <= 2: #only move from the bullpen to the tactics
-			current_section = "tactics"
-			benchSection.using_menu = false
-			tacticsSection.using_menu = true
-			tacticsSection.set_highlight("RF_R")
-		#TODO: elif benchSection.menu_index <= 5:
-			#move to substitution section
-	elif Input.is_action_just_pressed("move_right"):
-		if benchSection.menu_index <= 2: 
-			current_section = "tactics"
-			benchSection.using_menu = false
-			tacticsSection.using_menu = true
+		"tactics_LFR":
+			highlighted_item = "tactics_LFL"
 			tacticsSection.set_highlight("LF_L")
-	elif Input.is_action_just_pressed("UI_enter"):
-		#TODO: select player for substitution or switching
-		get_viewport().set_input_as_handled()
-		return
+		"tactics_DL":
+			highlighted_item = "tactics_LFR"
+			tacticsSection.set_highlight("LF_R")
+		"tactics_DR":
+			highlighted_item = "tactics_DL"
+			tacticsSection.set_highlight("D_L")
+		"tactics_RFL":
+			highlighted_item = "tactics_DR"
+			tacticsSection.set_highlight("D_R")
+		"tactics_RFR":
+			highlighted_item = "tactics_DR"
+			tacticsSection.set_highlight("D_R")
+		"bullpen1":
+			highlighted_item = "tactics_RFR"
+			tacticsSection.set_highlight("RF_R")
+			benchSection.apply_roster_to_UI()
+		"bullpen2":
+			highlighted_item = "tactics_RFR"
+			tacticsSection.set_highlight("RF_R")
+			benchSection.apply_roster_to_UI()
+		"bullpen3":
+			highlighted_item = "tactics_RFR"
+			tacticsSection.set_highlight("RF_R")
+			benchSection.apply_roster_to_UI()
+		"bench1":
+			benchSection.apply_roster_to_UI()
+			#TODO: move to substitution section
+		"bench2":
+			benchSection.apply_roster_to_UI()
+			#TODO: move to substitution section
+		"bench3":
+			benchSection.apply_roster_to_UI()
+			#TODO: move to substitution section
+		"bench4":
+			benchSection.apply_roster_to_UI()
+			#TODO: move to substitution section
+		"bench5":
+			benchSection.apply_roster_to_UI()
+			#TODO: move to substitution section
+		"bench6":
+			benchSection.apply_roster_to_UI()
+			#TODO: move to substitution section
+
+func navigate_right():
+	match highlighted_item:
+		"tactics_RFR":
+			if benchSection.bullpenPlayer1:
+				highlighted_item = "bullpen1"
+				benchSection.highlight_position(0)
+				tacticsSection.clear_all_highlights()
+			elif benchSection.benchPlayer1:
+				highlighted_item = "bench1"
+				benchSection.highlight_position(3)
+				tacticsSection.clear_all_highlights()
+			else:
+				highlighted_item = "tactics_LFL"
+				tacticsSection.set_highlight("LF_L")
+		"tactics_LFL":
+			highlighted_item = "tactics_LFR"
+			tacticsSection.set_highlight("LF_R")
+		"tactics_LFR":
+			highlighted_item = "tactics_DL"
+			tacticsSection.set_highlight("D_L")
+		"tactics_DL":
+			highlighted_item = "tactics_DR"
+			tacticsSection.set_highlight("D_R")
+		"tactics_DR":
+			highlighted_item = "tactics_RFL"
+			tacticsSection.set_highlight("RF_L")
+		"tactics_RFL":
+			highlighted_item = "tactics_RFR"
+			tacticsSection.set_highlight("RF_R")
+		"bullpen1":
+			highlighted_item = "tactics_LFL"
+			tacticsSection.set_highlight("LF_L")
+			benchSection.apply_roster_to_UI()
+		"bullpen2":
+			highlighted_item = "tactics_LFL"
+			tacticsSection.set_highlight("LF_L")
+			benchSection.apply_roster_to_UI()
+		"bullpen3":
+			highlighted_item = "tactics_LFL"
+			tacticsSection.set_highlight("LF_L")
+			benchSection.apply_roster_to_UI()
+		"bench1":
+			#TODO: move to substitution section
+			pass
+		"bench2":
+			#TODO: move to substitution section
+			pass
+		"bench3":
+			#TODO: move to substitution section
+			pass
+		"bench4":
+			#TODO: move to substitution section
+			pass
+		"bench5":
+			#TODO: move to substitution section
+			pass
+		"bench6":
+			#TODO: move to substitution section
+			pass
+
+func handle_enter():
+	match highlighted_item:
+		"tactics_LFL":
+			tacticsSection.LFL_pressed()
+		"tactics_LFR":
+			tacticsSection.LFR_pressed()
+		"tactics_DL":
+			tacticsSection.DL_pressed()
+		"tactics_DR":
+			tacticsSection.DR_pressed()
+		"tactics_RFL":
+			tacticsSection.RFL_pressed()
+		"tactics_RFR":
+			tacticsSection.RFR_pressed()
+		"bullpen1":
+			bench_player_chosen(benchSection.bullpenPlayer1)
+		"bullpen2":
+			bench_player_chosen(benchSection.bullpenPlayer2)
+		"bullpen3":
+			bench_player_chosen(benchSection.bullpenPlayer3)
+		"bench1":
+			bench_player_chosen(benchSection.benchPlayer1)
+		"bench2":
+			bench_player_chosen(benchSection.benchPlayer2)
+		"bench3":
+			bench_player_chosen(benchSection.benchPlayer3)
+		"bench4":
+			bench_player_chosen(benchSection.benchPlayer4)
+		"bench5":
+			bench_player_chosen(benchSection.benchPlayer5)
+		"bench6":
+			bench_player_chosen(benchSection.benchPlayer6)
+			
+func navigate_down():
+	match highlighted_item:
+		"tactics_LFL":
+			#TODO
+			#highlighted_item = "field_LF"
+			pass
+		"tactics_LFR":
+			#TODO
+			#highlighted_item = "field_LF"
+			pass
+		"tactics_DL":
+			#TODO
+			#highlighted_item = "field_P"
+			pass
+		"tactics_DR":
+			#TODO
+			#highlighted_item = "field_P"
+			pass
+		"tactics_RFL":
+			#TODO
+			#highlighted_item = "field_RF"
+			pass
+		"tactics_RFR":
+			#TODO
+			#highlighted_item = "field_RF"
+			pass
+		"bullpen1":
+			var index = benchSection.get_next_player_index(0, true)
+			highlighted_item = benchSection.highlight_position(index)
+		"bullpen2":
+			var index = benchSection.get_next_player_index(1, true)
+			highlighted_item = benchSection.highlight_position(index)
+		"bullpen3":
+			var index = benchSection.get_next_player_index(2, true)
+			highlighted_item = benchSection.highlight_position(index)
+		"bench1":
+			var index = benchSection.get_next_player_index(3, true)
+			highlighted_item = benchSection.highlight_position(index)
+		"bench2":
+			var index = benchSection.get_next_player_index(4, true)
+			highlighted_item = benchSection.highlight_position(index)
+		"bench3":
+			var index = benchSection.get_next_player_index(5, true)
+			highlighted_item = benchSection.highlight_position(index)
+		"bench4":
+			var index = benchSection.get_next_player_index(6, true)
+			highlighted_item = benchSection.highlight_position(index)
+		"bench5":
+			var index = benchSection.get_next_player_index(7, true)
+			highlighted_item = benchSection.highlight_position(index)
+		"bench6":
+			var index = benchSection.get_next_player_index(8, true)
+			highlighted_item = benchSection.highlight_position(index)
+			
+
+func navigate_up():
+	match highlighted_item:
+		"tactics_LFL":
+			#TODO
+			#highlighted_item = "field_LG"
+			pass
+		"tactics_LFR":
+			#TODO
+			#highlighted_item = "field_LG"
+			pass
+		"tactics_DL":
+			#TODO
+			#highlighted_item = "field_K"
+			pass
+		"tactics_DR":
+			#TODO
+			#highlighted_item = "field_K"
+			pass
+		"tactics_RFL":
+			#TODO
+			#highlighted_item = "field_RG"
+			pass
+		"tactics_RFR":
+			#TODO
+			#highlighted_item = "field_RG"
+			pass
+		"bullpen1":
+			var index = benchSection.get_next_player_index(0, false)
+			highlighted_item = benchSection.highlight_position(index)
+		"bullpen2":
+			var index = benchSection.get_next_player_index(1, false)
+			highlighted_item = benchSection.highlight_position(index)
+		"bullpen3":
+			var index = benchSection.get_next_player_index(2, false)
+			highlighted_item = benchSection.highlight_position(index)
+		"bench1":
+			var index = benchSection.get_next_player_index(3, false)
+			highlighted_item = benchSection.highlight_position(index)
+		"bench2":
+			var index = benchSection.get_next_player_index(4, false)
+			highlighted_item = benchSection.highlight_position(index)
+		"bench3":
+			var index = benchSection.get_next_player_index(5, false)
+			highlighted_item = benchSection.highlight_position(index)
+		"bench4":
+			var index = benchSection.get_next_player_index(6, false)
+			highlighted_item = benchSection.highlight_position(index)
+		"bench5":
+			var index = benchSection.get_next_player_index(7, false)
+			highlighted_item = benchSection.highlight_position(index)
+		"bench6":
+			var index = benchSection.get_next_player_index(8, false)
+			highlighted_item = benchSection.highlight_position(index)
+
+func bench_player_chosen(chosenPlayer: Player):
+	if !playerOff:
+		playerOff = chosenPlayer
+	elif playerOff == chosenPlayer: #choose the same player twice to un-highlight them
+		playerOff = null
+		return 
+	elif (playerOff.position_type == "pitcher" and chosenPlayer.position_type == "pitcher") or (playerOff.position_type != "pitcher" and chosenPlayer.position_type != "pitcher"):
+		benchSection.swap_player_spots(playerOff, chosenPlayer)
+	else:
+		playerOff = chosenPlayer
+
+func perform_substitution():
+	#TODO: swap playerOff and playerOn
+	#TODO: put players into their assigned roster spots
+	#TODO: update the bench and the field
+	return
 
 func set_team_info(team: Team):
 	benchSection.import_roster(team.roster)

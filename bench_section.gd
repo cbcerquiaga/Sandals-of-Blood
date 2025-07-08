@@ -49,14 +49,58 @@ func _ready()-> void:
 	bench4.set_button_icon(load("res://UI/StrategyUI/RosterHolder_grey.png"))
 	bench5.set_button_icon(load("res://UI/StrategyUI/RosterHolder_grey.png"))
 	bench6.set_button_icon(load("res://UI/StrategyUI/RosterHolder_grey.png"))
+	
+func highlight_position(index: int):
+	apply_roster_to_UI()
+	match index:
+		0:
+			bullpen1.set_button_icon(load("res://UI/StrategyUI/ClippedHolder_highlighted.png"))
+			return "bullpen1"
+		1:
+			bullpen2.set_button_icon(load("res://UI/StrategyUI/ClippedHolder_highlighted.png"))
+			return "bullpen2"
+		2:
+			bullpen3.set_button_icon(load("res://UI/StrategyUI/ClippedHolder_highlighted.png"))
+			return "bullpen3"
+		3:
+			bench1.set_button_icon(load("res://UI/StrategyUI/Roster_holder_highlighted.png"))
+			return "bench1"
+		4:
+			bench2.set_button_icon(load("res://UI/StrategyUI/Roster_holder_highlighted.png"))
+			return "bench2"
+		5:
+			bench3.set_button_icon(load("res://UI/StrategyUI/Roster_holder_highlighted.png"))
+			return "bench3"
+		6:
+			bench4.set_button_icon(load("res://UI/StrategyUI/Roster_holder_highlighted.png"))
+			return "bench4"
+		7:
+			bench5.set_button_icon(load("res://UI/StrategyUI/Roster_holder_highlighted.png"))
+			return "bench5"
+		8:
+			bench6.set_button_icon(load("res://UI/StrategyUI/Roster_holder_highlighted.png"))
+			return "bench6"
+	
+func get_next_player_index(index: int, going_up: bool = true) -> int:
+	var slots = [bullpenPlayer1, bullpenPlayer2, bullpenPlayer3, 
+				benchPlayer1, benchPlayer2, benchPlayer3, 
+				benchPlayer4, benchPlayer5, benchPlayer6]
+	if going_up:
+		for i in range(1, slots.size() + 1):
+			var next_index = (index + i) % slots.size()
+			if slots[next_index] != null:
+				return next_index
+	else:
+		# Start checking from the previous index (wrapping around)
+		for i in range(1, slots.size() + 1):
+			var prev_index = (index - i + slots.size()) % slots.size()
+			if slots[prev_index] != null:
+				return prev_index
+	
+	return index
+			
 
-func _process(delta):
-	if !using_menu:
-		update_button_states(false)
-		return
-		
-	handle_bench_navigation()
-	update_button_states(true)
+
 
 func update_button_states(active: bool):
 	bullpen1.set_button_icon(load("res://UI/StrategyUI/ClippedHolder_highlighted.png") if (active and menu_index == 0 and bullpenPlayer1) else load("res://UI/StrategyUI/ClippedHolder_base.png") if bullpenPlayer1 else load("res://UI/StrategyUI/ClippedHolder_grey.png"))
@@ -68,42 +112,6 @@ func update_button_states(active: bool):
 	bench4.set_button_icon(load("res://UI/StrategyUI/Roster_holder_highlighted.png") if (active and menu_index == 6 and benchPlayer4) else load("res://UI/StrategyUI/Roster_holder_base.png") if benchPlayer4 else load("res://UI/StrategyUI/RosterHolder_grey.png"))
 	bench5.set_button_icon(load("res://UI/StrategyUI/Roster_holder_highlighted.png") if (active and menu_index == 7 and benchPlayer5) else load("res://UI/StrategyUI/Roster_holder_base.png") if benchPlayer5 else load("res://UI/StrategyUI/RosterHolder_grey.png"))
 	bench6.set_button_icon(load("res://UI/StrategyUI/Roster_holder_highlighted.png") if (active and menu_index == 8 and benchPlayer6) else load("res://UI/StrategyUI/Roster_holder_base.png") if benchPlayer6 else load("res://UI/StrategyUI/RosterHolder_grey.png"))
-
-func handle_bench_navigation():
-	if Input.is_action_just_pressed("move_down"):
-		var new_index = menu_index
-		while true:
-			new_index += 1
-			if new_index > 8:
-				new_index = 0
-			if (new_index <= 2 and get_player_at_menu_index(new_index)) or (new_index > 2 and get_player_at_menu_index(new_index)):
-				menu_index = new_index
-				currentPlayer = null  
-				break
-			if new_index == menu_index:
-				break
-	elif Input.is_action_just_pressed("move_up"):
-		var new_index = menu_index
-		while true:
-			new_index -= 1
-			if new_index < 0:
-				new_index = 8
-			if (new_index <= 2 and get_player_at_menu_index(new_index)) or (new_index > 2 and get_player_at_menu_index(new_index)):
-				menu_index = new_index
-				currentPlayer = null  
-				break
-			if new_index == menu_index:
-				break
-	elif Input.is_action_just_pressed("UI_enter"):
-		if !currentPlayer:
-			currentPlayer = get_player_at_menu_index(menu_index)
-			if currentPlayer:
-				emit_signal("player_selected", currentPlayer)
-		else:
-			var temp_player = get_player_at_menu_index(menu_index)
-			if temp_player and ((temp_player.position_type == "pitcher" and currentPlayer.position_type == "pitcher") or (temp_player.position_type != "pitcher" and currentPlayer.position_type != "pitcher")):
-				switch_player_positions(temp_player)
-				currentPlayer = null  
 
 func get_player_at_menu_index(index: int) -> Player:
 	match index:
@@ -234,6 +242,12 @@ func calculate_keeper_overall(player: Player):
 	ratings.sort()
 	ratings.reverse()
 	return int((ratings[0] + ratings[1])/2)
+	
+func swap_player_spots(player1, player2):
+	#TODO: find each player in the roster
+	#TODO: swap each player's spot in the roster array
+	#TODO: update the UI again
+	pass
 	
 func switch_player_positions(secondaryPlayer: Player):
 	var temp = currentPlayer
