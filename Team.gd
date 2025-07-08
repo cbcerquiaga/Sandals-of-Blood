@@ -1,15 +1,15 @@
 class_name Team
 extends Node
 
-# Team Configuration
 var team_id: int
-var is_on_offense: bool #whether or not the team is pitching
-var is_player_team: bool#whether ot not the team is human controlled
+var is_on_offense: bool
+var is_player_team: bool
 var roster: Array[Player] = []
-var bench: Array[Player] = []  # Players not currently in positions
+var bench: Array[Player] = []
 var buffs: Array[Dictionary] = []
+var pending_substitution: Dictionary = {}
 var strategy: Dictionary = {
-	"base_aggression": 1.0,  # Multiplier for all positions
+	"base_aggression": 1.0,
 	"position_aggression": {
 		"keeper": 1.0,
 		"guard": 1.0,
@@ -17,20 +17,23 @@ var strategy: Dictionary = {
 		"pitcher": 1.0
 	},
 	"substitution": {
-		"energy_threshold": 30.0,  # % energy remaining
-		"injury_threshold": 3,     # number of injuries
-		"priority": ["pitcher", "keeper", "forward", "guard"]  # Substitution order
+		"energy_threshold": 30.0,
+		"injury_threshold": 3,
+		"priority": ["pitcher", "keeper", "forward", "guard"]
 	},
 	"brawling": {
 		"max_in": 3,
-		"urgency": 0.7,  # 0-1 (1 = immediate)
+		"urgency": 0.7,
 		"attack_tendency": 0.6,
 		"block_tendency": 0.3
 	},
-	"tactics" : {
-		"LF": "Classic Forward",
-		"RF": "Rusher",
-		"D": "Positional Man to Man"
+	"tactics": {
+		"LF": {},
+		"LF_title": "Classic Forward",
+		"RF": {},
+		"RF_title": "Rusher",
+		"D": {},
+		"D_title": "Positional Man to Man"
 	}
 }
 
@@ -42,8 +45,6 @@ var strategy: Dictionary = {
 @export var RF: Player
 
 @onready var onfield_players = [K, P, LG, RG, LF, RF]
-
-# Current Field Positions
 var positions: Dictionary = {
 	"keeper": null,
 	"guard_l": null,
@@ -52,9 +53,7 @@ var positions: Dictionary = {
 	"forward_r": null,
 	"pitcher": null
 }
-
 var has_readied
-
 signal on_team_ready(id: int)
 
 func _init():
@@ -76,15 +75,49 @@ func _process(delta: float) -> void:
 			on_team_ready.emit(team_id)
 			print("ready")
 
+func check_pending_substitutions():
+	if pending_substitution:
+		var pos_keys = get_position_keys_for_type(pending_substitution.position)
+		for pos_key in pos_keys:
+			if positions[pos_key] == pending_substitution.player_off:
+				assign_position(pos_key, pending_substitution.player_on)
+		pending_substitution = {}
+
+func export_to_dict() -> Dictionary:
+	var data = {
+		"roster": [],
+		"strategy": strategy.duplicate(true)
+	}
+	for player in roster:
+		data["roster"].append(player.export_to_dict())
+	return data
+
+func import_from_dict(data: Dictionary):
+	strategy = data["strategy"].duplicate(true)
+	roster.clear()
+	bench.clear()
+	for player_data in data["roster"]:
+		var player = Player.new()
+		player.import_from_dict(player_data)
+		add_player(player)
+	assign_field_positions()
+
+func assign_field_positions():
+	for player in roster:
+		var pos_type = player.position_type
+		var pos_keys = get_position_keys_for_type(pos_type)
+		for pos_key in pos_keys:
+			if positions[pos_key] == null:
+				assign_position(pos_key, player)
+				break
+
 func initialize_default_strategy():
-	# Set default position aggression modifiers
 	strategy.position_aggression = {
 		"keeper": 0.6,
 		"guard": 1.2,
 		"forward": 1.5,
 		"pitcher": 0.3
 	}
-	#TODO: set the team_strategy dictionary for each player
 
 func add_players_to_roster():
 	add_player(K)
@@ -101,20 +134,15 @@ func add_player(player: Player):
 	apply_team_buffs(player)
 
 func assign_position(position_key: String, player: Player):
-	# Clear previous occupant
 	if positions[position_key]:
 		bench.append(positions[position_key])
-	
-	# Assign new player
 	positions[position_key] = player
 	if bench.has(player):
 		bench.erase(player)
-	
-	# Check for out-of-position debuff
 	if player.position_type != position_key.trim_suffix("_l").trim_suffix("_r"):
 		if not player.has_buff("utility_player"):
 			player.add_debuff("out_of_position", {
-				"duration": -1,  # Permanent until position change
+				"duration": -1,
 				"effects": {
 					"speed": -1,
 					"power": -1,
@@ -146,21 +174,15 @@ func check_substitutions():
 func needs_substitution(player: Player) -> bool:
 	if not player:
 		return true
-		
 	return (player.energy < strategy.substitution.energy_threshold or
 			player.injury_count >= strategy.substitution.injury_threshold)
 
 func attempt_substitution(position_key: String):
 	var position_type = position_key.trim_suffix("_l").trim_suffix("_r")
-	
-	# Find suitable replacement on bench
 	for bench_player in bench:
 		if bench_player.position_type == position_type:
-			# Found replacement
 			assign_position(position_key, bench_player)
 			return
-	
-	# No exact match, try utility players
 	for bench_player in bench:
 		if bench_player.has_buff("utility_player"):
 			assign_position(position_key, bench_player)
@@ -190,8 +212,6 @@ func add_team_buff(buff_name: String, modifiers: Dictionary, duration: float = -
 		"duration": duration,
 		"timer": 0.0 if duration > 0 else -1
 	})
-	
-	# Apply to all players
 	for player in roster:
 		player.add_buff(buffs[-1])
 
@@ -199,8 +219,6 @@ func remove_team_buff(buff_name: String):
 	for i in range(buffs.size() - 1, -1, -1):
 		if buffs[i].name == buff_name:
 			buffs.remove_at(i)
-	
-	# Remove from all players
 	for player in roster:
 		player.remove_debuff(buff_name)
 
@@ -217,51 +235,36 @@ func get_brawl_decision() -> Dictionary:
 		"attack": false,
 		"block": false
 	}
-	
-	# Base chance to join brawl based on strategy
 	if randf() < strategy.brawling.urgency:
 		decision.join = true
-		
 		if randf() < strategy.brawling.attack_tendency:
 			decision.attack = true
 		elif randf() < strategy.brawling.block_tendency:
 			decision.block = true
-	
 	return decision
 
 func get_modified_aggression(base_aggression: float, position_type: String) -> float:
 	var pos_aggression = strategy.position_aggression.get(position_type, 1.0)
 	var team_aggression = strategy.base_aggression
-	
-	# Apply buffs/debuffs
 	var aggression_mod = 1.0
 	for buff in buffs:
 		if buff.modifiers.has("aggression"):
 			aggression_mod += buff.modifiers.aggression / 100.0
-	
 	return base_aggression * pos_aggression * team_aggression * aggression_mod
 
 func should_join_brawl(current_participants: int) -> bool:
 	if current_participants >= strategy.brawling.max_in:
 		return false
-	
-	# More likely to join if losing brawl
 	var urgency_mod = strategy.brawling.urgency
 	if current_participants > 0:
-		urgency_mod *= 1.0 + (1.0 - urgency_mod)  # Scale up based on existing participants
-	
+		urgency_mod *= 1.0 + (1.0 - urgency_mod)
 	return randf() < urgency_mod
 
 func get_brawl_priority_players() -> Array[Player]:
-	# Returns players in order they should join brawls
 	var priority = []
-	
-	# Forwards join first, then guards, then keeper last
 	priority.append_array([positions.forward_l, positions.forward_r])
 	priority.append_array([positions.guard_l, positions.guard_r])
 	priority.append(positions.keeper)
-	
-	# Remove nulls and return
 	priority.erase(null)
 	return priority
 
@@ -346,13 +349,12 @@ func wipe_player_control():
 	RG.is_controlling_player = false
 	LF.is_controlling_player = false
 	RF.is_controlling_player = false
-	
+
 func assign_player_control():
 	if is_on_offense:
 		P.is_controlling_player = true
 	else:
 		K.is_controlling_player = true
-		
 func set_team_id(id):
 	team_id = id
 	K.team = id
@@ -361,18 +363,16 @@ func set_team_id(id):
 	RF.team = id
 	LG.team = id
 	LF.team = id
-	
+
 func allow_movement():
 	K.can_move = true
 	K.current_behavior = "defending"
-	#P.can_move = true #TODO: depends on what pitcher does after pitching
 	RG.can_move = true
 	RF.can_move = true
 	LG.can_move = true
 	LF.can_move = true
 	LF.current_behavior = "target_man"
-	
-	#default state for once the team can play
+
 func default_human_state():
 	K.is_controlling_player = true
 	K.child_state()
@@ -387,9 +387,7 @@ func default_human_state():
 	RF.is_controlling_player = false
 	RF.child_state()
 	RF.current_behavior = "shooter"
-	#TODO:forwards
-	
-	#default state for once the team can play
+
 func default_ai_state():
 	K.is_controlling_player = false
 	K.child_state()
@@ -399,7 +397,7 @@ func default_ai_state():
 	RG.child_state()
 	LF.child_state()
 	LF.current_behavior = "rebound"
-	
+
 func nextPlayStatus():
 	K.reset_state()
 	K.has_guessed = false
@@ -410,12 +408,12 @@ func nextPlayStatus():
 	P.reset_state()
 	P.human_ready = false
 	bench_rest()
-	
+
 func fire_up_bench():
 	for player in bench:
 		player.add_groove(20)
 		player.add_energy(10)
-		
+
 func bench_rest():
 	for player in bench:
 		player.lose_groove(1)
@@ -431,11 +429,8 @@ func switch_zone():
 	print("Zone? ", LG.strategy.zone)
 
 func debug_default_roster():
-	# Clear existing roster first
 	roster.clear()
 	bench.clear()
-	
-	# P1 is an enforcer pitcher
 	var P1 = Reworked_Pitcher.new()
 	P1.position_type = "pitcher"
 	P1.bio = {"first_name": "Billy", "last_name": "Knuckles", "leftHanded": false}
@@ -451,14 +446,12 @@ func debug_default_roster():
 		"power": 70,  
 		"endurance": 60, 
 		"accuracy": 55,   
-		"balance": 85,	
+		"balance": 85,    
 		"focus": 60,  
-		"shooting": 90,	
+		"shooting": 90,    
 		"toughness": 90,
 		"confidence": 60 
 	}
-	
-	# P2 is a lightweight pitcher
 	var P2 = Reworked_Pitcher.new()
 	P2.position_type = "pitcher"
 	P2.bio = {"first_name": "Randy", "last_name": "Runningham", "leftHanded": true}
@@ -474,14 +467,12 @@ func debug_default_roster():
 		"power": 60,  
 		"endurance": 80, 
 		"accuracy": 65,   
-		"balance": 65,	
+		"balance": 65,    
 		"focus": 80,  
-		"shooting": 50,	
+		"shooting": 50,    
 		"toughness": 52,
 		"confidence": 71 
 	}
-	
-	# P3 is an anti-keeper forward
 	var P3 = Forward.new()
 	P3.position_type = "forward"
 	P3.bio = {"first_name": "Mike", "last_name": "Torpedo", "leftHanded": false}
@@ -497,14 +488,12 @@ func debug_default_roster():
 		"power": 87,  
 		"endurance": 66, 
 		"accuracy": 75,   
-		"balance": 85,	
+		"balance": 85,    
 		"focus": 60,  
-		"shooting": 60,	
+		"shooting": 60,    
 		"toughness": 90,
 		"confidence": 60 
 	}
-	
-	# P4 is a solid guard
 	var P4 = Guard.new()
 	P4.position_type = "guard"
 	P4.bio = {"first_name": "Kyle", "last_name": "Korpisalo", "leftHanded": false}
@@ -520,15 +509,19 @@ func debug_default_roster():
 		"power": 80,  
 		"endurance": 76, 
 		"accuracy": 70,   
-		"balance": 80,	
+		"balance": 80,    
 		"focus": 60,  
-		"shooting": 65,	
+		"shooting": 65,    
 		"toughness": 80,
 		"confidence": 60 
 	}
-	
-	# Add players to roster and bench
 	add_player(P1)
 	add_player(P2)
 	add_player(P3)
 	add_player(P4)
+	
+func applyTactics():
+	LG.strategy = strategy.tactics.D
+	RG.strategy = strategy.tactics.D
+	LF.player_preference = strategy.tactics.LF
+	RF.player_preference = strategy.tactics.RF

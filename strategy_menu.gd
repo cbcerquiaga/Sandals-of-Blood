@@ -9,14 +9,19 @@ class_name StrategyMenu
 @onready var subOn = $SubstitutionSection/SubOn
 @onready var subOff = $SubstitutionSection/SubOff
 @onready var subs_counter
-@onready var discard_button
-@onready var save_button
+@onready var discard_button = $DiscardButton
+@onready var save_button = $SaveButton
 
 var highlighted_item = "tactics_LFL"
-
+var is_in_match:bool = true #false if we got here from the team management menu, true if we got here from pausing a match
+var original_roster:Array
+var original_strategy:Dictionary
+var current_team: Team
+var match_handler: MatchHandler
 var playerOff: Player
 var playerOn: Player
 
+signal menu_closed
 
 func _ready():
 	process_mode = Node.PROCESS_MODE_WHEN_PAUSED
@@ -28,10 +33,26 @@ func _ready():
 	subOn.scale = Vector2(0.1, 0.1)
 	subOff.position = Vector2(-300, 200)
 	subOn.position = Vector2(-180, 200)
+	save_button.scale = Vector2(0.1, 0.1)
+	save_button.position = Vector2(-200, 350)
+	discard_button.scale = Vector2(0.1, 0.1)
+	discard_button.position = Vector2(-350, 350)
 	position = Vector2(0,-200)
 	tacticsSection.set_highlight("LF_L")
 	highlighted_item = "tactics_LFL"
+	save_button.pressed.connect(_on_save_pressed)
+	discard_button.pressed.connect(_on_discard_pressed)
 	hide()
+	
+func open_menu(team: Team, handler: MatchHandler, in_match: bool):
+	current_team = team
+	match_handler = handler
+	is_in_match = in_match
+	original_strategy = team.strategy.duplicate(true)
+	original_roster = []
+	for player in team.roster:
+		original_roster.append(player.export_to_dict())
+	
 
 func _process(delta):
 	if not visible:
@@ -328,6 +349,60 @@ func perform_substitution():
 	#TODO: put players into their assigned roster spots
 	#TODO: update the bench and the field
 	return
+	
+func _on_save_pressed():
+	if is_in_match:
+		apply_strategy_changes()
+		match_handler.update_team_strategy(current_team)
+	else:
+		save_strategy(current_team, "user://player_team_strategy.json")
+	emit_signal("menu_closed")
+	hide()
+	
+func _on_discard_pressed():
+	emit_signal("menu_closed")
+	revert_changes()
+	hide()
+
+func apply_strategy_changes():
+	current_team.strategy.tactics.LF_title = tacticsSection.LF_assignment.text
+	current_team.strategy.tactics.RF_title = tacticsSection.RF_assignment.text
+	current_team.strategy.tactics.D_title = tacticsSection.D_assignment.text
+	current_team.strategy.tactics.LF = tacticsSection.LF_directions
+	current_team.strategy.tactics.RF = tacticsSection.RF_directions
+	current_team.strategy.tactics.D = tacticsSection.D_strategy
+	if playerOff and playerOn:
+		current_team.pending_substitution = {
+			"player_off": playerOff,
+			"player_on": playerOn,
+			"position": playerOff.position_type
+		}
+		
+func revert_changes():
+	current_team.strategy = original_strategy.duplicate(true)
+	current_team.roster.clear()
+	current_team.bench.clear()
+	for player_data in original_roster:
+		var player = Player.new()
+		player.import_from_dict(player_data)
+		current_team.add_player(player)
+	current_team.assign_field_positions()
+
+func save_strategy(team: Team, file_path: String):
+	var data = team.export_to_dict()
+	var file = FileAccess.open(file_path, FileAccess.WRITE)
+	file.store_string(JSON.stringify(data, "\t"))
+	file.close()
+	
+func load_strategy(team: Team, file_path: String):
+	if FileAccess.file_exists(file_path):
+		var file = FileAccess.open(file_path, FileAccess.READ)
+		var data = JSON.parse_string(file.get_as_text())
+		file.close()
+		if data:
+			team.import_from_dict(data)
+			return true
+	return false
 
 func set_team_info(team: Team):
 	benchSection.import_roster(team.roster)

@@ -319,6 +319,39 @@ func update_defense_directions(assignment:String):
 			"goal_defense_threshold": 35,
 			"escort_distance": 10
 			}
+		"Left Guard Trap Zone":
+			D_strategy = {
+			"marking": 0.0,
+			"fluidity": 0.0,
+			"zone": true,
+			"lg_trap": true, 
+			"rg_trap": false,
+			"chasing": 0.1,
+			"goal_defense_threshold": 45,
+			"escort_distance": 15
+			}
+		"Right Guard Trap Zone":
+			D_strategy = {
+			"marking": 0.0,
+			"fluidity": 0.0,
+			"zone": true,
+			"lg_trap": false, 
+			"rg_trap": true,
+			"chasing": 0.1,
+			"goal_defense_threshold": 45,
+			"escort_distance": 15
+			}
+		"Tight Triangle Zone":
+			D_strategy = {
+				"marking": 0.2,
+			"fluidity": 0.5,
+			"zone": true,
+			"lg_trap": false, 
+			"rg_trap": false,
+			"chasing": 0.1,
+			"goal_defense_threshold": 35,
+			"escort_distance": 10
+			}
 
 func clear_all_highlights():
 	LF_Lbutton.set_button_icon(load("res://UI/StrategyUI/PreviousButton_base.png"))
@@ -346,4 +379,4 @@ func set_highlight(position: String):
 
 func import_team(importedTeam: Team):
 	team = importedTeam
-	import_assignments(team.strategy.tactics.LF, team.strategy.tactics.RF, team.strategy.tactics.D)
+	import_assignments(team.strategy.tactics.LF_title, team.strategy.tactics.RF_title, team.strategy.tactics.D_title)

@@ -79,6 +79,7 @@ func _ready():
 	fill_team_rosters()
 	statusUI.assign_team(self)
 	pauseMenu.set_team(pTeam)
+	pauseMenu.matchHandler = self
 
 func _on_ball_crossed_midfield():
 	#print("game on!")
@@ -261,6 +262,8 @@ func next_play():
 	out_of_bounds_frames = 0
 	
 	# Update team status for next play
+	pTeam.check_pending_substitutions()
+	aTeam.check_pending_substitutions()
 	pTeam.nextPlayStatus()
 	aTeam.nextPlayStatus()
 	reset_players_for_next_play()
@@ -628,3 +631,9 @@ func fight_fall_over():
 	pTeam.P.add_groove(1)
 	#injury chance for both
 	
+func update_team_strategy(team: Team):
+	pTeam.strategy.tactics.LF = team.strategy.tactics.LF
+	pTeam.strategy.tactics.D = team.strategy.tactics.D
+	pTeam.strategy.tactics.RF = team.strategy.tactics.RF
+	pTeam.applyTactics()
+	pTeam.pending_substitution = team.pending_substitution

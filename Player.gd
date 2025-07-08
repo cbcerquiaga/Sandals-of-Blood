@@ -178,6 +178,12 @@ var fieldType: String = "road"
 var fieldHeight: float = 0.0
 var returnSpeed: float = 12
 
+# Signals
+signal player_hit(damage)
+signal player_stunned(duration)
+signal brawl_started(opponent)
+signal brawl_ended(winner)
+
 
 func _ready():
 	collision_layer = 0b0100  # Layer 3 (players)
@@ -791,9 +797,41 @@ func get_socked(impact: float):
 			roll = randf()
 			if roll > attributes.durability/100.0:#taking some kind of injury here
 				print("injury acquired on roll ", i, " of ", num_injury_rolls)
+				
+# In Player.gd
 
-# Signals
-signal player_hit(damage)
-signal player_stunned(duration)
-signal brawl_started(opponent)
-signal brawl_ended(winner)
+func export_to_dict() -> Dictionary:
+	return {
+		"attributes": attributes.duplicate(true),
+		"status": status.duplicate(true),
+		"bio": bio.duplicate(true),
+		"game_stats": game_stats.duplicate(true),
+		"position_type": position_type,
+		"special_ability": special_ability,
+		"portrait": portrait,
+		"head": head,
+		"haircut": haircut,
+		"glove": glove,
+		"shoe": shoe,
+		"body_type": body_type,
+		"skin_tone_primary": skin_tone_primary,
+		"skin_tone_secondary": skin_tone_secondary,
+		"complexion": complexion
+	}
+
+func import_from_dict(data: Dictionary):
+	attributes = data["attributes"].duplicate(true)
+	status = data["status"].duplicate(true)
+	bio = data["bio"].duplicate(true)
+	game_stats = data["game_stats"].duplicate(true)
+	position_type = data["position_type"]
+	special_ability = data["special_ability"]
+	portrait = data["portrait"]
+	head = data["head"]
+	haircut = data["haircut"]
+	glove = data["glove"]
+	shoe = data["shoe"]
+	body_type = data["body_type"]
+	skin_tone_primary = data["skin_tone_primary"]
+	skin_tone_secondary = data["skin_tone_secondary"]
+	complexion = data["complexion"]

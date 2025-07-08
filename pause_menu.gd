@@ -21,6 +21,7 @@ const input_cooldown: int = 3
 
 #
 var team: Team
+var matchHandler: MatchHandler
 
 func _ready():
 	z_index = 100
@@ -28,6 +29,7 @@ func _ready():
 	current_index = 0
 	global_position = Vector2(0, -130)
 	scale = Vector2(0.2, 0.2)
+	strategy_menu.menu_closed.connect(_on_strategy_menu_closed)
 	hide()
 
 func _process(delta):
@@ -139,7 +141,9 @@ func resume_game():
 
 func show_strategy_menu():
 	submenu = "strategy"
+	strategy_menu.open_menu(team, matchHandler, true)
 	strategy_menu.show()
+	strategy_menu
 	strategy_menu.highlighted_item = "tactics_LFL"
 	strategy_menu.tacticsSection.set_highlight("LF_L")
 	hide()
@@ -148,3 +152,7 @@ func set_team(importedTeam: Team):
 	team = importedTeam
 	strategy_menu.set_team_info(team)
 	
+	
+func _on_strategy_menu_closed():
+	submenu = ""
+	show()
