@@ -77,9 +77,54 @@ func _ready():
 	field.cpu_goal.connect(_on_cpu_goal)
 	
 	fill_team_rosters()
+	load_team_strategies()
 	statusUI.assign_team(self)
 	pauseMenu.set_team(pTeam)
 	pauseMenu.matchHandler = self
+	
+func load_team_strategies():
+	# TODO: load from file
+	var default_strategy = {
+		"LF_title": "Classic Forward",
+		"RF_title": "Shooting Forward", 
+		"D_title": "Positional Man to Man",
+		"LF": {
+				"bull_rush": 50.0,
+				"skill_rush": 100.0,
+				"target_man": 100.0,
+				"shooter": 100.0,
+				"rebound": 50.0,
+				"pick": 10.0,
+				"bully": 10.0,
+				"fencing": 5.0,
+				"cower": 5.0
+				},
+		"RF": {
+				"bull_rush": 5.0,
+				"skill_rush": 25.0,
+				"target_man": 20.0,
+				"shooter": 300.0,
+				"rebound": 50.0,
+				"pick": 10.0,
+				"bully": 10.0,
+				"fencing": 5.0,
+				"cower": 5.0
+				},
+		"D": {
+			"marking": 0.9,
+			"fluidity": 0.1,
+			"zone": false,
+			"lg_trap": false, 
+			"rg_trap": false,
+			"chasing": 0.1,
+			"goal_defense_threshold": 65,
+			"escort_distance": 10
+			}
+	}
+	pTeam.strategy.tactics = default_strategy.duplicate(true)
+	aTeam.strategy.tactics = default_strategy.duplicate(true)
+	pTeam.applyTactics()
+	aTeam.applyTactics()
 
 func _on_ball_crossed_midfield():
 	#print("game on!")

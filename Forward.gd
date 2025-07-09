@@ -85,6 +85,10 @@ func _physics_process(delta):
 		clamp_target_position()
 		if team == 1:
 			human_pass_control()
+	if !is_in_correct_half(global_position) and !is_controlling_player:
+		navigate_to(Vector2(global_position.x, 0))
+		move_and_slide()
+		return
 		
 	elif is_controlling_player and can_move:
 		handle_human_input(delta)
@@ -240,12 +244,18 @@ func execute_rebound():
 	if goal_position.y > 0 and ball.global_position.y < 0 or goal_position.y < 0 and ball.global_position.y > 0:
 		current_behavior = "target_man"
 		return
+	if !is_in_correct_half(ball.global_position):
+		current_behavior = "target_man"
+		return
 	
 	check_pass_opportunity()
 	rebound_projection_accuracy = 0.5 + (attributes.positioning / 200.0)
 	predict_ball_path_with_rebounds()
 	var intercept = find_intercept_point()
 	if intercept == null:
+		return
+	if !is_in_correct_half(intercept):
+		current_behavior = "target_man"
 		return
 	if goal_position.y < 0 and intercept.y > 0 or goal_position.y > 0 and intercept.y < 0:
 		current_behavior = "waiting"
@@ -665,7 +675,10 @@ func navigate_to(position: Vector2):
 		velocity = Vector2.ZERO
 	else:
 		var next_path_pos = navigation_agent.get_next_path_position()
-		velocity = global_position.direction_to(next_path_pos) * attributes.speed
+		var stuck = 1
+		if is_incapacitated:
+			stuck = 0
+		velocity = global_position.direction_to(next_path_pos) * attributes.speed * stuck
 
 
 func choose_shooter_position():
@@ -1064,9 +1077,16 @@ func _should_break_fencing() -> bool:
 	return ball and global_position.distance_to(ball.global_position) < fencing_params["ball_proximity_threshold"] * (1.1 - attributes.reactions/100.0)
 
 func clamp_target_position():
-	if goal_position.y < 0:
-		if navigation_agent.target_position.y > 0:
-			navigation_agent.target_position = Vector2(navigation_agent.target_position.x, 0)
-	elif goal_position.y > 0:
-		if navigation_agent.target_position.y < 0:
-			navigation_agent.target_position = Vector2(navigation_agent.target_position.x, 0)
+	if !is_in_correct_half(navigation_agent.target_position):
+		var clamped_pos = navigation_agent.target_position
+		if goal_position.y < 0:
+			clamped_pos.y = min(clamped_pos.y, 0)
+		else:
+			clamped_pos.y = max(clamped_pos.y, 0)
+		navigation_agent.target_position = clamped_pos
+
+func is_in_correct_half(pos: Vector2) -> bool:
+	if goal_position.y < 0:  #bottom half
+		return pos.y <= 0
+	else:  #top half
+		return pos.y >= 0

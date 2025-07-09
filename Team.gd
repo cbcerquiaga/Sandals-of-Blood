@@ -74,6 +74,8 @@ func _process(delta: float) -> void:
 			has_readied = true
 			on_team_ready.emit(team_id)
 			print("ready")
+	#else:
+		#check_player_positions()
 
 func check_pending_substitutions():
 	if pending_substitution:
@@ -141,27 +143,32 @@ func assign_position(position_key: String, player: Player):
 		bench.erase(player)
 	if player.position_type != position_key.trim_suffix("_l").trim_suffix("_r"):
 		if not player.has_buff("utility_player"):
-			player.add_debuff("out_of_position", {
+			player.add_buff("out_of_position", {
 				"duration": -1,
 				"effects": {
-					"speed": -1,
-					"power": -1,
-					"endurance": -1,
-					"accuracy": -1,
-					"focus": -1,
-					"fight": -1,
-					"toughness": -1,
-					"confidence": -1
+					"speed": -5,
+					"sprint_speed": -5,
+					"power": -5,
+					"endurance": -5,
+					"accuracy": -5,
+					"shooting": -5,
+					"positioning": -10,
+					"reactions": -10,
+					"confidence": -10
 				}
 			})
 	else:
-		player.remove_debuff("out_of_position")
+		player.remove_buff("out_of_position")
 
 func get_position_player(position: String) -> Player:
 	return positions.get(position)
 
 func get_all_field_players() -> Array[Player]:
-	return positions.values()
+	var players: Array[Player] = []
+	for player in positions.values():
+		if player != null:
+			players.append(player)
+	return players
 
 func check_substitutions():
 	for position_type in strategy.substitution.priority:
@@ -203,31 +210,33 @@ func get_position_keys_for_type(position_type: String) -> Array[String]:
 
 func apply_team_buffs(player: Player):
 	for buff in buffs:
-		player.add_buff(buff)
+		player.add_buff(buff["name"], buff["modifiers"])
 
 func add_team_buff(buff_name: String, modifiers: Dictionary, duration: float = -1):
-	buffs.append({
+	var buff_data = {
 		"name": buff_name,
 		"modifiers": modifiers,
 		"duration": duration,
-		"timer": 0.0 if duration > 0 else -1
-	})
+	}
+	buffs.append(buff_data)
 	for player in roster:
-		player.add_buff(buffs[-1])
+		player.add_buff(buff_name, modifiers)
 
 func remove_team_buff(buff_name: String):
 	for i in range(buffs.size() - 1, -1, -1):
-		if buffs[i].name == buff_name:
+		if buffs[i]["name"] == buff_name:
 			buffs.remove_at(i)
 	for player in roster:
-		player.remove_debuff(buff_name)
+		player.remove_buff(buff_name)
 
-func update_buff_timers(delta: float):
+#durations are measured in pitches
+func update_buff_durations():
 	for i in range(buffs.size() - 1, -1, -1):
-		if buffs[i].duration > 0:
-			buffs[i].timer += delta
-			if buffs[i].timer >= buffs[i].duration:
-				remove_team_buff(buffs[i].name)
+		var buff = buffs[i]
+		if buff["duration"] > 0:
+			buff["duration"] -= 1
+			if buff["duration"] <= 0:
+				remove_team_buff(buff["name"])
 
 func get_brawl_decision() -> Dictionary:
 	var decision = {
@@ -285,7 +294,6 @@ func enlighten(aimTarget, ball, field, keeperWall, ownGoal, oppGoal, oppP, oppK,
 	K.opp_goal = oppGoal.global_position
 	K.left_wall = field.leftWall
 	K.right_wall = field.rightWall
-	#TODO: if field type is road or wide road, else different
 	K.leftPost = LPost
 	K.rightPost = RPost
 	K.back_wall = keeperWall
@@ -355,6 +363,7 @@ func assign_player_control():
 		P.is_controlling_player = true
 	else:
 		K.is_controlling_player = true
+
 func set_team_id(id):
 	team_id = id
 	K.team = id
@@ -521,7 +530,48 @@ func debug_default_roster():
 	add_player(P4)
 	
 func applyTactics():
+	print("applying tactics. D:",  strategy.tactics.D, ", LF:", strategy.tactics.LF, ", RF:", strategy.tactics.RF)
 	LG.strategy = strategy.tactics.D
 	RG.strategy = strategy.tactics.D
 	LF.player_preference = strategy.tactics.LF
 	RF.player_preference = strategy.tactics.RF
+
+func check_player_positions():
+	for player in get_all_field_players():
+		if not player or player.position_type == "pitcher":
+			continue
+			
+		# Skip incapacitated players
+		if player.check_is_incapacitated():
+			continue
+		if not player.is_in_half():
+			# Override current behavior to return to assigned half
+			player.needs_go_home = true
+			player.move_towards_half()
+		else:
+			# Player is back in correct half, restore normal behavior
+			if player.needs_go_home:
+				player.needs_go_home = false
+				# Restore appropriate behavior based on position and team state
+				restore_player_behavior(player)
+
+func restore_player_behavior(player: Player):
+	match player.position_type:
+		"keeper":
+			player.current_behavior = "defending"
+		"guard":
+			if strategy.tactics.D.zone == false:
+				player.current_behavior = "marking"
+			else:
+				if player.plays_left_side:
+					if strategy.tactics.D.lg_trap:
+						player.current_behavior = "trapping"
+					else:
+						player.current_behavior = "escorting"
+				else:
+					if strategy.tactics.D.rg_trap:
+						player.current_behavior = "trapping"
+					else:
+						player.current_behavior = "escorting"
+		"forward":
+			player.make_strategy_decision()

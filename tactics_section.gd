@@ -299,23 +299,23 @@ func update_defense_directions(assignment:String):
 	match assignment:
 		"Positional Man to Man":
 			D_strategy = {
-			"marking": 0.9,
+			"marking": 0.99,
 			"fluidity": 0.1,
 			"zone": false,
 			"lg_trap": false, 
 			"rg_trap": false,
-			"chasing": 0.1,
+			"chasing": 0.01,
 			"goal_defense_threshold": 65,
 			"escort_distance": 10
 			}
 		"Fluid Man to Man":
 			D_strategy = {
-			"marking": 0.7,
+			"marking": 0.9,
 			"fluidity": 0.8,
 			"zone": false,
 			"lg_trap": false, 
 			"rg_trap": false,
-			"chasing": 0.1,
+			"chasing": 0.05,
 			"goal_defense_threshold": 35,
 			"escort_distance": 10
 			}
@@ -326,7 +326,7 @@ func update_defense_directions(assignment:String):
 			"zone": true,
 			"lg_trap": true, 
 			"rg_trap": false,
-			"chasing": 0.1,
+			"chasing": 0.5,
 			"goal_defense_threshold": 45,
 			"escort_distance": 15
 			}
@@ -337,18 +337,18 @@ func update_defense_directions(assignment:String):
 			"zone": true,
 			"lg_trap": false, 
 			"rg_trap": true,
-			"chasing": 0.1,
+			"chasing": 0.5,
 			"goal_defense_threshold": 45,
 			"escort_distance": 15
 			}
 		"Tight Triangle Zone":
 			D_strategy = {
-				"marking": 0.2,
+			"marking": 0.0,
 			"fluidity": 0.5,
 			"zone": true,
 			"lg_trap": false, 
 			"rg_trap": false,
-			"chasing": 0.1,
+			"chasing": 0.0,
 			"goal_defense_threshold": 35,
 			"escort_distance": 10
 			}

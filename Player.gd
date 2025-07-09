@@ -113,6 +113,7 @@ var special_ability: String #determines which of the
 var is_anchor: bool = false #halves impact against in collisions
 var is_tireless: bool = false #infinite boost
 var is_maestro: bool = false #slows down time
+var active_buffs: Dictionary = {}
 
 
 enum PlayerState {
@@ -797,8 +798,6 @@ func get_socked(impact: float):
 			roll = randf()
 			if roll > attributes.durability/100.0:#taking some kind of injury here
 				print("injury acquired on roll ", i, " of ", num_injury_rolls)
-				
-# In Player.gd
 
 func export_to_dict() -> Dictionary:
 	return {
@@ -835,3 +834,29 @@ func import_from_dict(data: Dictionary):
 	skin_tone_primary = data["skin_tone_primary"]
 	skin_tone_secondary = data["skin_tone_secondary"]
 	complexion = data["complexion"]
+	
+func add_buff(buff_name, modifiers):
+	if active_buffs.has(buff_name):
+		active_buffs[buff_name] = modifiers# If buff already exists, refresh it instead of adding again
+		return
+	for attribute in modifiers:
+		if attributes.has(attribute):
+			var original_value = attributes[attribute]
+			var modified_value = original_value + modifiers[attribute]
+			modified_value = clamp(modified_value, 0, 101)
+			attributes[attribute] = modified_value
+	active_buffs[buff_name] = modifiers
+
+func remove_buff(buff_name: String):
+	if not active_buffs.has(buff_name):
+		return
+	var modifiers = active_buffs[buff_name]
+	for attribute in modifiers: # Reverse attribute modifications
+		if attributes.has(attribute):
+			var original_value = attributes[attribute] - modifiers[attribute]
+			original_value = clamp(original_value, 0, 101)
+			attributes[attribute] = original_value
+	active_buffs.erase(buff_name)
+
+func has_buff(buff_name: String) -> bool:
+	return active_buffs.has(buff_name)
