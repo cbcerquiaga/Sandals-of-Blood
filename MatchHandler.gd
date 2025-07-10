@@ -190,6 +190,8 @@ func _on_player_goal():
 	aTeam.is_on_offense = !is_human_team_pitching
 	
 	#TODO: goal celebrations
+	reset_players_for_next_play()
+	reposition_players()
 	score_goal(1)
 	print("Score: " + str(team_scores))
 
@@ -223,6 +225,8 @@ func _on_cpu_goal():
 	aTeam.is_on_offense = !is_human_team_pitching
 	
 	#TODO: goal celebrations
+	reset_players_for_next_play()
+	reposition_players()
 	score_goal(2)
 	print("Score: " + str(team_scores))
 
@@ -302,6 +306,7 @@ func _process(delta: float) -> void:
 func next_play():
 	print("Starting next play - Human pitching: " + str(is_human_team_pitching))
 	is_play_live = false
+	reset_players_for_next_play()
 	# Reset play state but keep scores and pitching team assignment
 	current_play_time = 0.0
 	out_of_bounds_frames = 0
@@ -311,7 +316,6 @@ func next_play():
 	aTeam.check_pending_substitutions()
 	pTeam.nextPlayStatus()
 	aTeam.nextPlayStatus()
-	reset_players_for_next_play()
 	reset_ball_and_field()
 	reposition_players()
 	setup_pitching_team()
@@ -327,6 +331,7 @@ func reset_players_for_next_play():
 	for player in pTeam.onfield_players + aTeam.onfield_players:
 		if player:
 			player.can_move = false
+			player.velocity = Vector2.ZERO
 			player.lose_energy((100 - player.attributes.endurance)/10) #0.1 for 99 endurance, 5 for 50
 			player.reset_state()
 	pTeam.bench_rest() #resting players regain energy

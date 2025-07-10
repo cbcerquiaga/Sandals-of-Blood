@@ -735,6 +735,9 @@ func evaluate_aim_point(point: Vector2) -> float:
 	return score
 
 func handle_shooter_positioning():
+	if global_position.distance_to(ball.global_position) < attributes.reactions/5 and ball.linear_velocity.length() < 50:
+		navigate_to(ball.global_position)
+		return
 	if !is_in_slot:
 		adjust_for_clear_paths()
 	else:

@@ -260,6 +260,18 @@ func cover_defense():
 			default_position.x = default_position.x * 7/8 #less than ideal cheating #TODO balance
 	else:
 		current_behavior = "pressing"
+		return
+	if default_position.distance_squared_to(buddy_guard.global_position) < 100: #less than 10, save some computing
+		var rand = randf()
+		if rand > strategy.fluidity: #hold position
+			if global_position.distance_squared_to(defending_goal_position) < buddy_guard.global_position.distance_squared_to(defending_goal_position):
+				default_position = (default_position * 2 + defending_goal_position) / 3 #scooch back
+		else: #be flexible
+			if global_position.distance_squared_to(defending_goal_position) > buddy_guard.global_position.distance_squared_to(defending_goal_position):
+				if rand * 100 < attributes.aggression: #I'm a mean SOB and I want to attack
+					current_behavior = "pressing"
+				else:
+					switch_forward()
 	pass
 
 
