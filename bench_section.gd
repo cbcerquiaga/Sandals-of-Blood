@@ -251,6 +251,7 @@ func swap_player_spots(player1, player2):
 	
 func switch_player_positions(secondaryPlayer: Player):
 	var temp = currentPlayer
+	#TODO: check if a player has "utility player" or "secondary position" buffs, if so, just switch positions
 	if menu_index <= 2:
 		if menu_index == 0: bullpenPlayer1 = secondaryPlayer
 		elif menu_index == 1: bullpenPlayer2 = secondaryPlayer

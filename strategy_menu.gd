@@ -11,6 +11,12 @@ class_name StrategyMenu
 @onready var subs_counter
 @onready var discard_button = $DiscardButton
 @onready var save_button = $SaveButton
+var lf
+var rf
+var p
+var k
+var lg
+var rg
 
 var highlighted_item = "tactics_LFL"
 var is_in_match:bool = true #false if we got here from the team management menu, true if we got here from pausing a match
@@ -34,9 +40,21 @@ func _ready():
 	subOff.position = Vector2(-300, 200)
 	subOn.position = Vector2(-180, 200)
 	save_button.scale = Vector2(0.1, 0.1)
-	save_button.position = Vector2(-200, 350)
+	save_button.position = Vector2(-200, 390)
 	discard_button.scale = Vector2(0.1, 0.1)
-	discard_button.position = Vector2(-350, 350)
+	discard_button.position = Vector2(-350, 390)
+	$SubstitutionSection/LF_Button.position = Vector2(-375, 275)
+	$SubstitutionSection/LG_Button.position = Vector2(-375, 325)
+	$SubstitutionSection/RF_Button.position = Vector2(-25, 275)
+	$SubstitutionSection/RG_Button.position = Vector2(-25, 325)
+	$SubstitutionSection/P_Button.position = Vector2(-200, 275)
+	$SubstitutionSection/K_Button.position = Vector2(-200, 325)
+	$SubstitutionSection/LF_Button.scale = Vector2(0.1, 0.1)
+	$SubstitutionSection/LG_Button.scale = Vector2(0.1, 0.1)
+	$SubstitutionSection/RF_Button.scale = Vector2(0.1, 0.1)
+	$SubstitutionSection/RG_Button.scale = Vector2(0.1, 0.1)
+	$SubstitutionSection/P_Button.scale = Vector2(0.1, 0.1)
+	$SubstitutionSection/K_Button.scale = Vector2(0.1, 0.1)
 	position = Vector2(0,-200)
 	tacticsSection.set_highlight("LF_L")
 	highlighted_item = "tactics_LFL"
@@ -52,12 +70,13 @@ func open_menu(team: Team, handler: MatchHandler, in_match: bool):
 	original_roster = []
 	for player in team.roster:
 		original_roster.append(player.export_to_dict())
+	apply_team_to_field()
 	
 
 func _process(delta):
 	if not visible:
 		return
-		
+	
 	if Input.is_action_just_pressed("ui_cancel"):
 		#TODO: bring back the pause menu
 		#hide()
@@ -98,8 +117,8 @@ func navigate_left():
 			highlighted_item = "tactics_DR"
 			tacticsSection.set_highlight("D_R")
 		"tactics_RFR":
-			highlighted_item = "tactics_DR"
-			tacticsSection.set_highlight("D_R")
+			highlighted_item = "tactics_RFL"
+			tacticsSection.set_highlight("RF_L")
 		"bullpen1":
 			highlighted_item = "tactics_RFR"
 			tacticsSection.set_highlight("RF_R")
@@ -407,3 +426,37 @@ func load_strategy(team: Team, file_path: String):
 func set_team_info(team: Team):
 	benchSection.import_roster(team.roster)
 	tacticsSection.import_team(team)
+	
+func apply_team_to_field():
+	default_all_field_holders()
+	lg = current_team.LG
+	rg = current_team.RG
+	k = current_team.K
+	lf = current_team.LF
+	rf = current_team.RF
+	p = current_team.P
+	var lf_overall = benchSection.calculate_forward_overall(lf)
+	var rf_overall = benchSection.calculate_forward_overall(rf)
+	var p_overall = benchSection.calculate_pitcher_overall(p)
+	var lg_overall = benchSection.calculate_guard_overall(lg)
+	var rg_overall = benchSection.calculate_guard_overall(rg)
+	var k_overall = benchSection.calculate_keeper_overall(k)
+	$SubstitutionSection/LF_Button/Label.text = "LF: " + lf.bio.last_name
+	$SubstitutionSection/P_Button/Label.text = "P: " + p.bio.last_name
+	$SubstitutionSection/RF_Button/Label.text = "RF: " + rf.bio.last_name
+	$SubstitutionSection/LG_Button/Label.text = "LG: " + lg.bio.last_name
+	$SubstitutionSection/K_Button/Label.text = "K: " + k.bio.last_name
+	$SubstitutionSection/RG_Button/Label.text = "RG: " + rg.bio.last_name
+	#TODO: update the player names, just like bench_section
+	#TODO: update the 
+	
+func calculate_player_energy(player: Player):
+	return player.status.energy / player.attributes.endurance
+	
+func default_all_field_holders():
+	$SubstitutionSection/LF_Button.set_button_icon(load("res://UI/StrategyUI/Roster_holder_base.png"))
+	$SubstitutionSection/LG_Button.set_button_icon(load("res://UI/StrategyUI/Roster_holder_base.png"))
+	$SubstitutionSection/RF_Button.set_button_icon(load("res://UI/StrategyUI/Roster_holder_base.png"))
+	$SubstitutionSection/RG_Button.set_button_icon(load("res://UI/StrategyUI/Roster_holder_base.png"))
+	$SubstitutionSection/P_Button.set_button_icon(load("res://UI/StrategyUI/Roster_holder_base.png"))
+	$SubstitutionSection/K_Button.set_button_icon(load("res://UI/StrategyUI/Roster_holder_base.png"))

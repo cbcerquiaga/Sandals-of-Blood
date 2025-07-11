@@ -1,6 +1,7 @@
-[gd_scene load_steps=8 format=3 uid="uid://bje6o4s6rvh85"]
+[gd_scene load_steps=12 format=3 uid="uid://bje6o4s6rvh85"]
 
 [ext_resource type="Script" path="res://Field.gd" id="1_s84cq"]
+[ext_resource type="Texture2D" uid="uid://bwlovdwagnyue" path="res://Assets/Stadiums/fieldPlaceholder.png" id="2_3ngw0"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_5gq74"]
 size = Vector2(3.5, 2.99995)
@@ -10,6 +11,10 @@ size = Vector2(1, 7)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_msuvs"]
 size = Vector2(40, 7)
+
+[sub_resource type="CanvasTexture" id="CanvasTexture_4tg1h"]
+
+[sub_resource type="CanvasTexture" id="CanvasTexture_iunov"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_87lc5"]
 size = Vector2(116, 121)
@@ -22,8 +27,16 @@ vertices = PackedVector2Array(48, 109, -48, 109, -48, -109, 48, -109)
 polygons = Array[PackedInt32Array]([PackedInt32Array(0, 1, 2, 3)])
 outlines = Array[PackedVector2Array]([PackedVector2Array(-58, -119, 58, -119, 58, 119, -58, 119)])
 
+[sub_resource type="CanvasTexture" id="CanvasTexture_88c2a"]
+specular_color = Color(0.77398, 0.681185, 0.283083, 1)
+
 [node name="RoadField" type="Node2D"]
 script = ExtResource("1_s84cq")
+
+[node name="Background" type="Sprite2D" parent="."]
+position = Vector2(-6.67572e-06, 1.00001)
+scale = Vector2(0.0966667, 0.132222)
+texture = ExtResource("2_3ngw0")
 
 [node name="Goals" type="Node2D" parent="."]
 
@@ -59,6 +72,9 @@ position = Vector2(0, 0.5)
 shape = SubResource("RectangleShape2D_msuvs")
 
 [node name="Texture" type="Sprite2D" parent="Goals/PlayerGoal"]
+position = Vector2(4.17233e-07, -4)
+scale = Vector2(34, 2)
+texture = SubResource("CanvasTexture_4tg1h")
 
 [node name="AIGoal" type="Area2D" parent="Goals"]
 position = Vector2(0, -124)
@@ -93,6 +109,9 @@ position = Vector2(0, 0.5)
 shape = SubResource("RectangleShape2D_msuvs")
 
 [node name="Texture" type="Sprite2D" parent="Goals/AIGoal"]
+position = Vector2(0.410259, -4.2641)
+scale = Vector2(35.9333, 2.36758)
+texture = SubResource("CanvasTexture_iunov")
 
 [node name="Zones" type="Node2D" parent="."]
 position = Vector2(0, 124)
@@ -261,3 +280,8 @@ position = Vector2(57, 45)
 
 [node name="RBank6" type="Node2D" parent="AimingGuides"]
 position = Vector2(57, 75)
+
+[node name="Halfwayline" type="Sprite2D" parent="."]
+position = Vector2(0.999998, 0)
+scale = Vector2(114, 4)
+texture = SubResource("CanvasTexture_88c2a")
