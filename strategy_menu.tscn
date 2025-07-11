@@ -37,6 +37,7 @@ texture = ExtResource("4_4fdjd")
 texture = ExtResource("5_gd7or")
 
 [node name="LF_Button" type="Button" parent="SubstitutionSection"]
+layout_mode = 0
 offset_left = -844.0
 offset_top = 192.0
 offset_right = 898.0
@@ -56,6 +57,7 @@ text = "OPEN ROSTER SPOT"
 texture = ExtResource("7_86do2")
 
 [node name="P_Button" type="Button" parent="SubstitutionSection"]
+layout_mode = 0
 offset_left = -844.0
 offset_top = 192.0
 offset_right = 898.0
@@ -75,6 +77,7 @@ text = "OPEN ROSTER SPOT"
 texture = ExtResource("7_86do2")
 
 [node name="RF_Button" type="Button" parent="SubstitutionSection"]
+layout_mode = 0
 offset_left = -844.0
 offset_top = 192.0
 offset_right = 898.0
@@ -94,6 +97,7 @@ text = "OPEN ROSTER SPOT"
 texture = ExtResource("7_86do2")
 
 [node name="LG_Button" type="Button" parent="SubstitutionSection"]
+layout_mode = 0
 offset_left = -844.0
 offset_top = 192.0
 offset_right = 898.0
@@ -113,6 +117,7 @@ text = "OPEN ROSTER SPOT"
 texture = ExtResource("7_86do2")
 
 [node name="K_Button" type="Button" parent="SubstitutionSection"]
+layout_mode = 0
 offset_left = -844.0
 offset_top = 192.0
 offset_right = 898.0
@@ -132,6 +137,7 @@ text = "OPEN ROSTER SPOT"
 texture = ExtResource("7_86do2")
 
 [node name="RG_Button" type="Button" parent="SubstitutionSection"]
+layout_mode = 0
 offset_left = -844.0
 offset_top = 192.0
 offset_right = 898.0

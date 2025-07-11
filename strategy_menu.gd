@@ -11,6 +11,12 @@ class_name StrategyMenu
 @onready var subs_counter
 @onready var discard_button = $DiscardButton
 @onready var save_button = $SaveButton
+@onready var lf_button = $SubstitutionSection/LF_Button
+@onready var rf_button = $SubstitutionSection/RF_Button
+@onready var p_button = $SubstitutionSection/P_Button
+@onready var lg_button = $SubstitutionSection/LG_Button
+@onready var rg_button = $SubstitutionSection/RG_Button
+@onready var k_button = $SubstitutionSection/K_Button
 var lf
 var rf
 var p
@@ -150,6 +156,32 @@ func navigate_left():
 		"bench6":
 			benchSection.apply_roster_to_UI()
 			#TODO: move to substitution section
+		"field_P":
+			default_all_field_holders()
+			highlighted_item = "field_LF"
+			lf_button.set_button_icon(load("res://UI/StrategyUI/Roster_holder_highlighted.png"))
+		"field_K":
+			default_all_field_holders()
+			highlighted_item = "field_LG"
+			lg_button.set_button_icon(load("res://UI/StrategyUI/Roster_holder_highlighted.png"))
+		"field_RF":
+			default_all_field_holders()
+			highlighted_item = "field_P"
+			p_button.set_button_icon(load("res://UI/StrategyUI/Roster_holder_highlighted.png"))
+		"field_RG":
+			default_all_field_holders()
+			highlighted_item = "field_K"
+			k_button.set_button_icon(load("res://UI/StrategyUI/Roster_holder_highlighted.png"))
+		"field_LF":
+			pass
+		"field_LG":
+			pass
+		"discard":
+			pass #TODO: find the lowest available bench player
+		"save":
+			discard_button.set_button_icon(load("res://UI/PauseUI/Discard-Exit_button_highlighted.png"))
+			highlighted_item = "discard"
+			save_button.set_button_icon(load("res://UI/PauseUI/Save-Exit_button_base.png"))
 
 func navigate_right():
 	match highlighted_item:
@@ -210,6 +242,35 @@ func navigate_right():
 		"bench6":
 			#TODO: move to substitution section
 			pass
+		"field_LF":
+			default_all_field_holders()
+			highlighted_item = "field_P"
+			p_button.set_button_icon(load("res://UI/StrategyUI/Roster_holder_highlighted.png"))
+		"field_LG":
+			default_all_field_holders()
+			highlighted_item = "field_K"
+			k_button.set_button_icon(load("res://UI/StrategyUI/Roster_holder_highlighted.png"))
+		"field_P":
+			default_all_field_holders()
+			highlighted_item = "field_RF"
+			rf_button.set_button_icon(load("res://UI/StrategyUI/Roster_holder_highlighted.png"))
+		"field_K":
+			default_all_field_holders()
+			highlighted_item = "field_RG"
+			rg_button.set_button_icon(load("res://UI/StrategyUI/Roster_holder_highlighted.png"))
+		"field_RF":
+			#TODO
+			pass
+		"field_RG":
+			#TODO
+			pass
+		"discard":
+			discard_button.set_button_icon(load("res://UI/PauseUI/Discard-Exit_button_base.png"))
+			highlighted_item = "save"
+			save_button.set_button_icon(load("res://UI/PauseUI/Save-Exit_button_highlighted.png"))
+		"save":
+			#TODO: find the lowest available bench player
+			pass
 
 func handle_enter():
 	match highlighted_item:
@@ -243,33 +304,67 @@ func handle_enter():
 			bench_player_chosen(benchSection.benchPlayer5)
 		"bench6":
 			bench_player_chosen(benchSection.benchPlayer6)
+		"save":
+			_on_save_pressed()
+		"discard":
+			_on_discard_pressed()
 			
 func navigate_down():
 	match highlighted_item:
 		"tactics_LFL":
-			#TODO
-			#highlighted_item = "field_LF"
-			pass
+			default_all_field_holders()
+			tacticsSection.clear_all_highlights()
+			highlighted_item = "field_LF"
+			lf_button.set_button_icon(load("res://UI/StrategyUI/Roster_holder_highlighted.png"))
 		"tactics_LFR":
-			#TODO
-			#highlighted_item = "field_LF"
-			pass
-		"tactics_DL":
-			#TODO
-			#highlighted_item = "field_P"
-			pass
-		"tactics_DR":
-			#TODO
-			#highlighted_item = "field_P"
-			pass
+			default_all_field_holders()
+			tacticsSection.clear_all_highlights()
+			highlighted_item = "field_LF"
+			lf_button.set_button_icon(load("res://UI/StrategyUI/Roster_holder_highlighted.png"))
 		"tactics_RFL":
-			#TODO
-			#highlighted_item = "field_RF"
-			pass
+			default_all_field_holders()
+			tacticsSection.clear_all_highlights()
+			highlighted_item = "field_RF"
+			rf_button.set_button_icon(load("res://UI/StrategyUI/Roster_holder_highlighted.png"))
 		"tactics_RFR":
-			#TODO
-			#highlighted_item = "field_RF"
-			pass
+			default_all_field_holders()
+			tacticsSection.clear_all_highlights()
+			highlighted_item = "field_RF"
+			rf_button.set_button_icon(load("res://UI/StrategyUI/Roster_holder_highlighted.png"))
+		"tactics_DL":
+			default_all_field_holders()
+			tacticsSection.clear_all_highlights()
+			highlighted_item = "field_P"
+			p_button.set_button_icon(load("res://UI/StrategyUI/Roster_holder_highlighted.png"))
+		"tactics_DR":
+			default_all_field_holders()
+			tacticsSection.clear_all_highlights()
+			highlighted_item = "field_P"
+			p_button.set_button_icon(load("res://UI/StrategyUI/Roster_holder_highlighted.png"))
+		"field_LF":
+			default_all_field_holders()
+			highlighted_item = "field_LG"
+			lg_button.set_button_icon(load("res://UI/StrategyUI/Roster_holder_highlighted.png"))
+		"field_LG":
+			default_all_field_holders()
+			highlighted_item = "discard"
+			discard_button.set_button_icon(load("res://UI/PauseUI/Discard-Exit_button_highlighted.png"))
+		"field_RF":
+			default_all_field_holders()
+			highlighted_item = "field_RG"
+			rg_button.set_button_icon(load("res://UI/StrategyUI/Roster_holder_highlighted.png"))
+		"field_RG":
+			default_all_field_holders()
+			highlighted_item = "tactics_RFL"
+			tacticsSection.set_highlight("RF_L")
+		"field_P":
+			default_all_field_holders()
+			highlighted_item = "field_K"
+			k_button.set_button_icon(load("res://UI/StrategyUI/Roster_holder_highlighted.png"))
+		"field_K":
+			default_all_field_holders()
+			highlighted_item = "save"
+			save_button.set_button_icon(load("res://UI/PauseUI/Save-Exit_button_highlighted.png"))
 		"bullpen1":
 			var index = benchSection.get_next_player_index(0, true)
 			highlighted_item = benchSection.highlight_position(index)
@@ -297,34 +392,48 @@ func navigate_down():
 		"bench6":
 			var index = benchSection.get_next_player_index(8, true)
 			highlighted_item = benchSection.highlight_position(index)
+		"discard":
+			discard_button.set_button_icon(load("res://UI/PauseUI/Discard-Exit_button_base.png"))
+			highlighted_item = "tactics_LFL"
+			tacticsSection.set_highlight("LF_L")
+		"save":
+			save_button.set_button_icon(load("res://UI/PauseUI/Save-Exit_button_base.png"))
+			highlighted_item = "tactics_DL"
+			tacticsSection.set_highlight("D_L")
 			
 
 func navigate_up():
 	match highlighted_item:
 		"tactics_LFL":
-			#TODO
-			#highlighted_item = "field_LG"
-			pass
+			default_all_field_holders()
+			tacticsSection.clear_all_highlights()
+			highlighted_item = "discard"
+			discard_button.set_button_icon(load("res://UI/PauseUI/Discard-Exit_button_highlighted.png"))
 		"tactics_LFR":
-			#TODO
-			#highlighted_item = "field_LG"
-			pass
+			default_all_field_holders()
+			tacticsSection.clear_all_highlights()
+			highlighted_item = "discard"
+			discard_button.set_button_icon(load("res://UI/PauseUI/Discard-Exit_button_highlighted.png"))
 		"tactics_DL":
-			#TODO
-			#highlighted_item = "field_K"
-			pass
+			default_all_field_holders()
+			tacticsSection.clear_all_highlights()
+			highlighted_item = "save"
+			save_button.set_button_icon(load("res://UI/PauseUI/Save-Exit_button_highlighted.png"))
 		"tactics_DR":
-			#TODO
-			#highlighted_item = "field_K"
-			pass
+			default_all_field_holders()
+			tacticsSection.clear_all_highlights()
+			highlighted_item = "save"
+			save_button.set_button_icon(load("res://UI/PauseUI/Save-Exit_button_highlighted.png"))
 		"tactics_RFL":
-			#TODO
-			#highlighted_item = "field_RG"
-			pass
+			default_all_field_holders()
+			tacticsSection.clear_all_highlights()
+			highlighted_item = "field_RG"
+			rg_button.set_button_icon(load("res://UI/StrategyUI/Roster_holder_highlighted.png"))
 		"tactics_RFR":
-			#TODO
-			#highlighted_item = "field_RG"
-			pass
+			default_all_field_holders()
+			tacticsSection.clear_all_highlights()
+			highlighted_item = "field_RG"
+			rg_button.set_button_icon(load("res://UI/StrategyUI/Roster_holder_highlighted.png"))
 		"bullpen1":
 			var index = benchSection.get_next_player_index(0, false)
 			highlighted_item = benchSection.highlight_position(index)
@@ -352,6 +461,38 @@ func navigate_up():
 		"bench6":
 			var index = benchSection.get_next_player_index(8, false)
 			highlighted_item = benchSection.highlight_position(index)
+		"field_LF":
+			default_all_field_holders()
+			highlighted_item = "tactics_LFL"
+			tacticsSection.set_highlight("LF_L")
+		"field_LG":
+			default_all_field_holders()
+			highlighted_item = "field_LF"
+			lf_button.set_button_icon(load("res://UI/StrategyUI/Roster_holder_highlighted.png"))
+		"field_RF":
+			#TODO: go to the substitution button
+			pass
+		"field_RG":
+			default_all_field_holders()
+			highlighted_item = "field_RF"
+			rf_button.set_button_icon(load("res://UI/StrategyUI/Roster_holder_highlighted.png"))
+		"field_P":
+			default_all_field_holders()
+			highlighted_item = "tactics_DL"
+			tacticsSection.set_highlight("D_L")
+		"field_K":
+			default_all_field_holders()
+			highlighted_item = "field_P"
+			p_button.set_button_icon(load("res://UI/StrategyUI/Roster_holder_highlighted.png"))
+		"discard":
+			discard_button.set_button_icon(load("res://UI/PauseUI/Discard-Exit_button_base.png"))
+			highlighted_item = "field_LG"
+			lg_button.set_button_icon(load("res://UI/StrategyUI/Roster_holder_highlighted.png"))
+		"save":
+			save_button.set_button_icon(load("res://UI/PauseUI/Save-Exit_button_base.png"))
+			highlighted_item = "field_K"
+			k_button.set_button_icon(load("res://UI/StrategyUI/Roster_holder_highlighted.png"))
+			
 
 func bench_player_chosen(chosenPlayer: Player):
 	if !playerOff:
@@ -456,12 +597,12 @@ func calculate_player_energy(player: Player):
 	return player.status.energy / player.attributes.endurance
 	
 func default_all_field_holders():
-	$SubstitutionSection/LF_Button.set_button_icon(load("res://UI/StrategyUI/Roster_holder_base.png"))
-	$SubstitutionSection/LG_Button.set_button_icon(load("res://UI/StrategyUI/Roster_holder_base.png"))
-	$SubstitutionSection/RF_Button.set_button_icon(load("res://UI/StrategyUI/Roster_holder_base.png"))
-	$SubstitutionSection/RG_Button.set_button_icon(load("res://UI/StrategyUI/Roster_holder_base.png"))
-	$SubstitutionSection/P_Button.set_button_icon(load("res://UI/StrategyUI/Roster_holder_base.png"))
-	$SubstitutionSection/K_Button.set_button_icon(load("res://UI/StrategyUI/Roster_holder_base.png"))
+	lf_button.set_button_icon(load("res://UI/StrategyUI/Roster_holder_base.png"))
+	lg_button.set_button_icon(load("res://UI/StrategyUI/Roster_holder_base.png"))
+	rf_button.set_button_icon(load("res://UI/StrategyUI/Roster_holder_base.png"))
+	rg_button.set_button_icon(load("res://UI/StrategyUI/Roster_holder_base.png"))
+	p_button.set_button_icon(load("res://UI/StrategyUI/Roster_holder_base.png"))
+	k_button.set_button_icon(load("res://UI/StrategyUI/Roster_holder_base.png"))
 
 func update_field_energy_bars():
 	var x = 350
