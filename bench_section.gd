@@ -129,6 +129,7 @@ func get_player_at_menu_index(index: int) -> Player:
 func import_roster(players: Array):
 	roster = players
 	apply_roster_to_UI()
+	setup_labels()
 	
 func set_on_field(pitcher: Player, keeper: Player, leftGuard: Player, rightGuard: Player, leftForward: Player, rightForward: Player):
 	P = pitcher
@@ -158,22 +159,23 @@ func apply_roster_to_UI():
 		if player.position_type == "pitcher":
 			if !bullpenPlayer1:
 				bullpenPlayer1 = player
-				$BullpenHeader/Button1/Label.text = player.bio.last_name + " " + str(calculate_pitcher_overall(player))
+				$BullpenHeader/Button1/Label.text = player.bio.last_name + "\n" + str(calculate_pitcher_overall(player)) + " Rating " + str(player.status.energy) + "% Energy"
 				bullpen1.set_button_icon(load("res://UI/StrategyUI/ClippedHolder_base.png"))
 			elif !bullpenPlayer2:
 				bullpenPlayer2 = player
-				$BullpenHeader/Button2/Label.text = player.bio.last_name + " " + str(calculate_pitcher_overall(player))
+				$BullpenHeader/Button2/Label.text = player.bio.last_name + "\n" + str(calculate_pitcher_overall(player)) + " Rating " + str(player.status.energy) + "% Energy"
 				bullpen2.set_button_icon(load("res://UI/StrategyUI/ClippedHolder_base.png"))
 			elif !bullpenPlayer3:
 				bullpenPlayer3 = player
-				$BullpenHeader/Button3/Label.text = player.bio.last_name + " " + str(calculate_pitcher_overall(player))
+				$BullpenHeader/Button3/Label.text = player.bio.last_name + "\n" + str(calculate_pitcher_overall(player)) + " Rating " + str(player.status.energy) + "% Energy"
 				bullpen3.set_button_icon(load("res://UI/StrategyUI/ClippedHolder_base.png"))
 		else:
 			var text = player.bio.last_name
 			match player.position_type:
-				"keeper": text += " " + str(calculate_keeper_overall(player))
-				"guard": text += " " + str(calculate_guard_overall(player))
-				"forward": text += " " + str(calculate_forward_overall(player))
+				"keeper": text += "\n" + str(calculate_keeper_overall(player))
+				"guard": text += "\n" + str(calculate_guard_overall(player))
+				"forward": text += "\n" + str(calculate_forward_overall(player))
+			text += " Rating " + str(player.status.energy) + "% Energy"
 			if !benchPlayer1:
 				benchPlayer1 = player
 				$BenchHeader/Button4/Label.text = text
@@ -291,3 +293,53 @@ func find_player_index(player: Player) -> int:
 	if benchPlayer5 == player: return 7
 	if benchPlayer6 == player: return 8
 	return -1
+
+func setup_labels():
+	var offset = Vector2(175,70)
+	var open_offset = Vector2(175,120)
+	var bigness = Vector2(0.75, 0.75)
+	if !bullpenPlayer1: 
+		$BullpenHeader/Button1/Label.position = open_offset
+	else:
+		$BullpenHeader/Button1/Label.position = offset
+	if !bullpenPlayer2: 
+		$BullpenHeader/Button2/Label.position = open_offset
+	else:
+		$BullpenHeader/Button2/Label.position = offset
+	if !bullpenPlayer3: 
+		$BullpenHeader/Button3/Label.position = open_offset
+	else:
+		$BullpenHeader/Button3/Label.position = offset
+	$BullpenHeader/Button1/Label.scale = bigness
+	$BullpenHeader/Button2/Label.scale= bigness
+	$BullpenHeader/Button3/Label.scale= bigness
+	if !benchPlayer1:
+		$BenchHeader/Button4/Label.position = open_offset
+	else:
+		$BenchHeader/Button4/Label.position = offset
+	if !benchPlayer2:
+		$BenchHeader/Button5/Label.position = open_offset
+	else:
+		$BenchHeader/Button5/Label.position = offset
+	if !benchPlayer3:
+		$BenchHeader/Button6/Label.position = open_offset
+	else:
+		$BenchHeader/Button6/Label.position = offset
+	if !benchPlayer4:
+		$BenchHeader/Button7/Label.position = open_offset
+	else:
+		$BenchHeader/Button7/Label.position = offset
+	if !benchPlayer5:
+		$BenchHeader/Button8/Label.position = open_offset
+	else:
+		$BenchHeader/Button8/Label.position = offset
+	if !benchPlayer6:
+		$BenchHeader/Button9/Label.position = open_offset
+	else:
+		$BenchHeader/Button9/Label.position = offset
+	$BenchHeader/Button4/Label.scale= bigness
+	$BenchHeader/Button5/Label.scale= bigness
+	$BenchHeader/Button6/Label.scale= bigness
+	$BenchHeader/Button7/Label.scale= bigness
+	$BenchHeader/Button8/Label.scale= bigness
+	$BenchHeader/Button9/Label.scale= bigness

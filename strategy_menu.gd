@@ -56,6 +56,7 @@ func _ready():
 	$SubstitutionSection/P_Button.scale = Vector2(0.1, 0.1)
 	$SubstitutionSection/K_Button.scale = Vector2(0.1, 0.1)
 	position = Vector2(0,-200)
+	position_labels_left()
 	tacticsSection.set_highlight("LF_L")
 	highlighted_item = "tactics_LFL"
 	save_button.pressed.connect(_on_save_pressed)
@@ -441,12 +442,13 @@ func apply_team_to_field():
 	var lg_overall = benchSection.calculate_guard_overall(lg)
 	var rg_overall = benchSection.calculate_guard_overall(rg)
 	var k_overall = benchSection.calculate_keeper_overall(k)
-	$SubstitutionSection/LF_Button/Label.text = "LF: " + lf.bio.last_name
-	$SubstitutionSection/P_Button/Label.text = "P: " + p.bio.last_name
-	$SubstitutionSection/RF_Button/Label.text = "RF: " + rf.bio.last_name
-	$SubstitutionSection/LG_Button/Label.text = "LG: " + lg.bio.last_name
-	$SubstitutionSection/K_Button/Label.text = "K: " + k.bio.last_name
-	$SubstitutionSection/RG_Button/Label.text = "RG: " + rg.bio.last_name
+	$SubstitutionSection/LF_Button/Label.text = "LF: " + lf.bio.first_name + " " +  lf.bio.last_name + "\n" + str(lf_overall) + " Rating " + str(lf.status.energy) + "% Energy"
+	$SubstitutionSection/P_Button/Label.text = "P: " + p.bio.first_name+ " "  + p.bio.last_name + "\n" + str(p_overall) + " Rating " + str(p.status.energy) + "% Energy"
+	$SubstitutionSection/RF_Button/Label.text = "RF: " + rf.bio.first_name + " " + rf.bio.last_name + "\n" + str(rf_overall) + " Rating " + str(rf.status.energy) + "% Energy"
+	$SubstitutionSection/LG_Button/Label.text = "LG: " + lg.bio.first_name + " " + lg.bio.last_name + "\n" + str(lg_overall) + " Rating " + str(lg.status.energy) + "% Energy"
+	$SubstitutionSection/K_Button/Label.text = "K: " + k.bio.first_name + " "+ k.bio.last_name + "\n" + str(k_overall) + " Rating " + str(k.status.energy) + "% Energy"
+	$SubstitutionSection/RG_Button/Label.text = "RG: " + rg.bio.first_name + " "+ rg.bio.last_name + "\n" + str(rg_overall) + " Rating " + str(rg.status.energy) + "% Energy"
+	update_field_energy_bars()
 	#TODO: update the player names, just like bench_section
 	#TODO: update the 
 	
@@ -460,3 +462,36 @@ func default_all_field_holders():
 	$SubstitutionSection/RG_Button.set_button_icon(load("res://UI/StrategyUI/Roster_holder_base.png"))
 	$SubstitutionSection/P_Button.set_button_icon(load("res://UI/StrategyUI/Roster_holder_base.png"))
 	$SubstitutionSection/K_Button.set_button_icon(load("res://UI/StrategyUI/Roster_holder_base.png"))
+
+func update_field_energy_bars():
+	var x = 350
+	var y = 300
+	var y_scale = 0.5
+	$SubstitutionSection/LF_Button/Energy.position = Vector2(x, y)
+	$SubstitutionSection/LF_Button/Energy.scale = Vector2(lf.status.max_boost / 99 * 100 * 0.0035657 + 0.001, y_scale)
+	$SubstitutionSection/RF_Button/Energy.position = Vector2(x, y)
+	$SubstitutionSection/RF_Button/Energy.scale = Vector2(rf.status.max_boost / 99 * 100 * 0.0035657 + 0.001, y_scale)
+	$SubstitutionSection/LG_Button/Energy.position = Vector2(x, y)
+	$SubstitutionSection/LG_Button/Energy.scale = Vector2(lg.status.max_boost / 99 * 100 * 0.0035657 + 0.001, y_scale)
+	$SubstitutionSection/RG_Button/Energy.position = Vector2(x, y)
+	$SubstitutionSection/RG_Button/Energy.scale = Vector2(rg.status.max_boost / 99 * 100 * 0.0035657 + 0.001, y_scale)
+	$SubstitutionSection/K_Button/Energy.position = Vector2(x, y)
+	$SubstitutionSection/K_Button/Energy.scale = Vector2(k.status.max_boost / 99 * 100 * 0.0035657 + 0.001, y_scale)
+	$SubstitutionSection/P_Button/Energy.position = Vector2(x, y)
+	$SubstitutionSection/P_Button/Energy.scale = Vector2(p.status.max_boost / 99 * 100 * 0.0035657 + 0.001, y_scale)
+
+func position_labels_left():
+	var offset = Vector2(175, 75)
+	var label_scale = Vector2(0.75, 0.75)
+	$SubstitutionSection/LF_Button/Label.position = offset
+	$SubstitutionSection/RF_Button/Label.position = offset
+	$SubstitutionSection/LG_Button/Label.position = offset
+	$SubstitutionSection/RG_Button/Label.position = offset
+	$SubstitutionSection/P_Button/Label.position = offset
+	$SubstitutionSection/K_Button/Label.position = offset
+	$SubstitutionSection/LF_Button/Label.scale = label_scale
+	$SubstitutionSection/RF_Button/Label.scale = label_scale
+	$SubstitutionSection/LG_Button/Label.scale = label_scale
+	$SubstitutionSection/RG_Button/Label.scale = label_scale
+	$SubstitutionSection/P_Button/Label.scale = label_scale
+	$SubstitutionSection/K_Button/Label.scale = label_scale
