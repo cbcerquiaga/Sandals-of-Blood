@@ -43,6 +43,8 @@ var strategy: Dictionary = {
 @export var RG: Player
 @export var LF: Player
 @export var RF: Player
+@export var subs_remaining: int = 6 #sub every starter off the field; play all of your team's pitchers and sub 3 fielders; sub through all but one of your team's pitchers and sub all your fielders except your goalkeeper
+
 
 @onready var onfield_players = [K, P, LG, RG, LF, RF]
 var positions: Dictionary = {
@@ -79,11 +81,9 @@ func _process(delta: float) -> void:
 
 func check_pending_substitutions():
 	if pending_substitution:
-		var pos_keys = get_position_keys_for_type(pending_substitution.position)
-		for pos_key in pos_keys:
-			if positions[pos_key] == pending_substitution.player_off:
-				assign_position(pos_key, pending_substitution.player_on)
-		pending_substitution = {}
+		#TODO: loop through every position
+		#execute substitution for every position
+		pass
 
 func export_to_dict() -> Dictionary:
 	var data = {
@@ -102,16 +102,6 @@ func import_from_dict(data: Dictionary):
 		var player = Player.new()
 		player.import_from_dict(player_data)
 		add_player(player)
-	assign_field_positions()
-
-func assign_field_positions():
-	for player in roster:
-		var pos_type = player.position_type
-		var pos_keys = get_position_keys_for_type(pos_type)
-		for pos_key in pos_keys:
-			if positions[pos_key] == null:
-				assign_position(pos_key, player)
-				break
 
 func initialize_default_strategy():
 	strategy.position_aggression = {
@@ -128,6 +118,9 @@ func add_players_to_roster():
 	add_player(RG)
 	add_player(RF)
 	add_player(LF)
+	
+func reset_subs():
+	subs_remaining = 6
 
 func add_player(player: Player):
 	roster.append(player)
@@ -170,43 +163,30 @@ func get_all_field_players() -> Array[Player]:
 			players.append(player)
 	return players
 
-func check_substitutions():
-	for position_type in strategy.substitution.priority:
-		var position_keys = get_position_keys_for_type(position_type)
-		for pos_key in position_keys:
-			var player = positions[pos_key]
-			if needs_substitution(player):
-				attempt_substitution(pos_key)
+func execute_substitution(field_position: String, sub: Player):
+	#TODO: switch a bench player into a roster position for the pending substitutes
+	var tempPlayer
+	match field_position:
+		"LF":
+			tempPlayer = LF
+			LF = sub
+		"RF":
+			tempPlayer = RF
+			RF = sub
+		"LG":
+			tempPlayer = LG
+			LG = sub
+		"RG":
+			tempPlayer = RG
+			RG = sub
+		"K":
+			tempPlayer = K
+			K = sub
+		"P":
+			tempPlayer = P
+			P = sub
+	bench.append(tempPlayer)
 
-func needs_substitution(player: Player) -> bool:
-	if not player:
-		return true
-	return (player.energy < strategy.substitution.energy_threshold or
-			player.injury_count >= strategy.substitution.injury_threshold)
-
-func attempt_substitution(position_key: String):
-	var position_type = position_key.trim_suffix("_l").trim_suffix("_r")
-	for bench_player in bench:
-		if bench_player.position_type == position_type:
-			assign_position(position_key, bench_player)
-			return
-	for bench_player in bench:
-		if bench_player.has_buff("utility_player"):
-			assign_position(position_key, bench_player)
-			return
-
-func get_position_keys_for_type(position_type: String) -> Array[String]:
-	match position_type:
-		"keeper":
-			return ["keeper"]
-		"pitcher":
-			return ["pitcher"]
-		"guard":
-			return ["guard_l", "guard_r"]
-		"forward":
-			return ["forward_l", "forward_r"]
-		_:
-			return []
 
 func apply_team_buffs(player: Player):
 	for buff in buffs:
@@ -540,7 +520,6 @@ func check_player_positions():
 	for player in get_all_field_players():
 		if not player or player.position_type == "pitcher":
 			continue
-			
 		# Skip incapacitated players
 		if player.check_is_incapacitated():
 			continue

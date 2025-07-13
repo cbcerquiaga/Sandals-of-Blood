@@ -8,7 +8,7 @@
 [ext_resource type="Texture2D" uid="uid://307owu6k2n6i" path="res://UI/PauseUI/Discard-Exit_button_base.png" id="6_3pnim"]
 [ext_resource type="Texture2D" uid="uid://5rccbxmqb76a" path="res://UI/PauseUI/Save-Exit_button_base.png" id="6_34w4l"]
 [ext_resource type="Texture2D" uid="uid://ciia045odxt0f" path="res://UI/StrategyUI/RosterHolder_grey.png" id="6_q584g"]
-[ext_resource type="Texture2D" uid="uid://yswbn1k05twd" path="res://UI/StatusUI/boostBar.png" id="7_86do2"]
+[ext_resource type="Texture2D" uid="uid://cfb7djuq28a0g" path="res://UI/StrategyUI/Substitute_button_base.png" id="6_x5r2x"]
 
 [node name="Strategy_Menu" type="Control"]
 layout_mode = 3
@@ -36,6 +36,19 @@ texture = ExtResource("4_4fdjd")
 [node name="SubOn" type="Sprite2D" parent="SubstitutionSection"]
 texture = ExtResource("5_gd7or")
 
+[node name="SubButton" type="Button" parent="SubstitutionSection"]
+layout_mode = 0
+offset_left = 180.0
+offset_top = 300.0
+offset_right = 1268.0
+offset_bottom = 631.0
+icon = ExtResource("6_x5r2x")
+
+[node name="SubsRemaining" type="Label" parent="SubstitutionSection"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0
+
 [node name="LF_Button" type="Button" parent="SubstitutionSection"]
 layout_mode = 0
 offset_left = -844.0
@@ -52,9 +65,6 @@ offset_right = 1285.0
 offset_bottom = 214.0
 theme_override_font_sizes/font_size = 85
 text = "OPEN ROSTER SPOT"
-
-[node name="Energy" type="Sprite2D" parent="SubstitutionSection/LF_Button"]
-texture = ExtResource("7_86do2")
 
 [node name="P_Button" type="Button" parent="SubstitutionSection"]
 layout_mode = 0
@@ -73,9 +83,6 @@ offset_bottom = 214.0
 theme_override_font_sizes/font_size = 85
 text = "OPEN ROSTER SPOT"
 
-[node name="Energy" type="Sprite2D" parent="SubstitutionSection/P_Button"]
-texture = ExtResource("7_86do2")
-
 [node name="RF_Button" type="Button" parent="SubstitutionSection"]
 layout_mode = 0
 offset_left = -844.0
@@ -92,9 +99,6 @@ offset_right = 1285.0
 offset_bottom = 214.0
 theme_override_font_sizes/font_size = 85
 text = "OPEN ROSTER SPOT"
-
-[node name="Energy" type="Sprite2D" parent="SubstitutionSection/RF_Button"]
-texture = ExtResource("7_86do2")
 
 [node name="LG_Button" type="Button" parent="SubstitutionSection"]
 layout_mode = 0
@@ -113,9 +117,6 @@ offset_bottom = 214.0
 theme_override_font_sizes/font_size = 85
 text = "OPEN ROSTER SPOT"
 
-[node name="Energy" type="Sprite2D" parent="SubstitutionSection/LG_Button"]
-texture = ExtResource("7_86do2")
-
 [node name="K_Button" type="Button" parent="SubstitutionSection"]
 layout_mode = 0
 offset_left = -844.0
@@ -133,9 +134,6 @@ offset_bottom = 214.0
 theme_override_font_sizes/font_size = 85
 text = "OPEN ROSTER SPOT"
 
-[node name="Energy" type="Sprite2D" parent="SubstitutionSection/K_Button"]
-texture = ExtResource("7_86do2")
-
 [node name="RG_Button" type="Button" parent="SubstitutionSection"]
 layout_mode = 0
 offset_left = -844.0
@@ -152,9 +150,6 @@ offset_right = 1285.0
 offset_bottom = 214.0
 theme_override_font_sizes/font_size = 85
 text = "OPEN ROSTER SPOT"
-
-[node name="Energy" type="Sprite2D" parent="SubstitutionSection/RG_Button"]
-texture = ExtResource("7_86do2")
 
 [node name="Background" type="Sprite2D" parent="."]
 
