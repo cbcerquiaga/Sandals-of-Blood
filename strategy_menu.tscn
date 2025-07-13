@@ -33,8 +33,16 @@ offset_bottom = 40.0
 [node name="SubOff" type="Sprite2D" parent="SubstitutionSection"]
 texture = ExtResource("4_4fdjd")
 
+[node name="Label" type="Label" parent="SubstitutionSection/SubOff"]
+offset_right = 40.0
+offset_bottom = 23.0
+
 [node name="SubOn" type="Sprite2D" parent="SubstitutionSection"]
 texture = ExtResource("5_gd7or")
+
+[node name="Label" type="Label" parent="SubstitutionSection/SubOn"]
+offset_right = 40.0
+offset_bottom = 23.0
 
 [node name="SubButton" type="Button" parent="SubstitutionSection"]
 layout_mode = 0

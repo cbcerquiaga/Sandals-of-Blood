@@ -24,6 +24,10 @@ var p
 var k
 var lg
 var rg
+var subOn_player: Player
+var subOff_player: Player
+var subOff_position: String
+var pending_subs: Array = []
 
 var highlighted_item = "tactics_LFL"
 var is_in_match:bool = true #false if we got here from the team management menu, true if we got here from pausing a match
@@ -44,6 +48,10 @@ func _ready():
 	benchSection.position = Vector2(250, 30)
 	subOff.scale = Vector2(0.1, 0.1)
 	subOn.scale = Vector2(0.1, 0.1)
+	subOff.get_node("Label").scale = Vector2(6,6)
+	subOff.get_node("Label").position = Vector2(-60,-60)
+	subOn.get_node("Label").scale = Vector2(6,6)
+	subOn.get_node("Label").position = Vector2(-60,-60)
 	subOff.position = Vector2(-300, 200)
 	subOn.position = Vector2(-180, 200)
 	save_button.scale = Vector2(0.1, 0.1)
@@ -209,6 +217,7 @@ func navigate_left():
 				highlighted_item = "bench1"
 				benchSection.highlight_position(3)
 				sub_button.set_button_icon(load("res://UI/StrategyUI/Substitute_button_base.png"))
+	focus_highlighted_item()
 
 func navigate_right():
 	match highlighted_item:
@@ -312,6 +321,7 @@ func navigate_right():
 				highlighted_item = "bench1"
 				benchSection.highlight_position(3)
 				sub_button.set_button_icon(load("res://UI/StrategyUI/Substitute_button_base.png"))
+	focus_highlighted_item()
 
 func handle_enter():
 	match highlighted_item:
@@ -345,6 +355,18 @@ func handle_enter():
 			bench_player_chosen(benchSection.benchPlayer5)
 		"bench6":
 			bench_player_chosen(benchSection.benchPlayer6)
+		"field_LF":
+			field_player_chosen("LF", lf)
+		"field_RF":
+			field_player_chosen("RF", rf)
+		"field_P":
+			field_player_chosen("P", p)
+		"field_K":
+			field_player_chosen("K", k)
+		"field_LG":
+			field_player_chosen("LG", lg)
+		"field_RG":
+			field_player_chosen("RG", rg)
 		"save":
 			_on_save_pressed()
 		"discard":
@@ -446,7 +468,7 @@ func navigate_down():
 			highlighted_item = "field_RF"
 			rf_button.set_button_icon(load("res://UI/StrategyUI/Roster_holder_highlighted.png"))
 			pass
-			
+	focus_highlighted_item()
 
 func navigate_up():
 	match highlighted_item:
@@ -544,24 +566,62 @@ func navigate_up():
 			tacticsSection.set_highlight("RF_L")
 			sub_button.set_button_icon(load("res://UI/StrategyUI/Substitute_button_base.png"))
 			pass
-			
+	focus_highlighted_item()
 
 func bench_player_chosen(chosenPlayer: Player):
-	if !playerOff:
-		playerOff = chosenPlayer
-	elif playerOff == chosenPlayer: #choose the same player twice to un-highlight them
-		playerOff = null
-		return 
-	elif (playerOff.position_type == "pitcher" and chosenPlayer.position_type == "pitcher") or (playerOff.position_type != "pitcher" and chosenPlayer.position_type != "pitcher"):
-		benchSection.swap_player_spots(playerOff, chosenPlayer)
+	if subOn_player:
+		if highlighted_item.begins_with("bullpen") and subOn_player.position_type == "pitcher" and chosenPlayer!= subOn_player:
+			switch_player_positions(chosenPlayer, subOn_player)
+		elif highlighted_item.begins_with("bench") and subOn_player.position_type != "pitcher" and chosenPlayer!= subOn_player:
+			switch_player_positions(chosenPlayer, subOn_player)
+		elif subOn_player == chosenPlayer:
+			subOn_player = null
 	else:
-		playerOff = chosenPlayer
+		subOn_player = chosenPlayer
+		$SubstitutionSection/SubOn/Label.text = chosenPlayer.bio.last_name
+		update_pending_display()
+		
+func field_player_chosen(position: String, player: Player):
+	if player in current_team.roster:
+		subOff_player = player
+		subOff_position = position
+		$SubstitutionSection/SubOff/Label.text = position + " " + player.bio.last_name
+		print("Selected player to sub OUT: ", position, " ", player.bio.last_name)
+	else:
+		print("ERROR: Player not in active roster")
 
 func perform_substitution():
-	#TODO: swap playerOff and playerOn
-	#TODO: put players into their assigned roster spots
-	#TODO: update the bench and the field
-	return
+	if not subOn_player or not subOff_player:
+		return
+	if current_team.substitutions_remaining <= 0:
+		return
+	var sub_data = { #TODO: add to stats game log
+		"player_on": subOn_player,
+		"player_off": subOff_player,
+		"position": subOff_position
+	}
+	pending_subs.append(sub_data)
+	current_team.substitutions_remaining -= 1
+	update_pending_display()
+	
+	subOn_player = null
+	subOff_player = null
+	subOff_position = ""
+
+func update_pending_display():
+	if pending_subs.size() > 0:
+		var pending_text = "Pending:\n"
+		for sub in pending_subs:
+			pending_text += sub.position + " " + sub.player_on.bio.last_name + "\n"
+		if subOn_player and subOff_player:
+			pending_text += subOff_position + " " + subOn_player.bio.last_name
+		$SubstitutionSection/SubOn/Label.text = pending_text
+		$SubstitutionSection/SubOff/Label.text = pending_text
+	else:
+		if subOn_player:
+			$SubstitutionSection/SubOn/Label.text = subOn_player.bio.last_name
+		if subOff_player:
+			$SubstitutionSection/SubOff/Label.text = subOff_position + " " + subOff_player.bio.last_name
 	
 func _on_save_pressed():
 	if is_in_match:
@@ -569,6 +629,8 @@ func _on_save_pressed():
 		match_handler.update_team_strategy(current_team)
 	else:
 		save_strategy(current_team, "user://player_team_strategy.json")
+	if pending_subs.size() > 0:
+		current_team.pending_substitutions = pending_subs.duplicate(true)#TODO: if in match, take effect on next play; if not, take effect immediately
 	emit_signal("menu_closed")
 	hide()
 	
@@ -670,3 +732,56 @@ func position_labels_left():
 	$SubstitutionSection/RG_Button/Label.scale = label_scale
 	$SubstitutionSection/P_Button/Label.scale = label_scale
 	$SubstitutionSection/K_Button/Label.scale = label_scale
+	
+func focus_highlighted_item():
+	match highlighted_item:
+		"save":
+			save_button.grab_focus()
+		"discard":
+			discard_button.grab_focus()
+		"field_LF":
+			lf_button.grab_focus()
+		"field_P":
+			p_button.grab_focus()
+		"field_RF":
+			rf_button.grab_focus()
+		"field_LG":
+			lg_button.grab_focus()
+		"field_K":
+			k_button.grab_focus()
+		"field_RG":
+			rg_button.grab_focus()
+		"tactics_LFL":
+			tacticsSection.LF_Lbutton.grab_focus()
+		"tactics_LFR":
+			tacticsSection.LF_Rbutton.grab_focus()
+		"tactics_RFL":
+			tacticsSection.RF_Lbutton.grab_focus()
+		"tactics_RFR":
+			tacticsSection.RF_Rbutton.grab_focus()
+		"tactics_DL":
+			tacticsSection.D_Lbutton.grab_focus()
+		"tactics_DR":
+			tacticsSection.D_Rbutton.grab_focus()
+		"bullpen1":
+			benchSection.bullpen1.grab_focus()
+		"bullpen2":
+			benchSection.bullpen2.grab_focus()
+		"bullpen3":
+			benchSection.bullpen3.grab_focus()
+		"bench1":
+			benchSection.bench1.grab_focus()
+		"bench2":
+			benchSection.bench2.grab_focus()
+		"bench3":
+			benchSection.bench3.grab_focus()
+		"bench4":
+			benchSection.bench4.grab_focus()
+		"bench5":
+			benchSection.bench5.grab_focus()
+		"bench6":
+			benchSection.bench6.grab_focus()
+
+func switch_player_positions(player1: Player, player2: Player):
+	benchSection.currentPlayer = player1
+	benchSection.switch_player_positions(player2)
