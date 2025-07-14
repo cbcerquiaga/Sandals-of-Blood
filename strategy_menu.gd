@@ -38,6 +38,8 @@ var match_handler: MatchHandler
 var playerOff: Player
 var playerOn: Player
 
+var input_processed: bool = false
+
 signal menu_closed
 
 func _ready():
@@ -50,6 +52,8 @@ func _ready():
 	subOn.scale = Vector2(0.1, 0.1)
 	subOff.get_node("Label").scale = Vector2(6,6)
 	subOff.get_node("Label").position = Vector2(-60,-60)
+	subOff.get_node("Label").z_index = 0
+	subOff.get_node("Label").text = "TEST TEST TEST"
 	subOn.get_node("Label").scale = Vector2(6,6)
 	subOn.get_node("Label").position = Vector2(-60,-60)
 	subOff.position = Vector2(-300, 200)
@@ -103,16 +107,23 @@ func _process(delta):
 		#TODO: bring back the pause menu
 		#hide()
 		return
-	if Input.is_action_just_pressed("move_left"):
+	input_processed = false
+	
+	if Input.is_action_just_pressed("move_left") and not input_processed:
 		navigate_left()
-	elif Input.is_action_just_pressed("move_right"):
+		input_processed = true
+	elif Input.is_action_just_pressed("move_right") and not input_processed:
 		navigate_right()
-	elif Input.is_action_just_pressed("move_up"):
+		input_processed = true
+	elif Input.is_action_just_pressed("move_up") and not input_processed:
 		navigate_up()
-	elif Input.is_action_just_pressed("move_down"):
+		input_processed = true
+	elif Input.is_action_just_pressed("move_down") and not input_processed:
 		navigate_down()
-	elif Input.is_action_just_pressed("UI_enter"):
+		input_processed = true
+	elif Input.is_action_just_pressed("UI_enter") and not input_processed:
 		handle_enter()
+		input_processed = true
 		
 func navigate_left():
 	match highlighted_item:
@@ -324,9 +335,16 @@ func navigate_right():
 	focus_highlighted_item()
 
 func handle_enter():
+	if input_processed:
+		return
+	else:
+		input_processed = true
+	if Input.is_action_just_released("UI_enter"):
+		return
 	match highlighted_item:
 		"tactics_LFL":
 			tacticsSection.LFL_pressed()
+			
 		"tactics_LFR":
 			tacticsSection.LFR_pressed()
 		"tactics_DL":
@@ -371,6 +389,7 @@ func handle_enter():
 			_on_save_pressed()
 		"discard":
 			_on_discard_pressed()
+	focus_highlighted_item()
 			
 func navigate_down():
 	match highlighted_item:
@@ -568,45 +587,33 @@ func navigate_up():
 			pass
 	focus_highlighted_item()
 
+func field_player_chosen(position: String, player: Player):
+	print("field player chosen: " + str(player))
+	if not player:
+		return
+	subOff_player = player
+	subOff_position = position
+	$SubstitutionSection/SubOff/Label.text = position + " " + player.bio.last_name
+	update_pending_display()
+	
 func bench_player_chosen(chosenPlayer: Player):
+	if not chosenPlayer:
+		return
 	if subOn_player:
-		if highlighted_item.begins_with("bullpen") and subOn_player.position_type == "pitcher" and chosenPlayer!= subOn_player:
+		if highlighted_item.begins_with("bullpen") and subOn_player.position_type == "pitcher" and chosenPlayer != subOn_player:
 			switch_player_positions(chosenPlayer, subOn_player)
-		elif highlighted_item.begins_with("bench") and subOn_player.position_type != "pitcher" and chosenPlayer!= subOn_player:
+		elif highlighted_item.begins_with("bench") and subOn_player.position_type != "pitcher" and chosenPlayer != subOn_player:
 			switch_player_positions(chosenPlayer, subOn_player)
 		elif subOn_player == chosenPlayer:
 			subOn_player = null
+			subOff_player = null
+			subOff_position = ""
+			$SubstitutionSection/SubOn/Label.text = ""
+			$SubstitutionSection/SubOff/Label.text = ""
 	else:
 		subOn_player = chosenPlayer
 		$SubstitutionSection/SubOn/Label.text = chosenPlayer.bio.last_name
-		update_pending_display()
-		
-func field_player_chosen(position: String, player: Player):
-	if player in current_team.roster:
-		subOff_player = player
-		subOff_position = position
-		$SubstitutionSection/SubOff/Label.text = position + " " + player.bio.last_name
-		print("Selected player to sub OUT: ", position, " ", player.bio.last_name)
-	else:
-		print("ERROR: Player not in active roster")
-
-func perform_substitution():
-	if not subOn_player or not subOff_player:
-		return
-	if current_team.substitutions_remaining <= 0:
-		return
-	var sub_data = { #TODO: add to stats game log
-		"player_on": subOn_player,
-		"player_off": subOff_player,
-		"position": subOff_position
-	}
-	pending_subs.append(sub_data)
-	current_team.substitutions_remaining -= 1
 	update_pending_display()
-	
-	subOn_player = null
-	subOff_player = null
-	subOff_position = ""
 
 func update_pending_display():
 	if pending_subs.size() > 0:
@@ -620,8 +627,30 @@ func update_pending_display():
 	else:
 		if subOn_player:
 			$SubstitutionSection/SubOn/Label.text = subOn_player.bio.last_name
+		else:
+			$SubstitutionSection/SubOn/Label.text = ""
 		if subOff_player:
 			$SubstitutionSection/SubOff/Label.text = subOff_position + " " + subOff_player.bio.last_name
+		else:
+			$SubstitutionSection/SubOff/Label.text = ""
+
+func perform_substitution():
+	if not subOn_player or not subOff_player:
+		return
+	if current_team.subs_remaining <= 0:
+		return
+	var sub_data = { #TODO: add to stats game log
+		"player_on": subOn_player,
+		"player_off": subOff_player,
+		"position": subOff_position
+	}
+	pending_subs.append(sub_data)
+	current_team.subs_remaining -= 1
+	update_pending_display()
+	
+	subOn_player = null
+	subOff_player = null
+	subOff_position = ""
 	
 func _on_save_pressed():
 	if is_in_match:
@@ -630,7 +659,7 @@ func _on_save_pressed():
 	else:
 		save_strategy(current_team, "user://player_team_strategy.json")
 	if pending_subs.size() > 0:
-		current_team.pending_substitutions = pending_subs.duplicate(true)#TODO: if in match, take effect on next play; if not, take effect immediately
+		current_team.pending_substitution = pending_subs.duplicate(true)#TODO: if in match, take effect on next play; if not, take effect immediately
 	emit_signal("menu_closed")
 	hide()
 	
@@ -647,11 +676,7 @@ func apply_strategy_changes():
 	current_team.strategy.tactics.RF = tacticsSection.RF_directions
 	current_team.strategy.tactics.D = tacticsSection.D_strategy
 	if playerOff and playerOn:
-		current_team.pending_substitution = {
-			"player_off": playerOff,
-			"player_on": playerOn,
-			"position": playerOff.position_type
-		}
+		current_team.pending_substitution = [playerOff, playerOn]
 		
 func revert_changes():
 	current_team.strategy = original_strategy.duplicate(true)

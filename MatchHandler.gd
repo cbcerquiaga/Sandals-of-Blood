@@ -314,6 +314,7 @@ func next_play():
 	# Update team status for next play
 	pTeam.check_pending_substitutions()
 	aTeam.check_pending_substitutions()
+	statusUI.assign_team(self)
 	pTeam.nextPlayStatus()
 	aTeam.nextPlayStatus()
 	reset_ball_and_field()

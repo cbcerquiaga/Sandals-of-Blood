@@ -7,7 +7,7 @@ var is_player_team: bool
 var roster: Array[Player] = []
 var bench: Array[Player] = []
 var buffs: Array[Dictionary] = []
-var pending_substitution: Dictionary = {}
+var pending_substitution: Array = []
 var strategy: Dictionary = {
 	"base_aggression": 1.0,
 	"position_aggression": {
@@ -81,8 +81,7 @@ func _process(delta: float) -> void:
 
 func check_pending_substitutions():
 	if pending_substitution:
-		#TODO: loop through every position
-		#execute substitution for every position
+		execute_substitutions()
 		pass
 
 func export_to_dict() -> Dictionary:
@@ -163,29 +162,53 @@ func get_all_field_players() -> Array[Player]:
 			players.append(player)
 	return players
 
-func execute_substitution(field_position: String, sub: Player):
-	#TODO: switch a bench player into a roster position for the pending substitutes
-	var tempPlayer
-	match field_position:
-		"LF":
-			tempPlayer = LF
-			LF = sub
-		"RF":
-			tempPlayer = RF
-			RF = sub
-		"LG":
-			tempPlayer = LG
-			LG = sub
-		"RG":
-			tempPlayer = RG
-			RG = sub
-		"K":
-			tempPlayer = K
-			K = sub
-		"P":
-			tempPlayer = P
-			P = sub
-	bench.append(tempPlayer)
+func execute_substitutions():
+	for sub in pending_substitution:
+		var sub_player = sub["player_on"]
+		var player_off = sub["player_off"]
+		var position_key = ""
+		for pos in positions:
+			if positions[pos] == player_off:
+				position_key = pos
+				break
+		positions[position_key] = sub_player
+		bench.append(player_off)
+		bench.erase(sub_player)
+		match position_key:
+			"keeper":
+				K = sub_player
+			"pitcher":
+				P = sub_player
+			"guard_l":
+				LG = sub_player
+			"guard_r":
+				RG = sub_player
+			"forward_l":
+				LF = sub_player
+			"forward_r":
+				RF = sub_player
+		
+		# Handle out-of-position buff if needed
+		if sub_player.position_type != position_key.trim_suffix("_l").trim_suffix("_r"):
+			if not sub_player.has_buff("utility_player"):
+				sub_player.add_buff("out_of_position", {
+					"duration": -1,
+					"effects": {
+						"speed": -5,
+						"sprint_speed": -5,
+						"power": -5,
+						"endurance": -5,
+						"accuracy": -5,
+						"shooting": -5,
+						"positioning": -10,
+						"reactions": -10,
+						"confidence": -10
+					}
+				})
+		else:
+			sub_player.remove_buff("out_of_position")
+	
+	pending_substitution.clear()
 
 
 func apply_team_buffs(player: Player):
