@@ -1,9 +1,9 @@
 extends Control
 class_name StrategyMenu
 
-@onready var tacticsSection = $TacticsSection
+@onready var tacticsSection = $Tactics
 @onready var substitutionSection = $SubstitutionSection
-@onready var benchSection = $Bench_Section
+@onready var benchSection = $Bench
 @onready var fieldSection
 @onready var background: Sprite2D
 @onready var subOn = $SubstitutionSection/SubOn
@@ -27,12 +27,18 @@ var rg
 var subOn_player: Player
 var subOff_player: Player
 var subOff_position: String
-var pending_subs: Array = []
+var pending_subs: Array = [] #array of players to display the pending substitutions
+var pending_substitution #array of roster, bench, and bullpen
 
 var highlighted_item = "tactics_LFL"
 var is_in_match:bool = true #false if we got here from the team management menu, true if we got here from pausing a match
 var original_roster:Array
 var original_strategy:Dictionary
+var original_bullpen:Array #array of of up to 3 bench pitchers
+var original_bench:Array#array of up to 6 fielders
+var pending_roster: Array #for pending substitutions
+var pending_bullpen
+var pending_bench
 var current_team: Team
 var match_handler: MatchHandler
 var playerOff: Player
@@ -639,12 +645,20 @@ func perform_substitution():
 		return
 	if current_team.subs_remaining <= 0:
 		return
+	var field_index = original_roster.find(subOff_player)
+	var off_index = -1
+	if subOff_player == p: #the player is currently the pitcher
+		off_index = original_bullpen.find(subOff_player)
+		#TODO: swap the players- put subOff player in subOn's bullpen position and subOn in SubOff's field position
+	else:
+		off_index = original_bench.find(subOn_player)
+		#TODO: swap the players- put subOff player in subOn's bench position and subOn in subOff's field position
 	var sub_data = { #TODO: add to stats game log
-		"player_on": subOn_player,
-		"player_off": subOff_player,
-		"position": subOff_position
+		"field": pending_roster,
+		"bench": pending_bench,
+		"bullpen": pending_bullpen
 	}
-	pending_subs.append(sub_data)
+	pending_substitution = sub_data
 	current_team.subs_remaining -= 1
 	update_pending_display()
 	
@@ -658,8 +672,8 @@ func _on_save_pressed():
 		match_handler.update_team_strategy(current_team)
 	else:
 		save_strategy(current_team, "user://player_team_strategy.json")
-	if pending_subs.size() > 0:
-		current_team.pending_substitution = pending_subs.duplicate(true)#TODO: if in match, take effect on next play; if not, take effect immediately
+	if pending_roster != original_roster:
+		current_team.pending_substitution = pending_substitution#TODO: if in match, take effect on next play; if not, take effect immediately
 	emit_signal("menu_closed")
 	hide()
 	

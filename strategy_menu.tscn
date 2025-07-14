@@ -1,14 +1,19 @@
-[gd_scene load_steps=10 format=3 uid="uid://e818m1s2f5xp"]
+[gd_scene load_steps=15 format=3 uid="uid://e818m1s2f5xp"]
 
-[ext_resource type="PackedScene" uid="uid://c0rw2e6hmue5i" path="res://tactics_section.tscn" id="1_lmtvj"]
 [ext_resource type="Script" path="res://strategy_menu.gd" id="1_p0u7q"]
-[ext_resource type="PackedScene" uid="uid://1jmpobhku6vc" path="res://bench_section.tscn" id="2_e2hd3"]
+[ext_resource type="Script" path="res://bench_section.gd" id="2_a8736"]
+[ext_resource type="Texture2D" uid="uid://cf0qf4e00oaby" path="res://UI/StrategyUI/Bullpen_Header.png" id="2_ujkkb"]
+[ext_resource type="Texture2D" uid="uid://bd0jj1wb323lr" path="res://UI/StrategyUI/ClippedHolder_grey.png" id="3_ywmw2"]
 [ext_resource type="Texture2D" uid="uid://ds53kbl6bvyjp" path="res://UI/StrategyUI/Sub_off.png" id="4_4fdjd"]
+[ext_resource type="Texture2D" uid="uid://b8k8juf4515jk" path="res://UI/StrategyUI/Bench_Header.png" id="4_pw0g3"]
 [ext_resource type="Texture2D" uid="uid://pc2ohmq00lpl" path="res://UI/StrategyUI/Sub_on.png" id="5_gd7or"]
 [ext_resource type="Texture2D" uid="uid://307owu6k2n6i" path="res://UI/PauseUI/Discard-Exit_button_base.png" id="6_3pnim"]
 [ext_resource type="Texture2D" uid="uid://5rccbxmqb76a" path="res://UI/PauseUI/Save-Exit_button_base.png" id="6_34w4l"]
 [ext_resource type="Texture2D" uid="uid://ciia045odxt0f" path="res://UI/StrategyUI/RosterHolder_grey.png" id="6_q584g"]
 [ext_resource type="Texture2D" uid="uid://cfb7djuq28a0g" path="res://UI/StrategyUI/Substitute_button_base.png" id="6_x5r2x"]
+[ext_resource type="Script" path="res://tactics_section.gd" id="12_emdlp"]
+[ext_resource type="Texture2D" uid="uid://cqfhq5hj3ofqv" path="res://UI/StrategyUI/PreviousButton_base.png" id="12_tr0tp"]
+[ext_resource type="Texture2D" uid="uid://gb8htff5kf03" path="res://UI/StrategyUI/NextButton_base.png" id="13_aqj5i"]
 
 [node name="Strategy_Menu" type="Control"]
 layout_mode = 3
@@ -19,11 +24,208 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_p0u7q")
 
-[node name="Bench_Section" parent="." instance=ExtResource("2_e2hd3")]
-layout_mode = 1
+[node name="Bench" type="Control" parent="."]
+anchors_preset = 0
+offset_left = 2800.0
+offset_right = 2840.0
+offset_bottom = 40.0
+script = ExtResource("2_a8736")
 
-[node name="TacticsSection" parent="." instance=ExtResource("1_lmtvj")]
-layout_mode = 1
+[node name="BullpenHeader" type="Sprite2D" parent="Bench"]
+texture = ExtResource("2_ujkkb")
+
+[node name="Button1" type="Button" parent="Bench/BullpenHeader"]
+offset_left = -844.0
+offset_top = 147.0
+offset_right = 898.0
+offset_bottom = 478.0
+focus_neighbor_left = NodePath("../../../Tactics/RF/RB")
+focus_neighbor_top = NodePath("../../BenchHeader/Button9")
+focus_neighbor_right = NodePath("../../../Tactics/LF/LB")
+focus_neighbor_bottom = NodePath("../Button2")
+icon = ExtResource("3_ywmw2")
+
+[node name="Label" type="Label" parent="Bench/BullpenHeader/Button1"]
+layout_mode = 0
+offset_left = 283.0
+offset_top = 99.0
+offset_right = 1109.0
+offset_bottom = 215.0
+focus_neighbor_left = NodePath("../../../../Tactics/RF/RB")
+focus_neighbor_right = NodePath("../../../../Tactics/LF/LB")
+theme_override_font_sizes/font_size = 85
+text = "OPEN ROSTER SPOT"
+
+[node name="Button2" type="Button" parent="Bench/BullpenHeader"]
+offset_left = -844.0
+offset_top = 547.0
+offset_right = 898.0
+offset_bottom = 878.0
+focus_neighbor_left = NodePath("../../../Tactics/RF/RB")
+focus_neighbor_top = NodePath("../Button1")
+focus_neighbor_right = NodePath("../../../Tactics/LF/LB")
+focus_neighbor_bottom = NodePath("../Button3")
+icon = ExtResource("3_ywmw2")
+
+[node name="Label" type="Label" parent="Bench/BullpenHeader/Button2"]
+layout_mode = 0
+offset_left = 283.0
+offset_top = 99.0
+offset_right = 1109.0
+offset_bottom = 215.0
+theme_override_font_sizes/font_size = 85
+text = "OPEN ROSTER SPOT"
+
+[node name="Button3" type="Button" parent="Bench/BullpenHeader"]
+offset_left = -844.0
+offset_top = 947.0
+offset_right = 898.0
+offset_bottom = 1278.0
+focus_neighbor_left = NodePath("../../../Tactics/RF/RB")
+focus_neighbor_top = NodePath("../Button2")
+focus_neighbor_right = NodePath("../../../Tactics/LF/LB")
+focus_neighbor_bottom = NodePath("../../BenchHeader/Button4")
+icon = ExtResource("3_ywmw2")
+
+[node name="Label" type="Label" parent="Bench/BullpenHeader/Button3"]
+layout_mode = 0
+offset_left = 283.0
+offset_top = 99.0
+offset_right = 1109.0
+offset_bottom = 215.0
+theme_override_font_sizes/font_size = 85
+text = "OPEN ROSTER SPOT"
+
+[node name="BenchHeader" type="Sprite2D" parent="Bench"]
+position = Vector2(2, 1463)
+texture = ExtResource("4_pw0g3")
+
+[node name="Button4" type="Button" parent="Bench/BenchHeader"]
+offset_left = -844.0
+offset_top = 192.0
+offset_right = 898.0
+offset_bottom = 523.0
+focus_neighbor_left = NodePath("../../../SubstitutionSection/SubButton")
+focus_neighbor_top = NodePath("../../BullpenHeader/Button3")
+focus_neighbor_right = NodePath("../../../SubstitutionSection/SubButton")
+focus_neighbor_bottom = NodePath("../Button5")
+icon = ExtResource("6_q584g")
+metadata/_edit_use_anchors_ = true
+
+[node name="Label" type="Label" parent="Bench/BenchHeader/Button4"]
+layout_mode = 0
+offset_left = 459.0
+offset_top = 98.0
+offset_right = 1285.0
+offset_bottom = 214.0
+theme_override_font_sizes/font_size = 85
+text = "OPEN ROSTER SPOT"
+metadata/_edit_use_anchors_ = true
+
+[node name="Button5" type="Button" parent="Bench/BenchHeader"]
+offset_left = -844.0
+offset_top = 592.0
+offset_right = 898.0
+offset_bottom = 923.0
+focus_neighbor_left = NodePath("../../../SubstitutionSection/SubButton")
+focus_neighbor_top = NodePath("../Button4")
+focus_neighbor_right = NodePath("../../../SubstitutionSection/SubButton")
+focus_neighbor_bottom = NodePath("../Button6")
+icon = ExtResource("6_q584g")
+metadata/_edit_use_anchors_ = true
+
+[node name="Label" type="Label" parent="Bench/BenchHeader/Button5"]
+layout_mode = 0
+offset_left = 459.0
+offset_top = 98.0
+offset_right = 1285.0
+offset_bottom = 214.0
+theme_override_font_sizes/font_size = 85
+text = "OPEN ROSTER SPOT"
+
+[node name="Button6" type="Button" parent="Bench/BenchHeader"]
+offset_left = -844.0
+offset_top = 992.0
+offset_right = 898.0
+offset_bottom = 1323.0
+focus_neighbor_left = NodePath("../../../SubstitutionSection/SubButton")
+focus_neighbor_top = NodePath("../Button5")
+focus_neighbor_right = NodePath("../../../SubstitutionSection/SubButton")
+focus_neighbor_bottom = NodePath("../Button7")
+icon = ExtResource("6_q584g")
+metadata/_edit_use_anchors_ = true
+
+[node name="Label" type="Label" parent="Bench/BenchHeader/Button6"]
+layout_mode = 0
+offset_left = 459.0
+offset_top = 98.0
+offset_right = 1285.0
+offset_bottom = 214.0
+theme_override_font_sizes/font_size = 85
+text = "OPEN ROSTER SPOT"
+
+[node name="Button7" type="Button" parent="Bench/BenchHeader"]
+offset_left = -844.0
+offset_top = 1392.0
+offset_right = 898.0
+offset_bottom = 1723.0
+focus_neighbor_left = NodePath("../../../SubstitutionSection/RF_Button")
+focus_neighbor_top = NodePath("../Button6")
+focus_neighbor_right = NodePath("../../../SubstitutionSection/LF_Button")
+focus_neighbor_bottom = NodePath("../Button8")
+icon = ExtResource("6_q584g")
+metadata/_edit_use_anchors_ = true
+
+[node name="Label" type="Label" parent="Bench/BenchHeader/Button7"]
+layout_mode = 0
+offset_left = 459.0
+offset_top = 98.0
+offset_right = 1285.0
+offset_bottom = 214.0
+theme_override_font_sizes/font_size = 85
+text = "OPEN ROSTER SPOT"
+
+[node name="Button8" type="Button" parent="Bench/BenchHeader"]
+offset_left = -844.0
+offset_top = 1792.0
+offset_right = 898.0
+offset_bottom = 2123.0
+focus_neighbor_left = NodePath("../../../SubstitutionSection/RG_Button")
+focus_neighbor_top = NodePath("../Button7")
+focus_neighbor_right = NodePath("../../../SubstitutionSection/LG_Button")
+focus_neighbor_bottom = NodePath("../Button9")
+icon = ExtResource("6_q584g")
+metadata/_edit_use_anchors_ = true
+
+[node name="Label" type="Label" parent="Bench/BenchHeader/Button8"]
+layout_mode = 0
+offset_left = 459.0
+offset_top = 98.0
+offset_right = 1285.0
+offset_bottom = 214.0
+theme_override_font_sizes/font_size = 85
+text = "OPEN ROSTER SPOT"
+
+[node name="Button9" type="Button" parent="Bench/BenchHeader"]
+offset_left = -844.0
+offset_top = 2192.0
+offset_right = 898.0
+offset_bottom = 2523.0
+focus_neighbor_left = NodePath("../../../SaveButton")
+focus_neighbor_top = NodePath("../Button8")
+focus_neighbor_right = NodePath("../../../DiscardButton")
+focus_neighbor_bottom = NodePath("../../BullpenHeader/Button1")
+icon = ExtResource("6_q584g")
+metadata/_edit_use_anchors_ = true
+
+[node name="Label" type="Label" parent="Bench/BenchHeader/Button9"]
+layout_mode = 0
+offset_left = 459.0
+offset_top = 98.0
+offset_right = 1285.0
+offset_bottom = 214.0
+theme_override_font_sizes/font_size = 85
+text = "OPEN ROSTER SPOT"
 
 [node name="SubstitutionSection" type="Control" parent="."]
 anchors_preset = 0
@@ -31,6 +233,7 @@ offset_right = 40.0
 offset_bottom = 40.0
 
 [node name="SubOff" type="Sprite2D" parent="SubstitutionSection"]
+position = Vector2(-1818, 2175)
 texture = ExtResource("4_4fdjd")
 
 [node name="Label" type="Label" parent="SubstitutionSection/SubOff"]
@@ -38,6 +241,7 @@ offset_right = 40.0
 offset_bottom = 23.0
 
 [node name="SubOn" type="Sprite2D" parent="SubstitutionSection"]
+position = Vector2(-3106, 2140)
 texture = ExtResource("5_gd7or")
 
 [node name="Label" type="Label" parent="SubstitutionSection/SubOn"]
@@ -46,10 +250,10 @@ offset_bottom = 23.0
 
 [node name="SubButton" type="Button" parent="SubstitutionSection"]
 layout_mode = 0
-offset_left = 180.0
-offset_top = 300.0
-offset_right = 1268.0
-offset_bottom = 631.0
+offset_left = 465.0
+offset_top = 2319.0
+offset_right = 1553.0
+offset_bottom = 2650.0
 icon = ExtResource("6_x5r2x")
 
 [node name="SubsRemaining" type="Label" parent="SubstitutionSection"]
@@ -59,10 +263,14 @@ offset_bottom = 23.0
 
 [node name="LF_Button" type="Button" parent="SubstitutionSection"]
 layout_mode = 0
-offset_left = -844.0
-offset_top = 192.0
-offset_right = 898.0
-offset_bottom = 523.0
+offset_left = -3750.0
+offset_top = 2793.0
+offset_right = -2008.0
+offset_bottom = 3124.0
+focus_neighbor_left = NodePath("../../Bench/BenchHeader/Button7")
+focus_neighbor_top = NodePath("../../Tactics/LF/LB")
+focus_neighbor_right = NodePath("../P_Button")
+focus_neighbor_bottom = NodePath("../LG_Button")
 icon = ExtResource("6_q584g")
 
 [node name="Label" type="Label" parent="SubstitutionSection/LF_Button"]
@@ -76,10 +284,14 @@ text = "OPEN ROSTER SPOT"
 
 [node name="P_Button" type="Button" parent="SubstitutionSection"]
 layout_mode = 0
-offset_left = -844.0
-offset_top = 192.0
-offset_right = 898.0
-offset_bottom = 523.0
+offset_left = -1927.0
+offset_top = 2801.0
+offset_right = -185.0
+offset_bottom = 3132.0
+focus_neighbor_left = NodePath("../LF_Button")
+focus_neighbor_top = NodePath("../../Tactics/D/LB")
+focus_neighbor_right = NodePath("../RF_Button")
+focus_neighbor_bottom = NodePath("../K_Button")
 icon = ExtResource("6_q584g")
 
 [node name="Label" type="Label" parent="SubstitutionSection/P_Button"]
@@ -93,10 +305,14 @@ text = "OPEN ROSTER SPOT"
 
 [node name="RF_Button" type="Button" parent="SubstitutionSection"]
 layout_mode = 0
-offset_left = -844.0
-offset_top = 192.0
-offset_right = 898.0
-offset_bottom = 523.0
+offset_left = -154.0
+offset_top = 2818.0
+offset_right = 1588.0
+offset_bottom = 3149.0
+focus_neighbor_left = NodePath("../P_Button")
+focus_neighbor_top = NodePath("../SubButton")
+focus_neighbor_right = NodePath("../../Bench/BenchHeader/Button7")
+focus_neighbor_bottom = NodePath("../RG_Button")
 icon = ExtResource("6_q584g")
 
 [node name="Label" type="Label" parent="SubstitutionSection/RF_Button"]
@@ -110,10 +326,14 @@ text = "OPEN ROSTER SPOT"
 
 [node name="LG_Button" type="Button" parent="SubstitutionSection"]
 layout_mode = 0
-offset_left = -844.0
-offset_top = 192.0
-offset_right = 898.0
-offset_bottom = 523.0
+offset_left = -3733.0
+offset_top = 3218.0
+offset_right = -1991.0
+offset_bottom = 3549.0
+focus_neighbor_left = NodePath("../../Bench/BenchHeader/Button8")
+focus_neighbor_top = NodePath("../LF_Button")
+focus_neighbor_right = NodePath("../K_Button")
+focus_neighbor_bottom = NodePath("../../DiscardButton")
 icon = ExtResource("6_q584g")
 
 [node name="Label" type="Label" parent="SubstitutionSection/LG_Button"]
@@ -127,10 +347,14 @@ text = "OPEN ROSTER SPOT"
 
 [node name="K_Button" type="Button" parent="SubstitutionSection"]
 layout_mode = 0
-offset_left = -844.0
-offset_top = 192.0
-offset_right = 898.0
-offset_bottom = 523.0
+offset_left = -1931.0
+offset_top = 3235.0
+offset_right = -189.0
+offset_bottom = 3566.0
+focus_neighbor_left = NodePath("../LG_Button")
+focus_neighbor_top = NodePath("../P_Button")
+focus_neighbor_right = NodePath("../RG_Button")
+focus_neighbor_bottom = NodePath("../../DiscardButton")
 icon = ExtResource("6_q584g")
 
 [node name="Label" type="Label" parent="SubstitutionSection/K_Button"]
@@ -144,10 +368,14 @@ text = "OPEN ROSTER SPOT"
 
 [node name="RG_Button" type="Button" parent="SubstitutionSection"]
 layout_mode = 0
-offset_left = -844.0
-offset_top = 192.0
-offset_right = 898.0
-offset_bottom = 523.0
+offset_left = -162.0
+offset_top = 3243.0
+offset_right = 1580.0
+offset_bottom = 3574.0
+focus_neighbor_left = NodePath("../K_Button")
+focus_neighbor_top = NodePath("../RF_Button")
+focus_neighbor_right = NodePath("../../Bench/BenchHeader/Button8")
+focus_neighbor_bottom = NodePath("../../SaveButton")
 icon = ExtResource("6_q584g")
 
 [node name="Label" type="Label" parent="SubstitutionSection/RG_Button"]
@@ -163,14 +391,174 @@ text = "OPEN ROSTER SPOT"
 
 [node name="DiscardButton" type="Button" parent="."]
 layout_mode = 0
-offset_right = 1088.0
-offset_bottom = 331.0
+offset_left = -2428.0
+offset_top = 3677.0
+offset_right = -1340.0
+offset_bottom = 4008.0
 icon = ExtResource("6_3pnim")
 
 [node name="SaveButton" type="Button" parent="."]
 layout_mode = 0
-offset_left = 1100.0
-offset_top = 400.0
-offset_right = 2188.0
-offset_bottom = 731.0
+offset_left = 333.0
+offset_top = 3699.0
+offset_right = 1421.0
+offset_bottom = 4030.0
 icon = ExtResource("6_34w4l")
+
+[node name="Tactics" type="Control" parent="."]
+anchors_preset = 0
+offset_left = -3313.0
+offset_top = 130.0
+offset_right = -3273.0
+offset_bottom = 170.0
+scale = Vector2(6, 6)
+script = ExtResource("12_emdlp")
+
+[node name="LF" type="Control" parent="Tactics"]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="LB" type="Button" parent="Tactics/LF"]
+layout_mode = 0
+offset_left = -108.0
+offset_top = 79.0
+offset_right = 790.0
+offset_bottom = 582.0
+scale = Vector2(0.1, 0.1)
+focus_neighbor_left = NodePath("../../../Bench/BullpenHeader/Button1")
+focus_neighbor_top = NodePath("../../../SubstitutionSection/LG_Button")
+focus_neighbor_right = NodePath("../RB")
+focus_neighbor_bottom = NodePath("../../../SubstitutionSection/LF_Button")
+icon = ExtResource("12_tr0tp")
+
+[node name="RB" type="Button" parent="Tactics/LF"]
+layout_mode = 0
+offset_left = 90.0
+offset_top = 81.0
+offset_right = 988.0
+offset_bottom = 584.0
+scale = Vector2(0.1, 0.1)
+focus_neighbor_left = NodePath("../LB")
+focus_neighbor_top = NodePath("../../../SubstitutionSection/LG_Button")
+focus_neighbor_right = NodePath("../../D/LB")
+focus_neighbor_bottom = NodePath("../../../SubstitutionSection/LF_Button")
+icon = ExtResource("13_aqj5i")
+
+[node name="Assignment" type="Label" parent="Tactics/LF"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0
+text = "Movinator"
+
+[node name="Explanation" type="Label" parent="Tactics/LF"]
+layout_mode = 0
+offset_left = -105.0
+offset_top = 26.0
+offset_right = 493.0
+offset_bottom = 101.0
+scale = Vector2(0.5, 0.5)
+text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. In condimentum, mauris sit amet efficitur convallis, neque nibh sagittis arcu, a posuere purus erat vel sapien. Nullam eros erat, fringilla in lacinia vitae, tempor ac arcu"
+horizontal_alignment = 3
+autowrap_mode = 3
+
+[node name="RF" type="Control" parent="Tactics"]
+layout_mode = 3
+anchors_preset = 0
+offset_left = 650.0
+offset_right = 690.0
+offset_bottom = 40.0
+
+[node name="LB" type="Button" parent="Tactics/RF"]
+layout_mode = 0
+offset_left = -91.1667
+offset_top = 84.6667
+offset_right = 806.833
+offset_bottom = 587.667
+scale = Vector2(0.1, 0.1)
+focus_neighbor_left = NodePath("../../D/RB")
+focus_neighbor_top = NodePath("../../../SaveButton")
+focus_neighbor_right = NodePath("../RB")
+focus_neighbor_bottom = NodePath("../../../SubstitutionSection/SubButton")
+icon = ExtResource("12_tr0tp")
+
+[node name="RB" type="Button" parent="Tactics/RF"]
+layout_mode = 0
+offset_left = 101.833
+offset_top = 86.6667
+offset_right = 999.833
+offset_bottom = 589.667
+scale = Vector2(0.1, 0.1)
+focus_neighbor_left = NodePath("../LB")
+focus_neighbor_top = NodePath("../../../SaveButton")
+focus_neighbor_right = NodePath("../../../Bench/BullpenHeader/Button1")
+focus_neighbor_bottom = NodePath("../../../SubstitutionSection/SubButton")
+icon = ExtResource("13_aqj5i")
+
+[node name="Assignment" type="Label" parent="Tactics/RF"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0
+text = "Movinator"
+
+[node name="Explanation" type="Label" parent="Tactics/RF"]
+layout_mode = 0
+offset_left = -105.0
+offset_top = 26.0
+offset_right = 493.0
+offset_bottom = 101.0
+scale = Vector2(0.5, 0.5)
+text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. In condimentum, mauris sit amet efficitur convallis, neque nibh sagittis arcu, a posuere purus erat vel sapien. Nullam eros erat, fringilla in lacinia vitae, tempor ac arcu"
+horizontal_alignment = 3
+autowrap_mode = 3
+
+[node name="D" type="Control" parent="Tactics"]
+layout_mode = 3
+anchors_preset = 0
+offset_left = 325.0
+offset_right = 365.0
+offset_bottom = 40.0
+
+[node name="LB" type="Button" parent="Tactics/D"]
+layout_mode = 0
+offset_left = -100.0
+offset_top = 80.0
+offset_right = 798.0
+offset_bottom = 583.0
+scale = Vector2(0.1, 0.1)
+focus_neighbor_left = NodePath("../../LF/RB")
+focus_neighbor_top = NodePath("../../../DiscardButton")
+focus_neighbor_right = NodePath("../RB")
+focus_neighbor_bottom = NodePath("../../../SubstitutionSection/P_Button")
+icon = ExtResource("12_tr0tp")
+
+[node name="RB" type="Button" parent="Tactics/D"]
+layout_mode = 0
+offset_left = 98.0
+offset_top = 82.0
+offset_right = 996.0
+offset_bottom = 585.0
+scale = Vector2(0.1, 0.1)
+focus_neighbor_left = NodePath("../LB")
+focus_neighbor_top = NodePath("../../../DiscardButton")
+focus_neighbor_right = NodePath("../../RF/LB")
+focus_neighbor_bottom = NodePath("../../../SubstitutionSection/P_Button")
+icon = ExtResource("13_aqj5i")
+
+[node name="Assignment" type="Label" parent="Tactics/D"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0
+text = "Movinator"
+
+[node name="Explanation" type="Label" parent="Tactics/D"]
+layout_mode = 0
+offset_left = -105.0
+offset_top = 26.0
+offset_right = 493.0
+offset_bottom = 101.0
+scale = Vector2(0.5, 0.5)
+text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. In condimentum, mauris sit amet efficitur convallis, neque nibh sagittis arcu, a posuere purus erat vel sapien. Nullam eros erat, fringilla in lacinia vitae, tempor ac arcu"
+horizontal_alignment = 3
+autowrap_mode = 3

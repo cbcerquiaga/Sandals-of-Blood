@@ -6,8 +6,11 @@ var is_on_offense: bool
 var is_player_team: bool
 var roster: Array[Player] = []
 var bench: Array[Player] = []
+var bullpen: Array[Player] = []
 var buffs: Array[Dictionary] = []
-var pending_substitution: Array = []
+var pending_roster: Array[Player] = []
+var pending_bench: Array[Player] = []
+var pending_bullpen: Array[Player] = []
 var strategy: Dictionary = {
 	"base_aggression": 1.0,
 	"position_aggression": {
@@ -80,7 +83,7 @@ func _process(delta: float) -> void:
 		#check_player_positions()
 
 func check_pending_substitutions():
-	if pending_substitution:
+	if pending_roster != roster:
 		execute_substitutions()
 		pass
 
@@ -163,52 +166,9 @@ func get_all_field_players() -> Array[Player]:
 	return players
 
 func execute_substitutions():
-	for sub in pending_substitution:
-		var sub_player = sub["player_on"]
-		var player_off = sub["player_off"]
-		var position_key = ""
-		for pos in positions:
-			if positions[pos] == player_off:
-				position_key = pos
-				break
-		positions[position_key] = sub_player
-		bench.append(player_off)
-		bench.erase(sub_player)
-		match position_key:
-			"keeper":
-				K = sub_player
-			"pitcher":
-				P = sub_player
-			"guard_l":
-				LG = sub_player
-			"guard_r":
-				RG = sub_player
-			"forward_l":
-				LF = sub_player
-			"forward_r":
-				RF = sub_player
-		
-		# Handle out-of-position buff if needed
-		if sub_player.position_type != position_key.trim_suffix("_l").trim_suffix("_r"):
-			if not sub_player.has_buff("utility_player"):
-				sub_player.add_buff("out_of_position", {
-					"duration": -1,
-					"effects": {
-						"speed": -5,
-						"sprint_speed": -5,
-						"power": -5,
-						"endurance": -5,
-						"accuracy": -5,
-						"shooting": -5,
-						"positioning": -10,
-						"reactions": -10,
-						"confidence": -10
-					}
-				})
-		else:
-			sub_player.remove_buff("out_of_position")
-	
-	pending_substitution.clear()
+	roster = pending_roster
+	bench = pending_bench
+	bullpen = pending_bullpen
 
 
 func apply_team_buffs(player: Player):

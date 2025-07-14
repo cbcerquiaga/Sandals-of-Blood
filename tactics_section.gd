@@ -366,15 +366,21 @@ func set_highlight(position: String):
 	match position:
 		"LF_L":
 			LF_Lbutton.set_button_icon(load("res://UI/StrategyUI/PreviousButton_highlighted.png"))
+			LF_Lbutton.grab_focus()
 		"LF_R":
 			LF_Rbutton.set_button_icon(load("res://UI/StrategyUI/Next_button_highlighted.png"))
+			LF_Rbutton.grab_focus()
 		"D_L":
 			D_Lbutton.set_button_icon(load("res://UI/StrategyUI/PreviousButton_highlighted.png"))
+			D_Lbutton.grab_focus()
 		"D_R":
+			D_Rbutton.grab_focus()
 			D_Rbutton.set_button_icon(load("res://UI/StrategyUI/Next_button_highlighted.png"))
 		"RF_L":
+			RF_Lbutton.grab_focus()
 			RF_Lbutton.set_button_icon(load("res://UI/StrategyUI/PreviousButton_highlighted.png"))
 		"RF_R":
+			RF_Rbutton.grab_focus()
 			RF_Rbutton.set_button_icon(load("res://UI/StrategyUI/Next_button_highlighted.png"))
 
 func import_team(importedTeam: Team):

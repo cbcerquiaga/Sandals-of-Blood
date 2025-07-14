@@ -40,6 +40,10 @@ signal move_right
 signal move_left
 
 func _ready()-> void:
+	if bullpen1:
+		bullpen1.pressed.connect(_on_bullpen1_pressed)
+	else:
+		print("bullpen1 is null!")
 	bullpen1.set_button_icon(load("res://UI/StrategyUI/ClippedHolder_grey.png"))
 	bullpen2.set_button_icon(load("res://UI/StrategyUI/ClippedHolder_grey.png"))
 	bullpen3.set_button_icon(load("res://UI/StrategyUI/ClippedHolder_grey.png"))
@@ -49,6 +53,61 @@ func _ready()-> void:
 	bench4.set_button_icon(load("res://UI/StrategyUI/RosterHolder_grey.png"))
 	bench5.set_button_icon(load("res://UI/StrategyUI/RosterHolder_grey.png"))
 	bench6.set_button_icon(load("res://UI/StrategyUI/RosterHolder_grey.png"))
+	bullpen1.disabled = false
+	bullpen2.disabled = false
+	bullpen3.disabled = false
+	bench1.disabled = false
+	bench2.disabled = false
+	bench3.disabled = false
+	bench4.disabled = false
+	bench5.disabled = false
+	bench6.disabled = false
+	bullpen1.pressed.connect(_on_bullpen1_pressed)
+	bullpen2.pressed.connect(_on_bullpen2_pressed)
+	bullpen3.pressed.connect(_on_bullpen3_pressed)
+	bench1.pressed.connect(_on_bench1_pressed)
+	bench2.pressed.connect(_on_bench2_pressed)
+	bench3.pressed.connect(_on_bench3_pressed)
+	bench4.pressed.connect(_on_bench4_pressed)
+	bench5.pressed.connect(_on_bench5_pressed)
+	bench6.pressed.connect(_on_bench6_pressed)
+	
+func _on_bullpen1_pressed():
+	print("pressed!")
+	if bullpenPlayer1:
+		bench_player_chosen(bullpenPlayer1)
+
+func _on_bullpen2_pressed():
+	if bullpenPlayer2:
+		bench_player_chosen(bullpenPlayer2)
+
+func _on_bullpen3_pressed():
+	if bullpenPlayer3:
+		bench_player_chosen(bullpenPlayer3)
+
+func _on_bench1_pressed():
+	if benchPlayer1:
+		bench_player_chosen(benchPlayer1)
+
+func _on_bench2_pressed():
+	if benchPlayer2:
+		bench_player_chosen(benchPlayer2)
+
+func _on_bench3_pressed():
+	if benchPlayer3:
+		bench_player_chosen(benchPlayer3)
+
+func _on_bench4_pressed():
+	if benchPlayer4:
+		bench_player_chosen(benchPlayer4)
+
+func _on_bench5_pressed():
+	if benchPlayer5:
+		bench_player_chosen(benchPlayer5)
+
+func _on_bench6_pressed():
+	if benchPlayer6:
+		bench_player_chosen(benchPlayer6)
 	
 func highlight_position(index: int):
 	apply_roster_to_UI()
@@ -343,3 +402,7 @@ func setup_labels():
 	$BenchHeader/Button7/Label.scale= bigness
 	$BenchHeader/Button8/Label.scale= bigness
 	$BenchHeader/Button9/Label.scale= bigness
+
+func bench_player_chosen(player: Player):
+	if player:
+		emit_signal("player_selected", player)
