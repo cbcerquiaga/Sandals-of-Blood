@@ -687,4 +687,6 @@ func update_team_strategy(team: Team):
 	pTeam.strategy.tactics.D = team.strategy.tactics.D
 	pTeam.strategy.tactics.RF = team.strategy.tactics.RF
 	pTeam.applyTactics()
-	pTeam.pending_substitution = team.pending_substitution
+	pTeam.pending_roster = team.pending_roster
+	pTeam.pending_bench = team.pending_bench
+	pTeam.pending_bullpen = team.pending_bullpen

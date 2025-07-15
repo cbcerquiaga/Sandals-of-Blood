@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=3 uid="uid://e818m1s2f5xp"]
+[gd_scene load_steps=16 format=3 uid="uid://e818m1s2f5xp"]
 
 [ext_resource type="Script" path="res://strategy_menu.gd" id="1_p0u7q"]
 [ext_resource type="Script" path="res://bench_section.gd" id="2_a8736"]
@@ -14,6 +14,7 @@
 [ext_resource type="Script" path="res://tactics_section.gd" id="12_emdlp"]
 [ext_resource type="Texture2D" uid="uid://cqfhq5hj3ofqv" path="res://UI/StrategyUI/PreviousButton_base.png" id="12_tr0tp"]
 [ext_resource type="Texture2D" uid="uid://gb8htff5kf03" path="res://UI/StrategyUI/NextButton_base.png" id="13_aqj5i"]
+[ext_resource type="Texture2D" uid="uid://tieg1bdd3qne" path="res://UI/StrategyUI/Revert_button_base.png" id="15_6juc1"]
 
 [node name="Strategy_Menu" type="Control"]
 layout_mode = 3
@@ -233,7 +234,8 @@ offset_right = 40.0
 offset_bottom = 40.0
 
 [node name="SubOff" type="Sprite2D" parent="SubstitutionSection"]
-position = Vector2(-1818, 2175)
+position = Vector2(-1823, 1901)
+scale = Vector2(1.447, 1.447)
 texture = ExtResource("4_4fdjd")
 
 [node name="Label" type="Label" parent="SubstitutionSection/SubOff"]
@@ -241,7 +243,8 @@ offset_right = 40.0
 offset_bottom = 23.0
 
 [node name="SubOn" type="Sprite2D" parent="SubstitutionSection"]
-position = Vector2(-3106, 2140)
+position = Vector2(-3466, 1901)
+scale = Vector2(1.447, 1.447)
 texture = ExtResource("5_gd7or")
 
 [node name="Label" type="Label" parent="SubstitutionSection/SubOn"]
@@ -543,7 +546,7 @@ scale = Vector2(0.1, 0.1)
 focus_neighbor_left = NodePath("../LB")
 focus_neighbor_top = NodePath("../../../DiscardButton")
 focus_neighbor_right = NodePath("../../RF/LB")
-focus_neighbor_bottom = NodePath("../../../SubstitutionSection/P_Button")
+focus_neighbor_bottom = NodePath("../../../RevertButton")
 icon = ExtResource("13_aqj5i")
 
 [node name="Assignment" type="Label" parent="Tactics/D"]
@@ -562,3 +565,15 @@ scale = Vector2(0.5, 0.5)
 text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. In condimentum, mauris sit amet efficitur convallis, neque nibh sagittis arcu, a posuere purus erat vel sapien. Nullam eros erat, fringilla in lacinia vitae, tempor ac arcu"
 horizontal_alignment = 3
 autowrap_mode = 3
+
+[node name="RevertButton" type="Button" parent="."]
+layout_mode = 0
+offset_left = -919.0
+offset_top = 2319.0
+offset_right = 169.0
+offset_bottom = 2650.0
+focus_neighbor_left = NodePath("../Bench/BenchHeader/Button5")
+focus_neighbor_top = NodePath("../Tactics/D/RB")
+focus_neighbor_right = NodePath("../SubstitutionSection/SubButton")
+focus_neighbor_bottom = NodePath("../SubstitutionSection/P_Button")
+icon = ExtResource("15_6juc1")
