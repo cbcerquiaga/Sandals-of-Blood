@@ -2,11 +2,9 @@ extends Control
 class_name TacticsSection
 
 @onready var LF_Lbutton = $LF/LB
-var LF_L_highlighted: bool = true
 @onready var LF_assignment = $LF/Assignment
 @onready var LF_explanation = $LF/Explanation
 @onready var LF_Rbutton = $LF/RB
-var LF_R_highlighted: bool = false
 var LF_tactic_index = 0
 var LF_directions = {
 	"bull_rush": 50.0,
@@ -21,11 +19,9 @@ var LF_directions = {
 }
 
 @onready var RF_Lbutton = $RF/LB
-var RF_L_highlighted: bool = false
 @onready var RF_assignment = $RF/Assignment
 @onready var RF_explanation = $RF/Explanation
 @onready var RF_Rbutton = $RF/RB
-var RF_R_highlighted: bool = false
 var RF_tactic_index = 0
 var RF_directions = {
 	"bull_rush": 50.0,
@@ -40,11 +36,9 @@ var RF_directions = {
 }
 
 @onready var D_Lbutton = $D/LB
-var D_L_highlighted: bool = false
 @onready var D_assignment = $D/Assignment
 @onready var D_explanation = $D/Explanation
 @onready var D_Rbutton = $D/RB
-var D_R_highlighted: bool = false
 var D_tactic_index = 0
 var D_strategy = {
 	"marking": 0.7,
@@ -70,6 +64,55 @@ func _ready() -> void:
 	RF_Rbutton.pressed.connect(RFR_pressed)
 	D_Lbutton.pressed.connect(DL_pressed)
 	D_Rbutton.pressed.connect(DR_pressed)
+	
+	LF_Lbutton.focus_entered.connect(_on_LF_Lbutton_focus_entered)
+	LF_Lbutton.focus_exited.connect(_on_LF_Lbutton_focus_exited)
+	LF_Rbutton.focus_entered.connect(_on_LF_Rbutton_focus_entered)
+	LF_Rbutton.focus_exited.connect(_on_LF_Rbutton_focus_exited)
+	RF_Lbutton.focus_entered.connect(_on_RF_Lbutton_focus_entered)
+	RF_Lbutton.focus_exited.connect(_on_RF_Lbutton_focus_exited)
+	RF_Rbutton.focus_entered.connect(_on_RF_Rbutton_focus_entered)
+	RF_Rbutton.focus_exited.connect(_on_RF_Rbutton_focus_exited)
+	D_Lbutton.focus_entered.connect(_on_D_Lbutton_focus_entered)
+	D_Lbutton.focus_exited.connect(_on_D_Lbutton_focus_exited)
+	D_Rbutton.focus_entered.connect(_on_D_Rbutton_focus_entered)
+	D_Rbutton.focus_exited.connect(_on_D_Rbutton_focus_exited)
+
+func _on_LF_Lbutton_focus_entered():
+	LF_Lbutton.set_button_icon(load("res://UI/StrategyUI/PreviousButton_highlighted.png"))
+
+func _on_LF_Lbutton_focus_exited():
+	LF_Lbutton.set_button_icon(load("res://UI/StrategyUI/PreviousButton_base.png"))
+
+func _on_LF_Rbutton_focus_entered():
+	LF_Rbutton.set_button_icon(load("res://UI/StrategyUI/Next_button_highlighted.png"))
+
+func _on_LF_Rbutton_focus_exited():
+	LF_Rbutton.set_button_icon(load("res://UI/StrategyUI/NextButton_base.png"))
+
+func _on_RF_Lbutton_focus_entered():
+	RF_Lbutton.set_button_icon(load("res://UI/StrategyUI/PreviousButton_highlighted.png"))
+
+func _on_RF_Lbutton_focus_exited():
+	RF_Lbutton.set_button_icon(load("res://UI/StrategyUI/PreviousButton_base.png"))
+
+func _on_RF_Rbutton_focus_entered():
+	RF_Rbutton.set_button_icon(load("res://UI/StrategyUI/Next_button_highlighted.png"))
+
+func _on_RF_Rbutton_focus_exited():
+	RF_Rbutton.set_button_icon(load("res://UI/StrategyUI/NextButton_base.png"))
+
+func _on_D_Lbutton_focus_entered():
+	D_Lbutton.set_button_icon(load("res://UI/StrategyUI/PreviousButton_highlighted.png"))
+
+func _on_D_Lbutton_focus_exited():
+	D_Lbutton.set_button_icon(load("res://UI/StrategyUI/PreviousButton_base.png"))
+
+func _on_D_Rbutton_focus_entered():
+	D_Rbutton.set_button_icon(load("res://UI/StrategyUI/Next_button_highlighted.png"))
+
+func _on_D_Rbutton_focus_exited():
+	D_Rbutton.set_button_icon(load("res://UI/StrategyUI/NextButton_base.png"))
 
 func import_assignments(lf: String, rf: String, d: String):
 	LF_assignment.text = lf
@@ -352,36 +395,6 @@ func update_defense_directions(assignment:String):
 			"goal_defense_threshold": 35,
 			"escort_distance": 10
 			}
-
-func clear_all_highlights():
-	LF_Lbutton.set_button_icon(load("res://UI/StrategyUI/PreviousButton_base.png"))
-	LF_Rbutton.set_button_icon(load("res://UI/StrategyUI/NextButton_base.png"))
-	D_Lbutton.set_button_icon(load("res://UI/StrategyUI/PreviousButton_base.png"))
-	D_Rbutton.set_button_icon(load("res://UI/StrategyUI/NextButton_base.png"))
-	RF_Lbutton.set_button_icon(load("res://UI/StrategyUI/PreviousButton_base.png"))
-	RF_Rbutton.set_button_icon(load("res://UI/StrategyUI/NextButton_base.png"))
-	
-func set_highlight(position: String):
-	clear_all_highlights()
-	match position:
-		"LF_L":
-			LF_Lbutton.set_button_icon(load("res://UI/StrategyUI/PreviousButton_highlighted.png"))
-			LF_Lbutton.grab_focus()
-		"LF_R":
-			LF_Rbutton.set_button_icon(load("res://UI/StrategyUI/Next_button_highlighted.png"))
-			LF_Rbutton.grab_focus()
-		"D_L":
-			D_Lbutton.set_button_icon(load("res://UI/StrategyUI/PreviousButton_highlighted.png"))
-			D_Lbutton.grab_focus()
-		"D_R":
-			D_Rbutton.grab_focus()
-			D_Rbutton.set_button_icon(load("res://UI/StrategyUI/Next_button_highlighted.png"))
-		"RF_L":
-			RF_Lbutton.grab_focus()
-			RF_Lbutton.set_button_icon(load("res://UI/StrategyUI/PreviousButton_highlighted.png"))
-		"RF_R":
-			RF_Rbutton.grab_focus()
-			RF_Rbutton.set_button_icon(load("res://UI/StrategyUI/Next_button_highlighted.png"))
 
 func import_team(importedTeam: Team):
 	team = importedTeam

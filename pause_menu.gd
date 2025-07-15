@@ -143,9 +143,7 @@ func show_strategy_menu():
 	submenu = "strategy"
 	strategy_menu.open_menu(team, matchHandler, true)
 	strategy_menu.show()
-	strategy_menu
-	strategy_menu.highlighted_item = "tactics_LFL"
-	strategy_menu.tacticsSection.set_highlight("LF_L")
+	strategy_menu.tacticsSection.LF_Lbutton.grab_focus()
 	hide()
 	
 func set_team(importedTeam: Team):
