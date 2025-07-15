@@ -41,6 +41,8 @@ var current_team: Team
 var match_handler: MatchHandler
 var playerOff: Player
 var playerOn: Player
+var last_focused_button: Control
+var current_focus_owner: Control = null
 
 signal menu_closed
 
@@ -80,15 +82,10 @@ func _ready():
 	sub_button.position = Vector2(0, 220)
 	sub_button.scale = Vector2(0.1, 0.1)
 	position = Vector2(0,-200)
-	
 	position_labels_left()
-	
-	# Connect button signals
 	save_button.pressed.connect(_on_save_pressed)
 	discard_button.pressed.connect(_on_discard_pressed)
 	sub_button.pressed.connect(perform_substitution)
-	
-	# Connect focus signals for field buttons
 	lf_button.focus_entered.connect(_on_lf_button_focus_entered)
 	lf_button.focus_exited.connect(_on_lf_button_focus_exited)
 	rf_button.focus_entered.connect(_on_rf_button_focus_entered)
@@ -101,17 +98,51 @@ func _ready():
 	rg_button.focus_exited.connect(_on_rg_button_focus_exited)
 	k_button.focus_entered.connect(_on_k_button_focus_entered)
 	k_button.focus_exited.connect(_on_k_button_focus_exited)
-	
-	# Connect focus signals for action buttons
 	sub_button.focus_entered.connect(_on_sub_button_focus_entered)
 	sub_button.focus_exited.connect(_on_sub_button_focus_exited)
 	discard_button.focus_entered.connect(_on_discard_button_focus_entered)
 	discard_button.focus_exited.connect(_on_discard_button_focus_exited)
 	save_button.focus_entered.connect(_on_save_button_focus_entered)
 	save_button.focus_exited.connect(_on_save_button_focus_exited)
+	var focusable_buttons = [
+		lf_button, rf_button, p_button, lg_button, rg_button, k_button,
+		sub_button, discard_button, save_button
+	]
+	
+	for button in focusable_buttons:
+		button.focus_entered.connect(_track_focus.bind(button))
+	_reset_all_button_styles()
+	lf_button.pressed.connect(_on_LF_button_pressed)
+	rf_button.pressed.connect(_on_RF_button_pressed)
+	p_button.pressed.connect(_on_P_button_pressed)
+	lg_button.pressed.connect(_on_LG_button_pressed)
+	rg_button.pressed.connect(_on_RG_button_pressed)
+	k_button.pressed.connect(_on_K_button_pressed)
 	
 	hide()
 	
+func _track_focus(button: Control):
+	last_focused_button = button
+	current_focus_owner = button
+
+func maintain_focus():
+	if current_focus_owner and current_focus_owner.is_visible_in_tree():
+		current_focus_owner.grab_focus()
+	else:
+		tacticsSection.LF_Lbutton.grab_focus()
+
+func _reset_all_button_styles():
+	lf_button.set_button_icon(load("res://UI/StrategyUI/Roster_holder_base.png"))
+	rf_button.set_button_icon(load("res://UI/StrategyUI/Roster_holder_base.png"))
+	p_button.set_button_icon(load("res://UI/StrategyUI/Roster_holder_base.png"))
+	lg_button.set_button_icon(load("res://UI/StrategyUI/Roster_holder_base.png"))
+	rg_button.set_button_icon(load("res://UI/StrategyUI/Roster_holder_base.png"))
+	k_button.set_button_icon(load("res://UI/StrategyUI/Roster_holder_base.png"))
+	
+	sub_button.set_button_icon(load("res://UI/StrategyUI/Substitute_button_base.png"))
+	discard_button.set_button_icon(load("res://UI/PauseUI/Discard-Exit_button_base.png"))
+	save_button.set_button_icon(load("res://UI/PauseUI/Save-Exit_button_base.png"))
+
 func _on_lf_button_focus_entered():
 	lf_button.set_button_icon(load("res://UI/StrategyUI/Roster_holder_highlighted.png"))
 
@@ -175,7 +206,11 @@ func open_menu(team: Team, handler: MatchHandler, in_match: bool):
 	for player in team.roster:
 		original_roster.append(player.export_to_dict())
 	apply_team_to_field()
-	tacticsSection.LF_Lbutton.grab_focus()
+	_reset_all_button_styles()
+	if last_focused_button and last_focused_button.is_visible_in_tree():
+		last_focused_button.grab_focus()
+	else:
+		tacticsSection.LF_Lbutton.grab_focus()
 	
 func field_player_chosen(position: String, player: Player):
 	print("field player chosen: " + str(player))
@@ -185,6 +220,7 @@ func field_player_chosen(position: String, player: Player):
 	subOff_position = position
 	$SubstitutionSection/SubOff/Label.text = position + " " + player.bio.last_name
 	update_pending_display()
+	maintain_focus()
 	
 func bench_player_chosen(chosenPlayer: Player):
 	if not chosenPlayer:
@@ -204,6 +240,7 @@ func bench_player_chosen(chosenPlayer: Player):
 		subOn_player = chosenPlayer
 		$SubstitutionSection/SubOn/Label.text = chosenPlayer.bio.last_name
 	update_pending_display()
+	maintain_focus()
 
 func update_pending_display():
 	if pending_subs.size() > 0:
@@ -249,6 +286,8 @@ func perform_substitution():
 	subOn_player = null
 	subOff_player = null
 	subOff_position = ""
+	
+	maintain_focus()
 	
 func _on_save_pressed():
 	if is_in_match:
@@ -347,3 +386,33 @@ func position_labels_left():
 func switch_player_positions(player1: Player, player2: Player):
 	benchSection.currentPlayer = player1
 	benchSection.switch_player_positions(player2)
+
+func _on_LF_button_pressed():
+	field_player_chosen("LF", lf)
+	lf_button.grab_focus()
+	current_focus_owner = lf_button
+
+func _on_RF_button_pressed():
+	field_player_chosen("RF", rf)
+	rf_button.grab_focus()
+	current_focus_owner = rf_button
+
+func _on_P_button_pressed():
+	field_player_chosen("P", p)
+	p_button.grab_focus()
+	current_focus_owner = p_button
+
+func _on_LG_button_pressed():
+	field_player_chosen("LG", lg)
+	lg_button.grab_focus()
+	current_focus_owner = lg_button
+
+func _on_RG_button_pressed():
+	field_player_chosen("RG", rg)
+	rg_button.grab_focus()
+	current_focus_owner = rg_button
+
+func _on_K_button_pressed():
+	field_player_chosen("K", k)
+	k_button.grab_focus()
+	current_focus_owner = k_button
