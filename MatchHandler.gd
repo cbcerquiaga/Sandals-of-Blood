@@ -75,7 +75,6 @@ func _ready():
 	field.ball_exited_field.connect(_on_ball_exited_field)
 	field.player_goal.connect(_on_player_goal)
 	field.cpu_goal.connect(_on_cpu_goal)
-	
 	fill_team_rosters()
 	load_team_strategies()
 	statusUI.assign_team(self)
@@ -588,6 +587,7 @@ func on_team_ready_signal(id: int) -> void:
 	pass
 	
 func fill_team_rosters():
+	import_team_rosters()
 	#TODO: import player names, stats, and status from sheet
 	pTeam.K.special_ability = "anchor"
 	aTeam.K.special_ability = "anchor"
@@ -609,6 +609,11 @@ func fill_team_rosters():
 	aTeam.LF.get_node("Polygon2D").color = aUniform
 	aTeam.RF.get_node("Polygon2D").color = aUniform
 	aTeam.P.get_node("Polygon2D").color = aUniform
+	
+func import_team_rosters():
+	pTeam.debug_default_roster()
+	aTeam.debug_default_roster()
+	pass
 
 func pitchers_fight():
 	var tough_diff = pTeam.P.attributes.toughness - aTeam.P.attributes.toughness
@@ -690,9 +695,7 @@ func update_team_strategy(team: Team):
 	pTeam.strategy.tactics.D = team.strategy.tactics.D
 	pTeam.strategy.tactics.RF = team.strategy.tactics.RF
 	pTeam.applyTactics()
-	pTeam.pending_roster = team.pending_roster
-	pTeam.pending_bench = team.pending_bench
-	pTeam.pending_bullpen = team.pending_bullpen
+	pTeam.pending_substitutions = team.pending_substitutions
 
 
 func _on_pause_menu_new_sub() -> void:

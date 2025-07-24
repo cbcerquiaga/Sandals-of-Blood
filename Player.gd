@@ -3,6 +3,7 @@ class_name Player
 
 var playable_positions = ["LG, RG, LF, RF, K, P"]#players can train to be more versatile and play more positions
 var declared_pitcher = false #affects roster size rules
+var field_position: String
 # Player Attributes
 @export var attributes := {
 	"speedRating" : 75, #what's shown on the attributes screen

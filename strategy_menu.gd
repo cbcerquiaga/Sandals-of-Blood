@@ -28,14 +28,14 @@ var subOff_player: Player
 var subOn_position : String
 var subOff_position: String
 var pending_subs: Array = [] #array of players to display the pending substitutions
-var pending_substitution : Array[Dictionary] = [] #array of roster, bench, and bullpen
+var pending_substitution : Array[Substitution]
 
 var is_in_match:bool = true #false if we got here from the team management menu, true if we got here from pausing a match
 var original_roster:Array
 var original_strategy:Dictionary
 var original_bullpen:Array #array of of up to 3 bench pitchers
 var original_bench:Array#array of up to 6 fielders
-var pending_roster: Array #for pending substitutions
+var pending_field: Array #for pending substitutions
 var pending_bullpen
 var pending_bench
 var current_team: Team
@@ -207,10 +207,8 @@ func swap_player_spots(player1, player2, player2_position):
 
 
 func substitute_players() -> void:
-	var new_sub : Dictionary = {}
-	new_sub["subOn_player"] = subOn_player
-	new_sub["subOff_player"] = subOff_player
-	new_sub["subOff_position"] = subOff_position
+	var new_sub : Substitution = Substitution.new()
+	new_sub.new(subOff_player, subOn_player, subOff_position)
 	pending_substitution.append(new_sub)
 	
 	subOn_player = null
@@ -244,7 +242,7 @@ func update_pending_display():
 	if pending_subs.size() > 0:
 		var pending_text = "Pending:\n"
 		for sub in pending_subs:
-			pending_text += sub.position + " " + sub.player_on.bio.last_name + "\n"
+			pending_text += sub.playerOff.field_position + " " + sub.playerOff.player_on.bio.last_name + "\n"
 		if subOn_player and subOff_player:
 			pending_text += subOff_position + " " + subOn_player.bio.last_name
 		$SubstitutionSection/SubContainer/SubOn/Label.text = pending_text
@@ -262,19 +260,11 @@ func update_pending_display():
 
 
 func perform_substitution():
-	if pending_substitution.size() <= 0:
+	if !playerOff or !playerOn:
 		return
-	
-	for sub in pending_substitution:
-		var team = current_team
-		var player1 = sub["subOff_player"]
-		var player2 = sub["subOn_player"]
-		var sub_position = sub["subOff_position"]
-		var player2_idx = current_team.roster.find(player2)
-		current_team.set(sub_position, player2)
-		current_team.roster.erase(player2)
-		current_team.roster.append(player1)
-	
+	var sub = Substitution.new()
+	sub = sub.new(playerOff, playerOn, playerOff.field_position)
+	pending_substitution.append(sub)
 	update_pending_display()
 	benchSection.import_roster(current_team.roster)
 	apply_team_to_field()
@@ -291,9 +281,7 @@ func _on_save_pressed():
 		match_handler.update_team_strategy(current_team)
 	else:
 		save_strategy(current_team, "user://player_team_strategy.json")
-	if pending_roster != original_roster:
-		#TODO: invalid assignment of property or key pending_substitution with value of type array[dictionary] on a base object of type node(Team)
-		current_team.pending_substitution = pending_substitution#TODO: if in match, take effect on next play; if not, take effect immediately
+	current_team.pending_substitutions = pending_substitution
 	emit_signal("menu_closed")
 	hide()
 	
@@ -310,7 +298,9 @@ func apply_strategy_changes():
 	current_team.strategy.tactics.RF = tacticsSection.RF_directions
 	current_team.strategy.tactics.D = tacticsSection.D_strategy
 	if playerOff and playerOn:
-		current_team.pending_substitution = [playerOff, playerOn]
+		var sub: Substitution
+		sub.new(playerOff, playerOn, playerOff.field_position)
+		current_team.add_pending_substitution(sub)
 		
 func revert_changes():
 	current_team.strategy = original_strategy.duplicate(true)
