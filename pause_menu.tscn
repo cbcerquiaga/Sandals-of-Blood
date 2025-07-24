@@ -35,6 +35,8 @@ theme_override_constants/separation = -30
 
 [node name="Resume" type="TextureButton" parent="ButtonContainer"]
 layout_mode = 2
+focus_neighbor_top = NodePath("../Exit")
+focus_neighbor_bottom = NodePath("../Strategy")
 texture_normal = ExtResource("1_l1b0n")
 texture_hover = ExtResource("3_b2bf1")
 texture_focused = ExtResource("3_b2bf1")
@@ -42,30 +44,40 @@ stretch_mode = 3
 
 [node name="Strategy" type="TextureButton" parent="ButtonContainer"]
 layout_mode = 2
+focus_neighbor_top = NodePath("../Resume")
+focus_neighbor_bottom = NodePath("../Statistics")
 texture_normal = ExtResource("2_ljhkn")
 texture_hover = ExtResource("5_6gn2x")
 texture_focused = ExtResource("5_6gn2x")
 
 [node name="Statistics" type="TextureButton" parent="ButtonContainer"]
 layout_mode = 2
+focus_neighbor_top = NodePath("../Strategy")
+focus_neighbor_bottom = NodePath("../Options")
 texture_normal = ExtResource("3_4fnrc")
 texture_hover = ExtResource("7_s7nxb")
 texture_focused = ExtResource("7_s7nxb")
 
 [node name="Options" type="TextureButton" parent="ButtonContainer"]
 layout_mode = 2
+focus_neighbor_top = NodePath("../Statistics")
+focus_neighbor_bottom = NodePath("../Export")
 texture_normal = ExtResource("4_2adj8")
 texture_hover = ExtResource("9_f1xgc")
 texture_focused = ExtResource("9_f1xgc")
 
 [node name="Export" type="TextureButton" parent="ButtonContainer"]
 layout_mode = 2
+focus_neighbor_top = NodePath("../Options")
+focus_neighbor_bottom = NodePath("../Exit")
 texture_normal = ExtResource("5_lqvu2")
 texture_hover = ExtResource("11_csx32")
 texture_focused = ExtResource("11_csx32")
 
 [node name="Exit" type="TextureButton" parent="ButtonContainer"]
 layout_mode = 2
+focus_neighbor_top = NodePath("../Export")
+focus_neighbor_bottom = NodePath("../Resume")
 texture_normal = ExtResource("6_xi0u8")
 texture_hover = ExtResource("13_7usw0")
 texture_focused = ExtResource("13_7usw0")

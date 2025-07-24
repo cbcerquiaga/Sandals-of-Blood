@@ -249,7 +249,7 @@ func reset_match(p_offense):
 func _process(delta: float) -> void:
 	if Input.is_action_just_pressed("pause"):
 		get_tree().paused = true
-		pauseMenu.show()
+		pauseMenu.open_menu()
 	#if Input.is_action_just_pressed("switch_zone"):
 		#pTeam.switch_zone()
 	if is_play_live:
@@ -700,4 +700,5 @@ func update_team_strategy(team: Team):
 
 func _on_pause_menu_new_sub() -> void:
 	if not has_started:
+		pTeam.execute_pending_substitutions()
 		pauseMenu.perform_substitution()

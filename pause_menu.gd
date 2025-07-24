@@ -27,8 +27,13 @@ signal new_sub()
 
 func _ready():
 	strategy_menu.menu_closed.connect(_on_strategy_menu_closed)
+	resume.grab_focus()
 	hide()
-
+	
+func open_menu():
+	show()
+	resume.grab_focus()
+#
 #func _process(delta):
 	#if get_tree().paused == true:
 		#if submenu == "strategy":
@@ -50,10 +55,8 @@ func _ready():
 		#elif Input.is_action_just_pressed("UI_enter") and cooldown_frame >= input_cooldown:
 			#cooldown_frame = 0
 			#resume_game()
-	#else:
-		#resume.texture = load("res://UI/PauseUI/Resume_button_base.png")
-	#if current_index == 1:
-		#strategy.texture = load("res://UI/PauseUI/Strategy_button_highlighted.png")
+	#elif current_index == 1:
+		#strategy.grab_focus()
 		#if Input.is_action_just_pressed("move_down") and cooldown_frame >= input_cooldown:
 			#cooldown_frame = 0
 			#current_index = 2
@@ -62,48 +65,38 @@ func _ready():
 			#current_index = 0
 		#elif Input.is_action_just_pressed("UI_enter") and cooldown_frame >= input_cooldown:
 			#show_strategy_menu()
-	#else:
-		#strategy.texture = load("res://UI/PauseUI/Strategy_button_base.png")
-	#if current_index == 2:
-		#statistics.texture = load("res://UI/PauseUI/Statistics_button_highlighted.png")
+	#elif current_index == 2:
+		#statistics.grab_focus()
 		#if Input.is_action_just_pressed("move_down") and cooldown_frame >= input_cooldown:
 			#cooldown_frame = 0
 			#current_index = 3
 		#elif Input.is_action_just_pressed("move_up") and cooldown_frame >= input_cooldown:
 			#cooldown_frame = 0
 			#current_index = 1
-	#else:
-		#statistics.texture = load("res://UI/PauseUI/Statistics_button_base.png")
-	#if current_index == 3:
-		#options.texture = load("res://UI/PauseUI/Options_button_highlighted.png")
+	#elif current_index == 3:
+		#options.grab_focus()
 		#if Input.is_action_just_pressed("move_down") and cooldown_frame >= input_cooldown:
 			#cooldown_frame = 0
 			#current_index = 4
 		#elif Input.is_action_just_pressed("move_up") and cooldown_frame >= input_cooldown:
 			#cooldown_frame = 0
 			#current_index = 2
-	#else:
-		#options.texture = load("res://UI/PauseUI/Options_button_base.png")
-	#if current_index == 4:
-		#export.texture = load("res://UI/PauseUI/Export_button_highlighted.png")
+	#elif current_index == 4:
+		#export.grab_focus()
 		#if Input.is_action_just_pressed("move_down") and cooldown_frame >= input_cooldown:
 			#cooldown_frame = 0
 			#current_index = 5
 		#elif Input.is_action_just_pressed("move_up") and cooldown_frame >= input_cooldown:
 			#cooldown_frame = 0
 			#current_index = 3
-	#else:
-		#export.texture = load("res://UI/PauseUI/Export_button_base.png")
-	#if current_index == 5:
-		#exit.texture = load("res://UI/PauseUI/Exit_button_highlighted.png")
+	#elif current_index == 5:
+		#exit.grab_focus()
 		#if Input.is_action_just_pressed("move_down") and cooldown_frame >= input_cooldown:
 			#cooldown_frame = 0
 			#current_index = 0
 		#elif Input.is_action_just_pressed("move_up") and cooldown_frame >= input_cooldown:
 			#cooldown_frame = 0
 			#current_index = 4
-	#else:
-		#exit.texture = load("res://UI/PauseUI/Exit_button_base.png")
 	
 func resume_game():
 	hide()

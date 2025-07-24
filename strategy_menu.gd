@@ -207,9 +207,9 @@ func swap_player_spots(player1, player2, player2_position):
 
 
 func substitute_players() -> void:
-	var new_sub : Substitution = Substitution.new()
-	new_sub.new(subOff_player, subOn_player, subOff_position)
-	pending_substitution.append(new_sub)
+	var sub : Substitution = Substitution.new()
+	sub.new(subOff_player, subOn_player, subOff_position)
+	pending_substitution.append(sub)
 	
 	subOn_player = null
 	subOff_player = null
@@ -304,13 +304,7 @@ func apply_strategy_changes():
 		
 func revert_changes():
 	current_team.strategy = original_strategy.duplicate(true)
-	current_team.roster.clear()
-	current_team.bench.clear()
-	for player_data in original_roster:
-		var player = Player.new()
-		player.import_from_dict(player_data)
-		current_team.add_player(player)
-	current_team.assign_field_positions()
+	current_team.pending_substitutions.clear()
 
 func save_strategy(team: Team, file_path: String):
 	var data = team.export_to_dict()
