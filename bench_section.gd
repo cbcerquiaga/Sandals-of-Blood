@@ -7,15 +7,17 @@ class_name BenchSection
 @onready var RG: Player
 @onready var K: Player
 @onready var P: Player
-@onready var bullpen1 = $BullpenHeader/Button1
-@onready var bullpen2 = $BullpenHeader/Button2
-@onready var bullpen3 = $BullpenHeader/Button3
-@onready var bench1 = $BenchHeader/Button4
-@onready var bench2 = $BenchHeader/Button5
-@onready var bench3 = $BenchHeader/Button6
-@onready var bench4 = $BenchHeader/Button7
-@onready var bench5 = $BenchHeader/Button8
-@onready var bench6 = $BenchHeader/Button9
+@onready var bullpen1 = $BullpenContainer/Button1
+@onready var bullpen2 = $BullpenContainer/Button2
+@onready var bullpen3 = $BullpenContainer/Button3
+@onready var bench1 = $BenchContainer/Button4
+@onready var bench2 = $BenchContainer/Button5
+@onready var bench3 = $BenchContainer/Button6
+@onready var bench4 = $BenchContainer/Button7
+@onready var bench5 = $BenchContainer/Button8
+@onready var bench6 = $BenchContainer/Button9
+@onready var bullpen_container: VBoxContainer = $BullpenContainer
+@onready var bench_container: VBoxContainer = $BenchContainer
 var bullpenPlayer1: Player
 var bullpenPlayer2: Player
 var bullpenPlayer3: Player
@@ -33,9 +35,10 @@ var bench: Array
 
 var currentPlayer: Player
 
-signal player_selected
+signal player_selected(player : Player)
 signal move_right
 signal move_left
+signal bench_switched_position()
 
 func _ready()-> void:
 	if bullpen1:
@@ -202,7 +205,6 @@ func _on_bench6_pressed():
 func import_roster(players: Array):
 	roster = players
 	apply_roster_to_UI()
-	setup_labels()
 	
 func set_on_field(pitcher: Player, keeper: Player, leftGuard: Player, rightGuard: Player, leftForward: Player, rightForward: Player):
 	P = pitcher
@@ -223,7 +225,23 @@ func empty_players():
 	benchPlayer4 = null
 	benchPlayer5 = null
 	benchPlayer6 = null
+	empty_ui()
+
+
+func empty_ui() -> void:
+	for button in bullpen_container.get_children():
+		if not button is Button:
+			continue
+		button.get_node("Label").text = ""
+		button.set_button_icon(load("res://UI/StrategyUI/ClippedHolder_grey.png"))
 	
+	for button in bench_container.get_children():
+		if not button is Button:
+			continue
+		button.get_node("Label").text = ""
+		button.set_button_icon(load("res://UI/StrategyUI/RosterHolder_grey.png"))
+
+
 func apply_roster_to_UI():
 	empty_players()
 	for player in roster:
@@ -232,15 +250,15 @@ func apply_roster_to_UI():
 		if player.position_type == "pitcher":
 			if !bullpenPlayer1:
 				bullpenPlayer1 = player
-				$BullpenHeader/Button1/Label.text = player.bio.last_name + "\n" + str(calculate_pitcher_overall(player)) + " Rating " + str(player.status.energy) + "% Energy"
+				$BullpenContainer/Button1/Label.text = player.bio.last_name + "\n" + str(calculate_pitcher_overall(player)) + " Rating " + str(player.status.energy) + "% Energy"
 				bullpen1.set_button_icon(load("res://UI/StrategyUI/ClippedHolder_base.png"))
 			elif !bullpenPlayer2:
 				bullpenPlayer2 = player
-				$BullpenHeader/Button2/Label.text = player.bio.last_name + "\n" + str(calculate_pitcher_overall(player)) + " Rating " + str(player.status.energy) + "% Energy"
+				$BullpenContainer/Button2/Label.text = player.bio.last_name + "\n" + str(calculate_pitcher_overall(player)) + " Rating " + str(player.status.energy) + "% Energy"
 				bullpen2.set_button_icon(load("res://UI/StrategyUI/ClippedHolder_base.png"))
 			elif !bullpenPlayer3:
 				bullpenPlayer3 = player
-				$BullpenHeader/Button3/Label.text = player.bio.last_name + "\n" + str(calculate_pitcher_overall(player)) + " Rating " + str(player.status.energy) + "% Energy"
+				$BullpenContainer/Button3/Label.text = player.bio.last_name + "\n" + str(calculate_pitcher_overall(player)) + " Rating " + str(player.status.energy) + "% Energy"
 				bullpen3.set_button_icon(load("res://UI/StrategyUI/ClippedHolder_base.png"))
 		else:
 			var text = player.bio.last_name
@@ -249,29 +267,30 @@ func apply_roster_to_UI():
 				"guard": text += "\n" + str(calculate_guard_overall(player))
 				"forward": text += "\n" + str(calculate_forward_overall(player))
 			text += " Rating " + str(player.status.energy) + "% Energy"
+			bench.append(player)
 			if !benchPlayer1:
 				benchPlayer1 = player
-				$BenchHeader/Button4/Label.text = text
+				$BenchContainer/Button4/Label.text = text
 				bench1.set_button_icon(load("res://UI/StrategyUI/Roster_holder_base.png"))
 			elif !benchPlayer2:
 				benchPlayer2 = player
-				$BenchHeader/Button5/Label.text = text
+				$BenchContainer/Button5/Label.text = text
 				bench2.set_button_icon(load("res://UI/StrategyUI/Roster_holder_base.png"))
 			elif !benchPlayer3:
 				benchPlayer3 = player
-				$BenchHeader/Button6/Label.text = text
+				$BenchContainer/Button6/Label.text = text
 				bench3.set_button_icon(load("res://UI/StrategyUI/Roster_holder_base.png"))
 			elif !benchPlayer4:
 				benchPlayer4 = player
-				$BenchHeader/Button7/Label.text = text
+				$BenchContainer/Button7/Label.text = text
 				bench4.set_button_icon(load("res://UI/StrategyUI/Roster_holder_base.png"))
 			elif !benchPlayer5:
 				benchPlayer5 = player
-				$BenchHeader/Button8/Label.text = text
+				$BenchContainer/Button8/Label.text = text
 				bench5.set_button_icon(load("res://UI/StrategyUI/Roster_holder_base.png"))
 			elif !benchPlayer6:
 				benchPlayer6 = player
-				$BenchHeader/Button9/Label.text = text
+				$BenchContainer/Button9/Label.text = text
 				bench6.set_button_icon(load("res://UI/StrategyUI/Roster_holder_base.png"))
 
 func calculate_pitcher_overall(player: Player):
@@ -319,78 +338,33 @@ func calculate_keeper_overall(player: Player):
 	return int((ratings[0] + ratings[1])/2)
 	
 func swap_player_spots(player1, player2):
-	#TODO: find each player in the roster
-	#TODO: swap each player's spot in the roster array
-	#TODO: update the UI again
-	pass
+	var player1_idx = roster.find(player1)
+	var player2_idx = roster.find(player2)
 	
-func switch_player_positions(secondaryPlayer: Player):
-	var temp = currentPlayer
-	#TODO: switch player positions in the arrays
-	#TODO: check if a player has "utility player" or "secondary position" buffs, if so, just switch positions
+	if player1_idx < 0 or player2_idx < 0:
+		return
+	
+	roster[player1_idx] = player2
+	roster[player2_idx] = player1
 	apply_roster_to_UI()
 
-func find_player_index(player: Player) -> int:
-	if bullpenPlayer1 == player: return 0
-	if bullpenPlayer2 == player: return 1
-	if bullpenPlayer3 == player: return 2
-	if benchPlayer1 == player: return 3
-	if benchPlayer2 == player: return 4
-	if benchPlayer3 == player: return 5
-	if benchPlayer4 == player: return 6
-	if benchPlayer5 == player: return 7
-	if benchPlayer6 == player: return 8
-	return -1
 
-func setup_labels():
-	var offset = Vector2(175,70)
-	var open_offset = Vector2(175,120)
-	var bigness = Vector2(0.75, 0.75)
-	if !bullpenPlayer1: 
-		$BullpenHeader/Button1/Label.position = open_offset
-	else:
-		$BullpenHeader/Button1/Label.position = offset
-	if !bullpenPlayer2: 
-		$BullpenHeader/Button2/Label.position = open_offset
-	else:
-		$BullpenHeader/Button2/Label.position = offset
-	if !bullpenPlayer3: 
-		$BullpenHeader/Button3/Label.position = open_offset
-	else:
-		$BullpenHeader/Button3/Label.position = offset
-	$BullpenHeader/Button1/Label.scale = bigness
-	$BullpenHeader/Button2/Label.scale= bigness
-	$BullpenHeader/Button3/Label.scale= bigness
-	if !benchPlayer1:
-		$BenchHeader/Button4/Label.position = open_offset
-	else:
-		$BenchHeader/Button4/Label.position = offset
-	if !benchPlayer2:
-		$BenchHeader/Button5/Label.position = open_offset
-	else:
-		$BenchHeader/Button5/Label.position = offset
-	if !benchPlayer3:
-		$BenchHeader/Button6/Label.position = open_offset
-	else:
-		$BenchHeader/Button6/Label.position = offset
-	if !benchPlayer4:
-		$BenchHeader/Button7/Label.position = open_offset
-	else:
-		$BenchHeader/Button7/Label.position = offset
-	if !benchPlayer5:
-		$BenchHeader/Button8/Label.position = open_offset
-	else:
-		$BenchHeader/Button8/Label.position = offset
-	if !benchPlayer6:
-		$BenchHeader/Button9/Label.position = open_offset
-	else:
-		$BenchHeader/Button9/Label.position = offset
-	$BenchHeader/Button4/Label.scale= bigness
-	$BenchHeader/Button5/Label.scale= bigness
-	$BenchHeader/Button6/Label.scale= bigness
-	$BenchHeader/Button7/Label.scale= bigness
-	$BenchHeader/Button8/Label.scale= bigness
-	$BenchHeader/Button9/Label.scale= bigness
+func switch_player_positions(secondaryPlayer: Player):
+	var current_player_idx = roster.find(currentPlayer)
+	var secondary_player_idx = roster.find(secondaryPlayer)
+	
+	if current_player_idx < 0 or secondary_player_idx < 0:
+		return
+	
+	roster[current_player_idx] = secondaryPlayer
+	roster[secondary_player_idx] = currentPlayer
+	#TODO: switch player positions in the arrays
+	#TODO: check if a player has "utility player" or "secondary position" buffs, if so, just switch positions
+	
+	bench_switched_position.emit()
+	
+	apply_roster_to_UI()
+
 
 func bench_player_chosen(player: Player):
 	if player:

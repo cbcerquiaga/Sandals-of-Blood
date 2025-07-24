@@ -17,246 +17,300 @@
 [ext_resource type="Texture2D" uid="uid://tieg1bdd3qne" path="res://UI/StrategyUI/Revert_button_base.png" id="15_6juc1"]
 
 [node name="Strategy_Menu" type="Control"]
+process_mode = 2
 layout_mode = 3
+anchors_preset = 11
+anchor_left = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -1774.0
+offset_right = 1266.0
+grow_horizontal = 0
+grow_vertical = 2
+scale = Vector2(0.475, 0.475)
+script = ExtResource("1_p0u7q")
+
+[node name="Bench" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 11
+anchor_left = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -1078.0
+offset_top = 10.0
+offset_right = 664.0
+offset_bottom = 1711.0
+grow_horizontal = 0
+grow_vertical = 2
+script = ExtResource("2_a8736")
+
+[node name="BullpenHeader" type="TextureRect" parent="Bench"]
+layout_mode = 2
+texture = ExtResource("2_ujkkb")
+
+[node name="BullpenContainer" type="VBoxContainer" parent="Bench"]
+layout_mode = 2
+
+[node name="Button1" type="Button" parent="Bench/BullpenContainer"]
+layout_mode = 2
+focus_neighbor_left = NodePath("../../../Tactics/RF/RB")
+focus_neighbor_top = NodePath("../../BenchContainer/Button9")
+focus_neighbor_right = NodePath("../../../Tactics/LF/LB")
+focus_neighbor_bottom = NodePath("../Button2")
+icon = ExtResource("3_ywmw2")
+
+[node name="Label" type="Label" parent="Bench/BullpenContainer/Button1"]
+layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-script = ExtResource("1_p0u7q")
-
-[node name="Bench" type="Control" parent="."]
-anchors_preset = 0
-offset_left = 2800.0
-offset_right = 2840.0
-offset_bottom = 40.0
-script = ExtResource("2_a8736")
-
-[node name="BullpenHeader" type="Sprite2D" parent="Bench"]
-texture = ExtResource("2_ujkkb")
-
-[node name="Button1" type="Button" parent="Bench/BullpenHeader"]
-offset_left = -844.0
-offset_top = 147.0
-offset_right = 898.0
-offset_bottom = 478.0
-focus_neighbor_left = NodePath("../../../Tactics/RF/RB")
-focus_neighbor_top = NodePath("../../BenchHeader/Button9")
-focus_neighbor_right = NodePath("../../../Tactics/LF/LB")
-focus_neighbor_bottom = NodePath("../Button2")
-icon = ExtResource("3_ywmw2")
-
-[node name="Label" type="Label" parent="Bench/BullpenHeader/Button1"]
-layout_mode = 0
-offset_left = 283.0
-offset_top = 99.0
-offset_right = 1109.0
-offset_bottom = 215.0
 focus_neighbor_left = NodePath("../../../../Tactics/RF/RB")
 focus_neighbor_right = NodePath("../../../../Tactics/LF/LB")
-theme_override_font_sizes/font_size = 85
+theme_override_font_sizes/font_size = 71
 text = "OPEN ROSTER SPOT"
+horizontal_alignment = 1
+vertical_alignment = 1
 
-[node name="Button2" type="Button" parent="Bench/BullpenHeader"]
-offset_left = -844.0
-offset_top = 547.0
-offset_right = 898.0
-offset_bottom = 878.0
+[node name="Button2" type="Button" parent="Bench/BullpenContainer"]
+layout_mode = 2
 focus_neighbor_left = NodePath("../../../Tactics/RF/RB")
 focus_neighbor_top = NodePath("../Button1")
 focus_neighbor_right = NodePath("../../../Tactics/LF/LB")
 focus_neighbor_bottom = NodePath("../Button3")
 icon = ExtResource("3_ywmw2")
 
-[node name="Label" type="Label" parent="Bench/BullpenHeader/Button2"]
-layout_mode = 0
-offset_left = 283.0
-offset_top = 99.0
-offset_right = 1109.0
-offset_bottom = 215.0
-theme_override_font_sizes/font_size = 85
+[node name="Label" type="Label" parent="Bench/BullpenContainer/Button2"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 71
 text = "OPEN ROSTER SPOT"
+horizontal_alignment = 1
+vertical_alignment = 1
 
-[node name="Button3" type="Button" parent="Bench/BullpenHeader"]
-offset_left = -844.0
-offset_top = 947.0
-offset_right = 898.0
-offset_bottom = 1278.0
+[node name="Button3" type="Button" parent="Bench/BullpenContainer"]
+layout_mode = 2
 focus_neighbor_left = NodePath("../../../Tactics/RF/RB")
 focus_neighbor_top = NodePath("../Button2")
 focus_neighbor_right = NodePath("../../../Tactics/LF/LB")
-focus_neighbor_bottom = NodePath("../../BenchHeader/Button4")
+focus_neighbor_bottom = NodePath("../../BenchContainer/Button4")
 icon = ExtResource("3_ywmw2")
 
-[node name="Label" type="Label" parent="Bench/BullpenHeader/Button3"]
-layout_mode = 0
-offset_left = 283.0
-offset_top = 99.0
-offset_right = 1109.0
-offset_bottom = 215.0
-theme_override_font_sizes/font_size = 85
+[node name="Label" type="Label" parent="Bench/BullpenContainer/Button3"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 71
 text = "OPEN ROSTER SPOT"
+horizontal_alignment = 1
+vertical_alignment = 1
 
-[node name="BenchHeader" type="Sprite2D" parent="Bench"]
-position = Vector2(2, 1463)
+[node name="BenchHeader" type="TextureRect" parent="Bench"]
+layout_mode = 2
 texture = ExtResource("4_pw0g3")
 
-[node name="Button4" type="Button" parent="Bench/BenchHeader"]
-offset_left = -844.0
-offset_top = 192.0
-offset_right = 898.0
-offset_bottom = 523.0
-focus_neighbor_left = NodePath("../../../SubstitutionSection/SubButton")
-focus_neighbor_top = NodePath("../../BullpenHeader/Button3")
-focus_neighbor_right = NodePath("../../../SubstitutionSection/SubButton")
+[node name="BenchContainer" type="VBoxContainer" parent="Bench"]
+layout_mode = 2
+
+[node name="Button4" type="Button" parent="Bench/BenchContainer"]
+layout_mode = 2
+focus_neighbor_left = NodePath("../../../SubstitutionSection/SubButtonsContainer/SubButton")
+focus_neighbor_top = NodePath("../../BullpenContainer/Button3")
+focus_neighbor_right = NodePath("../../../SubstitutionSection/SubButtonsContainer/SubButton")
 focus_neighbor_bottom = NodePath("../Button5")
 icon = ExtResource("6_q584g")
 metadata/_edit_use_anchors_ = true
 
-[node name="Label" type="Label" parent="Bench/BenchHeader/Button4"]
-layout_mode = 0
-offset_left = 459.0
-offset_top = 98.0
-offset_right = 1285.0
-offset_bottom = 214.0
-theme_override_font_sizes/font_size = 85
+[node name="Label" type="Label" parent="Bench/BenchContainer/Button4"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 71
 text = "OPEN ROSTER SPOT"
+horizontal_alignment = 1
+vertical_alignment = 1
 metadata/_edit_use_anchors_ = true
 
-[node name="Button5" type="Button" parent="Bench/BenchHeader"]
-offset_left = -844.0
-offset_top = 592.0
-offset_right = 898.0
-offset_bottom = 923.0
-focus_neighbor_left = NodePath("../../../SubstitutionSection/SubButton")
+[node name="Button5" type="Button" parent="Bench/BenchContainer"]
+layout_mode = 2
+focus_neighbor_left = NodePath("../../../SubstitutionSection/SubButtonsContainer/SubButton")
 focus_neighbor_top = NodePath("../Button4")
-focus_neighbor_right = NodePath("../../../SubstitutionSection/SubButton")
+focus_neighbor_right = NodePath("../../../SubstitutionSection/SubButtonsContainer/SubButton")
 focus_neighbor_bottom = NodePath("../Button6")
 icon = ExtResource("6_q584g")
 metadata/_edit_use_anchors_ = true
 
-[node name="Label" type="Label" parent="Bench/BenchHeader/Button5"]
-layout_mode = 0
-offset_left = 459.0
-offset_top = 98.0
-offset_right = 1285.0
-offset_bottom = 214.0
-theme_override_font_sizes/font_size = 85
+[node name="Label" type="Label" parent="Bench/BenchContainer/Button5"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 71
 text = "OPEN ROSTER SPOT"
+horizontal_alignment = 1
+vertical_alignment = 1
 
-[node name="Button6" type="Button" parent="Bench/BenchHeader"]
-offset_left = -844.0
-offset_top = 992.0
-offset_right = 898.0
-offset_bottom = 1323.0
-focus_neighbor_left = NodePath("../../../SubstitutionSection/SubButton")
+[node name="Button6" type="Button" parent="Bench/BenchContainer"]
+layout_mode = 2
+focus_neighbor_left = NodePath("../../../SubstitutionSection/SubButtonsContainer/SubButton")
 focus_neighbor_top = NodePath("../Button5")
-focus_neighbor_right = NodePath("../../../SubstitutionSection/SubButton")
+focus_neighbor_right = NodePath("../../../SubstitutionSection/SubButtonsContainer/SubButton")
 focus_neighbor_bottom = NodePath("../Button7")
 icon = ExtResource("6_q584g")
 metadata/_edit_use_anchors_ = true
 
-[node name="Label" type="Label" parent="Bench/BenchHeader/Button6"]
-layout_mode = 0
-offset_left = 459.0
-offset_top = 98.0
-offset_right = 1285.0
-offset_bottom = 214.0
-theme_override_font_sizes/font_size = 85
+[node name="Label" type="Label" parent="Bench/BenchContainer/Button6"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 71
 text = "OPEN ROSTER SPOT"
+horizontal_alignment = 1
+vertical_alignment = 1
 
-[node name="Button7" type="Button" parent="Bench/BenchHeader"]
-offset_left = -844.0
-offset_top = 1392.0
-offset_right = 898.0
-offset_bottom = 1723.0
-focus_neighbor_left = NodePath("../../../SubstitutionSection/RF_Button")
+[node name="Button7" type="Button" parent="Bench/BenchContainer"]
+layout_mode = 2
+focus_neighbor_left = NodePath("../../../SubstitutionSection/FieldGrid/RF_Button")
 focus_neighbor_top = NodePath("../Button6")
-focus_neighbor_right = NodePath("../../../SubstitutionSection/LF_Button")
+focus_neighbor_right = NodePath("../../../SubstitutionSection/FieldGrid/LF_Button")
 focus_neighbor_bottom = NodePath("../Button8")
 icon = ExtResource("6_q584g")
 metadata/_edit_use_anchors_ = true
 
-[node name="Label" type="Label" parent="Bench/BenchHeader/Button7"]
-layout_mode = 0
-offset_left = 459.0
-offset_top = 98.0
-offset_right = 1285.0
-offset_bottom = 214.0
-theme_override_font_sizes/font_size = 85
+[node name="Label" type="Label" parent="Bench/BenchContainer/Button7"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 71
 text = "OPEN ROSTER SPOT"
+horizontal_alignment = 1
+vertical_alignment = 1
 
-[node name="Button8" type="Button" parent="Bench/BenchHeader"]
-offset_left = -844.0
-offset_top = 1792.0
-offset_right = 898.0
-offset_bottom = 2123.0
-focus_neighbor_left = NodePath("../../../SubstitutionSection/RG_Button")
+[node name="Button8" type="Button" parent="Bench/BenchContainer"]
+layout_mode = 2
+focus_neighbor_left = NodePath("../../../SubstitutionSection/FieldGrid/RG_Button")
 focus_neighbor_top = NodePath("../Button7")
-focus_neighbor_right = NodePath("../../../SubstitutionSection/LG_Button")
+focus_neighbor_right = NodePath("../../../SubstitutionSection/FieldGrid/LG_Button")
 focus_neighbor_bottom = NodePath("../Button9")
 icon = ExtResource("6_q584g")
 metadata/_edit_use_anchors_ = true
 
-[node name="Label" type="Label" parent="Bench/BenchHeader/Button8"]
-layout_mode = 0
-offset_left = 459.0
-offset_top = 98.0
-offset_right = 1285.0
-offset_bottom = 214.0
-theme_override_font_sizes/font_size = 85
+[node name="Label" type="Label" parent="Bench/BenchContainer/Button8"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 71
 text = "OPEN ROSTER SPOT"
+horizontal_alignment = 1
+vertical_alignment = 1
 
-[node name="Button9" type="Button" parent="Bench/BenchHeader"]
-offset_left = -844.0
-offset_top = 2192.0
-offset_right = 898.0
-offset_bottom = 2523.0
-focus_neighbor_left = NodePath("../../../SaveButton")
+[node name="Button9" type="Button" parent="Bench/BenchContainer"]
+layout_mode = 2
+focus_neighbor_left = NodePath("../../../SaveDiscardContainer/SaveButton")
 focus_neighbor_top = NodePath("../Button8")
-focus_neighbor_right = NodePath("../../../DiscardButton")
-focus_neighbor_bottom = NodePath("../../BullpenHeader/Button1")
+focus_neighbor_right = NodePath("../../../SaveDiscardContainer/DiscardButton")
+focus_neighbor_bottom = NodePath("../../BullpenContainer/Button1")
 icon = ExtResource("6_q584g")
 metadata/_edit_use_anchors_ = true
 
-[node name="Label" type="Label" parent="Bench/BenchHeader/Button9"]
-layout_mode = 0
-offset_left = 459.0
-offset_top = 98.0
-offset_right = 1285.0
-offset_bottom = 214.0
-theme_override_font_sizes/font_size = 85
+[node name="Label" type="Label" parent="Bench/BenchContainer/Button9"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 71
 text = "OPEN ROSTER SPOT"
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="SubstitutionSection" type="Control" parent="."]
+layout_mode = 1
 anchors_preset = 0
-offset_right = 40.0
-offset_bottom = 40.0
+offset_right = 1099.0
+offset_bottom = 1985.0
 
-[node name="SubOff" type="Sprite2D" parent="SubstitutionSection"]
-position = Vector2(-1823, 1901)
-scale = Vector2(1.447, 1.447)
+[node name="SubContainer" type="HBoxContainer" parent="SubstitutionSection"]
+layout_mode = 0
+offset_left = -2832.0
+offset_top = 1055.0
+offset_right = 202.0
+offset_bottom = 2404.0
+theme_override_constants/separation = 125
+
+[node name="SubOff" type="TextureRect" parent="SubstitutionSection/SubContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
 texture = ExtResource("4_4fdjd")
 
-[node name="Label" type="Label" parent="SubstitutionSection/SubOff"]
-offset_right = 40.0
-offset_bottom = 23.0
+[node name="Label" type="Label" parent="SubstitutionSection/SubContainer/SubOff"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 181
+horizontal_alignment = 1
+vertical_alignment = 1
 
-[node name="SubOn" type="Sprite2D" parent="SubstitutionSection"]
-position = Vector2(-3466, 1901)
-scale = Vector2(1.447, 1.447)
+[node name="SubOn" type="TextureRect" parent="SubstitutionSection/SubContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
 texture = ExtResource("5_gd7or")
 
-[node name="Label" type="Label" parent="SubstitutionSection/SubOn"]
-offset_right = 40.0
-offset_bottom = 23.0
+[node name="Label" type="Label" parent="SubstitutionSection/SubContainer/SubOn"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 181
+horizontal_alignment = 1
+vertical_alignment = 1
 
-[node name="SubButton" type="Button" parent="SubstitutionSection"]
+[node name="SubButtonsContainer" type="HBoxContainer" parent="SubstitutionSection"]
 layout_mode = 0
-offset_left = 465.0
-offset_top = 2319.0
-offset_right = 1553.0
-offset_bottom = 2650.0
+offset_left = -2737.0
+offset_top = 2512.0
+offset_right = 75.0
+offset_bottom = 2843.0
+theme_override_constants/separation = 630
+
+[node name="RevertButton" type="Button" parent="SubstitutionSection/SubButtonsContainer"]
+layout_mode = 2
+focus_neighbor_left = NodePath("../../../Bench/BenchContainer/Button5")
+focus_neighbor_top = NodePath("../../../Tactics/D/RB")
+focus_neighbor_right = NodePath("../SubButton")
+focus_neighbor_bottom = NodePath("../../FieldGrid/P_Button")
+icon = ExtResource("15_6juc1")
+
+[node name="SubButton" type="Button" parent="SubstitutionSection/SubButtonsContainer"]
+layout_mode = 2
 icon = ExtResource("6_x5r2x")
 
 [node name="SubsRemaining" type="Label" parent="SubstitutionSection"]
@@ -264,164 +318,165 @@ layout_mode = 0
 offset_right = 40.0
 offset_bottom = 23.0
 
-[node name="LF_Button" type="Button" parent="SubstitutionSection"]
+[node name="FieldGrid" type="GridContainer" parent="SubstitutionSection"]
 layout_mode = 0
-offset_left = -3750.0
-offset_top = 2793.0
-offset_right = -2008.0
-offset_bottom = 3124.0
-focus_neighbor_left = NodePath("../../Bench/BenchHeader/Button7")
-focus_neighbor_top = NodePath("../../Tactics/LF/LB")
+offset_left = -3548.0
+offset_top = 3015.0
+offset_right = 1686.0
+offset_bottom = 3681.0
+columns = 3
+
+[node name="LF_Button" type="Button" parent="SubstitutionSection/FieldGrid"]
+layout_mode = 2
+focus_neighbor_left = NodePath("../../../Bench/BenchContainer/Button7")
+focus_neighbor_top = NodePath("../../../Tactics/LF/LB")
 focus_neighbor_right = NodePath("../P_Button")
 focus_neighbor_bottom = NodePath("../LG_Button")
 icon = ExtResource("6_q584g")
 
-[node name="Label" type="Label" parent="SubstitutionSection/LF_Button"]
-layout_mode = 0
-offset_left = 459.0
-offset_top = 98.0
-offset_right = 1285.0
-offset_bottom = 214.0
-theme_override_font_sizes/font_size = 85
+[node name="Label" type="Label" parent="SubstitutionSection/FieldGrid/LF_Button"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 71
 text = "OPEN ROSTER SPOT"
+horizontal_alignment = 1
+vertical_alignment = 1
 
-[node name="P_Button" type="Button" parent="SubstitutionSection"]
-layout_mode = 0
-offset_left = -1927.0
-offset_top = 2801.0
-offset_right = -185.0
-offset_bottom = 3132.0
+[node name="P_Button" type="Button" parent="SubstitutionSection/FieldGrid"]
+layout_mode = 2
 focus_neighbor_left = NodePath("../LF_Button")
-focus_neighbor_top = NodePath("../../Tactics/D/LB")
+focus_neighbor_top = NodePath("../../../Tactics/D/LB")
 focus_neighbor_right = NodePath("../RF_Button")
 focus_neighbor_bottom = NodePath("../K_Button")
 icon = ExtResource("6_q584g")
 
-[node name="Label" type="Label" parent="SubstitutionSection/P_Button"]
-layout_mode = 0
-offset_left = 459.0
-offset_top = 98.0
-offset_right = 1285.0
-offset_bottom = 214.0
-theme_override_font_sizes/font_size = 85
+[node name="Label" type="Label" parent="SubstitutionSection/FieldGrid/P_Button"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 71
 text = "OPEN ROSTER SPOT"
+horizontal_alignment = 1
+vertical_alignment = 1
 
-[node name="RF_Button" type="Button" parent="SubstitutionSection"]
-layout_mode = 0
-offset_left = -154.0
-offset_top = 2818.0
-offset_right = 1588.0
-offset_bottom = 3149.0
+[node name="RF_Button" type="Button" parent="SubstitutionSection/FieldGrid"]
+layout_mode = 2
 focus_neighbor_left = NodePath("../P_Button")
-focus_neighbor_top = NodePath("../SubButton")
-focus_neighbor_right = NodePath("../../Bench/BenchHeader/Button7")
+focus_neighbor_top = NodePath("../../SubButtonsContainer/SubButton")
+focus_neighbor_right = NodePath("../../../Bench/BenchContainer/Button7")
 focus_neighbor_bottom = NodePath("../RG_Button")
 icon = ExtResource("6_q584g")
 
-[node name="Label" type="Label" parent="SubstitutionSection/RF_Button"]
-layout_mode = 0
-offset_left = 459.0
-offset_top = 98.0
-offset_right = 1285.0
-offset_bottom = 214.0
-theme_override_font_sizes/font_size = 85
+[node name="Label" type="Label" parent="SubstitutionSection/FieldGrid/RF_Button"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 71
 text = "OPEN ROSTER SPOT"
+horizontal_alignment = 1
+vertical_alignment = 1
 
-[node name="LG_Button" type="Button" parent="SubstitutionSection"]
-layout_mode = 0
-offset_left = -3733.0
-offset_top = 3218.0
-offset_right = -1991.0
-offset_bottom = 3549.0
-focus_neighbor_left = NodePath("../../Bench/BenchHeader/Button8")
+[node name="LG_Button" type="Button" parent="SubstitutionSection/FieldGrid"]
+layout_mode = 2
+focus_neighbor_left = NodePath("../../../Bench/BenchContainer/Button8")
 focus_neighbor_top = NodePath("../LF_Button")
 focus_neighbor_right = NodePath("../K_Button")
-focus_neighbor_bottom = NodePath("../../DiscardButton")
+focus_neighbor_bottom = NodePath("../../../SaveDiscardContainer/DiscardButton")
 icon = ExtResource("6_q584g")
 
-[node name="Label" type="Label" parent="SubstitutionSection/LG_Button"]
-layout_mode = 0
-offset_left = 459.0
-offset_top = 98.0
-offset_right = 1285.0
-offset_bottom = 214.0
-theme_override_font_sizes/font_size = 85
+[node name="Label" type="Label" parent="SubstitutionSection/FieldGrid/LG_Button"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 71
 text = "OPEN ROSTER SPOT"
+horizontal_alignment = 1
+vertical_alignment = 1
 
-[node name="K_Button" type="Button" parent="SubstitutionSection"]
-layout_mode = 0
-offset_left = -1931.0
-offset_top = 3235.0
-offset_right = -189.0
-offset_bottom = 3566.0
+[node name="K_Button" type="Button" parent="SubstitutionSection/FieldGrid"]
+layout_mode = 2
 focus_neighbor_left = NodePath("../LG_Button")
 focus_neighbor_top = NodePath("../P_Button")
 focus_neighbor_right = NodePath("../RG_Button")
-focus_neighbor_bottom = NodePath("../../DiscardButton")
+focus_neighbor_bottom = NodePath("../../../SaveDiscardContainer/DiscardButton")
 icon = ExtResource("6_q584g")
 
-[node name="Label" type="Label" parent="SubstitutionSection/K_Button"]
-layout_mode = 0
-offset_left = 459.0
-offset_top = 98.0
-offset_right = 1285.0
-offset_bottom = 214.0
-theme_override_font_sizes/font_size = 85
+[node name="Label" type="Label" parent="SubstitutionSection/FieldGrid/K_Button"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 71
 text = "OPEN ROSTER SPOT"
+horizontal_alignment = 1
+vertical_alignment = 1
 
-[node name="RG_Button" type="Button" parent="SubstitutionSection"]
-layout_mode = 0
-offset_left = -162.0
-offset_top = 3243.0
-offset_right = 1580.0
-offset_bottom = 3574.0
+[node name="RG_Button" type="Button" parent="SubstitutionSection/FieldGrid"]
+layout_mode = 2
 focus_neighbor_left = NodePath("../K_Button")
 focus_neighbor_top = NodePath("../RF_Button")
-focus_neighbor_right = NodePath("../../Bench/BenchHeader/Button8")
-focus_neighbor_bottom = NodePath("../../SaveButton")
+focus_neighbor_right = NodePath("../../../Bench/BenchContainer/Button8")
+focus_neighbor_bottom = NodePath("../../../SaveDiscardContainer/SaveButton")
 icon = ExtResource("6_q584g")
 
-[node name="Label" type="Label" parent="SubstitutionSection/RG_Button"]
-layout_mode = 0
-offset_left = 459.0
-offset_top = 98.0
-offset_right = 1285.0
-offset_bottom = 214.0
-theme_override_font_sizes/font_size = 85
+[node name="Label" type="Label" parent="SubstitutionSection/FieldGrid/RG_Button"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 71
 text = "OPEN ROSTER SPOT"
+horizontal_alignment = 1
+vertical_alignment = 1
 
-[node name="Background" type="Sprite2D" parent="."]
-
-[node name="DiscardButton" type="Button" parent="."]
+[node name="Background" type="TextureRect" parent="."]
 layout_mode = 0
-offset_left = -2428.0
-offset_top = 3677.0
-offset_right = -1340.0
-offset_bottom = 4008.0
+
+[node name="SaveDiscardContainer" type="HBoxContainer" parent="."]
+layout_mode = 0
+offset_left = -2751.0
+offset_top = 3685.0
+offset_right = 71.0
+offset_bottom = 4016.0
+theme_override_constants/separation = 640
+
+[node name="DiscardButton" type="Button" parent="SaveDiscardContainer"]
+layout_mode = 2
 icon = ExtResource("6_3pnim")
 
-[node name="SaveButton" type="Button" parent="."]
-layout_mode = 0
-offset_left = 333.0
-offset_top = 3699.0
-offset_right = 1421.0
-offset_bottom = 4030.0
+[node name="SaveButton" type="Button" parent="SaveDiscardContainer"]
+layout_mode = 2
 icon = ExtResource("6_34w4l")
 
-[node name="Tactics" type="Control" parent="."]
-anchors_preset = 0
-offset_left = -3313.0
+[node name="Tactics" type="HBoxContainer" parent="."]
+layout_mode = 0
+offset_left = -3176.84
 offset_top = 130.0
-offset_right = -3273.0
+offset_right = -2516.84
 offset_bottom = 170.0
 scale = Vector2(6, 6)
+theme_override_constants/separation = 324
 script = ExtResource("12_emdlp")
 
 [node name="LF" type="Control" parent="Tactics"]
-layout_mode = 3
-anchors_preset = 0
-offset_right = 40.0
-offset_bottom = 40.0
+layout_mode = 2
 
 [node name="LB" type="Button" parent="Tactics/LF"]
 layout_mode = 0
@@ -430,10 +485,10 @@ offset_top = 79.0
 offset_right = 790.0
 offset_bottom = 582.0
 scale = Vector2(0.1, 0.1)
-focus_neighbor_left = NodePath("../../../Bench/BullpenHeader/Button1")
-focus_neighbor_top = NodePath("../../../SubstitutionSection/LG_Button")
+focus_neighbor_left = NodePath("../../../Bench/BullpenContainer/Button1")
+focus_neighbor_top = NodePath("../../../SubstitutionSection/FieldGrid/LG_Button")
 focus_neighbor_right = NodePath("../RB")
-focus_neighbor_bottom = NodePath("../../../SubstitutionSection/LF_Button")
+focus_neighbor_bottom = NodePath("../../../SubstitutionSection/FieldGrid/LF_Button")
 icon = ExtResource("12_tr0tp")
 
 [node name="RB" type="Button" parent="Tactics/LF"]
@@ -444,14 +499,14 @@ offset_right = 988.0
 offset_bottom = 584.0
 scale = Vector2(0.1, 0.1)
 focus_neighbor_left = NodePath("../LB")
-focus_neighbor_top = NodePath("../../../SubstitutionSection/LG_Button")
+focus_neighbor_top = NodePath("../../../SubstitutionSection/FieldGrid/LG_Button")
 focus_neighbor_right = NodePath("../../D/LB")
-focus_neighbor_bottom = NodePath("../../../SubstitutionSection/LF_Button")
+focus_neighbor_bottom = NodePath("../../../SubstitutionSection/FieldGrid/LF_Button")
 icon = ExtResource("13_aqj5i")
 
 [node name="Assignment" type="Label" parent="Tactics/LF"]
 layout_mode = 0
-offset_right = 40.0
+offset_right = 80.0
 offset_bottom = 23.0
 text = "Movinator"
 
@@ -466,62 +521,8 @@ text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. In condimentum,
 horizontal_alignment = 3
 autowrap_mode = 3
 
-[node name="RF" type="Control" parent="Tactics"]
-layout_mode = 3
-anchors_preset = 0
-offset_left = 650.0
-offset_right = 690.0
-offset_bottom = 40.0
-
-[node name="LB" type="Button" parent="Tactics/RF"]
-layout_mode = 0
-offset_left = -91.1667
-offset_top = 84.6667
-offset_right = 806.833
-offset_bottom = 587.667
-scale = Vector2(0.1, 0.1)
-focus_neighbor_left = NodePath("../../D/RB")
-focus_neighbor_top = NodePath("../../../SaveButton")
-focus_neighbor_right = NodePath("../RB")
-focus_neighbor_bottom = NodePath("../../../SubstitutionSection/SubButton")
-icon = ExtResource("12_tr0tp")
-
-[node name="RB" type="Button" parent="Tactics/RF"]
-layout_mode = 0
-offset_left = 101.833
-offset_top = 86.6667
-offset_right = 999.833
-offset_bottom = 589.667
-scale = Vector2(0.1, 0.1)
-focus_neighbor_left = NodePath("../LB")
-focus_neighbor_top = NodePath("../../../SaveButton")
-focus_neighbor_right = NodePath("../../../Bench/BullpenHeader/Button1")
-focus_neighbor_bottom = NodePath("../../../SubstitutionSection/SubButton")
-icon = ExtResource("13_aqj5i")
-
-[node name="Assignment" type="Label" parent="Tactics/RF"]
-layout_mode = 0
-offset_right = 40.0
-offset_bottom = 23.0
-text = "Movinator"
-
-[node name="Explanation" type="Label" parent="Tactics/RF"]
-layout_mode = 0
-offset_left = -105.0
-offset_top = 26.0
-offset_right = 493.0
-offset_bottom = 101.0
-scale = Vector2(0.5, 0.5)
-text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. In condimentum, mauris sit amet efficitur convallis, neque nibh sagittis arcu, a posuere purus erat vel sapien. Nullam eros erat, fringilla in lacinia vitae, tempor ac arcu"
-horizontal_alignment = 3
-autowrap_mode = 3
-
 [node name="D" type="Control" parent="Tactics"]
-layout_mode = 3
-anchors_preset = 0
-offset_left = 325.0
-offset_right = 365.0
-offset_bottom = 40.0
+layout_mode = 2
 
 [node name="LB" type="Button" parent="Tactics/D"]
 layout_mode = 0
@@ -531,9 +532,9 @@ offset_right = 798.0
 offset_bottom = 583.0
 scale = Vector2(0.1, 0.1)
 focus_neighbor_left = NodePath("../../LF/RB")
-focus_neighbor_top = NodePath("../../../DiscardButton")
+focus_neighbor_top = NodePath("../../../SaveDiscardContainer/DiscardButton")
 focus_neighbor_right = NodePath("../RB")
-focus_neighbor_bottom = NodePath("../../../SubstitutionSection/P_Button")
+focus_neighbor_bottom = NodePath("../../../SubstitutionSection/FieldGrid/P_Button")
 icon = ExtResource("12_tr0tp")
 
 [node name="RB" type="Button" parent="Tactics/D"]
@@ -544,9 +545,9 @@ offset_right = 996.0
 offset_bottom = 585.0
 scale = Vector2(0.1, 0.1)
 focus_neighbor_left = NodePath("../LB")
-focus_neighbor_top = NodePath("../../../DiscardButton")
+focus_neighbor_top = NodePath("../../../SaveDiscardContainer/DiscardButton")
 focus_neighbor_right = NodePath("../../RF/LB")
-focus_neighbor_bottom = NodePath("../../../RevertButton")
+focus_neighbor_bottom = NodePath("../../../SubstitutionSection/SubButtonsContainer/RevertButton")
 icon = ExtResource("13_aqj5i")
 
 [node name="Assignment" type="Label" parent="Tactics/D"]
@@ -566,14 +567,52 @@ text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. In condimentum,
 horizontal_alignment = 3
 autowrap_mode = 3
 
-[node name="RevertButton" type="Button" parent="."]
+[node name="RF" type="Control" parent="Tactics"]
+layout_mode = 2
+
+[node name="LB" type="Button" parent="Tactics/RF"]
 layout_mode = 0
-offset_left = -919.0
-offset_top = 2319.0
-offset_right = 169.0
-offset_bottom = 2650.0
-focus_neighbor_left = NodePath("../Bench/BenchHeader/Button5")
-focus_neighbor_top = NodePath("../Tactics/D/RB")
-focus_neighbor_right = NodePath("../SubstitutionSection/SubButton")
-focus_neighbor_bottom = NodePath("../SubstitutionSection/P_Button")
-icon = ExtResource("15_6juc1")
+offset_left = -91.1667
+offset_top = 84.6667
+offset_right = 806.833
+offset_bottom = 587.667
+scale = Vector2(0.1, 0.1)
+focus_neighbor_left = NodePath("../../D/RB")
+focus_neighbor_top = NodePath("../../../SaveDiscardContainer/SaveButton")
+focus_neighbor_right = NodePath("../RB")
+focus_neighbor_bottom = NodePath("../../../SubstitutionSection/SubButtonsContainer/SubButton")
+icon = ExtResource("12_tr0tp")
+
+[node name="RB" type="Button" parent="Tactics/RF"]
+layout_mode = 0
+offset_left = 101.833
+offset_top = 86.6667
+offset_right = 999.833
+offset_bottom = 589.667
+scale = Vector2(0.1, 0.1)
+focus_neighbor_left = NodePath("../LB")
+focus_neighbor_top = NodePath("../../../SaveDiscardContainer/SaveButton")
+focus_neighbor_right = NodePath("../../../Bench/BullpenContainer/Button1")
+focus_neighbor_bottom = NodePath("../../../SubstitutionSection/SubButtonsContainer/SubButton")
+icon = ExtResource("13_aqj5i")
+
+[node name="Assignment" type="Label" parent="Tactics/RF"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0
+text = "Movinator"
+
+[node name="Explanation" type="Label" parent="Tactics/RF"]
+layout_mode = 0
+offset_left = -105.0
+offset_top = 26.0
+offset_right = 493.0
+offset_bottom = 101.0
+scale = Vector2(0.5, 0.5)
+text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. In condimentum, mauris sit amet efficitur convallis, neque nibh sagittis arcu, a posuere purus erat vel sapien. Nullam eros erat, fringilla in lacinia vitae, tempor ac arcu"
+horizontal_alignment = 3
+autowrap_mode = 3
+
+[connection signal="bench_switched_position" from="Bench" to="." method="_on_bench_bench_switched_position"]
+[connection signal="player_selected" from="Bench" to="." method="_on_bench_player_selected"]
+[connection signal="pressed" from="SubstitutionSection/SubButtonsContainer/SubButton" to="." method="_on_sub_button_pressed"]

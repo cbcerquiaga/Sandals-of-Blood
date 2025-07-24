@@ -1,6 +1,8 @@
 extends CharacterBody2D
 class_name Player
 
+var playable_positions = ["LG, RG, LF, RF, K, P"]#players can train to be more versatile and play more positions
+var declared_pitcher = false #affects roster size rules
 # Player Attributes
 @export var attributes := {
 	"speedRating" : 75, #what's shown on the attributes screen
@@ -79,6 +81,31 @@ class_name Player
 	"retreat_speed": attributes.speed,
 	"attack_cooldown": 1.0,
 	"ball_proximity_threshold": 45
+}
+
+#if the player is playing forward
+var forward_strategy = {
+	"bull_rush": 50.0,
+	"skill_rush": 100.0,
+	"target_man": 100.0,
+	"shooter": 100.0,
+	"rebound": 50.0,
+	"pick": 10.0,
+	"bully": 10.0,
+	"fencing": 5.0,
+	"cower": 5.0
+}
+
+#if the player is playing guard
+var defense_strategy = {
+	"marking": 0.7,  # 0-1, likelihood to stay with mark (replaces discipline)
+	"fluidity": 0.6,  # 0-1, preference to switch forwards on a pick, preference to fill in for keeper
+	"zone": true,  # true or false, whether to play zone or man
+	"lg_trap": false, #in a zone, if the LG will trap. if false, RG plays gk
+	"rg_trap": true,#in a zone, if the RG will trap. if false, RG plays gk
+	"chasing": 0.1,  # 0-inf, likelihood to chase loose balls
+	"goal_defense_threshold": 35,  # Distance at which keeper is considered out of position
+	"escort_distance": 10#how closely an escorting guard will follow the keeper
 }
 
 #character appearance. paths to assets
@@ -860,3 +887,27 @@ func remove_buff(buff_name: String):
 
 func has_buff(buff_name: String) -> bool:
 	return active_buffs.has(buff_name)
+	
+func get_position_class(position: String) -> GDScript:
+	match position:
+		"P":
+			return load("res://Reworked_Pitcher.gd")
+		"K":
+			return load("res://Keeper.gd")
+		"LG", "RG":
+			return load("res://Guard.gd")
+		"LF", "RF":
+			return load("res://Forward.gd")
+		_:
+			return get_script()
+			
+			
+#determines out of position penalties
+func can_play_position(field_position: String) -> bool:
+	# Pitchers must be declared, or else it uses up extra substitutions
+	if field_position == "P" && !declared_pitcher:
+		return false
+	elif field_position != "P" && declared_pitcher:
+		return false
+	else:
+		return field_position in playable_positions

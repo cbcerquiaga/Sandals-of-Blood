@@ -20,18 +20,6 @@ var is_in_pass_mode = false #tells the ball to go to the goal or the teammate
 var decision_frames: int = 0 #when the player will decide how to attack
 var current_decision_frame: int = 0
 
-# Behavior system variables
-var player_preference = {
-	"bull_rush": 50.0,
-	"skill_rush": 100.0,
-	"target_man": 100.0,
-	"shooter": 100.0,
-	"rebound": 50.0,
-	"pick": 10.0,
-	"bully": 10.0,
-	"fencing": 5.0,
-	"cower": 5.0
-}
 var behavior_cooldowns = {}
 var last_behavior_change = 0.0
 
@@ -55,6 +43,17 @@ var is_avoiding_guard: bool = false
 
 
 func _ready():
+	forward_strategy = {
+	"bull_rush": 50.0,
+	"skill_rush": 100.0,
+	"target_man": 100.0,
+	"shooter": 100.0,
+	"rebound": 50.0,
+	"pick": 10.0,
+	"bully": 10.0,
+	"fencing": 5.0,
+	"cower": 5.0
+}
 	z_index = 2
 	behaviors = ["bull_rush", "skill_rush", "target_man", "shooter", "rebound", "pick", "bully", "fencing", "cower", "returning"]
 	current_behavior = "bull_rush"
@@ -275,13 +274,13 @@ func execute_pick():
 	if !other_guard:
 		return
 	if other_guard.is_stunned:
-		var sum = player_preference.shooter + player_preference.bull_rush + player_preference.bully + player_preference.rebound
+		var sum = forward_strategy.shooter + forward_strategy.bull_rush + forward_strategy.bully + forward_strategy.rebound
 		var random = randf_range(0,sum)
-		if random < player_preference.shooter:
+		if random < forward_strategy.shooter:
 			current_behavior = "shooter"
-		elif random < player_preference.shooter + player_preference.bull_rush:
+		elif random < forward_strategy.shooter + forward_strategy.bull_rush:
 			current_behavior = "bull_rush"
-		elif random < player_preference.shooter + player_preference.bull_rush + player_preference.bully:
+		elif random < forward_strategy.shooter + forward_strategy.bull_rush + forward_strategy.bully:
 			current_behavior = "bully"
 		else:
 			current_behavior = "rebound"
@@ -395,7 +394,7 @@ func choose_behavior():
 	
 	for behavior in behaviors:
 		# Base weight is product of team strategy and player preference
-		var base_weight = team_strategy.get(behavior + "_weight", 1.0) * player_preference.get(behavior, 1.0)
+		var base_weight = team_strategy.get(behavior + "_weight", 1.0) * forward_strategy.get(behavior, 1.0)
 		
 		# Apply situational modifier
 		var situational_weight = situational_weights.get(behavior, 1.0)

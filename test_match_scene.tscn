@@ -30,14 +30,12 @@ script = ExtResource("2_w1g4r")
 [node name="Aim_Target" parent="." instance=ExtResource("6_mpo6o")]
 
 [node name="UI" type="Node2D" parent="."]
-position = Vector2(-63, -189)
 
 [node name="MatchStatusUI" parent="UI" instance=ExtResource("7_46orc")]
 
 [node name="PauseMenu" parent="UI" instance=ExtResource("8_h76e2")]
 
 [node name="Score" type="RichTextLabel" parent="UI"]
-visible = false
 offset_right = 40.0
 offset_bottom = 40.0
 

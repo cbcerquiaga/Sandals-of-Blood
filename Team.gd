@@ -403,8 +403,9 @@ func switch_zone():
 func debug_default_roster():
 	roster.clear()
 	bench.clear()
-	var P1 = Reworked_Pitcher.new()
+	var P1 = Player.new()
 	P1.position_type = "pitcher"
+	P1.declared_pitcher = true
 	P1.bio = {"first_name": "Billy", "last_name": "Knuckles", "leftHanded": false}
 	P1.attributes = {
 		"speedRating": 65, 
@@ -426,6 +427,7 @@ func debug_default_roster():
 	}
 	var P2 = Reworked_Pitcher.new()
 	P2.position_type = "pitcher"
+	P2.declared_pitcher = true
 	P2.bio = {"first_name": "Randy", "last_name": "Runningham", "leftHanded": true}
 	P2.attributes = {
 		"speedRating": 85, 
@@ -494,10 +496,10 @@ func debug_default_roster():
 	
 func applyTactics():
 	print("applying tactics. D:",  strategy.tactics.D, ", LF:", strategy.tactics.LF, ", RF:", strategy.tactics.RF)
-	LG.strategy = strategy.tactics.D
-	RG.strategy = strategy.tactics.D
-	LF.player_preference = strategy.tactics.LF
-	RF.player_preference = strategy.tactics.RF
+	LG.defense_strategy = strategy.tactics.D
+	RG.defense_strategy = strategy.tactics.D
+	LF.forward_strategy = strategy.tactics.LF
+	RF.forward_strategy = strategy.tactics.RF
 
 func check_player_positions():
 	for player in get_all_field_players():

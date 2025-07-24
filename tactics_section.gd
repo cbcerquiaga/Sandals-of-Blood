@@ -1,4 +1,4 @@
-extends Control
+extends HBoxContainer
 class_name TacticsSection
 
 @onready var LF_Lbutton = $LF/LB

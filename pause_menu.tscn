@@ -1,85 +1,89 @@
-[gd_scene load_steps=10 format=3 uid="uid://csyirpbcdrnoo"]
+[gd_scene load_steps=15 format=3 uid="uid://csyirpbcdrnoo"]
 
 [ext_resource type="Script" path="res://pause_menu.gd" id="1_2e70y"]
 [ext_resource type="Texture2D" uid="uid://3mobcbc75wt5" path="res://UI/PauseUI/Resume_button_base.png" id="1_l1b0n"]
 [ext_resource type="Texture2D" uid="uid://c72kjwsxqkkoj" path="res://UI/PauseUI/Strategy_button_base.png" id="2_ljhkn"]
 [ext_resource type="Texture2D" uid="uid://7e44eg3lk0xt" path="res://UI/PauseUI/Statistics_button_base.png" id="3_4fnrc"]
+[ext_resource type="Texture2D" uid="uid://djk6givcuuhk4" path="res://UI/PauseUI/Resume_button_highlighted.png" id="3_b2bf1"]
 [ext_resource type="Texture2D" uid="uid://d5xkjtgqnhjt" path="res://UI/PauseUI/Options_button_base.png" id="4_2adj8"]
+[ext_resource type="Texture2D" uid="uid://bin7jcmtnp5sk" path="res://UI/PauseUI/Strategy_button_highlighted.png" id="5_6gn2x"]
 [ext_resource type="Texture2D" uid="uid://b530okb827gvu" path="res://UI/PauseUI/Export_button_base.png" id="5_lqvu2"]
 [ext_resource type="Texture2D" uid="uid://msxwiftij82j" path="res://UI/PauseUI/Exit_button_base.png" id="6_xi0u8"]
+[ext_resource type="Texture2D" uid="uid://beufj6fb0geis" path="res://UI/PauseUI/Statistics_button_highlighted.png" id="7_s7nxb"]
 [ext_resource type="PackedScene" uid="uid://e818m1s2f5xp" path="res://strategy_menu.tscn" id="8_qt7cb"]
+[ext_resource type="Texture2D" uid="uid://bb04dx5wj6itb" path="res://UI/PauseUI/Options_button_highlighted.png" id="9_f1xgc"]
+[ext_resource type="Texture2D" uid="uid://ccjk7lnkbyas0" path="res://UI/PauseUI/Export_button_highlighted.png" id="11_csx32"]
+[ext_resource type="Texture2D" uid="uid://cdvco7npy88ah" path="res://UI/PauseUI/Exit_button_highlighted.png" id="13_7usw0"]
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_htnlx"]
-size = Vector2(1042, 273)
+[node name="PauseMenu" type="CanvasLayer"]
+process_mode = 2
+script = ExtResource("1_2e70y")
 
-[node name="PauseMenu" type="Control"]
+[node name="ButtonContainer" type="VBoxContainer" parent="."]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -540.0
+offset_top = -894.0
+offset_right = 540.0
+offset_bottom = 894.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = -30
+
+[node name="Resume" type="TextureButton" parent="ButtonContainer"]
+layout_mode = 2
+texture_normal = ExtResource("1_l1b0n")
+texture_hover = ExtResource("3_b2bf1")
+texture_focused = ExtResource("3_b2bf1")
+stretch_mode = 3
+
+[node name="Strategy" type="TextureButton" parent="ButtonContainer"]
+layout_mode = 2
+texture_normal = ExtResource("2_ljhkn")
+texture_hover = ExtResource("5_6gn2x")
+texture_focused = ExtResource("5_6gn2x")
+
+[node name="Statistics" type="TextureButton" parent="ButtonContainer"]
+layout_mode = 2
+texture_normal = ExtResource("3_4fnrc")
+texture_hover = ExtResource("7_s7nxb")
+texture_focused = ExtResource("7_s7nxb")
+
+[node name="Options" type="TextureButton" parent="ButtonContainer"]
+layout_mode = 2
+texture_normal = ExtResource("4_2adj8")
+texture_hover = ExtResource("9_f1xgc")
+texture_focused = ExtResource("9_f1xgc")
+
+[node name="Export" type="TextureButton" parent="ButtonContainer"]
+layout_mode = 2
+texture_normal = ExtResource("5_lqvu2")
+texture_hover = ExtResource("11_csx32")
+texture_focused = ExtResource("11_csx32")
+
+[node name="Exit" type="TextureButton" parent="ButtonContainer"]
+layout_mode = 2
+texture_normal = ExtResource("6_xi0u8")
+texture_hover = ExtResource("13_7usw0")
+texture_focused = ExtResource("13_7usw0")
+
+[node name="Submenus" type="Control" parent="."]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-script = ExtResource("1_2e70y")
-
-[node name="Resume" type="Sprite2D" parent="."]
-texture = ExtResource("1_l1b0n")
-
-[node name="Area2D" type="Area2D" parent="Resume"]
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Resume/Area2D"]
-position = Vector2(8, 5.5)
-shape = SubResource("RectangleShape2D_htnlx")
-
-[node name="Strategy" type="Sprite2D" parent="."]
-position = Vector2(0, 300)
-texture = ExtResource("2_ljhkn")
-
-[node name="Area2D" type="Area2D" parent="Strategy"]
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Strategy/Area2D"]
-position = Vector2(8, 5.5)
-shape = SubResource("RectangleShape2D_htnlx")
-
-[node name="Statistics" type="Sprite2D" parent="."]
-position = Vector2(0, 600)
-texture = ExtResource("3_4fnrc")
-
-[node name="Area2D" type="Area2D" parent="Statistics"]
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Statistics/Area2D"]
-position = Vector2(8, 5.5)
-shape = SubResource("RectangleShape2D_htnlx")
-
-[node name="Options" type="Sprite2D" parent="."]
-position = Vector2(0, 900)
-texture = ExtResource("4_2adj8")
-
-[node name="Area2D" type="Area2D" parent="Options"]
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Options/Area2D"]
-position = Vector2(8, 5.5)
-shape = SubResource("RectangleShape2D_htnlx")
-
-[node name="Export" type="Sprite2D" parent="."]
-position = Vector2(0, 1200)
-texture = ExtResource("5_lqvu2")
-
-[node name="Area2D" type="Area2D" parent="Export"]
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Export/Area2D"]
-position = Vector2(8, 5.5)
-shape = SubResource("RectangleShape2D_htnlx")
-
-[node name="Exit" type="Sprite2D" parent="."]
-position = Vector2(0, 1500)
-texture = ExtResource("6_xi0u8")
-
-[node name="Area2D" type="Area2D" parent="Exit"]
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Exit/Area2D"]
-position = Vector2(8, 5.5)
-shape = SubResource("RectangleShape2D_htnlx")
-
-[node name="Submenus" type="Node" parent="."]
+mouse_filter = 2
 
 [node name="Strategy_Menu" parent="Submenus" instance=ExtResource("8_qt7cb")]
+visible = false
+layout_mode = 1
+mouse_filter = 2
+
+[connection signal="pressed" from="ButtonContainer/Resume" to="." method="_on_resume_pressed"]
+[connection signal="pressed" from="ButtonContainer/Strategy" to="." method="_on_strategy_pressed"]
+[connection signal="new_sub" from="Submenus/Strategy_Menu" to="." method="_on_strategy_menu_new_sub"]

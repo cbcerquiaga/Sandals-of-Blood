@@ -190,6 +190,7 @@ func _on_player_goal():
 	aTeam.is_on_offense = !is_human_team_pitching
 	
 	#TODO: goal celebrations
+	pauseMenu.clear_subs()
 	reset_players_for_next_play()
 	reposition_players()
 	score_goal(1)
@@ -249,6 +250,7 @@ func reset_match(p_offense):
 func _process(delta: float) -> void:
 	if Input.is_action_just_pressed("pause"):
 		get_tree().paused = true
+		pauseMenu.show()
 	#if Input.is_action_just_pressed("switch_zone"):
 		#pTeam.switch_zone()
 	if is_play_live:
@@ -312,8 +314,9 @@ func next_play():
 	out_of_bounds_frames = 0
 	
 	# Update team status for next play
-	pTeam.check_pending_substitutions()
-	aTeam.check_pending_substitutions()
+	pauseMenu.perform_substitions()
+	#pTeam.check_pending_substitutions()
+	#aTeam.check_pending_substitutions()
 	statusUI.assign_team(self)
 	pTeam.nextPlayStatus()
 	aTeam.nextPlayStatus()
@@ -690,3 +693,8 @@ func update_team_strategy(team: Team):
 	pTeam.pending_roster = team.pending_roster
 	pTeam.pending_bench = team.pending_bench
 	pTeam.pending_bullpen = team.pending_bullpen
+
+
+func _on_pause_menu_new_sub() -> void:
+	if not has_started:
+		pauseMenu.perform_substitution()

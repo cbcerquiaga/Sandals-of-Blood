@@ -5,18 +5,18 @@ class_name StrategyMenu
 @onready var substitutionSection = $SubstitutionSection
 @onready var benchSection = $Bench
 @onready var background: Sprite2D
-@onready var subOn = $SubstitutionSection/SubOn
-@onready var subOff = $SubstitutionSection/SubOff
+@onready var subOn = $SubstitutionSection/SubContainer/SubOn
+@onready var subOff = $SubstitutionSection/SubContainer/SubOff
 @onready var subs_counter = $SubstitutionSection/SubsRemaining
-@onready var sub_button = $SubstitutionSection/SubButton
-@onready var discard_button = $DiscardButton
-@onready var save_button = $SaveButton
-@onready var lf_button = $SubstitutionSection/LF_Button
-@onready var rf_button = $SubstitutionSection/RF_Button
-@onready var p_button = $SubstitutionSection/P_Button
-@onready var lg_button = $SubstitutionSection/LG_Button
-@onready var rg_button = $SubstitutionSection/RG_Button
-@onready var k_button = $SubstitutionSection/K_Button
+@onready var sub_button = $SubstitutionSection/SubButtonsContainer/SubButton
+@onready var discard_button = $SaveDiscardContainer/DiscardButton
+@onready var save_button = $SaveDiscardContainer/SaveButton
+@onready var lf_button = $SubstitutionSection/FieldGrid/LF_Button
+@onready var rf_button = $SubstitutionSection/FieldGrid/RF_Button
+@onready var p_button = $SubstitutionSection/FieldGrid/P_Button
+@onready var lg_button = $SubstitutionSection/FieldGrid/LG_Button
+@onready var rg_button = $SubstitutionSection/FieldGrid/RG_Button
+@onready var k_button = $SubstitutionSection/FieldGrid/K_Button
 var lf
 var rf
 var p
@@ -25,9 +25,10 @@ var lg
 var rg
 var subOn_player: Player
 var subOff_player: Player
+var subOn_position : String
 var subOff_position: String
 var pending_subs: Array = [] #array of players to display the pending substitutions
-var pending_substitution #array of roster, bench, and bullpen
+var pending_substitution : Array[Dictionary] = [] #array of roster, bench, and bullpen
 
 var is_in_match:bool = true #false if we got here from the team management menu, true if we got here from pausing a match
 var original_roster:Array
@@ -45,44 +46,9 @@ var last_focused_button: Control
 var current_focus_owner: Control = null
 
 signal menu_closed
+signal new_sub
 
 func _ready():
-	process_mode = Node.PROCESS_MODE_WHEN_PAUSED
-	tacticsSection.scale = Vector2(0.5, 0.5)
-	tacticsSection.position = Vector2(-300, 50)
-	benchSection.scale = Vector2(0.1, 0.1)
-	benchSection.position = Vector2(250, 30)
-	subOff.scale = Vector2(0.1, 0.1)
-	subOn.scale = Vector2(0.1, 0.1)
-	subOff.get_node("Label").scale = Vector2(6,6)
-	subOff.get_node("Label").position = Vector2(-60,-60)
-	subOff.get_node("Label").z_index = 0
-	subOff.get_node("Label").text = "TEST TEST TEST"
-	subOn.get_node("Label").scale = Vector2(6,6)
-	subOn.get_node("Label").position = Vector2(-60,-60)
-	subOff.position = Vector2(-300, 200)
-	subOn.position = Vector2(-180, 200)
-	save_button.scale = Vector2(0.1, 0.1)
-	save_button.position = Vector2(-200, 390)
-	discard_button.scale = Vector2(0.1, 0.1)
-	discard_button.position = Vector2(-350, 390)
-	$SubstitutionSection/LF_Button.position = Vector2(-375, 275)
-	$SubstitutionSection/LG_Button.position = Vector2(-375, 325)
-	$SubstitutionSection/RF_Button.position = Vector2(-25, 275)
-	$SubstitutionSection/RG_Button.position = Vector2(-25, 325)
-	$SubstitutionSection/P_Button.position = Vector2(-200, 275)
-	$SubstitutionSection/K_Button.position = Vector2(-200, 325)
-	$SubstitutionSection/LF_Button.scale = Vector2(0.1, 0.1)
-	$SubstitutionSection/LG_Button.scale = Vector2(0.1, 0.1)
-	$SubstitutionSection/RF_Button.scale = Vector2(0.1, 0.1)
-	$SubstitutionSection/RG_Button.scale = Vector2(0.1, 0.1)
-	$SubstitutionSection/P_Button.scale = Vector2(0.1, 0.1)
-	$SubstitutionSection/K_Button.scale = Vector2(0.1, 0.1)
-	subs_counter.position = Vector2(300, 200)
-	sub_button.position = Vector2(0, 220)
-	sub_button.scale = Vector2(0.1, 0.1)
-	position = Vector2(0,-200)
-	position_labels_left()
 	save_button.pressed.connect(_on_save_pressed)
 	discard_button.pressed.connect(_on_discard_pressed)
 	sub_button.pressed.connect(perform_substitution)
@@ -119,7 +85,7 @@ func _ready():
 	rg_button.pressed.connect(_on_RG_button_pressed)
 	k_button.pressed.connect(_on_K_button_pressed)
 	
-	hide()
+	#hide()
 	
 func _track_focus(button: Control):
 	last_focused_button = button
@@ -216,12 +182,44 @@ func field_player_chosen(position: String, player: Player):
 	print("field player chosen: " + str(player))
 	if not player:
 		return
-	subOff_player = player
-	subOff_position = position
-	$SubstitutionSection/SubOff/Label.text = position + " " + player.bio.last_name
+	if subOff_player:
+		if subOff_player == player:
+			subOff_player = null
+			subOff_position = ""
+			$SubstitutionSection/SubContainer/SubOff/Label.text = ""
+		else:
+			swap_player_spots(subOff_player, player, position)
+	else:
+		subOff_player = player
+		subOff_position = position
+		$SubstitutionSection/SubContainer/SubOff/Label.text = position + " " + player.bio.last_name
 	update_pending_display()
 	maintain_focus()
+
+
+func swap_player_spots(player1, player2, player2_position):
+	current_team.set(subOff_position, player2)
+	current_team.set(player2_position, player1)
+	subOff_player = null
+	subOff_position = ""
+	$SubstitutionSection/SubContainer/SubOff/Label.text = ""
+	apply_team_to_field()
+
+
+func substitute_players() -> void:
+	var new_sub : Dictionary = {}
+	new_sub["subOn_player"] = subOn_player
+	new_sub["subOff_player"] = subOff_player
+	new_sub["subOff_position"] = subOff_position
+	pending_substitution.append(new_sub)
 	
+	subOn_player = null
+	subOff_player = null
+	subOff_position = ""
+	$SubstitutionSection/SubContainer/SubOff/Label.text = ""
+	$SubstitutionSection/SubContainer/SubOn/Label.text = ""
+
+
 func bench_player_chosen(chosenPlayer: Player):
 	if not chosenPlayer:
 		return
@@ -232,13 +230,13 @@ func bench_player_chosen(chosenPlayer: Player):
 			switch_player_positions(chosenPlayer, subOn_player)
 		elif subOn_player == chosenPlayer:
 			subOn_player = null
-			subOff_player = null
-			subOff_position = ""
-			$SubstitutionSection/SubOn/Label.text = ""
-			$SubstitutionSection/SubOff/Label.text = ""
+			#subOff_player = null
+			#subOff_position = ""
+			$SubstitutionSection/SubContainer/SubOn/Label.text = ""
+			#$SubstitutionSection/SubOff/Label.text = ""
 	else:
 		subOn_player = chosenPlayer
-		$SubstitutionSection/SubOn/Label.text = chosenPlayer.bio.last_name
+		$SubstitutionSection/SubContainer/SubOn/Label.text = chosenPlayer.bio.last_name
 	update_pending_display()
 	maintain_focus()
 
@@ -249,39 +247,37 @@ func update_pending_display():
 			pending_text += sub.position + " " + sub.player_on.bio.last_name + "\n"
 		if subOn_player and subOff_player:
 			pending_text += subOff_position + " " + subOn_player.bio.last_name
-		$SubstitutionSection/SubOn/Label.text = pending_text
-		$SubstitutionSection/SubOff/Label.text = pending_text
+		$SubstitutionSection/SubContainer/SubOn/Label.text = pending_text
+		$SubstitutionSection/SubContainer/SubOff/Label.text = pending_text
 	else:
 		if subOn_player:
-			$SubstitutionSection/SubOn/Label.text = subOn_player.bio.last_name
+			$SubstitutionSection/SubContainer/SubOn/Label.text = subOn_player.bio.last_name
 		else:
-			$SubstitutionSection/SubOn/Label.text = ""
+			$SubstitutionSection/SubContainer/SubOn/Label.text = ""
 		if subOff_player:
-			$SubstitutionSection/SubOff/Label.text = subOff_position + " " + subOff_player.bio.last_name
+			$SubstitutionSection/SubContainer/SubOff/Label.text = subOff_position + " " + subOff_player.bio.last_name
 		else:
-			$SubstitutionSection/SubOff/Label.text = ""
+			$SubstitutionSection/SubContainer/SubOff/Label.text = ""
+
+
 
 func perform_substitution():
-	if not subOn_player or not subOff_player:
+	if pending_substitution.size() <= 0:
 		return
-	if current_team.subs_remaining <= 0:
-		return
-	var field_index = original_roster.find(subOff_player)
-	var off_index = -1
-	if subOff_player == p: #the player is currently the pitcher
-		off_index = original_bullpen.find(subOff_player)
-		#TODO: swap the players- put subOff player in subOn's bullpen position and subOn in SubOff's field position
-	else:
-		off_index = original_bench.find(subOn_player)
-		#TODO: swap the players- put subOff player in subOn's bench position and subOn in subOff's field position
-	var sub_data = { #TODO: add to stats game log
-		"field": pending_roster,
-		"bench": pending_bench,
-		"bullpen": pending_bullpen
-	}
-	pending_substitution = sub_data
-	current_team.subs_remaining -= 1
+	
+	for sub in pending_substitution:
+		var team = current_team
+		var player1 = sub["subOff_player"]
+		var player2 = sub["subOn_player"]
+		var sub_position = sub["subOff_position"]
+		var player2_idx = current_team.roster.find(player2)
+		current_team.set(sub_position, player2)
+		current_team.roster.erase(player2)
+		current_team.roster.append(player1)
+	
 	update_pending_display()
+	benchSection.import_roster(current_team.roster)
+	apply_team_to_field()
 	
 	subOn_player = null
 	subOff_player = null
@@ -296,6 +292,7 @@ func _on_save_pressed():
 	else:
 		save_strategy(current_team, "user://player_team_strategy.json")
 	if pending_roster != original_roster:
+		#TODO: invalid assignment of property or key pending_substitution with value of type array[dictionary] on a base object of type node(Team)
 		current_team.pending_substitution = pending_substitution#TODO: if in match, take effect on next play; if not, take effect immediately
 	emit_signal("menu_closed")
 	hide()
@@ -343,6 +340,7 @@ func load_strategy(team: Team, file_path: String):
 
 func set_team_info(team: Team):
 	benchSection.import_roster(team.roster)
+	original_bench = benchSection.bench
 	tacticsSection.import_team(team)
 	
 func apply_team_to_field():
@@ -358,34 +356,41 @@ func apply_team_to_field():
 	var lg_overall = benchSection.calculate_guard_overall(lg)
 	var rg_overall = benchSection.calculate_guard_overall(rg)
 	var k_overall = benchSection.calculate_keeper_overall(k)
-	$SubstitutionSection/LF_Button/Label.text = "LF: " + lf.bio.first_name + " " +  lf.bio.last_name + "\n" + str(lf_overall) + " Rating " + str(lf.status.energy) + "% Energy"
-	$SubstitutionSection/P_Button/Label.text = "P: " + p.bio.first_name+ " "  + p.bio.last_name + "\n" + str(p_overall) + " Rating " + str(p.status.energy) + "% Energy"
-	$SubstitutionSection/RF_Button/Label.text = "RF: " + rf.bio.first_name + " " + rf.bio.last_name + "\n" + str(rf_overall) + " Rating " + str(rf.status.energy) + "% Energy"
-	$SubstitutionSection/LG_Button/Label.text = "LG: " + lg.bio.first_name + " " + lg.bio.last_name + "\n" + str(lg_overall) + " Rating " + str(lg.status.energy) + "% Energy"
-	$SubstitutionSection/K_Button/Label.text = "K: " + k.bio.first_name + " "+ k.bio.last_name + "\n" + str(k_overall) + " Rating " + str(k.status.energy) + "% Energy"
-	$SubstitutionSection/RG_Button/Label.text = "RG: " + rg.bio.first_name + " "+ rg.bio.last_name + "\n" + str(rg_overall) + " Rating " + str(rg.status.energy) + "% Energy"
+	$SubstitutionSection/FieldGrid/LF_Button/Label.text = "LF: " + lf.bio.first_name + " " +  lf.bio.last_name + "\n" + str(lf_overall) + " Rating " + str(lf.status.energy) + "% Energy"
+	$SubstitutionSection/FieldGrid/P_Button/Label.text = "P: " + p.bio.first_name+ " "  + p.bio.last_name + "\n" + str(p_overall) + " Rating " + str(p.status.energy) + "% Energy"
+	$SubstitutionSection/FieldGrid/RF_Button/Label.text = "RF: " + rf.bio.first_name + " " + rf.bio.last_name + "\n" + str(rf_overall) + " Rating " + str(rf.status.energy) + "% Energy"
+	$SubstitutionSection/FieldGrid/LG_Button/Label.text = "LG: " + lg.bio.first_name + " " + lg.bio.last_name + "\n" + str(lg_overall) + " Rating " + str(lg.status.energy) + "% Energy"
+	$SubstitutionSection/FieldGrid/K_Button/Label.text = "K: " + k.bio.first_name + " "+ k.bio.last_name + "\n" + str(k_overall) + " Rating " + str(k.status.energy) + "% Energy"
+	$SubstitutionSection/FieldGrid/RG_Button/Label.text = "RG: " + rg.bio.first_name + " "+ rg.bio.last_name + "\n" + str(rg_overall) + " Rating " + str(rg.status.energy) + "% Energy"
 	#TODO: update the player names, just like bench_section
 	#TODO: update the 
 	
 func position_labels_left():
 	var offset = Vector2(175, 75)
 	var label_scale = Vector2(0.75, 0.75)
-	$SubstitutionSection/LF_Button/Label.position = offset
-	$SubstitutionSection/RF_Button/Label.position = offset
-	$SubstitutionSection/LG_Button/Label.position = offset
-	$SubstitutionSection/RG_Button/Label.position = offset
-	$SubstitutionSection/P_Button/Label.position = offset
-	$SubstitutionSection/K_Button/Label.position = offset
-	$SubstitutionSection/LF_Button/Label.scale = label_scale
-	$SubstitutionSection/RF_Button/Label.scale = label_scale
-	$SubstitutionSection/LG_Button/Label.scale = label_scale
-	$SubstitutionSection/RG_Button/Label.scale = label_scale
-	$SubstitutionSection/P_Button/Label.scale = label_scale
-	$SubstitutionSection/K_Button/Label.scale = label_scale
+	$SubstitutionSection/FieldGrid/LF_Button/Label.position = offset
+	$SubstitutionSection/FieldGrid/RF_Button/Label.position = offset
+	$SubstitutionSection/FieldGrid/LG_Button/Label.position = offset
+	$SubstitutionSection/FieldGrid/RG_Button/Label.position = offset
+	$SubstitutionSection/FieldGrid/P_Button/Label.position = offset
+	$SubstitutionSection/FieldGrid/K_Button/Label.position = offset
+	$SubstitutionSection/FieldGrid/LF_Button/Label.scale = label_scale
+	$SubstitutionSection/FieldGrid/RF_Button/Label.scale = label_scale
+	$SubstitutionSection/FieldGrid/LG_Button/Label.scale = label_scale
+	$SubstitutionSection/FieldGrid/RG_Button/Label.scale = label_scale
+	$SubstitutionSection/FieldGrid/P_Button/Label.scale = label_scale
+	$SubstitutionSection/FieldGrid/K_Button/Label.scale = label_scale
 
 func switch_player_positions(player1: Player, player2: Player):
 	benchSection.currentPlayer = player1
 	benchSection.switch_player_positions(player2)
+	original_bench = benchSection.bench
+
+
+#func switch_player_positions(player1: Player, player2: Player):
+	#benchSection.switch_player_positions(player2)
+	#original_bench = benchSection.bench
+
 
 func _on_LF_button_pressed():
 	field_player_chosen("LF", lf)
@@ -416,3 +421,18 @@ func _on_K_button_pressed():
 	field_player_chosen("K", k)
 	k_button.grab_focus()
 	current_focus_owner = k_button
+
+
+func _on_bench_player_selected(player : Player) -> void:
+	bench_player_chosen(player)
+
+
+func _on_bench_bench_switched_position() -> void:
+	subOn_player = null
+	update_pending_display()
+	maintain_focus()
+
+
+func _on_sub_button_pressed() -> void:
+	substitute_players()
+	new_sub.emit()
