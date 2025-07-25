@@ -296,10 +296,9 @@ func apply_roster_to_UI():
 func calculate_pitcher_overall(player: Player):
 	var att = player.attributes
 	var ratings = []
-	ratings.append((att.power + att.focus + att.accuracy)/3)
-	ratings.append((att.endurance + att.confidence + att.accuracy)/3)
-	ratings.append((att.speedRating + att.endurance + att.reactions)/3)
-	ratings.append((att.toughness + att.shooting + att.power + att.speedRating + att.durability + att.balance)/5)
+	ratings.append(( (att.power + att.throwing)/2 + att.focus + att.accuracy + att.confidence)/4)#general throwing rating
+	ratings.append((att.endurance * 2 + att.confidence + att.accuracy * 2 + (att.power + att.throwing)/2 + att.focus)/7) #workhorse rating
+	ratings.append((att.toughness + att.shooting + att.power + att.speedRating + att.durability + att.balance)/5) #enforcer rating
 	ratings.sort()
 	ratings.reverse()
 	return int((ratings[0] + ratings[1])/2)

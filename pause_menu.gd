@@ -133,3 +133,6 @@ func _on_strategy_pressed() -> void:
 
 func _on_strategy_menu_new_sub() -> void:
 	new_sub.emit()
+	
+func clear_subs():
+	strategy_menu.clear_subs()

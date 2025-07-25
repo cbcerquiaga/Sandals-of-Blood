@@ -15,12 +15,13 @@ var field_position: String
 	"reactions": 90, #1-100, impacts AI speed
 	"durability": 75,	#1-100, impacts injury chance
 	"power": 70,        # 1-100, affects hit strength, pitch power
+	"throwing": 75, #1-100, modifies power when throwing
 	"endurance": 60,    # 1-100, affects boost recovery and maximum boost
 	"accuracy": 65,     # 1-100, affects shot precision and pitch accuracy
 	"balance": 55,		# 1-100, affects damage taken from hits and stability in fights
 	"focus": 50,        # 1-100, affects curve control
 	"shooting": 50,		# 1-100, affects shot and pass speed, punch power in fights
-	"toughness": 60,    # 1-100, brawl defense
+	"toughness": 60,    # 1-100, fighting defense/skill
 	"confidence": 90    # 1-100, affects special moves
 }
 

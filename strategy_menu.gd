@@ -375,6 +375,11 @@ func switch_player_positions(player1: Player, player2: Player):
 	#benchSection.switch_player_positions(player2)
 	#original_bench = benchSection.bench
 
+func clear_subs():
+	$SubstitutionSection/SubContainer/SubOff/Label.text = ""
+	$SubstitutionSection/SubContainer/SubOn/Label.text = ""
+	pending_subs = []
+
 
 func _on_LF_button_pressed():
 	field_player_chosen("LF", lf)

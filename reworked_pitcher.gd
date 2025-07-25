@@ -5,7 +5,7 @@ signal ball_pitched(power: float, spin: float, direction: Vector2, position: Vec
 signal special_pitched(direction: Vector2, power: float, curves: Array[float], frames: Array[int], pitch_type: String)
 
 # Pitching Controls
-var true_max_power = 1200 * attributes.power/100 #maximum possible power at 100% energy
+var true_max_power = 1200 * (attributes.power * attributes.throwing/100)/100 #maximum possible power at 100% energy
 @export var max_power: float = true_max_power * status.energy
 @export var min_power: float = 100
 @export var max_curve: float = 2.0 # radians/second
@@ -327,10 +327,10 @@ func ai_execute_normal_pitch(target_pos: Vector2):
 	var energy_factor = status.energy / 100.0
 	
 	if energy_factor > 0.5:
-		current_power = lerp(attributes.power * 2, attributes.power * 4, aggression_factor) * 4
+		current_power = lerp((attributes.power* attributes.throwing/100) * 2, (attributes.power* attributes.throwing/100) * 4, aggression_factor) * 4
 		status.energy -= (100 - attributes.endurance) * 5
 	else:
-		current_power = randf_range(attributes.power, attributes.power * 2) * 4
+		current_power = randf_range((attributes.power* attributes.throwing/100), (attributes.power* attributes.throwing/100) * 2) * 4
 		status.energy -= (100 - attributes.endurance) * 2
 	
 	var focus_factor = attributes.focus / 100.0
