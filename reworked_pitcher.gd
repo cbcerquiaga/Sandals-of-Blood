@@ -133,12 +133,16 @@ func _physics_process(delta):
 		fight_footwork()
 	elif current_behavior == "chilling":
 		chill()
+		check_human_input()
 	elif current_behavior == "chasing":
 		chase()
+		check_human_input()
 	elif current_behavior == "fleeing":
 		flee()
+		check_human_input()
 	elif current_behavior == "tracking":
 		track()
+		check_human_input()
 	elif current_behavior == "going_away":
 		handle_going_away()
 	if is_controlling_player and is_aiming:
@@ -154,6 +158,36 @@ func _physics_process(delta):
 		has_arrived = false
 		random_variance()
 		handle_ai_pitch_decision()
+		
+func check_human_input():
+	if team == 1:
+		if Input.is_action_just_pressed("pitcher_chill"):
+			current_behavior = "chilling"
+		elif Input.is_action_just_pressed("pitcher_chase"):
+			current_behavior = "chasing"
+		elif Input.is_action_just_pressed("pitcher_flee"):
+			current_behavior = "tracking"
+		elif Input.is_action_just_pressed("pitcher_turn"):
+			moving_clockwise = !moving_clockwise
+			if current_behavior == "chilling":
+				current_behavior = "chasing"
+			change_directions()
+
+func change_directions():
+	var next_index = current_path_index
+	if moving_clockwise:
+		next_index = next_index + 1
+		if next_index > running_positions.size() - 1:
+			next_index = 0
+	else:
+		next_index = next_index - 1
+		if next_index < 0:
+			next_index = running_positions.size() - 1
+	current_path_index = next_index
+	current_waypoint = running_positions[current_path_index].global_position
+	var direction_to_waypoint = global_position.direction_to(current_waypoint)
+	var speed = attributes.sprint_speed if status.boost > 0 else attributes.speed
+	velocity = direction_to_waypoint * speed
 
 func increment_pitch_time():
 	current_frame = current_frame + 1
