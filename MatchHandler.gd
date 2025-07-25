@@ -14,7 +14,7 @@ var current_settings := {
 	"extra_pitches": 5,
 	"sudden_death": true,
 	"play_length": 30.0, # seconds
-	"time_scale": 0.5,#0.8 works
+	"time_scale": 0.35,#0.8 works
 	"field_type": FieldType.ROAD
 }
 
@@ -559,7 +559,7 @@ func update_settings(new_settings: Dictionary):
 
 # Accessibility setting
 func set_time_scale(scale: float):
-	current_settings.time_scale = clamp(scale, 0.25, 1.0)
+	current_settings.time_scale = clamp(scale, 0.2, 1.0)
 	apply_time_scale()
 	
 #players must know each other. More importantly, they must know ball

@@ -30,9 +30,15 @@ func _ready():
 	resume.grab_focus()
 	hide()
 	
-func open_menu():
+func open_menu(highlight: String = "resume"):
 	show()
-	resume.grab_focus()
+	$ButtonContainer.show()
+	match highlight:
+		"resume":
+			resume.grab_focus()
+		"strategy":
+			strategy.grab_focus()
+		
 #
 #func _process(delta):
 	#if get_tree().paused == true:
@@ -119,8 +125,9 @@ func perform_substitions() -> void:
 
 	
 func _on_strategy_menu_closed():
+	print("pause menu knows strategy menu closed")
 	submenu = ""
-	show()
+	open_menu("strategy")
 
 
 func _on_resume_pressed() -> void:
@@ -136,3 +143,8 @@ func _on_strategy_menu_new_sub() -> void:
 	
 func clear_subs():
 	strategy_menu.clear_subs()
+	
+func _unhandled_input(event):
+	if event.is_action_pressed("UI_exit"):
+		resume_game()
+		get_viewport().set_input_as_handled()

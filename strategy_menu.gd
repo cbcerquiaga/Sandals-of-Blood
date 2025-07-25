@@ -305,6 +305,11 @@ func apply_strategy_changes():
 func revert_changes():
 	current_team.strategy = original_strategy.duplicate(true)
 	current_team.pending_substitutions.clear()
+	
+func _unhandled_input(event):
+	if event.is_action_pressed("UI_exit"):
+		_on_discard_pressed()
+		get_viewport().set_input_as_handled()
 
 func save_strategy(team: Team, file_path: String):
 	var data = team.export_to_dict()
