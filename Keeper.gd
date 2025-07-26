@@ -89,8 +89,6 @@ func _ready():
 	behaviors = ["waiting", "defending", "sweeping", "avoiding", "fencing", "attacking", "blocking", "returning"]
 	current_behavior = "waiting"
 	super._ready()
-	attributes.blocking = 85 #nice and wide
-	self.scale.x = 1 * (attributes.blocking/50)
 	position_type = "keeper"
 	navigation_agent = $NavigationAgent2D
 	navigation_agent.path_desired_distance = 10.0
@@ -485,15 +483,16 @@ func on_shot_at_goal(shot_from: Vector2, shot_direction: Vector2, shooter_team: 
 		ball_direction_projection = shot_direction
 		current_behavior = "blocking"
 	elif !is_stunned and !is_dodging and velocity == Vector2(0,0) and intercept.distance_to(own_goal) < goal_width * 0.6:#slight buffer but has to be basically on goal
-		human_assisted_block(shot_from, shot_direction, intercept)
+		if is_swatter:
+			super_block(shot_from, shot_direction, intercept)
+		else:
+			human_assisted_block(shot_from, shot_direction, intercept)
 
 func human_assisted_block(shot_from: Vector2, shot_direction: Vector2, intercept: Vector2):
 	print("human assisted block initiated")
-	
 	# Calculate the intercept point
 	var diff = global_position.x - intercept.x
 	var block_distance = (25*(attributes.blocking - 50))/49 + 5 #maximum distance we'll block
-	
 	# Determine target position
 	if block_distance <= global_position.distance_to(intercept):
 		if diff <= 0:
@@ -507,6 +506,21 @@ func human_assisted_block(shot_from: Vector2, shot_direction: Vector2, intercept
 	navigation_agent.target_position = human_block_target
 	var block_direction = global_position.direction_to(human_block_target).normalized()
 	velocity = block_direction * attributes.sprint_speed * human_block_speed_multiplier
+
+#improved block ability for if the keeper has the "shot swatter" special active
+func super_block(shot_from: Vector2, shot_direction: Vector2, intercept: Vector2):
+	#TODO: find a path to the ball before the intercept
+	#TODO: get to the ball very quickly
+	pass
+	
+func handle_super_blocking(delta: float):
+	if not is_human_blocking or status.groove <= 0 or !is_swatter:
+		return false
+	human_block_timer -= delta
+	if human_block_timer <= 0:
+		is_human_blocking = false
+		return false
+	#TODO: attack the ball really fast
 	
 func handle_human_blocking(delta: float):
 	if not is_human_blocking:
@@ -681,6 +695,8 @@ func activate_special_ability():
 			is_anchor = true
 		"tireless":
 			is_tireless = true
+		"swatter":
+			is_swatter = true
 	if status.groove <= 0:
 		deactivate_special()
 			
@@ -691,6 +707,8 @@ func is_special_active():
 		return true
 	elif is_tireless:
 		return true
+	elif is_swatter:
+		return true
 	else:
 		return false
 
@@ -700,11 +718,13 @@ func use_special_ability():
 		is_maestro = false
 		is_anchor = false
 		is_tireless = false
+		is_swatter = false
 		
 func deactivate_special():
 	is_maestro = false
 	is_anchor = false
 	is_tireless = false
+	is_swatter = false
 		
 func ai_check_special_ability():
 	if status.groove >= attributes.confidence / 2:

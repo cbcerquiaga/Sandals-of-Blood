@@ -12,9 +12,8 @@ var true_max_power = 1200 * (attributes.power * attributes.throwing/100)/100 #ma
 @export var curve_step: float = 0.1
 
 # Special Pitches
-@export var special_pitch_cooldowns: Array[float] = [10.0, 15.0] # Seconds
-@export var special_pitch_names: Array[String] = ["knuckler", "fake_curve", "looper"]
-var special_pitch_groove: Array[float] = [20, 40, 60] #groove ratings needed to throw each pitch
+@export var special_pitch_names: Array[String] = ["bouncer", "fake_curve", "looper"]
+var special_pitch_groove: Array[float] = [0, 40, 10] #groove ratings needed to throw each pitch
 var special_pitch_available: Array[bool] = [false, false, false]
 
 # AI Memory and Decision Making
@@ -419,8 +418,8 @@ func execute_pitch(pitch_type: String):
 			perform_looper_pitch()
 		"corker":
 			perform_corker_pitch()
-		"boomerang":
-			perform_boomerang_pitch()
+		"yoyo":
+			perform_yoyo_pitch()
 	has_pitched = true
 	
 	var sp_index = special_pitch_names.find(pitch_type)
@@ -521,14 +520,14 @@ func perform_corker_pitch():
 	most_recent_pitch = {"pitch_type": "bouncer", "power": current_power, "curve": 0, "direction": aim_direction}
 	release_ball()
 	
-func perform_boomerang_pitch():
+func perform_yoyo_pitch():
 	aim_direction = global_position.direction_to(target).normalized()
 	status.energy = status.energy - (10 - attributes.endurance/10)
 	var curves: Array[float] = [0, -50, 0.0, -50, 0, -50, 0]
 	var frames: Array[int] = [50, 56, 58, 62, 74, 80]
 	current_power = 200
-	special_pitched.emit(aim_direction, current_power, curves, frames, "boomerang")
-	most_recent_pitch = {"pitch_type": "boomerang", "power": current_power, "curve": 0, "direction": aim_direction}
+	special_pitched.emit(aim_direction, current_power, curves, frames, "yoyo")
+	most_recent_pitch = {"pitch_type": "yoyo", "power": current_power, "curve": 0, "direction": aim_direction}
 	release_ball()
 
 func update_special_pitch_availability():

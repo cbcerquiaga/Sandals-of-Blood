@@ -120,6 +120,8 @@ var defense_strategy = {
 @onready var skin_tone_primary: String
 @onready var skin_tone_secondary: String
 @onready var complexion: String
+@onready var playStyle: String
+@onready var playStyle_texture: String
 
 #universal fields
 var current_behavior: String #used for state machine
@@ -142,6 +144,7 @@ var special_ability: String #determines which of the
 var is_anchor: bool = false #halves impact against in collisions
 var is_tireless: bool = false #infinite boost
 var is_maestro: bool = false #slows down time
+var is_swatter: bool = false #super shot blocker
 var active_buffs: Dictionary = {}
 
 
