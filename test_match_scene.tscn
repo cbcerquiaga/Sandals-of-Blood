@@ -14,7 +14,7 @@ script = ExtResource("1_v8xhv")
 
 [node name="Camera2D" type="Camera2D" parent="."]
 offset = Vector2(0, 30)
-zoom = Vector2(4, 4)
+zoom = Vector2(5, 5)
 script = ExtResource("2_w1g4r")
 
 [node name="RoadField" parent="." instance=ExtResource("1_wmjeh")]

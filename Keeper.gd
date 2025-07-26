@@ -100,7 +100,11 @@ func _physics_process(delta):
 		velocity = Vector2.ZERO
 		return
 	if is_human_blocking:
-		if handle_human_blocking(delta):
+		if is_swatter:
+			if handle_super_blocking(delta):
+				move_and_slide()
+				return
+		elif handle_human_blocking(delta):
 			move_and_slide()
 			return  # Skip normal input processing while blocking
 	if is_special_active():
@@ -509,9 +513,20 @@ func human_assisted_block(shot_from: Vector2, shot_direction: Vector2, intercept
 
 #improved block ability for if the keeper has the "shot swatter" special active
 func super_block(shot_from: Vector2, shot_direction: Vector2, intercept: Vector2):
-	#TODO: find a path to the ball before the intercept
-	#TODO: get to the ball very quickly
-	pass
+	var ball_path = ball_last_velocity.normalized()
+	var keeper_to_ball = ball.global_position - global_position
+	var t = keeper_to_ball.dot(ball_path) / ball_path.dot(ball_path)
+	var closest_point = ball.global_position + ball_path * t
+	
+	var intercept_point = closest_point
+	if intercept_point.y > global_position.y:
+		intercept_point.y = global_position.y - 50
+	if is_controlling_player:
+		is_human_blocking = true
+		human_block_timer = HUMAN_BLOCK_DURATION
+	human_block_target = intercept_point
+	navigation_agent.target_position = human_block_target
+	velocity = global_position.direction_to(intercept_point).normalized() * attributes.sprint_speed * 2 #FAST AS FUCK BOI
 	
 func handle_super_blocking(delta: float):
 	if not is_human_blocking or status.groove <= 0 or !is_swatter:
@@ -520,7 +535,10 @@ func handle_super_blocking(delta: float):
 	if human_block_timer <= 0:
 		is_human_blocking = false
 		return false
-	#TODO: attack the ball really fast
+	human_block_target = ball.global_position + ball_last_velocity * 0.1
+	var block_direction = global_position.direction_to(human_block_target).normalized()
+	velocity = block_direction * attributes.sprint_speed * 2.0
+	return true
 	
 func handle_human_blocking(delta: float):
 	if not is_human_blocking:

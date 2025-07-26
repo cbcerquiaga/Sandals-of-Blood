@@ -589,7 +589,7 @@ func on_team_ready_signal(id: int) -> void:
 func fill_team_rosters():
 	import_team_rosters()
 	#TODO: import player names, stats, and status from sheet
-	pTeam.K.special_ability = "anchor"
+	pTeam.K.special_ability = "swatter"
 	aTeam.K.special_ability = "anchor"
 	#TODO: import player sprites
 	#Debug only: color player polygons

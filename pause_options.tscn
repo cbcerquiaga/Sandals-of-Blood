@@ -1,0 +1,61 @@
+[gd_scene load_steps=2 format=3 uid="uid://b2a1xy1kwt5nn"]
+
+[ext_resource type="Script" path="res://pause_options.gd" id="1_fl5kn"]
+
+[node name="Pause_Options" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_fl5kn")
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer"]
+layout_mode = 2
+
+[node name="Audio" type="Label" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "AUDIO"
+
+[node name="emptycontrol" type="Control" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="MasterVolumeLabel" type="Label" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Master Volume"
+
+[node name="MasterVolume" type="HSlider" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="Display" type="Label" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "DISPLAY"
+
+[node name="ResolutionLabel" type="Label" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Resolution"
+
+[node name="Resolution" type="OptionButton" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+item_count = 5
+popup/item_0/text = "Default"
+popup/item_1/text = "4k HD"
+popup/item_1/id = 1
+popup/item_2/text = "Wide Quad Extended HD"
+popup/item_2/id = 2
+popup/item_3/text = "Full HD"
+popup/item_3/id = 3
+popup/item_4/text = "HD"
+popup/item_4/id = 4
+
+[connection signal="value_changed" from="MarginContainer/VBoxContainer/MasterVolume" to="." method="_on_master_volume_value_changed"]
+[connection signal="item_selected" from="MarginContainer/VBoxContainer/Resolution" to="." method="_on_resolution_item_selected"]
