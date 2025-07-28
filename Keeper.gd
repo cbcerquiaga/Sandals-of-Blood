@@ -888,7 +888,7 @@ func is_special_active():
 		return false
 
 func use_special_ability():
-	status.groove = status.groove - 0.25
+	status.groove = status.groove - 0.12
 	if status.groove <= 0:
 		is_maestro = false
 		is_machine = false

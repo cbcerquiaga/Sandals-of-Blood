@@ -511,7 +511,7 @@ func attempt_attack(target_position: Vector2):
 		return
 	# Start sprinting toward target
 	is_sprinting = true
-	status.boost -= 2
+	status.boost -= 1
 	var to_target = (target_position - global_position).normalized()
 	velocity = to_target * attributes.sprint_speed
 	
@@ -520,7 +520,7 @@ func attempt_attack(target_position: Vector2):
 		$AttackArea.body_entered.connect(_on_attack_area_body_entered)
 	
 	# Stamina cost
-	status.boost -= 10
+	status.boost -= 1
 	
 func _on_attack_area_body_entered(body: Node2D):
 	if body != self and body is Player and body.team != team:
