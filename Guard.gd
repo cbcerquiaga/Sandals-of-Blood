@@ -105,8 +105,7 @@ func update_behavior():
 	if goalie_has_it() and !guard_counterattack_preferences.override:
 		pick_counterattack_behavior()
 		return
-	
-	if should_play_zone:
+	elif should_play_zone:
 		handle_zone_defense_behavior()
 	else:
 		handle_man_defense_behavior()
@@ -825,6 +824,10 @@ func make_counterattack_ball_choice():
 			set_aim_point()
 			
 func goalie_has_it():
+	if team == 1 and Input.is_action_pressed("guards_scram"):
+		return true
+	elif team == 1:
+		return false
 	if buddy_keeper.is_incapacitated:
 		return false
 	else:
