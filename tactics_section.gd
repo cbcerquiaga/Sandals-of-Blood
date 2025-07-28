@@ -225,7 +225,8 @@ func update_forward_directions(directions: Dictionary, assignment: String):
 				"pick": 10.0,
 				"bully": 10.0,
 				"fencing": 5.0,
-				"cower": 5.0
+				"cower": 5.0,
+				"wing_preference": 0.5
 				}
 		"Rusher":
 			new_directions = {
@@ -237,7 +238,8 @@ func update_forward_directions(directions: Dictionary, assignment: String):
 				"pick": 2.0,
 				"bully": 10.0,
 				"fencing": 5.0,
-				"cower": 5.0
+				"cower": 5.0,
+				"wing_preference": 0.5
 				}
 		"Shooting Forward":
 			new_directions = {
@@ -249,7 +251,8 @@ func update_forward_directions(directions: Dictionary, assignment: String):
 				"pick": 10.0,
 				"bully": 10.0,
 				"fencing": 5.0,
-				"cower": 5.0
+				"cower": 5.0,
+				"wing_preference": 0.5
 				}
 		"Rebounder":
 			new_directions = {
@@ -261,7 +264,8 @@ func update_forward_directions(directions: Dictionary, assignment: String):
 				"pick": 10.0,
 				"bully": 10.0,
 				"fencing": 40.0,
-				"cower": 5.0
+				"cower": 5.0,
+				"wing_preference": 0.1#rebounder goes to the middle
 				}
 		"Attacking Forward":
 			new_directions = {
@@ -273,7 +277,8 @@ func update_forward_directions(directions: Dictionary, assignment: String):
 				"pick": 0.0,
 				"bully": 10.0,
 				"fencing": 2.5,
-				"cower": 5.0
+				"cower": 5.0,
+				"wing_preference": 0.5
 				}
 		"Target Forward":
 			new_directions = {
@@ -285,7 +290,8 @@ func update_forward_directions(directions: Dictionary, assignment: String):
 				"pick": 10.0,
 				"bully": 10.0,
 				"fencing": 5.0,
-				"cower": 5.0
+				"cower": 5.0,
+				"wing_preference": 0.8#target forward gets wide
 				}
 		"Support Forward":
 			new_directions = {
@@ -297,7 +303,8 @@ func update_forward_directions(directions: Dictionary, assignment: String):
 				"pick": 100.0,
 				"bully": 10.0,
 				"fencing": 5.0,
-				"cower": 5.0
+				"cower": 5.0,
+				"wing_preference": 0.7
 				}
 		"Roving Menace":
 			new_directions = {
@@ -309,7 +316,8 @@ func update_forward_directions(directions: Dictionary, assignment: String):
 				"pick": 100.0,
 				"bully": 50.0,
 				"fencing": 10.0,
-				"cower": 5.0
+				"cower": 5.0,
+				"wing_preference": 0.5
 				}
 		"Pick and Roller":
 			new_directions = {
@@ -321,7 +329,8 @@ func update_forward_directions(directions: Dictionary, assignment: String):
 				"pick": 200.0,
 				"bully": 10.0,
 				"fencing": 5.0,
-				"cower": 5.0
+				"cower": 5.0,
+				"wing_preference": 0.4
 				}
 		"Pick and Popper":
 			new_directions = {
@@ -333,7 +342,8 @@ func update_forward_directions(directions: Dictionary, assignment: String):
 				"pick": 200.0,
 				"bully": 10.0,
 				"fencing": 5.0,
-				"cower": 5.0
+				"cower": 5.0,
+				"wing_preference": 0.6
 				}
 	directions.clear()
 	directions.merge(new_directions)

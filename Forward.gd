@@ -394,7 +394,7 @@ func choose_behavior():
 	
 	for behavior in behaviors:
 		# Base weight is product of team strategy and player preference
-		var base_weight = team_strategy.get(behavior + "_weight", 1.0) * forward_strategy.get(behavior, 1.0)
+		var base_weight = forward_strategy.get(behavior + "_weight", 1.0) * forward_strategy.get(behavior, 1.0)
 		
 		# Apply situational modifier
 		var situational_weight = situational_weights.get(behavior, 1.0)
@@ -446,7 +446,7 @@ func calculate_situational_weights() -> Dictionary:
 		weights["shooter"] *= 1.5
 	
 	if has_stunned_opponent():
-		weights["bully"] *= 3.0
+		weights["bully"] *= 1.5
 	
 	if is_under_pressure():
 		weights["cower"] *= 2.0
@@ -454,7 +454,7 @@ func calculate_situational_weights() -> Dictionary:
 	
 	if is_near_goal():
 		weights["shooter"] *= 2.0
-		weights["target_man"] *= 1.5
+		weights["bull_rush"] *= 1.5
 	
 	return weights
 
@@ -681,7 +681,7 @@ func navigate_to(position: Vector2):
 
 
 func choose_shooter_position():
-	is_in_slot = randf() > team_strategy.get("wing_preference", 0.5)
+	is_in_slot = randf() > forward_strategy.get("wing_preference", 0.5)
 	
 	if is_in_slot:
 		calculate_slot_position()

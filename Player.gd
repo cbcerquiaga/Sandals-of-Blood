@@ -81,13 +81,6 @@ var field_position: String
 	"shoot": 30, #keeper strategies
 	"pass": 20,
 	"miss": 10,
-	"bull_rush": 10,
-	"skill_rush": 10,
-	"target_man": 10,
-	"shooter": 25,
-	"rebound": 5,
-	"pick": 10,
-	"bully": 35
 }
 
 @export var fencing_params := {
