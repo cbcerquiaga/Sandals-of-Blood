@@ -14,6 +14,7 @@ var other_forward: Forward = null
 var oppLG: Guard = null
 var oppRG: Guard = null
 var forward_last_intent: String = ""
+var chosen_counterattack_behavior: String = ""
 var forward_last_position: Vector2
 var forward_last_velocity: Vector2
 var mark_incapacitated: bool = false
@@ -827,8 +828,10 @@ func goalie_has_it():
 	if team == 1 and Input.is_action_pressed("guards_scram"):
 		return true
 	elif team == 1:
+		reset_chosen_counter_behavior()
 		return false
 	if buddy_keeper.is_incapacitated:
+		reset_chosen_counter_behavior()
 		return false
 	else:
 		var k_square = buddy_keeper.global_position.distance_squared_to(ball.global_position)
@@ -843,10 +846,17 @@ func goalie_has_it():
 			if randf() < attributes.aggression/100:
 				return true
 			else:
+				reset_chosen_counter_behavior()
 				return false
 	return false
 	
+func reset_chosen_counter_behavior():
+	chosen_counterattack_behavior = ""
+	
 func pick_counterattack_behavior():
+	if chosen_counterattack_behavior != "":
+		current_behavior = chosen_counterattack_behavior
+		return
 	var link = guard_counterattack_preferences.link
 	var deep = guard_counterattack_preferences.deep
 	var mid = guard_counterattack_preferences.mid
@@ -857,6 +867,7 @@ func pick_counterattack_behavior():
 		current_behavior = "shooting_deep"
 	else:
 		current_behavior = "shooting_midfield"
+	chosen_counterattack_behavior = current_behavior
 	#print("I am counterattack. I am " + current_behavior)
 	
 #check if the guard is closest to the ball of releavant players
