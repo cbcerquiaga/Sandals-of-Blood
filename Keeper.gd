@@ -888,7 +888,12 @@ func is_special_active():
 		return false
 
 func use_special_ability():
-	status.groove = status.groove - 0.12
+	if is_maestro: #maestro chews through groove fastest
+		status.groove = status.groove - 0.18
+	elif is_machine:
+		status.groove = status.groove - 0.1
+	else: #spin doctor is slower
+		status.groove = status.groove - 0.05
 	if status.groove <= 0:
 		is_maestro = false
 		is_machine = false

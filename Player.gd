@@ -19,7 +19,7 @@ var field_position: String
 	"endurance": 60,    # 1-100, affects boost recovery and maximum boost
 	"accuracy": 85,     # 1-100, affects shot precision and pitch accuracy
 	"balance": 55,		# 1-100, affects damage taken from hits and stability in fights
-	"focus": 50,        # 1-100, affects curve control
+	"focus": 70,        # 1-100, affects curve control
 	"shooting": 50,		# 1-100, affects shot and pass speed, punch power in fights
 	"toughness": 60,    # 1-100, fighting defense/skill
 	"confidence": 90    # 1-100, affects special moves
