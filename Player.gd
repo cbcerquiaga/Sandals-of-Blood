@@ -147,10 +147,9 @@ var dodge_frames: int = 30
 var dodge_direction: Vector2
 #keeper only, but in this class because that's where collision is
 var special_ability: String #determines which of the 
-var is_anchor: bool = false #halves impact against in collisions
-var is_tireless: bool = false #infinite boost
+var is_machine: bool = false #halves impact against in collisions, infinite boost, super shot blocker
 var is_maestro: bool = false #slows down time
-var is_swatter: bool = false #super shot blocker
+var is_spin_doctor: bool = false #curving shots
 var active_buffs: Dictionary = {}
 var starting_position: Vector2
 
@@ -294,7 +293,7 @@ func _physics_process(delta):
 	if is_sprinting:
 		status.boost = status.boost -0.25
 		
-	if is_tireless:
+	if is_machine:
 		status.energy = 100
 		status.max_boost = attributes.endurance * (status.energy/100)
 		status.boost = status.max_boost
@@ -618,7 +617,7 @@ func scrum(body: Player):
 	
 
 func take_hit(attacker: Player, power: float):
-	if is_anchor:
+	if is_machine:
 		power = power/5
 		status.stability = 100
 	#print("hit taken")

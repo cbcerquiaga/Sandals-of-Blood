@@ -153,6 +153,9 @@ func handle_defender_collision(player: Player):
 	pass_dir = pass_dir.rotated(randf_range(-accuracy_offset * 0.1, accuracy_offset * 0.1))
 	apply_forward_hit(player, pass_dir, emit)
 	# Enter hockey state if not already
+	if player.position_type == "keeper" and player.is_spin_doctor:
+		current_state = BallState.PITCHING
+		calculate_spin_doctor(player)
 	if current_state != BallState.HOCKEY:
 		enter_hockey_state()
 
@@ -335,3 +338,37 @@ func apply_spin_bounce(wall_normal: Vector2):
 func save_value_for_keeper():
 	if global_position.y < 0:
 		pitch_side.emit()
+
+func calculate_spin_doctor(keeper: Keeper):
+	if abs(keeper.velocity.length()) < 5: #spin in expected direction
+		if keeper.global_position.y < global_position.y:
+			if linear_velocity.x < 0:
+				current_spin = keeper.attributes.focus / 65 #0.76 to 1.52
+			elif linear_velocity.x > 0:
+				current_spin = 0 - keeper.attributes.focus / 65 #-0.76 to -1.52
+			else:
+				if keeper.bio.leftHanded:
+					current_spin =  keeper.attributes.focus / 85
+				else:
+					current_spin = 0 - keeper.attributes.focus / 85
+		else:
+			if linear_velocity.x < 0:
+				current_spin = 0 - keeper.attributes.focus / 65
+			elif linear_velocity.x > 0:
+				current_spin = keeper.attributes.focus / 65
+			else:
+				if keeper.bio.leftHanded:
+					current_spin =  keeper.attributes.focus / 85
+				else:
+					current_spin = 0 - keeper.attributes.focus / 85
+	elif keeper.velocity.x >= 5:
+		if linear_velocity.x < 0: #big spin time
+			current_spin = keeper.attributes.focus / 45 #1.1 to 2.2
+		else:
+			current_spin = 0 - keeper.attributes.focus / 65
+	else: #keeper.velocity.x <= 0
+		if linear_velocity.x > 0: #big spin time
+			current_spin = 0-keeper.attributes.focus / 45 #-1.1 to -2.2
+		else:
+			current_spin = keeper.attributes.focus / 65
+	print("paging the spin doctor, code ", current_spin)

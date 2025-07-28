@@ -102,7 +102,7 @@ func _physics_process(delta):
 		velocity = Vector2.ZERO
 		return
 	if is_human_blocking:
-		if is_swatter:
+		if is_machine:
 			if handle_super_blocking(delta):
 				move_and_slide()
 				return
@@ -503,7 +503,7 @@ func on_shot_at_goal(shot_from: Vector2, shot_direction: Vector2, shooter_team: 
 		ball_direction_projection = shot_direction
 		current_behavior = "blocking"
 	elif !is_stunned and !is_dodging and velocity == Vector2(0,0) and intercept.distance_to(own_goal) < goal_width * 0.6:#slight buffer but has to be basically on goal
-		if is_swatter:
+		if is_machine:
 			super_block(shot_from, shot_direction, intercept)
 		else:
 			human_assisted_block(shot_from, shot_direction, intercept)
@@ -545,7 +545,7 @@ func super_block(shot_from: Vector2, shot_direction: Vector2, intercept: Vector2
 	velocity = global_position.direction_to(intercept_point).normalized() * attributes.sprint_speed * 2 #FAST AS FUCK BOI
 	
 func handle_super_blocking(delta: float):
-	if not is_human_blocking or status.groove <= 0 or !is_swatter:
+	if not is_human_blocking or status.groove <= 0 or !is_machine:
 		return false
 	human_block_timer -= delta
 	if human_block_timer <= 0:
@@ -870,23 +870,19 @@ func activate_special_ability():
 	match special_ability:
 		"maestro":
 			is_maestro = true
-		"anchor":
-			is_anchor = true
-		"tireless":
-			is_tireless = true
-		"swatter":
-			is_swatter = true
+		"machine":
+			is_machine = true
+		"spin_doctor":
+			is_spin_doctor = true
 	if status.groove <= 0:
 		deactivate_special()
 			
 func is_special_active():
 	if is_maestro:
 		return true
-	elif is_anchor:
+	elif is_machine:
 		return true
-	elif is_tireless:
-		return true
-	elif is_swatter:
+	elif is_spin_doctor:
 		return true
 	else:
 		return false
@@ -895,15 +891,13 @@ func use_special_ability():
 	status.groove = status.groove - 0.25
 	if status.groove <= 0:
 		is_maestro = false
-		is_anchor = false
-		is_tireless = false
-		is_swatter = false
+		is_machine = false
+		is_spin_doctor = false
 		
 func deactivate_special():
 	is_maestro = false
-	is_anchor = false
-	is_tireless = false
-	is_swatter = false
+	is_machine = false
+	is_spin_doctor = false
 		
 func ai_check_special_ability():
 	if status.groove >= attributes.confidence / 2:
