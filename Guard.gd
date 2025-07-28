@@ -839,6 +839,11 @@ func goalie_has_it():
 			if k_square < f1_square or assigned_forward.is_incapacitated:
 				if k_square < f2_square or other_forward.is_incapacitated:
 					return true
+		elif buddy_keeper.current_behavior == "blocking":
+			if randf() < attributes.aggression/100:
+				return true
+			else:
+				return false
 	return false
 	
 func pick_counterattack_behavior():
