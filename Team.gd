@@ -254,6 +254,7 @@ func enlighten(aimTarget, ball, field, keeperWall, ownGoal, oppGoal, oppP, oppK,
 	P.opp_pitcher = oppP
 	P.running_positions = [field.chaseNE, field.chaseSE, field.chaseSW, field.chaseNW]
 	K.ball = ball
+	ball.pitch_side.connect(K._on_ball_emit_pitch_side)
 	K.assigned_half = dHalf
 	K.aim_target = aimTarget
 	K.own_goal = ownGoal.global_position

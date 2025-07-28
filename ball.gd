@@ -125,7 +125,7 @@ func handle_player_collision(player: Player):
 	if current_state == BallState.WAITING:
 		return
 	elif current_state == BallState.PITCHING:
-		save_value_for_keeper(player)
+		save_value_for_keeper()
 	assist_by = last_hit_by
 	last_hit_by = player
 	
@@ -142,7 +142,7 @@ func handle_player_collision(player: Player):
 func handle_defender_collision(player: Player):
 	#print("smack me, daddy")
 	var pass_target = player.aim
-	var emit = false
+	var emit = true
 	if player.position_type == "keeper" and last_hit_by.position_type == "pitcher":
 		player.add_groove(4) #successful return builds groove
 	if (player.position_type == "guard" and player.aim_point == player.oppGoal) or (player.position_type == "keeper" and player.aim.distance_to(player.opp_goal) < 10):
@@ -172,7 +172,7 @@ func handle_forward_collision(forward: Player):
 	if current_state != BallState.HOCKEY:
 		enter_hockey_state()
 
-func apply_forward_hit(forward: Player, direction: Vector2, emit: bool = false):
+func apply_forward_hit(forward: Player, direction: Vector2, emit: bool = true):
 	# Calculate power - combination of shooting skill and movement
 	var forward_speed_toward_goal = forward.velocity.dot(direction)
 	forward_speed_toward_goal = max(0, forward_speed_toward_goal)
@@ -210,6 +210,7 @@ func handle_wall_collision(wall: StaticBody2D):
 		if wall.is_in_group("front") or wall.is_in_group("back"):
 			print("the ball careens off the back wall and onto the ground into play")
 			current_state = BallState.HOCKEY
+			save_value_for_keeper()
 		if current_spin != 0:
 			add_spin_effect = true
 			
@@ -331,10 +332,6 @@ func apply_spin_bounce(wall_normal: Vector2):
 	current_spin *= 0.8  # Loses 20% of spin energy per bounce
 	print("Spin adjusted to keep in bounds (new vel: %s)" % linear_velocity)
 	
-func save_value_for_keeper(player: Player):
-	if player.plays_left_side:
-		pitch_side.emit("left")
-	elif player.position_type == "guard":
-		pitch_side.emit("right")
-	elif player.position_type == "keeper" and player.team == 2:
-		pitch_side.emit(player.last_guess)
+func save_value_for_keeper():
+	if global_position.y < 0:
+		pitch_side.emit()

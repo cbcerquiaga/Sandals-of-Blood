@@ -594,46 +594,191 @@ func defending_behavior(delta: float):
 		return
 	var goal_center: Vector2 = (leftPost + rightPost) / 2
 	var goal_width: float = rightPost.distance_to(leftPost)
+	
+	# Check if ball changed direction significantly - freeze reaction
+	var current_ball_direction = ball_last_velocity.normalized()
+	if last_ball_direction != Vector2.ZERO:
+		var direction_change = last_ball_direction.angle_to(current_ball_direction)
+		if abs(direction_change) > deg_to_rad(45):  # Significant direction change
+			if !reacting:
+				reacting = true
+				reaction_timer = map_attribute_to_reaction_time(attributes.reactions)
+			
+			if reaction_timer > 0:
+				reaction_timer -= delta
+				velocity = Vector2.ZERO  # Freeze in place
+				return
+			else:
+				reacting = false
+	
+	last_ball_direction = current_ball_direction
+	
+	# Project ball path with wall reflections
+	var projected_intercept = _project_ball_path_with_reflections()
+	
+	# Determine target position based on ball proximity and projection
+	var target_position: Vector2
+	
+	if ball.global_position.y < leftPost.y + 10 and abs(ball.global_position.x) > 35: 
+		# Ball in corner - position near closest post
+		var pos_check = (100 - attributes.positioning) / 10
+		var positioning_variance = randf_range(-pos_check, pos_check)
+		var aggression_variance = attributes.aggression / 20
 		
-	#initial position: goal line, x as far as ball is across field
-	var ball_field_distance
-	if fieldType == "road":
-		ball_field_distance = ball.global_position.x/57.0
-	else:
-		ball_field_distance = ball.global_position.x/100
-	var relative_x = ball_field_distance * goal_width
-	if ball.global_position.y < leftPost.y + 10 and abs(ball.global_position.x) > 35: #in teh corner
-		var pos_check =  (100-attributes.positioning)/10
-		var positioning_variance = randf_range(0- pos_check, pos_check)
-		var aggression_variance = attributes.aggression/20
 		if leftPost.distance_squared_to(ball.global_position) < rightPost.distance_squared_to(ball.global_position):
-			navigation_agent.target_position = Vector2(leftPost.x + aggression_variance, leftPost.y + 5 + positioning_variance)
+			target_position = Vector2(leftPost.x + aggression_variance, leftPost.y + 5 + positioning_variance)
 		else:
-			navigation_agent.target_position = Vector2(rightPost.x - aggression_variance, rightPost.y + 5 + positioning_variance)
-	elif ball.global_position.distance_to(goal_center) < (attributes.reactions / 2): #faster reactions = more saves
-		navigation_agent.target_position = ball.position
-		velocity = (navigation_agent.target_position - global_position).normalized() * attributes.sprint_speed
+			target_position = Vector2(rightPost.x - aggression_variance, rightPost.y + 5 + positioning_variance)
+			
+	elif ball.global_position.distance_to(goal_center) < (attributes.reactions / 2):
+		# Very close ball - go directly for it
+		target_position = ball.global_position
+		velocity = (target_position - global_position).normalized() * attributes.sprint_speed
 		return
-	else: #far away, passive position
-		#account for positioning skill
-		var variance_x = (100 - attributes.positioning)/10
-		variance_x = randf_range(0 -variance_x, variance_x)
-		#relative_x = clamp(variance_x, goal_center.x - max_goal_offset, goal_center.x + max_goal_offset)
-		navigation_agent.target_position = Vector2(relative_x + variance_x, leftPost.y + 10)
+		
+	else:
+		# Use projected intercept for positioning
+		if projected_intercept != Vector2.ZERO:
+			# Position based on where ball is likely to end up
+			var intercept_x = projected_intercept.x
+			
+			# Apply positioning skill variance
+			var variance_x = (100 - attributes.positioning) / 10
+			variance_x = randf_range(-variance_x, variance_x)
+			intercept_x += variance_x
+			
+			# Clamp to reasonable goal defense area
+			intercept_x = clamp(intercept_x, goal_center.x - max_goal_offset, goal_center.x + max_goal_offset)
+			target_position = Vector2(intercept_x, leftPost.y + 10)
+		else:
+			# Fallback to ball field position method
+			var ball_field_distance
+			if fieldType == "road":
+				ball_field_distance = ball.global_position.x / 57.0
+			else:
+				ball_field_distance = ball.global_position.x / 100.0
+			
+			var relative_x = ball_field_distance * goal_width
+			var variance_x = (100 - attributes.positioning) / 10
+			variance_x = randf_range(-variance_x, variance_x)
+			target_position = Vector2(relative_x + variance_x, leftPost.y + 10)
+	
+	# Ensure we don't go too far from goal center
+	var distance_from_center = abs(target_position.x - goal_center.x)
+	if distance_from_center > max_goal_offset:
+		target_position.x = goal_center.x + sign(target_position.x - goal_center.x) * max_goal_offset
+	
+	navigation_agent.target_position = target_position
+	velocity = (target_position - global_position).normalized() * attributes.speed
 
-	#project a path of the ball
+# Helper function to project ball path with wall reflections
+func _project_ball_path_with_reflections() -> Vector2:
+	if !ball or ball_last_velocity.length() < 50:  # Ball too slow to project
+		return Vector2.ZERO
 	
-	#consider that it might reflect off of a wall or an opposing forward
+	var current_pos = ball.global_position
+	var current_vel = ball_last_velocity
+	var goal_line_y = leftPost.y
+	var max_bounces = 3
+	var bounce_count = 0
 	
-	#if the ball changes directions, freeze in place for a moment
-	#length of freeze depends on attributes.reactions
+	# Check for opponent deflection potential
+	var deflection_risk = _calculate_deflection_risk(current_pos, current_vel)
+	if deflection_risk > 0.7:
+		# High chance of deflection - use more conservative positioning
+		return Vector2(current_pos.x * 0.7, goal_line_y)
 	
-	#goal position based on projection and attributes.positioning
+	while bounce_count < max_bounces:
+		# Calculate time to reach goal line
+		if abs(current_vel.y) < 0.1:  # Ball not moving toward/away from goal
+			break
+			
+		var time_to_goal = (goal_line_y - current_pos.y) / current_vel.y
+		if time_to_goal < 0:  # Ball moving away from goal
+			break
+			
+		var projected_x = current_pos.x + current_vel.x * time_to_goal
+		
+		# Check for wall collisions before reaching goal
+		var wall_collision = _check_wall_collision(current_pos, current_vel, time_to_goal)
+		if wall_collision.has("collision"):
+			# Bounce off wall
+			current_pos = wall_collision["position"]
+			current_vel = wall_collision["new_velocity"]
+			bounce_count += 1
+			continue
+		else:
+			# No wall collision - ball reaches goal line
+			return Vector2(projected_x, goal_line_y)
 	
-	#make sure total distance to center of goal is less than 20
+	return Vector2.ZERO  # Too many bounces or ball won't reach goal
+
+# Check for wall collisions during ball projection
+func _check_wall_collision(pos: Vector2, vel: Vector2, max_time: float) -> Dictionary:
+	var result = {}
+	var collision_time = max_time
+	var collision_wall = ""
 	
-	#move
-	velocity = (navigation_agent.target_position - global_position).normalized() * attributes.speed
+	# Check left wall
+	if vel.x < 0 and left_wall:
+		var time_to_left = (left_wall.global_position.x - pos.x) / vel.x
+		if time_to_left > 0 and time_to_left < collision_time:
+			collision_time = time_to_left
+			collision_wall = "left"
+	
+	# Check right wall
+	if vel.x > 0 and right_wall:
+		var time_to_right = (right_wall.global_position.x - pos.x) / vel.x
+		if time_to_right > 0 and time_to_right < collision_time:
+			collision_time = time_to_right
+			collision_wall = "right"
+	
+	# Check back wall
+	if vel.y < 0 and back_wall:
+		var time_to_back = (back_wall.global_position.y - pos.y) / vel.y
+		if time_to_back > 0 and time_to_back < collision_time:
+			collision_time = time_to_back
+			collision_wall = "back"
+	
+	if collision_wall != "":
+		var collision_pos = pos + vel * collision_time
+		var new_vel = vel
+		match collision_wall:
+			"left", "right":
+				new_vel.x = -new_vel.x * 0.8  # Some energy loss
+			"back":
+				new_vel.y = -new_vel.y * 0.8
+		
+		result["collision"] = true
+		result["position"] = collision_pos
+		result["new_velocity"] = new_vel
+	
+	return result
+
+# Calculate risk of opponent deflecting the ball
+func _calculate_deflection_risk(ball_pos: Vector2, ball_vel: Vector2) -> float:
+	var risk = 0.0
+	var ball_path_length = ball_vel.length()
+	if ball_path_length < 50:
+		return 0.0
+	var ball_direction = ball_vel.normalized()
+	# Check each opponent's proximity to ball path
+	for opponent in [oppLF, oppRF]:
+		if !opponent:
+			continue
+			
+		var to_opponent = opponent.global_position - ball_pos
+		var projection_length = to_opponent.dot(ball_direction)
+		
+		if projection_length > 0 and projection_length < ball_path_length:
+			var closest_point = ball_pos + ball_direction * projection_length
+			var distance_to_path = opponent.global_position.distance_to(closest_point)
+			
+			if distance_to_path < 100:  # Within deflection range
+				var proximity_factor = 1.0 - (distance_to_path / 100.0)
+				risk += proximity_factor * 0.5
+	
+	return clamp(risk, 0.0, 1.0)
 
 
 
@@ -781,3 +926,16 @@ func perform_holding(frame: int):
 			return
 	else:
 		current_behavior = "defending"
+		
+func _on_ball_emit_pitch_side():
+	if is_controlling_player:
+		return
+	if ball.global_position.distance_squared_to(leftPost) <= ball.global_position.distance_squared_to(own_goal):
+		save_pitch_from_ball("left")
+		print("you're not beating me left next time")
+	elif ball.global_position.distance_squared_to(rightPost) <= ball.global_position.distance_squared_to(own_goal):
+		save_pitch_from_ball("right")
+		print("you're not beating me right next time")
+	else:
+		save_pitch_from_ball("middle")
+		print("you're not beating me middle next time")
