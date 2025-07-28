@@ -337,11 +337,13 @@ func reset_players_for_next_play():
 			player.velocity = Vector2.ZERO
 			player.lose_energy((100 - player.attributes.endurance)/10) #0.1 for 99 endurance, 5 for 50
 			player.reset_state()
+			player.starting_position = player.global_position
 	pTeam.bench_rest() #resting players regain energy
 	aTeam.bench_rest()
 	# Clear team control
 	pTeam.wipe_player_control()
 	aTeam.wipe_player_control()
+	
 
 func reset_ball_and_field():
 	if is_instance_valid(ball):
@@ -564,8 +566,10 @@ func set_time_scale(scale: float):
 	
 #players must know each other. More importantly, they must know ball
 func enlighten_players():
-	pTeam.enlighten(aimTarget, ball, field, field.frontWall, field.playerGoal, field.cpuGoal, aTeam.P, aTeam.K, aTeam.LG, aTeam.RG, aTeam.LF, aTeam.RF, field.human_lf_waiting, field.human_rf_waiting, field.player_goal_post1.global_position, field.player_goal_post2.global_position, field.playerHalf, field.cpuHalf, field.human_pitcher_waiting.global_position)
-	aTeam.enlighten(aimTarget, ball, field, field.backWall, field.cpuGoal, field.playerGoal, pTeam.P, pTeam.K, pTeam.LG, pTeam.RG, pTeam.LF, pTeam.RF, field.cpu_lf_waiting, field.cpu_rf_waiting, field.cpu_goal_post1.global_position, field.cpu_goal_post2.global_position, field.cpuHalf, field.playerHalf, field.cpu_pitcher_waiting.global_position)
+	var lBanks = [field.banks[0], field.banks[1], field.banks[2], field.banks[3], field.banks[4], field.banks[5]]
+	var rBanks = [field.banks[6], field.banks[7], field.banks[8], field.banks[9], field.banks[10], field.banks[11]]
+	pTeam.enlighten(aimTarget, ball, field, field.frontWall, field.playerGoal, field.cpuGoal, aTeam.P, aTeam.K, aTeam.LG, aTeam.RG, aTeam.LF, aTeam.RF, field.human_lf_waiting, field.human_rf_waiting, field.player_goal_post1.global_position, field.player_goal_post2.global_position, field.playerHalf, field.cpuHalf, field.human_pitcher_waiting.global_position, lBanks, rBanks)
+	aTeam.enlighten(aimTarget, ball, field, field.backWall, field.cpuGoal, field.playerGoal, pTeam.P, pTeam.K, pTeam.LG, pTeam.RG, pTeam.LF, pTeam.RF, field.cpu_lf_waiting, field.cpu_rf_waiting, field.cpu_goal_post1.global_position, field.cpu_goal_post2.global_position, field.cpuHalf, field.playerHalf, field.cpu_pitcher_waiting.global_position, rBanks, lBanks)
 	#TODO: field types
 	pTeam.P.legal_first_moves = [2, 1] #SE, SW
 	aTeam.P.legal_first_moves = [0, 3] #NW, NE

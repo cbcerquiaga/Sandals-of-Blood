@@ -243,7 +243,7 @@ func get_modified_aggression(base_aggression: float, position_type: String) -> f
 	return base_aggression * pos_aggression * team_aggression * aggression_mod
 
 
-func enlighten(aimTarget, ball, field, keeperWall, ownGoal, oppGoal, oppP, oppK, oppLG, oppRG, oppLF, oppRF, LfWaiting, RfWaiting, LPost, RPost, dHalf, oHalf, rest):
+func enlighten(aimTarget, ball, field, keeperWall, ownGoal, oppGoal, oppP, oppK, oppLG, oppRG, oppLF, oppRF, LfWaiting, RfWaiting, LPost, RPost, dHalf, oHalf, rest, lBanks, rBanks):
 	P.ball = ball
 	P.ball_pitched.connect(ball.be_pitched)
 	P.special_pitched.connect(ball.be_special_pitched)
@@ -268,6 +268,8 @@ func enlighten(aimTarget, ball, field, keeperWall, ownGoal, oppGoal, oppP, oppK,
 	K.oppRF = oppRF
 	K.buddyLF = LF
 	K.buddyRF = RF
+	K.buddyLG = LG
+	K.buddyRG = RG
 	LG.defending_goal_position = ownGoal.global_position
 	LG.assigned_half = dHalf
 	LG.aim_target = aimTarget
@@ -275,12 +277,17 @@ func enlighten(aimTarget, ball, field, keeperWall, ownGoal, oppGoal, oppP, oppK,
 	LG.leftPost = LPost
 	LG.rightPost = RPost
 	LG.buddy_guard = RG
+	LG.buddySSF = LF
+	LG.buddyWSF = RF
+	LG.oppLG = oppLG
+	LG.oppRG = oppRG
 	LG.is_lead_guard = true
 	LG.plays_left_side = true
 	LG.assigned_forward = oppRF
 	LG.other_forward = oppLF
 	LG.buddy_keeper = K
 	LG.opp_keeper = oppK
+	LG.aim_selection = lBanks
 	RG.defending_goal_position = ownGoal.global_position
 	RG.aim_target = aimTarget
 	RG.buddy_guard = LG
@@ -290,8 +297,13 @@ func enlighten(aimTarget, ball, field, keeperWall, ownGoal, oppGoal, oppP, oppK,
 	RG.rightPost = RPost
 	RG.buddy_keeper = K
 	RG.opp_keeper = oppK
+	RG.buddySSF = RF
+	RG.buddyWSF = LF
 	RG.ball = ball
+	RG.oppLG = oppLG
+	RG.oppRG = oppRG
 	RG.assigned_half = dHalf
+	RG.aim_selection = rBanks
 	RG.plays_left_side = false
 	LF.goal_position = oppGoal.global_position
 	LF.assigned_guard = oppRG

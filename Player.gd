@@ -17,7 +17,7 @@ var field_position: String
 	"power": 70,        # 1-100, affects hit strength, pitch power
 	"throwing": 75, #1-100, modifies power when throwing
 	"endurance": 60,    # 1-100, affects boost recovery and maximum boost
-	"accuracy": 65,     # 1-100, affects shot precision and pitch accuracy
+	"accuracy": 85,     # 1-100, affects shot precision and pitch accuracy
 	"balance": 55,		# 1-100, affects damage taken from hits and stability in fights
 	"focus": 50,        # 1-100, affects curve control
 	"shooting": 50,		# 1-100, affects shot and pass speed, punch power in fights
@@ -60,6 +60,19 @@ var field_position: String
 	"knockouts": 0, #knocked out opposing pitcher
 	"goals_for":0, #team scored while on field
 	"goals_against":0 #team scored against while on field
+}
+
+#what the guards do on the counterattack is unique to a given player
+#it can be coached in training, but not changed in the tactics menu
+@export var guard_counterattack_preferences := {
+	"link": 0.2, #tendency to try and link play
+	"deep": 0.2, #tendency to get open to shoot deep
+	"mid": 0.2, #tendency to get open to shoot from midfield
+	"override": false, #if true, the player will just do their defending behavior
+	"bank": 0.1, #tendencyto just bank that shit off the wall
+	"shoot": 0.9, #tendency to shoot
+	"switch": 0.3, #tendency to pass to buddy guard
+	"send": 1.0 #tendency to pass to forwards
 }
 
 #TODO: update for different parts of strategy
@@ -146,6 +159,7 @@ var is_tireless: bool = false #infinite boost
 var is_maestro: bool = false #slows down time
 var is_swatter: bool = false #super shot blocker
 var active_buffs: Dictionary = {}
+var starting_position: Vector2
 
 
 enum PlayerState {
@@ -916,3 +930,4 @@ func can_play_position(field_position: String) -> bool:
 		return false
 	else:
 		return field_position in playable_positions
+		

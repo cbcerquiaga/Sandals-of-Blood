@@ -7,8 +7,12 @@ var leftPost: Vector2
 var rightPost: Vector2
 var buddy_keeper: Keeper = null
 var buddy_guard
+var buddySSF #plays same side as me
+var buddyWSF #plays other side
 var assigned_forward: Forward = null
 var other_forward: Forward = null
+var oppLG: Guard = null
+var oppRG: Guard = null
 var forward_last_intent: String = ""
 var forward_last_position: Vector2
 var forward_last_velocity: Vector2
@@ -36,7 +40,7 @@ var oppGoal: Vector2
 var current_target: Vector2
 var engagement_decision: String = ""
 var path_update_timer: float = 0
-
+var counter_position: Vector2 #used for counterattack movements
 
 # Nodes
 @onready var navigation_agent: NavigationAgent2D = $NavigationAgent2D
@@ -97,6 +101,9 @@ func update_ai_movement(delta):
 func update_behavior():
 	if !assigned_forward or !other_forward or !ball or !buddy_keeper:
 		print("Missing somebody. F1: ", assigned_forward, ", F2: ", other_forward, ", Ball: ", ball, "buddy: ", buddy_keeper)
+		return
+	if goalie_has_it() and !guard_counterattack_preferences.override:
+		pick_counterattack_behavior()
 		return
 	
 	if should_play_zone:
@@ -207,6 +214,12 @@ func perform_ai():
 			perform_escorting()
 		"fencing":
 			perform_fencing()
+		"linking":
+			perform_linking()
+		"shooting_deep":
+			perform_deep_shooting()
+		"shooting_midfield":
+			perform_midfield_shooting()
 
 func pressure_defense():
 	if global_position.distance_to(assigned_forward.global_position) > attributes.aggression - 25:
@@ -331,13 +344,14 @@ func should_help():
 	return false
 
 func set_aim_point():
-	if opp_keeper.global_position.distance_squared_to(oppGoal) > buddy_keeper.distance_squared_to(defending_goal_position):
+	if opp_keeper.is_incapacitated:
+		aim_point= oppGoal
+		return
+	elif opp_keeper.global_position.distance_squared_to(oppGoal) > 130 - attributes.aggression: #31-80 units away
 		aim_point = oppGoal
 	else:
 		var rand = randi_range(0, 5)
-		if !plays_left_side:
-			rand = rand + 6 #right side aim points are in the second half of the array
-		aim_point = aim_selection[rand]
+		aim_point = aim_selection[rand].global_position
 		if aim_point.distance_squared_to(defending_goal_position) < global_position.distance_squared_to(defending_goal_position):
 			aim_point.y = randf_range(-20,20)#shoot it somewhere in the middle
 
@@ -450,6 +464,7 @@ func chase_ball():
 		velocity = attributes.speed * direction
 		is_sprinting = false
 		move_and_slide()
+		make_counterattack_ball_choice()
 
 func predict_ball_path_with_rebounds():
 	if !ball:
@@ -642,3 +657,320 @@ func perform_escorting():
 	var direction = global_position.direction_to(buddy_keeper.global_position + rel_position)
 	is_sprinting = buddy_keeper.is_sprinting and status.boost > 0.5
 	velocity = direction * (attributes.sprint_speed if is_sprinting else attributes.speed)
+
+func is_countering()-> bool:
+	if current_behavior == "link" or current_behavior == "deep_shot" or current_behavior == "mid_shot":
+		return true
+	else:
+		return false
+
+#get to the midfield and try to find a pass for our teammate
+func perform_linking():
+	if Engine.get_frames_drawn() % 60 == 0:
+		calculate_linking_position()	
+	if assigned_forward && global_position.distance_to(assigned_forward.global_position) < 6:
+		current_behavior = "fencing"
+		return
+	if global_position.distance_to(ball.global_position) < 20:
+		current_behavior = "chasing"
+		return
+	
+	create_passing_lane()
+	make_counterattack_ball_choice()
+
+#find a place to shoot close to the corner of the field
+func perform_deep_shooting():
+	var field_width
+	var min_x
+	var max_x
+	var min_y
+	var max_y
+	
+	match fieldType: #TODO: field types
+		"road":
+			field_width = 110
+			min_y = 90
+			max_y = 100
+		"wideRoad":
+			field_width = 170
+			min_y = 90
+			max_y = 100
+		_: # Default to road
+			field_width = 110
+			min_y = 90
+			max_y = 100
+	
+	#correct for assigned field quadrant
+	if plays_left_side:
+		min_x = -field_width/2 - 10
+		max_x = -field_width/2 + 10
+	else:
+		min_x = field_width/2 - 10
+		max_x = field_width/2 + 10
+	if defending_goal_position.y < 0:
+		min_y = -min_y
+		max_y = -max_y
+	var shoot_position = Vector2(
+		randf_range(min_x, max_x),
+		randf_range(min_y, max_y)
+	)
+	if global_position.distance_squared_to(ball.global_position) < 225 or am_closest(): #15 units
+		shoot_position = ball.global_position
+	navigation_agent.target_position = shoot_position
+	make_counterattack_ball_choice()
+
+#get upfield and get open
+func perform_midfield_shooting():
+	var field_width
+	var min_x
+	var max_x
+	var min_y
+	var max_y
+	
+	match fieldType: #TODO: add other field types
+		"road":
+			field_width = 110
+			min_y = 0
+			max_y = 15
+		"wideRoad":
+			field_width = 170
+			min_y = 0
+			max_y = 15
+		_: # Default to road
+			field_width = 110
+			min_y = 0
+			max_y = 15
+	#make sure we're vaguely where we gotta be
+	if plays_left_side:
+		min_x = -field_width/2 - 10
+		max_x = -field_width/2 + 10
+	else:
+		min_x = field_width/2 - 10
+		max_x = field_width/2 + 10
+	if defending_goal_position.y < 0:
+		min_y = -min_y
+		max_y = -max_y
+	var shoot_position = Vector2(
+		randf_range(min_x, max_x),
+		randf_range(min_y, max_y)
+	)
+	if global_position.distance_squared_to(ball.global_position) < 225 or am_closest(): #15 units
+		shoot_position = ball.global_position
+	navigation_agent.target_position = shoot_position
+	make_counterattack_ball_choice()
+
+func is_goal_wide_open() -> bool:
+	if !opp_keeper:
+		return false
+	return opp_keeper.global_position.distance_to(oppGoal) > max_goal_offset * 2 or opp_keeper.is_incapacitated
+	
+func guard_shooting_aim():
+	var goal_offset = (max_goal_offset +  (max_goal_offset * attributes.aggression / 100))/2 #more aggressive players really try to put it at the post, less aggressive aim more to the middle
+	var left_post = Vector2(oppGoal.x - goal_offset, oppGoal.y)
+	var right_post = Vector2(oppGoal.x + goal_offset, oppGoal.y)
+	
+	var rand = randf()
+	if rand*100 > attributes.reactions: #oh shit I have the ball?
+		aim_point = oppGoal
+	else: #I'm ready, I'm going to take an aimed shot
+		rand = randf()
+		if rand < 0.5:
+			aim_point = left_post
+		else:
+			aim_point = right_post
+			
+func _choose_counterattack_action() -> String:
+	var actions = ["bank", "shoot", "switch", "send"]
+	var weights = []
+	var total_weight = 0.0
+	for action in actions:
+		weights.append(guard_counterattack_preferences[action])
+		total_weight += guard_counterattack_preferences[action]
+	
+	if current_behavior == "linking": #whole point is to send to forwards
+		var send_index = actions.find("send")
+		total_weight += weights[send_index]
+		weights[send_index] *= 2
+	elif current_behavior == "shooting_deep" or current_behavior == "shooting_midfield": #whole point is to shoot
+		var shoot_index = actions.find("shoot")
+		total_weight += weights[shoot_index]
+		weights[shoot_index] *= 2
+	
+	var r = randf() * total_weight
+	var cumulative = 0.0
+	
+	for i in range(weights.size()):
+		cumulative += weights[i]
+		if r <= cumulative:
+			return actions[i]
+	
+	return "bank"  #if in doubt chip it out
+	
+func make_counterattack_ball_choice():
+	var action = _choose_counterattack_action()
+	match action:
+		"shoot":
+			guard_shooting_aim()
+		"send":
+			var ss_score = _path_clearness(buddySSF.global_position, global_position)
+			var ws_score = _path_clearness(buddyWSF.global_position, global_position)
+			if ws_score > ss_score * 1.2: # favor strong side
+				aim_point = buddyWSF.global_position
+			else:
+				aim_point = buddySSF.global_position
+		"switch": #TODO: totally misses even with pretty good accuracy 
+			aim_point = buddy_guard.global_position
+			#print("the smart play: switch sides")
+		"bank":
+			set_aim_point()
+			
+func goalie_has_it():
+	if buddy_keeper.is_incapacitated:
+		return false
+	else:
+		var k_square = buddy_keeper.global_position.distance_squared_to(ball.global_position)
+		var me_square = global_position.distance_squared_to(ball.global_position)
+		var f1_square = assigned_forward.global_position.distance_squared_to(ball.global_position)
+		var f2_square = other_forward.global_position.distance_squared_to(ball.global_position)
+		if k_square < me_square:
+			if k_square < f1_square or assigned_forward.is_incapacitated:
+				if k_square < f2_square or other_forward.is_incapacitated:
+					return true
+	return false
+	
+func pick_counterattack_behavior():
+	var link = guard_counterattack_preferences.link
+	var deep = guard_counterattack_preferences.deep
+	var mid = guard_counterattack_preferences.mid
+	var rand = randf_range(0, link + deep + mid)
+	if rand < link:
+		current_behavior = "linking"
+	elif rand < link + deep:
+		current_behavior = "shooting_deep"
+	else:
+		current_behavior = "shooting_midfield"
+	#print("I am counterattack. I am " + current_behavior)
+	
+#check if the guard is closest to the ball of releavant players
+func am_closest():
+	var b_square = buddy_guard.global_position.distance_squared_to(ball.global_position)
+	var me_square = global_position.distance_squared_to(ball.global_position)
+	var f1_square = assigned_forward.global_position.distance_squared_to(ball.global_position)
+	var f2_square = other_forward.global_position.distance_squared_to(ball.global_position)
+	if me_square < b_square:
+		if me_square < f1_square or assigned_forward.is_incapacitated:
+			if me_square < f2_square or other_forward.is_incapacitated:
+				return true
+	return false
+
+#returns a float between 0 to 1 representing how open the ball's path is
+func _path_clearness(from_pos: Vector2, to_pos: Vector2) -> float:
+	var space = 1.0
+	var dir = (to_pos - from_pos).normalized()
+	var dist = from_pos.distance_to(to_pos)
+	
+	for i in range(1, int(dist / 50)):
+		var check_pos = from_pos + dir * i * 50
+		for opponent in [opp_keeper, assigned_forward, other_forward, oppLG, oppRG]:
+			if opponent.global_position.distance_to(check_pos) < 60:
+				space -= 0.4
+				break
+	
+	return clamp(space, 0.0, 1.0)
+	
+#basically target man but for guards and a little closer to home
+func calculate_linking_position():
+	var path_start = ball.global_position if ball else Vector2.ZERO
+	var path_end = defending_goal_position
+	if buddy_keeper && buddy_keeper.aim != Vector2.ZERO:
+		path_start = buddy_keeper.global_position
+		path_end = buddy_keeper.aim
+	var path_dir = (path_end - path_start).normalized()
+	var path_length = path_start.distance_to(path_end)
+	
+	# Define guard's side based on plays_left_side
+	var guard_side_mult = -1 if plays_left_side else 1
+	var min_x = starting_position.x - 10
+	var max_x = starting_position.x + 10
+	
+	# Try to find a point along the path that respects guard's position constraints
+	var ideal_intercept = null
+	for i in range(1, 10):
+		var t = i / 10.0
+		var point = path_start + path_dir * (path_length * t)
+		
+		# Only consider points within x constraints
+		if point.x < min_x || point.x > max_x:
+			continue
+			
+		# Check if point is in valid y-range
+		if (defending_goal_position.y < 0 && point.y <= -15 && point.y >= -25) || \
+		   (defending_goal_position.y > 0 && point.y >= 15 && point.y <= 25):
+			ideal_intercept = point
+			break
+	
+	# If no valid point found, create position within constraints
+	if !ideal_intercept:
+		var positioning_randomness = 1.0 - (attributes.positioning / 100.0)
+		var random_x = randf_range(min_x, max_x)
+		var random_y
+		if defending_goal_position.y < 0:
+			random_y = randf_range(-25, -15)
+		else:
+			random_y = randf_range(15, 25)
+		ideal_intercept = Vector2(random_x, random_y)
+	
+	# If too close to a forward, drift to guard's side
+	if (assigned_forward && ideal_intercept.distance_to(assigned_forward.global_position) < 10) || \
+	   (other_forward && ideal_intercept.distance_to(other_forward.global_position) < 10):
+		# Drift further to guard's side
+		var drift_direction = -1 if plays_left_side else 1
+		var drift_amount = randf_range(50, 150) * (1.0 - (attributes.positioning / 100.0))
+		ideal_intercept.x += drift_direction * drift_amount
+		# Clamp to position constraints
+		ideal_intercept.x = clamp(ideal_intercept.x, min_x, max_x)
+	
+	# Apply positioning variance
+	var positioning_variance = (100 - attributes.positioning) / 2.0
+	counter_position = Vector2(
+		clamp(ideal_intercept.x + randf_range(-positioning_variance, positioning_variance), min_x, max_x),
+		ideal_intercept.y + randf_range(-positioning_variance, positioning_variance))
+
+func create_passing_lane():
+	var passing_path = Line2D.new()
+	passing_path.add_point(ball.global_position)
+	passing_path.add_point(counter_position)
+	
+	var space_state = get_world_2d().direct_space_state
+	var query = PhysicsRayQueryParameters2D.create(ball.global_position, counter_position)
+	query.collision_mask = 0b1
+	query.exclude = [self]
+	
+	var result = space_state.intersect_ray(query)
+	
+	if result:
+		var blocker_position = result.position
+		var avoid_direction = (counter_position - blocker_position).normalized()
+		var new_position = counter_position + (avoid_direction * 2)
+		var min_x = starting_position.x - 10
+		var max_x = starting_position.x + 10
+		new_position.x = clamp(new_position.x, min_x, max_x)
+		new_position.x = clamp(new_position.x, -55, 55) #TODO: different roadtypes
+		new_position.y = clamp(new_position.y, -100, 100)
+		
+		counter_position = new_position
+	
+	navigate_to(counter_position)
+	passing_path.queue_free()
+
+#TODO: redundant, exact function is in forward
+func navigate_to(position: Vector2):
+	navigation_agent.target_position = position
+	if navigation_agent.is_navigation_finished():
+		velocity = Vector2.ZERO
+	else:
+		var next_path_pos = navigation_agent.get_next_path_position()
+		var stuck = 1
+		if is_incapacitated:
+			stuck = 0
+		velocity = global_position.direction_to(next_path_pos) * attributes.speed * stuck

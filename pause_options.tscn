@@ -57,5 +57,16 @@ popup/item_3/id = 3
 popup/item_4/text = "HD"
 popup/item_4/id = 4
 
+[node name="GameplayLabel" type="Label" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "GAMEPLAY"
+
+[node name="GameSpeedLabel" type="Label" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Game Speed"
+
+[node name="GameSpeed" type="HSlider" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+
 [connection signal="value_changed" from="MarginContainer/VBoxContainer/MasterVolume" to="." method="_on_master_volume_value_changed"]
 [connection signal="item_selected" from="MarginContainer/VBoxContainer/Resolution" to="." method="_on_resolution_item_selected"]

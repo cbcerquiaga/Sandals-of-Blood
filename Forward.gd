@@ -862,7 +862,7 @@ func create_passing_lane():
 	if result:
 		var blocker_position = result.position
 		var avoid_direction = (target_man_position - blocker_position).normalized()
-		var new_position = target_man_position + (avoid_direction * 100)
+		var new_position = target_man_position + (avoid_direction * 2)
 		new_position.x = clamp(new_position.x, -50, 50)
 		new_position.y = clamp(new_position.y, -100, 100)
 		target_man_position = new_position

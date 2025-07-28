@@ -45,6 +45,8 @@ var ball_last_velocity: Vector2
 var time_since_last_touch: float = 0.0
 var buddyLF
 var buddyRF
+var buddyLG
+var buddyRG
 var oppLF
 var oppRF
 var oppKeeper
@@ -426,6 +428,20 @@ func _find_pass_target() -> Variant:
 		var right_clear = _path_clearness(ball.global_position, buddyRF.global_position)
 		if right_clear > (0.5 - (0.2 * attributes.aggression/99.0)):
 			options.append(buddyRF.global_position)
+			weights.append(right_clear)
+	if buddyLG:
+		var left_clear = _path_clearness(ball.global_position, buddyLG.global_position)
+		if left_clear > (0.5 - (0.2 * attributes.aggression/99.0)):
+			if buddyLG.is_countering():
+				left_clear *= 1.5 #make the easy pass
+			options.append(buddyLF.global_position)
+			weights.append(left_clear)
+	if buddyRG:
+		var right_clear = _path_clearness(ball.global_position, buddyRG.global_position)
+		if right_clear > (0.5 - (0.2 * attributes.aggression/99.0)):
+			if buddyLG.is_countering():
+				right_clear *= 1.5 #make the easy pass
+			options.append(buddyLF.global_position)
 			weights.append(right_clear)
 	return options[weighted_random_choice(range(options.size()), weights)] if !options.is_empty() else null
 
