@@ -75,6 +75,13 @@ var field_position: String
 	"send": 1.0 #tendency to pass to forwards
 }
 
+@export var goalkeeping_preferences := {
+	"dives_backwards": false, #if the player dives backwards towards the goal to block instead of laterally
+	"challenge_depth": 10, #how far out the player will venture when defending the goal. Default 10, conservative 0
+	"charges_out": false, #if the player "dives" up the middle of the field to defend pitches
+	"sweeper_keeper": true, #if the keeper will go out and chase loose balls
+}
+
 #TODO: update for different parts of strategy
 #TODO: import from team.gd
 @export var team_strategy := {
@@ -292,6 +299,8 @@ func _physics_process(delta):
 	
 	if is_sprinting:
 		status.boost = status.boost -0.25
+		if status.boost < 0:
+			is_sprinting = false
 		
 	if is_machine:
 		status.energy = 100

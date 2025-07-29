@@ -197,6 +197,9 @@ func check_state():
 	if closest_opponent and global_position.distance_to(closest_opponent.global_position) < avoidance_weights["panic_threshold"]:
 		current_behavior = "avoiding"
 		return
+	#check to see if we ought to sweep
+	elif global_position.distance_to(ball.global_position) < 150 - attributes.aggression: #100 to 51
+		_make_sweeping_decision()
 	else:
 		current_behavior = "defending"
 
@@ -212,8 +215,6 @@ func perform_sweeping():
 	navigation_agent.target_position = anticipated_pos
 	velocity = (anticipated_pos - global_position).normalized() * attributes.sprint_speed
 	
-	if distance_to_ball < 150:
-		_make_sweeping_decision(anticipated_pos)
 
 func perform_avoiding():
 	var closest_opponent = get_closest_opponent()
@@ -275,23 +276,35 @@ func perform_attacking():
 		_execute_attack(attack_target.global_position)
 #endregion
 
-func _make_sweeping_decision(anticipated_pos: Vector2):
+func _make_sweeping_decision():
+	if !goalkeeping_preferences.sweeper_keeper:
+		print("homie don't play like that")
+		current_behavior = "defending"
+		return
 	var ball_speed = ball_last_velocity.length()
 	var opponent_dist = global_position.distance_to(get_closest_opponent().global_position)
 	var goal_dist = global_position.distance_to(own_goal)
-	
-	var strike_chance = 0.4*(1.0 - ball_speed/800.0) + (0.3*(1.0 - opponent_dist/300.0)) + (0.3*(1.0 - goal_dist/600.0))
-	var keeper_bias = (attributes.aggression * 0.5 + attributes.confidence * 0.3) / 99.0
-	_execute_sweeping_clearance(anticipated_pos)
-	current_behavior = "defending"
+	var dist_modifier #go for it if it's safe
+	if goal_dist < opponent_dist:
+		dist_modifier = 1.25
+	else:
+		dist_modifier = 0.75
+	var corner_modifier #go for it if it's in the corner
+	if abs(ball.global_position.y) - own_goal.y < 10:
+		corner_modifier = 2
+	else:
+		corner_modifier = 1
+	var keeper_bias = (attributes.aggression * 0.7 + attributes.confidence * 0.3) / 100.0#have o want it and believe in yourself
+	var clearness = _path_clearness(global_position, ball.global_position)
+	var choice = clearness * keeper_bias * dist_modifier * corner_modifier
+	if randf() < choice:
+		current_behavior = "sweeping"
+		print("gimme that ball!")
+	else:
+		current_behavior = "defending"
+	if (ball.global_position.y < 0 and own_goal.y > 0) or (ball.global_position.y > 0 and own_goal.y < 0):
+		current_behavior = "defending"
 
-func _execute_sweeping_clearance(pos: Vector2):
-	if global_position.distance_to(ball.global_position) > 100:
-		return
-	
-	var clear_dir = (ball.global_position - own_goal).normalized().rotated(deg_to_rad(randf_range(-30, 30)))
-	ball.apply_force(clear_dir * (700 + 300 * attributes.aggression/99.0))
-	time_since_last_touch = 0.0
 
 func _determine_strike_target() -> Vector2:
 	if _can_shoot_directly():
@@ -513,12 +526,14 @@ func human_assisted_block(shot_from: Vector2, shot_direction: Vector2, intercept
 	# Calculate the intercept point
 	var diff = global_position.x - intercept.x
 	var block_distance = (25*(attributes.blocking - 50))/49 + 5 #maximum distance we'll block
-	# Determine target position
 	if block_distance <= global_position.distance_to(intercept):
 		if diff <= 0:
 			human_block_target = Vector2(intercept.x + block_distance, global_position.y)
 		else:
-			human_block_target = Vector2(intercept.x - block_distance, global_position.y)
+			human_block_target = Vector2(intercept.x, global_position.y)
+		if goalkeeping_preferences.dives_backwards:
+				var avg = (global_position + intercept)/2
+				human_block_target = Vector2(human_block_target.x, avg.y)
 	else:
 		human_block_target = global_position.direction_to(intercept).normalized() * block_distance + global_position
 	is_human_blocking = true #override human input
@@ -526,6 +541,10 @@ func human_assisted_block(shot_from: Vector2, shot_direction: Vector2, intercept
 	navigation_agent.target_position = human_block_target
 	var block_direction = global_position.direction_to(human_block_target).normalized()
 	velocity = block_direction * attributes.sprint_speed * human_block_speed_multiplier
+	if velocity.x < 0 and ball.global_position.x > global_position.x: #we overshot!
+		velocity.x = 0
+	elif velocity.x > 0 and ball.global_position.x < global_position.x: #we overshot!
+		velocity.x = 0
 
 #improved block ability for if the keeper has the "shot swatter" special active
 func super_block(shot_from: Vector2, shot_direction: Vector2, intercept: Vector2):
@@ -641,15 +660,22 @@ func defending_behavior(delta: float):
 		if projected_intercept != Vector2.ZERO:
 			# Position based on where ball is likely to end up
 			var intercept_x = projected_intercept.x
+			var ball_field_distance#TODO: different field types
+			if fieldType == "road":
+				ball_field_distance = ball.global_position.x / 57.0
+			else:
+				ball_field_distance = ball.global_position.x / 100.0
 			
+			var relative_x = ball_field_distance * goal_width
 			# Apply positioning skill variance
 			var variance_x = (100 - attributes.positioning) / 10
 			variance_x = randf_range(-variance_x, variance_x)
 			intercept_x += variance_x
 			
-			# Clamp to reasonable goal defense area
+			var ball_distance_to_goal_y = abs(ball.global_position.y - leftPost.y)
 			intercept_x = clamp(intercept_x, goal_center.x - max_goal_offset, goal_center.x + max_goal_offset)
-			target_position = Vector2(intercept_x, leftPost.y + 10)
+			var dynamic_y = min(ball_distance_to_goal_y, goalkeeping_preferences.challenge_depth)
+			target_position = Vector2(relative_x + variance_x, leftPost.y + dynamic_y)
 		else:
 			# Fallback to ball field position method
 			var ball_field_distance
@@ -667,9 +693,13 @@ func defending_behavior(delta: float):
 	var distance_from_center = abs(target_position.x - goal_center.x)
 	if distance_from_center > max_goal_offset:
 		target_position.x = goal_center.x + sign(target_position.x - goal_center.x) * max_goal_offset
-	
+		
 	navigation_agent.target_position = target_position
-	velocity = (target_position - global_position).normalized() * attributes.speed
+	if global_position.distance_to(target_position) > 40 and status.boost > 0:
+		is_sprinting = true
+		velocity = (target_position - global_position).normalized() * attributes.sprint_speed
+	else:
+		velocity = (target_position - global_position).normalized() * attributes.speed
 
 # Helper function to project ball path with wall reflections
 func _project_ball_path_with_reflections() -> Vector2:
@@ -832,7 +862,10 @@ func perform_guessing():
 			dive_left()
 		elif roll < guess_preferences.left + guess_preferences.right:
 			last_guess = "middle"
-			current_behavior = "defending"
+			if goalkeeping_preferences.charges_out:
+				charge_middle()
+			else:
+				current_behavior = "defending"
 		else:
 			last_guess = "right"
 			dive_right()
@@ -853,6 +886,16 @@ func dive_right():
 	hold_frame = 15
 	var threeQuarters = (rightPost.x * 3 + global_position.x)/3
 	var place = Vector2(threeQuarters, global_position.y)
+	navigation_agent.target_position = place
+	var dir = global_position.direction_to(place)
+	velocity = dir * attributes.sprint_speed * attributes.blocking / 45 #2.2 for 99; 1 for 50
+	move_and_slide()
+
+func charge_middle():
+	current_behavior = "holding"
+	hold_frame = 20
+	var spot = global_position.x/3 #3/4 to the middle of the field
+	var place = Vector2(global_position.x, spot)
 	navigation_agent.target_position = place
 	var dir = global_position.direction_to(place)
 	velocity = dir * attributes.sprint_speed * attributes.blocking / 45 #2.2 for 99; 1 for 50
