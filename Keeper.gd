@@ -209,12 +209,75 @@ func perform_sweeping():
 		return
 	
 	var distance_to_ball = global_position.distance_to(ball.global_position)
-	var arrival_time = distance_to_ball / attributes.sprint_speed
-	var anticipated_pos = ball.global_position + (ball_last_velocity * arrival_time)
 	
+	# Check if we've reached the ball or gotten close enough
+	if distance_to_ball < 30 or (time_since_last_touch < 0.1):
+		# Successfully collected the ball - sprint back to defensive position
+		var goal_center = (leftPost + rightPost) / 2
+		var defensive_position = Vector2(goal_center.x, leftPost.y + 15)
+		navigation_agent.target_position = defensive_position
+		
+		# Sprint back at full speed
+		velocity = (defensive_position - global_position).normalized() * attributes.sprint_speed
+		
+		# Once we're back in position, switch to defending
+		if global_position.distance_to(defensive_position) < 20:
+			current_behavior = "defending"
+		return
+	
+	# Anticipate ball position with wall bounces
+	var anticipated_pos = _calculate_ball_intercept_with_bounces()
+	
+	# Sprint toward the anticipated position
 	navigation_agent.target_position = anticipated_pos
 	velocity = (anticipated_pos - global_position).normalized() * attributes.sprint_speed
 	
+	# Safety check - if ball gets too far or we've been sweeping too long, go back to defending
+	if distance_to_ball > sweeping_params["max_distance"] * 1.5:
+		current_behavior = "defending"
+
+func _calculate_ball_intercept_with_bounces() -> Vector2:
+	if !ball or ball_last_velocity.length() < 50:
+		return ball.global_position
+	
+	var current_pos = ball.global_position
+	var current_vel = ball_last_velocity
+	var keeper_speed = attributes.sprint_speed
+	var max_bounces = 2
+	var bounce_count = 0
+	
+	# Try to find where we can intercept the ball
+	while bounce_count <= max_bounces:
+		# Calculate time for keeper to reach current ball position
+		var distance_to_intercept = global_position.distance_to(current_pos)
+		var keeper_time = distance_to_intercept / keeper_speed
+		
+		# Project where ball will be when keeper arrives
+		var ball_future_pos = current_pos + current_vel * keeper_time
+		
+		# Check for wall collision before keeper arrives
+		var wall_collision = _check_wall_collision(current_pos, current_vel, keeper_time)
+		
+		if wall_collision.has("collision"):
+			# Ball will bounce - update position and velocity for next iteration
+			current_pos = wall_collision["position"]
+			current_vel = wall_collision["new_velocity"]
+			bounce_count += 1
+			
+			# Add some prediction error for realism based on keeper's reactions
+			var error_factor = (100 - attributes.reactions) / 200.0  # 0 to 0.25
+			if bounce_count > 0:
+				var error_offset = Vector2(
+					randf_range(-error_factor * 50, error_factor * 50),
+					randf_range(-error_factor * 50, error_factor * 50)
+				)
+				current_pos += error_offset
+		else:
+			# No wall collision - this is our intercept point
+			return ball_future_pos
+	
+	# If we can't predict after max bounces, just go for current ball position
+	return current_pos
 
 func perform_avoiding():
 	var closest_opponent = get_closest_opponent()
@@ -687,7 +750,7 @@ func defending_behavior(delta: float):
 			var relative_x = ball_field_distance * goal_width
 			var variance_x = (100 - attributes.positioning) / 10
 			variance_x = randf_range(-variance_x, variance_x)
-			target_position = Vector2(relative_x + variance_x, leftPost.y + 10)
+			target_position = Vector2(relative_x + variance_x, leftPost.y + goalkeeping_preferences.challenge_depth)
 	
 	# Ensure we don't go too far from goal center
 	var distance_from_center = abs(target_position.x - goal_center.x)
@@ -981,3 +1044,9 @@ func _on_ball_emit_pitch_side():
 	else:
 		save_pitch_from_ball("middle")
 		print("you're not beating me middle next time")
+		
+func clamp_to_goal_line():
+	if leftPost.y > 0:
+		navigation_agent.target_position.y = clamp(navigation_agent.target_position.y, 0, leftPost.y)
+	else:
+		navigation_agent.target_position.y = clamp(navigation_agent.target_position.y, leftPost.y, 0)

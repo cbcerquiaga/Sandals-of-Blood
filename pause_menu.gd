@@ -105,8 +105,9 @@ func open_menu(highlight: String = "resume"):
 			#current_index = 4
 	
 func resume_game():
-	hide()
+	#print("resume the game")
 	get_tree().paused = false
+	hide()
 
 func show_strategy_menu():
 	submenu = "strategy"
@@ -145,6 +146,13 @@ func clear_subs():
 	strategy_menu.clear_subs()
 	
 func _unhandled_input(event):
+	#if event.is_action_pressed("pause"): #TODO: only use start button on controller for this
+		#resume_game()
+		#get_viewport().set_input_as_handled()
+	#el
 	if event.is_action_pressed("UI_exit"):
-		resume_game()
-		get_viewport().set_input_as_handled()
+		if submenu == "":
+			resume_game()
+			get_viewport().set_input_as_handled()
+		elif submenu == "strategy":
+			strategy_menu._on_discard_pressed()

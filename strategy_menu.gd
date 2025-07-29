@@ -286,8 +286,10 @@ func _on_save_pressed():
 	hide()
 	
 func _on_discard_pressed():
-	emit_signal("menu_closed")
+	if !visible:
+		return
 	revert_changes()
+	emit_signal("menu_closed")
 	hide()
 
 func apply_strategy_changes():
@@ -307,9 +309,10 @@ func revert_changes():
 	current_team.pending_substitutions.clear()
 	
 func _unhandled_input(event):
-	if event.is_action_pressed("UI_exit"):
-		_on_discard_pressed()
-		get_viewport().set_input_as_handled()
+	if visible:
+		if event.is_action_pressed("UI_exit"):
+			_on_discard_pressed()
+			get_viewport().set_input_as_handled()
 
 func save_strategy(team: Team, file_path: String):
 	var data = team.export_to_dict()
