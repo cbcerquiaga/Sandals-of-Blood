@@ -57,7 +57,6 @@ const max_goal_offset: float = 29.5
 var reaction_timer: float = 0
 var reacting: bool = false
 var last_ball_direction: Vector2 = Vector2.ZERO
-var target_position: Vector2 = Vector2.ZERO
 var current_position: Vector2 = Vector2.ZERO
 var ball_last_sighted: Vector2 = Vector2.ZERO
 var ball_direction_projection: Vector2 = Vector2.ZERO
@@ -145,6 +144,8 @@ func _physics_process(delta):
 		#if !is_in_half():
 			#if !is_stunned:
 				#move_towards_half()
+		clamp_to_goal_line()
+		print(current_behavior, " location: ", global_position, " | target: ", navigation_agent.target_position)
 		if debug:
 			current_debug_frame += 1
 			if current_debug_frame >= debug_frames:
@@ -208,17 +209,24 @@ func perform_sweeping():
 		current_behavior = "defending"
 		return
 	
+	var goal_line_y = leftPost.y
+	var buffer = 10.0  # Stay at least this far in front of goal line
+	
 	var distance_to_ball = global_position.distance_to(ball.global_position)
 	
 	# Check if we've reached the ball or gotten close enough
 	if distance_to_ball < 30 or (time_since_last_touch < 0.1):
 		# Successfully collected the ball - sprint back to defensive position
 		var goal_center = (leftPost + rightPost) / 2
-		var defensive_position = Vector2(goal_center.x, leftPost.y + 15)
+		# Stay in front of goal line (adjust based on field side)
+		var defensive_y = goal_center.y - 15 * sign(goal_center.y)
+		var defensive_position = Vector2(goal_center.x, defensive_y)
+		
 		navigation_agent.target_position = defensive_position
 		
-		# Sprint back at full speed
-		velocity = (defensive_position - global_position).normalized() * attributes.sprint_speed
+		# Sprint back at full speed but don't go beyond goal line
+		var move_dir = (defensive_position - global_position).normalized()
+		velocity = move_dir * attributes.sprint_speed
 		
 		# Once we're back in position, switch to defending
 		if global_position.distance_to(defensive_position) < 20:
@@ -228,7 +236,19 @@ func perform_sweeping():
 	# Anticipate ball position with wall bounces
 	var anticipated_pos = _calculate_ball_intercept_with_bounces()
 	
-	# Sprint toward the anticipated position
+	# Prevent moving behind goal line
+	if sign(goal_line_y) > 0:  # Bottom goal
+		anticipated_pos.y = min(anticipated_pos.y, goal_line_y - buffer)
+	else:  # Top goal
+		anticipated_pos.y = max(anticipated_pos.y, goal_line_y + buffer)
+	
+	# Only move forward (toward center) during sweeping
+	var ball_to_center = (Vector2(0, 0) - ball.global_position).normalized()
+	if (global_position - anticipated_pos).normalized().dot(ball_to_center) < 0.7:
+		# Ball is behind us, stay put rather than backtracking
+		velocity = Vector2.ZERO
+		return
+	
 	navigation_agent.target_position = anticipated_pos
 	velocity = (anticipated_pos - global_position).normalized() * attributes.sprint_speed
 	
@@ -245,6 +265,8 @@ func _calculate_ball_intercept_with_bounces() -> Vector2:
 	var keeper_speed = attributes.sprint_speed
 	var max_bounces = 2
 	var bounce_count = 0
+	var goal_line_y = leftPost.y
+	var buffer = 15.0  # Stay in front of goal
 	
 	# Try to find where we can intercept the ball
 	while bounce_count <= max_bounces:
@@ -263,20 +285,21 @@ func _calculate_ball_intercept_with_bounces() -> Vector2:
 			current_pos = wall_collision["position"]
 			current_vel = wall_collision["new_velocity"]
 			bounce_count += 1
-			
-			# Add some prediction error for realism based on keeper's reactions
-			var error_factor = (100 - attributes.reactions) / 200.0  # 0 to 0.25
-			if bounce_count > 0:
-				var error_offset = Vector2(
-					randf_range(-error_factor * 50, error_factor * 50),
-					randf_range(-error_factor * 50, error_factor * 50)
-				)
-				current_pos += error_offset
 		else:
 			# No wall collision - this is our intercept point
+			# Ensure we don't go behind goal line
+			if sign(goal_line_y) > 0:  # Bottom goal
+				ball_future_pos.y = min(ball_future_pos.y, goal_line_y - buffer)
+			else:  # Top goal
+				ball_future_pos.y = max(ball_future_pos.y, goal_line_y + buffer)
 			return ball_future_pos
 	
 	# If we can't predict after max bounces, just go for current ball position
+	# Still respect goal boundary
+	if sign(goal_line_y) > 0:
+		current_pos.y = min(current_pos.y, goal_line_y - buffer)
+	else:
+		current_pos.y = max(current_pos.y, goal_line_y + buffer)
 	return current_pos
 
 func perform_avoiding():
@@ -698,9 +721,6 @@ func defending_behavior(delta: float):
 	# Project ball path with wall reflections
 	var projected_intercept = _project_ball_path_with_reflections()
 	
-	# Determine target position based on ball proximity and projection
-	var target_position: Vector2
-	
 	if ball.global_position.y < leftPost.y + 10 and abs(ball.global_position.x) > 35: 
 		# Ball in corner - position near closest post
 		var pos_check = (100 - attributes.positioning) / 10
@@ -708,14 +728,14 @@ func defending_behavior(delta: float):
 		var aggression_variance = attributes.aggression / 20
 		
 		if leftPost.distance_squared_to(ball.global_position) < rightPost.distance_squared_to(ball.global_position):
-			target_position = Vector2(leftPost.x + aggression_variance, leftPost.y + 5 + positioning_variance)
+			navigation_agent.target_position = Vector2(leftPost.x + aggression_variance, leftPost.y + 5 + positioning_variance)
 		else:
-			target_position = Vector2(rightPost.x - aggression_variance, rightPost.y + 5 + positioning_variance)
+			navigation_agent.target_position = Vector2(rightPost.x - aggression_variance, rightPost.y + 5 + positioning_variance)
 			
 	elif ball.global_position.distance_to(goal_center) < (attributes.reactions / 2):
 		# Very close ball - go directly for it
-		target_position = ball.global_position
-		velocity = (target_position - global_position).normalized() * attributes.sprint_speed
+		navigation_agent.target_position = ball.global_position
+		velocity = (navigation_agent.target_position - global_position).normalized() * attributes.sprint_speed
 		return
 		
 	else:
@@ -738,7 +758,7 @@ func defending_behavior(delta: float):
 			var ball_distance_to_goal_y = abs(ball.global_position.y - leftPost.y)
 			intercept_x = clamp(intercept_x, goal_center.x - max_goal_offset, goal_center.x + max_goal_offset)
 			var dynamic_y = min(ball_distance_to_goal_y, goalkeeping_preferences.challenge_depth)
-			target_position = Vector2(relative_x + variance_x, leftPost.y + dynamic_y)
+			navigation_agent.target_position = Vector2(relative_x + variance_x, leftPost.y + dynamic_y)
 		else:
 			# Fallback to ball field position method
 			var ball_field_distance
@@ -750,19 +770,19 @@ func defending_behavior(delta: float):
 			var relative_x = ball_field_distance * goal_width
 			var variance_x = (100 - attributes.positioning) / 10
 			variance_x = randf_range(-variance_x, variance_x)
-			target_position = Vector2(relative_x + variance_x, leftPost.y + goalkeeping_preferences.challenge_depth)
+			navigation_agent.target_position = Vector2(relative_x + variance_x, leftPost.y + goalkeeping_preferences.challenge_depth)
 	
 	# Ensure we don't go too far from goal center
-	var distance_from_center = abs(target_position.x - goal_center.x)
+	var distance_from_center = abs(navigation_agent.target_position.x - goal_center.x)
 	if distance_from_center > max_goal_offset:
-		target_position.x = goal_center.x + sign(target_position.x - goal_center.x) * max_goal_offset
+		navigation_agent.target_position.x = goal_center.x + sign(navigation_agent.target_position.x - goal_center.x) * max_goal_offset
 		
-	navigation_agent.target_position = target_position
-	if global_position.distance_to(target_position) > 40 and status.boost > 0:
+	clamp_to_goal_line()
+	if global_position.distance_to(navigation_agent.target_position) > 40 and status.boost > 0:
 		is_sprinting = true
-		velocity = (target_position - global_position).normalized() * attributes.sprint_speed
+		velocity = (navigation_agent.target_position - global_position).normalized() * attributes.sprint_speed
 	else:
-		velocity = (target_position - global_position).normalized() * attributes.speed
+		velocity = (navigation_agent.target_position - global_position).normalized() * attributes.speed
 
 # Helper function to project ball path with wall reflections
 func _project_ball_path_with_reflections() -> Vector2:
@@ -1046,7 +1066,8 @@ func _on_ball_emit_pitch_side():
 		print("you're not beating me middle next time")
 		
 func clamp_to_goal_line():
-	if leftPost.y > 0:
-		navigation_agent.target_position.y = clamp(navigation_agent.target_position.y, 0, leftPost.y)
-	else:
-		navigation_agent.target_position.y = clamp(navigation_agent.target_position.y, leftPost.y, 0)
+	pass
+	#if leftPost.y > 0:
+		#navigation_agent.target_position.y = clamp(navigation_agent.target_position.y, 0, leftPost.y)
+	#else:
+		#navigation_agent.target_position.y = clamp(navigation_agent.target_position.y, leftPost.y, 0)
