@@ -144,7 +144,6 @@ func _physics_process(delta):
 		#if !is_in_half():
 			#if !is_stunned:
 				#move_towards_half()
-		clamp_to_goal_line()
 		print(current_behavior, " location: ", global_position, " | target: ", navigation_agent.target_position)
 		if debug:
 			current_debug_frame += 1
@@ -158,8 +157,7 @@ func _physics_process(delta):
 		if Input.is_action_just_pressed("activate_special_ability"):
 			if status.groove > 0:
 				activate_special_ability()
-				
-		
+		human_check_ball_close()
 		move_and_slide()
 
 #region Behavior Implementations
@@ -227,11 +225,11 @@ func perform_sweeping():
 		# Sprint back at full speed but don't go beyond goal line
 		var move_dir = (defensive_position - global_position).normalized()
 		velocity = move_dir * attributes.sprint_speed
-		
 		# Once we're back in position, switch to defending
 		if global_position.distance_to(defensive_position) < 20:
 			current_behavior = "defending"
-		return
+			return
+	check_ball_close()
 	
 	# Anticipate ball position with wall bounces
 	var anticipated_pos = _calculate_ball_intercept_with_bounces()
@@ -590,7 +588,7 @@ func weighted_random_choice(options: Array, weights: Array):
 #endregion
 
 #called when the ball is shot by an opposing forward
-func on_shot_at_goal(shot_from: Vector2, shot_direction: Vector2, shooter_team: int):
+func on_shot_at_goal(shot_from: Vector2, shot_direction: Vector2 , shooter_team: int):
 	if shooter_team == team: #not my problem
 		return 
 	var reaction_time = map_attribute_to_reaction_time(attributes.reactions)
@@ -601,13 +599,13 @@ func on_shot_at_goal(shot_from: Vector2, shot_direction: Vector2, shooter_team: 
 		ball_last_sighted = shot_from
 		ball_direction_projection = shot_direction
 		current_behavior = "blocking"
-	elif !is_stunned and !is_dodging and velocity == Vector2(0,0) and intercept.distance_to(own_goal) < goal_width * 0.6:#slight buffer but has to be basically on goal
+	elif !is_stunned and !is_dodging and velocity == Vector2(0,0) and abs(intercept.x - own_goal.x) < goal_width * 0.6:#slight buffer but has to be basically on goal
 		if is_machine:
-			super_block(shot_from, shot_direction, intercept)
+			super_block(shot_from, intercept)
 		else:
-			human_assisted_block(shot_from, shot_direction, intercept)
+			human_assisted_block(shot_from, intercept)
 
-func human_assisted_block(shot_from: Vector2, shot_direction: Vector2, intercept: Vector2):
+func human_assisted_block(shot_from: Vector2, intercept: Vector2):
 	print("human assisted block initiated")
 	# Calculate the intercept point
 	var diff = global_position.x - intercept.x
@@ -633,7 +631,7 @@ func human_assisted_block(shot_from: Vector2, shot_direction: Vector2, intercept
 		velocity.x = 0
 
 #improved block ability for if the keeper has the "shot swatter" special active
-func super_block(shot_from: Vector2, shot_direction: Vector2, intercept: Vector2):
+func super_block(shot_from: Vector2, intercept: Vector2):
 	var ball_path = ball_last_velocity.normalized()
 	var keeper_to_ball = ball.global_position - global_position
 	var t = keeper_to_ball.dot(ball_path) / ball_path.dot(ball_path)
@@ -669,9 +667,13 @@ func handle_human_blocking(delta: float):
 	if human_block_timer <= 0 or global_position.distance_to(human_block_target) < 10.0:
 		is_human_blocking = false
 		return false
-	var block_direction = global_position.direction_to(human_block_target).normalized()
+	var block_direction
+	if ball.global_position.distance_squared_to(global_position) > 100: #10 units
+		block_direction = global_position.direction_to(human_block_target).normalized()
+	else:
+		block_direction = global_position.direction_to(ball.global_position).normalized()
 	velocity = block_direction * attributes.sprint_speed * human_block_speed_multiplier
-	return true  # Return true to indicate we're still overriding input
+	return true # Return true to indicate we're still overriding input
 			
 func perform_blocking():
 	#print("Not in my house")
@@ -682,7 +684,7 @@ func perform_blocking():
 		current_behavior = "defending"
 		return
 	var block_distance = (15*(attributes.blocking - 50))/49 + 5 #if 50, bd is 5; if 99, bd is 20
-	var block_direction = global_position.direction_to(intercept).normalized()
+	var block_direction 
 	if block_distance <= global_position.distance_to(intercept):
 		var diff = global_position.x - intercept.x
 		if diff <= 0:
@@ -691,6 +693,10 @@ func perform_blocking():
 			navigation_agent.target_position = Vector2(intercept.x - block_distance, global_position.y)
 	else:
 		navigation_agent.target_position = intercept
+	if ball.global_position.distance_squared_to(global_position) > 100: #10 units
+		block_direction = global_position.direction_to(intercept).normalized()
+	else:
+		block_direction = global_position.direction_to(ball.global_position).normalized()
 	velocity = block_direction * attributes.sprint_speed * BLOCKING_BONUS #slight bonus speed for blocking
 
 
@@ -776,13 +782,12 @@ func defending_behavior(delta: float):
 	var distance_from_center = abs(navigation_agent.target_position.x - goal_center.x)
 	if distance_from_center > max_goal_offset:
 		navigation_agent.target_position.x = goal_center.x + sign(navigation_agent.target_position.x - goal_center.x) * max_goal_offset
-		
-	clamp_to_goal_line()
 	if global_position.distance_to(navigation_agent.target_position) > 40 and status.boost > 0:
 		is_sprinting = true
 		velocity = (navigation_agent.target_position - global_position).normalized() * attributes.sprint_speed
 	else:
 		velocity = (navigation_agent.target_position - global_position).normalized() * attributes.speed
+	check_ball_close()
 
 # Helper function to project ball path with wall reflections
 func _project_ball_path_with_reflections() -> Vector2:
@@ -955,6 +960,7 @@ func perform_guessing():
 	print("dive: " + last_guess)
 			
 func dive_left():
+	check_ball_close()
 	current_behavior = "holding"
 	hold_frame = 15
 	var threeQuarters = (leftPost.x * 3 + global_position.x)/3
@@ -965,6 +971,7 @@ func dive_left():
 	move_and_slide()
 
 func dive_right():
+	check_ball_close()
 	current_behavior = "holding"
 	hold_frame = 15
 	var threeQuarters = (rightPost.x * 3 + global_position.x)/3
@@ -975,6 +982,7 @@ func dive_right():
 	move_and_slide()
 
 func charge_middle():
+	check_ball_close()
 	current_behavior = "holding"
 	hold_frame = 20
 	var spot = global_position.x/3 #3/4 to the middle of the field
@@ -1040,6 +1048,7 @@ func ai_check_special_ability():
 #hold in place for x frames
 func perform_holding(frame: int):
 	if !ball: return
+	check_ball_close()
 	print("hold frame: ", hold_frame)
 	if frame > 0:
 		hold_frame = hold_frame - 1
@@ -1065,9 +1074,19 @@ func _on_ball_emit_pitch_side():
 		save_pitch_from_ball("middle")
 		print("you're not beating me middle next time")
 		
-func clamp_to_goal_line():
-	pass
-	#if leftPost.y > 0:
-		#navigation_agent.target_position.y = clamp(navigation_agent.target_position.y, 0, leftPost.y)
-	#else:
-		#navigation_agent.target_position.y = clamp(navigation_agent.target_position.y, leftPost.y, 0)
+func check_ball_close():
+	if !ball:
+		return
+	if ball.global_position.distance_to(own_goal) < max_goal_offset or ball.global_position.distance_to(global_position) < sqrt(attributes.reactions):
+		current_behavior = "blocking"
+		perform_blocking()
+		
+#if we're close enough to the ball and have no input, help the player out a little bit
+func human_check_ball_close():
+	if !ball: return
+	if ball.global_position.distance_to(global_position) < sqrt(attributes.reactions):
+		if !is_stunned and !is_dodging and velocity == Vector2(0,0):
+			if is_machine:
+				super_block(ball.global_position, ball.global_position)
+			else:
+				human_assisted_block(ball.global_position, ball.global_position)
