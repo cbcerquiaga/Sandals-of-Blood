@@ -19,3 +19,55 @@ func _on_resolution_item_selected(index: int) -> void:
 		4: #High Definition
 			DisplayServer.window_set_size(Vector2i(1366, 768))
 		
+
+
+func _on_keyboard_scheme_item_selected(index: int) -> void:
+	pass # Replace with function body.
+
+
+func _on_south_paw_toggled(toggled_on: bool) -> void:
+	pass # Replace with function body.
+
+
+func _on_controller_scheme_item_selected(index: int) -> void:
+	pass # Replace with function body.
+
+
+func _on_check_button_toggled(toggled_on: bool) -> void:
+	pass # Replace with function body.
+
+
+func _on_game_speed_value_changed(value: float) -> void:
+	pass # Replace with function body.
+
+
+func _on_sp_frequency_value_changed(value: float) -> void:
+	pass # Replace with function body.
+
+
+func _on_buff_human_value_changed(value: float) -> void:
+	pass # Replace with function body.
+
+
+func _on_buff_ai_value_changed(value: float) -> void:
+	pass # Replace with function body.
+
+
+func _on_inj_frequency_value_changed(value: float) -> void:
+	pass # Replace with function body.
+
+
+func _on_mouse_sensitivity_value_changed(value: float) -> void:
+	pass # Replace with function body.
+
+
+func _on_music_volume_value_changed(value: float) -> void:
+	pass # Replace with function body.
+
+
+func _on_sfx_volume_value_changed(value: float) -> void:
+	pass # Replace with function body.
+
+
+func _on_crowd_volume_value_changed(value: float) -> void:
+	pass # Replace with function body.
