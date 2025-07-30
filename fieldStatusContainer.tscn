@@ -54,7 +54,6 @@ scale = Vector2(0.153165, 0.149197)
 texture = ExtResource("2_afxa4")
 
 [node name="Portrait" type="Sprite2D" parent="PortraitHolder1"]
-position = Vector2(2428.75, 374.449)
 scale = Vector2(2.3047, 2.0845)
 
 [node name="NameTag" type="Sprite2D" parent="."]

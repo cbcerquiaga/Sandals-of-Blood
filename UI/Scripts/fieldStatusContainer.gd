@@ -74,7 +74,7 @@ func get_player_portrait():
 		return
 	portrait.texture = load(player.portrait)
 	portrait.scale = Vector2(0.7, 0.7)
-	portrait.position = Vector2(position.x - 30, position.y +10)
+	portrait.position = Vector2(0, 0)
 	
 func update_boost_bars():
 	var boost_percent = player.status.boost / 99 * 100 #max is 99 because of attributes

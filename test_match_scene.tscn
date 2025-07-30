@@ -13,8 +13,7 @@
 script = ExtResource("1_v8xhv")
 
 [node name="Camera2D" type="Camera2D" parent="."]
-offset = Vector2(0, 30)
-zoom = Vector2(5, 5)
+zoom = Vector2(6, 6)
 script = ExtResource("2_w1g4r")
 
 [node name="RoadField" parent="." instance=ExtResource("1_wmjeh")]
@@ -32,6 +31,8 @@ script = ExtResource("2_w1g4r")
 [node name="UI" type="Node2D" parent="."]
 
 [node name="MatchStatusUI" parent="UI" instance=ExtResource("7_46orc")]
+size_flags_horizontal = 4
+size_flags_vertical = 0
 
 [node name="PauseMenu" parent="UI" instance=ExtResource("8_h76e2")]
 

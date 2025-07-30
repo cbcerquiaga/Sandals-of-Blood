@@ -6,13 +6,9 @@ enum EndCondition { SCORE_LIMIT, PITCH_LIMIT }
 enum FieldType { ROAD, CULDESAC, HORSESHOE }
 
 var current_settings := {
-	"end_condition": EndCondition.SCORE_LIMIT,
-	"score_limit": 11,
-	"pitch_limit": 30,
-	"win_by_two": true,
-	"tie_score": 21,
-	"extra_pitches": 5,
-	"sudden_death": true,
+	"score_limit": 3, #7 is standard, 11 is long, 3 is quick
+	"pitch_limit": 10, #20 is standard, 30 is long, 10 is quick
+	"regular_season": true, #if true, we use sudden death tie, otherwise we use infinite win by two
 	"play_length": 30.0, # seconds
 	"time_scale": 0.35,#0.8 works
 	"field_type": FieldType.ROAD
@@ -500,47 +496,32 @@ func check_match_end():
 	if match_ended:
 		return
 	
-	var team1_score = team_scores[0]
-	var team2_score = team_scores[1]
+	var team1_score: int = team_scores[0]
+	var team2_score: int = team_scores[1]
 	
-	match current_settings.end_condition:
-		EndCondition.SCORE_LIMIT:
-			var limit = current_settings.score_limit
-			var tie_score = current_settings.tie_score
-			
-			if current_settings.win_by_two:
-				# Win by 2 rules
-				if team1_score >= limit and team1_score >= team2_score + 2:
-					end_match(1)
-				elif team2_score >= limit and team2_score >= team1_score + 2:
-					end_match(2)
-				elif team1_score >= tie_score and team2_score >= tie_score:
-					end_match(0) # Tie
-			else:
-				# Simple score limit
-				if team1_score >= limit:
-					end_match(1)
-				elif team2_score >= limit:
-					end_match(2)
-		
-		EndCondition.PITCH_LIMIT:
-			if pitches_remaining <= 0:
-				if is_in_extra_pitches:
-					# Sudden death or extra pitch limit
-					if current_settings.sudden_death or extra_pitches_used >= current_settings.extra_pitches:
-						end_match(last_scoring_team if last_scoring_team != -1 else 0)
-				else:
-					# Check if we need extra pitches
-					if current_settings.win_by_two and abs(team1_score - team2_score) < 2:
-						is_in_extra_pitches = true
-						extra_pitches_used = 0
-					else:
-						if team1_score > team2_score:
-							end_match(1)
-						elif (team2_score > team1_score):
-							end_match(2)
-						else:
-							end_match(0)
+	if team1_score >= current_settings.score_limit and team1_score - team2_score >= 2:
+		end_match(1)#team 1 wins by score
+	elif team2_score >= current_settings.score_limit and team2_score - team1_score >= 2:
+		end_match(2)#team 2 wins by score
+	elif current_settings.regular_season and team1_score == current_settings.score_limit and team2_score == current_settings.score_limit:
+		end_match(0)#tie by score
+	elif pitches_remaining <= 0 and team1_score - team2_score >= 2:
+		end_match(1) #win by pitches
+	elif pitches_remaining <= 0 and team2_score - team1_score >= 2:
+		end_match(2)#win by pitches
+	elif current_settings.regular_season and pitches_remaining <= 0 and team1_score == team2_score:
+		end_match(0)#tie by pitches
+	elif current_settings.regular_season and pitches_remaining <= 0 and abs(team1_score - team2_score) == 1:
+		print("sudden death overtime!") #if winning team scores, they win. If losing team scores, they tie
+		#TODO: sudden death overtime graphic
+	elif current_settings.regular_season and (team1_score == current_settings.score_limit or team2_score == current_settings.score_limit) and abs(team1_score - team2_score) == 1:
+		print("sudden death overtime!")
+		#TODO: sudden death overtime graphic
+	elif !current_settings.regular_season and (pitches_remaining <= 0 or team1_score == current_settings.score_limit or team2_score == current_settings.score_limit) and abs(team1_score - team2_score) < 2:
+		print("Deuce!") #game will go on forever until one of the teams leads by 2
+		#TODO: deuce overtime graphic
+	else: #regular old game on
+		return
 
 func end_match(winning_team: int):
 	match_ended = true

@@ -62,12 +62,19 @@ func _on_mouse_sensitivity_value_changed(value: float) -> void:
 
 
 func _on_music_volume_value_changed(value: float) -> void:
+	AudioServer.set_bus_volume_db(1, value)
 	pass # Replace with function body.
 
 
 func _on_sfx_volume_value_changed(value: float) -> void:
+	AudioServer.set_bus_volume_db(2, value)
 	pass # Replace with function body.
 
 
 func _on_crowd_volume_value_changed(value: float) -> void:
+	AudioServer.set_bus_volume_db(3, value)
+	pass # Replace with function body.
+
+
+func _on_brightness_value_changed(value: float) -> void:
 	pass # Replace with function body.

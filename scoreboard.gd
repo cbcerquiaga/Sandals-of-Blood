@@ -35,7 +35,7 @@ func assign_color_scheme(scheme: int):
 	gameTime_holder.texture = load(gameTime_path)
 	gameTime_holder.flip_h = true
 	gameTime_holder.scale = Vector2(1.103, 2.48)
-	gameTime_holder.global_position = Vector2(483, 461.625)
+	#gameTime_holder.global_position = Vector2(483, 461.625)
 	
 	
 	

@@ -2,13 +2,13 @@ extends Control
 
 var matchHandler: MatchHandler
 var team: Team
-@onready var LG_container: FieldStatusContainer = $LG_Container
-@onready var RG_container: FieldStatusContainer = $RG_Container
-@onready var LF_container: FieldStatusContainer = $LF_Container
-@onready var RF_container: FieldStatusContainer = $RF_Container
-@onready var P_container: FieldStatusContainer = $P_Container
-@onready var K_container: FieldStatusContainer = $K_Container
-@onready var specials: SpecialPitches = $Special_Pitch_availability
+@onready var LG_container: FieldStatusContainer = $Control/LG_Container
+@onready var RG_container: FieldStatusContainer = $Control/RG_Container
+@onready var LF_container: FieldStatusContainer = $Control/LF_Container
+@onready var RF_container: FieldStatusContainer = $Control/RF_Container
+@onready var P_container: FieldStatusContainer = $Control/P_Container
+@onready var K_container: FieldStatusContainer = $Control/K_Container
+@onready var specials: SpecialPitches = $Control/Special_Pitch_availability
 @onready var scoreboard: Scoreboard = $Scoreboard
 
 func assign_team(handler: MatchHandler):
@@ -29,20 +29,20 @@ func _process(delta: float) -> void:
 	if !LF_container:
 		print("problem with container")
 		return
-	LG_container.scale = Vector2(0.18,0.18)
-	RG_container.scale = Vector2(0.18,0.18)
-	LF_container.scale = Vector2(0.18,0.18)
-	RF_container.scale = Vector2(0.18,0.18)
-	K_container.scale = Vector2(0.18,0.18)
-	P_container.scale = Vector2(0.18,0.18)
-	LF_container.global_position = Vector2(-180, 170)
-	P_container.global_position = Vector2(-40, 170)
-	RF_container.global_position = Vector2(100, 170)
-	LG_container.global_position = Vector2(-180, 205)
-	K_container.global_position = Vector2(-40, 205)
-	RG_container.global_position = Vector2(100, 205)
+	LG_container.scale = Vector2(0.08,0.08)
+	RG_container.scale = Vector2(0.08,0.08)
+	LF_container.scale = Vector2(0.08,0.08)
+	RF_container.scale = Vector2(0.08,0.08)
+	K_container.scale = Vector2(0.08,0.08)
+	P_container.scale = Vector2(0.08,0.08)
+	LF_container.position = Vector2(140, -150)
+	P_container.position = Vector2(200, -150)
+	RF_container.position = Vector2(260, -150)
+	LG_container.position = Vector2(140, -120)
+	K_container.position = Vector2(200, -120)
+	RG_container.position = Vector2(260, -120)
 	scoreboard.scale = Vector2(0.03, 0.03)
-	scoreboard.global_position = Vector2(-15, -165)
+	scoreboard.position = Vector2(-200, -135)
 	pass
 	
 func update_scoreboard():
