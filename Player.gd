@@ -105,6 +105,7 @@ var forward_strategy = {
 	"target_man": 100.0,
 	"shooter": 100.0,
 	"rebound": 50.0,
+	"defend": 25,
 	"pick": 10.0,
 	"bully": 10.0,
 	"fencing": 5.0,

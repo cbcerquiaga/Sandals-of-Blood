@@ -132,6 +132,8 @@ func execute_attack_plan():
 			perform_fencing()
 		"cower":
 			execute_cower()
+		"defend":
+			perform_defending()
 		#"returning":
 			#print("forward out of position")
 			#move_towards_half()
@@ -1092,3 +1094,26 @@ func is_in_correct_half(pos: Vector2) -> bool:
 		return pos.y <= 0
 	else:  #top half
 		return pos.y >= 0
+		
+#shadow the opposing goalkeeper, try to take away any passes
+func perform_defending():
+	var desired_position: Vector2
+	var own_goal = Vector2(0, 0 - goal_position.y)
+	var read
+	read = randi_range(0,100)
+	if read < attributes.positioning: #if we make a good read, we get to know what the keeper is thinking
+		var opp_aim = opposing_keeper.aim
+		if aim.distance_to(assigned_guard.global_position) < 10: #passing to our guard
+			desired_position = (assigned_guard.global_position + opposing_keeper.global_position*2)/3
+		elif aim.distance_to(own_goal) < 20: #shooting
+			desired_position = (own_goal + opposing_keeper.global_position * 2)/3
+		else:
+			var temp = (own_goal + assigned_guard.global_position + opposing_keeper.global_position*2) / 4
+			desired_position = Vector2((opp_aim.x+temp.x)/2, temp.y)
+	else:
+		desired_position = (own_goal + assigned_guard.global_position + opposing_keeper.global_position*2) / 4
+	if ball.global_position.distance_to(global_position) < (attributes.speedRating + attributes.reactions)/8: #12.5 to 24.75
+		execute_rebound()
+		return
+	navigation_agent.target_position = desired_position
+	navigate_to(navigation_agent.target_position)

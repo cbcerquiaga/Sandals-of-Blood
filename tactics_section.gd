@@ -15,7 +15,8 @@ var LF_directions = {
 	"pick": 10.0,
 	"bully": 10.0,
 	"fencing": 5.0,
-	"cower": 5.0
+	"cower": 5.0,
+	"defend": 25
 }
 
 @onready var RF_Lbutton = $RF/LB
@@ -32,7 +33,8 @@ var RF_directions = {
 	"pick": 10.0,
 	"bully": 10.0,
 	"fencing": 5.0,
-	"cower": 5.0
+	"cower": 5.0,
+	"defend": 25
 }
 
 @onready var D_Lbutton = $D/LB
@@ -53,7 +55,7 @@ var D_strategy = {
 
 var team: Team
 
-var forward_assignments = ["Classic Forward", "Rusher", "Shooting Forward", "Rebounder", "Attacking Forward", "Target Forward", "Support Forward", "Roving Menace", "Pick and Roller", "Pick and Popper"]
+var forward_assignments = ["Classic Forward", "Rusher", "Shooting Forward", "Rebounder", "Attacking Forward", "Target Forward", "Support Forward", "Roving Menace", "Pick and Roller", "Pick and Popper", "Defensive Forward"]
 var defense_schemes = ["Positional Man to Man", "Fluid Man to Man", "Left Guard Trap Zone", "Right Guard Trap Zone", "Tight Triangle Zone"]
 
 func _ready() -> void:
@@ -131,7 +133,7 @@ func import_assignments(lf: String, rf: String, d: String):
 func LFL_pressed():
 	LF_tactic_index -= 1
 	if LF_tactic_index < 0:
-		LF_tactic_index = 9
+		LF_tactic_index = 10
 	LF_assignment.text = forward_assignments[LF_tactic_index]
 	update_forward_explanation_text(LF_explanation, LF_assignment.text)
 	update_forward_directions(LF_directions, LF_assignment.text)
@@ -139,7 +141,7 @@ func LFL_pressed():
 func RFL_pressed():
 	RF_tactic_index -= 1
 	if RF_tactic_index < 0:
-		RF_tactic_index = 9
+		RF_tactic_index = 10
 	RF_assignment.text = forward_assignments[RF_tactic_index]
 	update_forward_explanation_text(RF_explanation, RF_assignment.text)
 	update_forward_directions(RF_directions, RF_assignment.text)
@@ -154,7 +156,7 @@ func DL_pressed():
 	
 func LFR_pressed():
 	LF_tactic_index += 1
-	if LF_tactic_index > 9:
+	if LF_tactic_index > 10:
 		LF_tactic_index = 0
 	LF_assignment.text = forward_assignments[LF_tactic_index]
 	update_forward_explanation_text(LF_explanation, LF_assignment.text)
@@ -162,7 +164,7 @@ func LFR_pressed():
 	
 func RFR_pressed():
 	RF_tactic_index += 1
-	if RF_tactic_index > 9:
+	if RF_tactic_index > 10:
 		RF_tactic_index = 0
 	RF_assignment.text = forward_assignments[RF_tactic_index]
 	update_forward_explanation_text(RF_explanation, RF_assignment.text)
@@ -198,6 +200,8 @@ func update_forward_explanation_text(label: Label, assignment: String):
 			label.text = "The Pick and Roller will set picks for their forward partner, then try and get to the net and get after the opposing keeper or pick up rebounds."
 		"Pick and Popper":
 			label.text = "The Pick and Popper will set picks for their forward partner, then looks to find open space- either a shooting lane or to a position in midfield to link up play."
+		"Defensive Forward":
+			label.text = "The Defensive Forward takes away passing options for the opposing keeper, in the hopes of intercepting the ball and scoring an easy goal."
 	
 func update_defense_explanation_text(assignment: String):
 	match assignment:
@@ -226,7 +230,8 @@ func update_forward_directions(directions: Dictionary, assignment: String):
 				"bully": 10.0,
 				"fencing": 5.0,
 				"cower": 5.0,
-				"wing_preference": 0.5
+				"wing_preference": 0.5,
+				"defend": 50
 				}
 		"Rusher":
 			new_directions = {
@@ -239,7 +244,8 @@ func update_forward_directions(directions: Dictionary, assignment: String):
 				"bully": 10.0,
 				"fencing": 5.0,
 				"cower": 5.0,
-				"wing_preference": 0.5
+				"wing_preference": 0.5,
+				"defend": 0
 				}
 		"Shooting Forward":
 			new_directions = {
@@ -252,7 +258,8 @@ func update_forward_directions(directions: Dictionary, assignment: String):
 				"bully": 10.0,
 				"fencing": 5.0,
 				"cower": 5.0,
-				"wing_preference": 0.5
+				"wing_preference": 0.5,
+				"defend": 25
 				}
 		"Rebounder":
 			new_directions = {
@@ -263,9 +270,10 @@ func update_forward_directions(directions: Dictionary, assignment: String):
 				"rebound": 250.0,
 				"pick": 10.0,
 				"bully": 10.0,
-				"fencing": 40.0,
+				"fencing": 50.0,
 				"cower": 5.0,
-				"wing_preference": 0.1#rebounder goes to the middle
+				"wing_preference": 0.1,#rebounder goes to the middle
+				"defend": 150
 				}
 		"Attacking Forward":
 			new_directions = {
@@ -278,7 +286,8 @@ func update_forward_directions(directions: Dictionary, assignment: String):
 				"bully": 10.0,
 				"fencing": 2.5,
 				"cower": 5.0,
-				"wing_preference": 0.5
+				"wing_preference": 0.5,
+				"defend": 10
 				}
 		"Target Forward":
 			new_directions = {
@@ -291,7 +300,8 @@ func update_forward_directions(directions: Dictionary, assignment: String):
 				"bully": 10.0,
 				"fencing": 5.0,
 				"cower": 5.0,
-				"wing_preference": 0.8#target forward gets wide
+				"wing_preference": 0.8,#target forward gets wide
+				"defend": 0
 				}
 		"Support Forward":
 			new_directions = {
@@ -304,7 +314,8 @@ func update_forward_directions(directions: Dictionary, assignment: String):
 				"bully": 10.0,
 				"fencing": 5.0,
 				"cower": 5.0,
-				"wing_preference": 0.7
+				"wing_preference": 0.7,
+				"defend": 25
 				}
 		"Roving Menace":
 			new_directions = {
@@ -317,7 +328,8 @@ func update_forward_directions(directions: Dictionary, assignment: String):
 				"bully": 50.0,
 				"fencing": 10.0,
 				"cower": 5.0,
-				"wing_preference": 0.5
+				"wing_preference": 0.5,
+				"defend": 0
 				}
 		"Pick and Roller":
 			new_directions = {
@@ -330,7 +342,8 @@ func update_forward_directions(directions: Dictionary, assignment: String):
 				"bully": 10.0,
 				"fencing": 5.0,
 				"cower": 5.0,
-				"wing_preference": 0.4
+				"wing_preference": 0.4,
+				"defend": 0
 				}
 		"Pick and Popper":
 			new_directions = {
@@ -343,7 +356,22 @@ func update_forward_directions(directions: Dictionary, assignment: String):
 				"bully": 10.0,
 				"fencing": 5.0,
 				"cower": 5.0,
-				"wing_preference": 0.6
+				"wing_preference": 0.6,
+				"defend": 120
+				}
+		"Defensive Forward":
+			new_directions = {
+				"bull_rush": 10.0,
+				"skill_rush": 20.0,
+				"target_man": 30.0,
+				"shooter": 30.0,
+				"rebound": 50.0,
+				"pick": 10.0,
+				"bully": 10.0,
+				"fencing": 5.0,
+				"cower": 5.0,
+				"wing_preference": 0.5,
+				"defend": 200
 				}
 	directions.clear()
 	directions.merge(new_directions)
