@@ -175,6 +175,7 @@ func open_menu(team: Team, handler: MatchHandler, in_match: bool):
 	
 func field_player_chosen(position: String, player: Player):
 	playerPopup.show()
+	shuffle_player = player
 	highlight_0_player_popup()
 	pass
 	
@@ -451,6 +452,7 @@ func _on_player_popup_index_pressed(index: int) -> void:
 			playerPopup.hide()
 		2:
 			infoPopup.show()
+			populate_player_info(shuffle_player)
 			playerPopup.hide()
 	pass
 
@@ -529,3 +531,56 @@ func get_position_by_index(index: int):
 			return "K"
 		5:
 			return "P"
+			
+func populate_player_info(player: Player):
+	var portrait = $"InfoPopup/VBoxContainer/Top Row/Portrait"
+	var name_label = $"InfoPopup/VBoxContainer/Top Row/Name"
+	var bio_label = $"InfoPopup/VBoxContainer/Bottom Row/Bio"
+	var attributes_label = $"InfoPopup/VBoxContainer/Bottom Row/Attributes"
+	var stats_label = $"InfoPopup/VBoxContainer/Bottom Row/Stats"
+	
+	portrait.custom_minimum_size = Vector2(100, 100)
+	portrait.size = Vector2(100, 100)
+	portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	name_label.add_theme_font_size_override("font_size", 50)
+	bio_label.add_theme_font_size_override("font_size", 30)
+	attributes_label.add_theme_font_size_override("font_size", 30)
+	stats_label.add_theme_font_size_override("font_size", 30)
+	portrait.texture = load(player.portrait)
+	var nickname
+	if !player.bio.has("nickname"):
+		nickname = " "
+	elif !player.bio.nickname:
+		nickname = " "
+	else:
+		nickname = " \"" + player.bio.nickname + "\" "
+	name_label.text = player.bio.first_name + nickname + player.bio.last_name
+	bio_label.text = print_player_bio(player)
+	attributes_label.text = print_player_attributes(player)
+	#stats_label.text - print_player_stats(player)
+			
+func print_player_bio(player: Player):
+	var string: String
+	string = string + "Hometown: " + player.bio.hometown + "\n"
+	string = string + "Height: " + str(player.bio.feet) + "\'" + str(player.bio.inches) + "\"\n"
+	string = string + "Weight: " + str(player.bio.pounds) + "\n"
+	string = string + "Age: " + str(player.bio.years) + "\n"
+	var hand = "Right"
+	if player.bio.leftHanded:
+		hand = "Left"
+	string = string + "Throws: " + hand
+	return string
+	
+func print_player_attributes(player: Player):
+	var string: String
+	string = string + "Speed: " + str(player.attributes.speedRating) + "  Strength: " + str(player.attributes.power) + "\n"
+	string = string + "Endurance: " + str(player.attributes.endurance) + "  Balance: " + str(player.attributes.balance) + "\n"
+	string = string + "Shooting: " + str(player.attributes.shooting) + "  Accuracy: " + str(player.attributes.accuracy) + "\n"
+	string = string + "Blocking: " + str(player.attributes.blocking) + "  Reactions: " + str(player.attributes.reactions) + "\n"
+	string = string + "Throwing: " + str(player.attributes.throwing) + "  Curve: " + str(player.attributes.focus) + "\n"
+	string = string + "Aggression: " + str(player.attributes.aggression) + "  Positioning: " + str(player.attributes.positioning) + "\n"
+	string = string + "Toughness: " + str(player.attributes.toughness) + "  Confidence: " + str(player.attributes.confidence) + "\n"
+	string = string + "Durability: " + str(player.attributes.durability)
+	return string
+	

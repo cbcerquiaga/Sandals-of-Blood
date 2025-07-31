@@ -605,6 +605,54 @@ auto_translate_mode = 1
 title = "Player Info"
 initial_position = 1
 
+[node name="VBoxContainer" type="VBoxContainer" parent="InfoPopup"]
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="Top Row" type="HBoxContainer" parent="InfoPopup/VBoxContainer"]
+layout_mode = 2
+
+[node name="Portrait" type="TextureRect" parent="InfoPopup/VBoxContainer/Top Row"]
+layout_mode = 2
+
+[node name="Name" type="Label" parent="InfoPopup/VBoxContainer/Top Row"]
+layout_mode = 2
+text = "Name goes here"
+
+[node name="PlayerType" type="TextureRect" parent="InfoPopup/VBoxContainer/Top Row"]
+layout_mode = 2
+
+[node name="Bottom Row" type="HBoxContainer" parent="InfoPopup/VBoxContainer"]
+layout_mode = 2
+
+[node name="Bio" type="Label" parent="InfoPopup/VBoxContainer/Bottom Row"]
+layout_mode = 2
+text = "Hometown
+Height
+Weight
+Age
+Favorite Food
+
+"
+
+[node name="Attributes" type="Label" parent="InfoPopup/VBoxContainer/Bottom Row"]
+layout_mode = 2
+text = "Speed
+Power
+Spin
+Positioning
+Toughness"
+
+[node name="Stats" type="Label" parent="InfoPopup/VBoxContainer/Bottom Row"]
+layout_mode = 2
+text = "Pitches Played
+Ball Touches
+Goals
+Assists
+Sacks
+Knockouts
+"
+
 [connection signal="bench_switched_position" from="Bench" to="." method="_on_bench_bench_switched_position"]
 [connection signal="player_selected" from="Bench" to="." method="_on_bench_player_selected"]
 [connection signal="id_focused" from="PlayerPopup" to="." method="_on_player_popup_id_focused"]

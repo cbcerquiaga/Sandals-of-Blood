@@ -426,7 +426,6 @@ func debug_default_roster():
 	P1.position_type = "pitcher"
 	P1.playable_positions = ["P"]
 	P1.declared_pitcher = true
-	P1.bio = {"first_name": "Billy", "last_name": "Knuckles", "leftHanded": false}
 	P1.attributes = {
 		"speedRating": 65, 
 		"speed": 100.0, 
@@ -446,12 +445,33 @@ func debug_default_roster():
 		"toughness": 90,
 		"confidence": 60 
 	}
+	P1.bio = {
+	"first_name" :"Billy",
+	"last_name": "Knuckles",
+	"nickname": "Fistmaster",
+	"hometown": "Wasteland",
+	"leftHanded": true,
+	"feet": 6,
+	"inches": 4,
+	"pounds": 255,
+	"years": 29
+}
 	
 	var P2 = Player.new()
 	P2.position_type = "pitcher"
 	P2.declared_pitcher = true
 	P2.playable_positions = ["P", "K", "LG", "RG", "LF", "RF"]
-	P2.bio = {"first_name": "Randy", "last_name": "Runningham", "leftHanded": true}
+	P2.bio = {
+	"first_name" :"Randy",
+	"last_name": "Runningham",
+	"nickname": "The Ostrich",
+	"hometown": "New Beach",
+	"leftHanded": false,
+	"feet": 6,
+	"inches": 1,
+	"pounds": 155,
+	"years": 22
+}
 	P2.attributes = {
 		"speedRating": 85, 
 		"speed": 120.0, 
@@ -474,7 +494,17 @@ func debug_default_roster():
 	
 	var P3 = Player.new()
 	P3.position_type = "forward"
-	P3.bio = {"first_name": "Mike", "last_name": "Torpedo", "leftHanded": false}
+	P3.bio = {
+	"first_name" :"Mike",
+	"last_name": "Lillard",
+	"nickname": "The Torpedo",
+	"hometown": "Discount Auto Parts",
+	"leftHanded": true,
+	"feet": 5,
+	"inches": 9,
+	"pounds": 205,
+	"years": 34
+}
 	P3.attributes = {
 		"speedRating": 80, 
 		"speed": 115.0, 
@@ -497,7 +527,17 @@ func debug_default_roster():
 	
 	var P4 = Player.new()
 	P4.position_type = "guard"
-	P4.bio = {"first_name": "Kyle", "last_name": "Korpisalo", "leftHanded": false}
+	P4.bio = {
+	"first_name" :"Kyle",
+	"last_name": "Korpisalo",
+	"nickname": "Killer",
+	"hometown": "Wasteland",
+	"leftHanded": false,
+	"feet": 6,
+	"inches": 0,
+	"pounds": 145,
+	"years": 19
+}
 	P4.attributes = {
 		"speedRating": 70, 
 		"speed": 105.0, 
