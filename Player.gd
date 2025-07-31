@@ -925,11 +925,51 @@ func get_position_class(position: String) -> GDScript:
 			
 #determines out of position penalties
 func can_play_position(field_position: String) -> bool:
-	# Pitchers must be declared, or else it uses up extra substitutions
-	if field_position == "P" && !declared_pitcher:
-		return false
-	elif field_position != "P" && declared_pitcher:
-		return false
-	else:
-		return field_position in playable_positions
+	return field_position in playable_positions
 		
+#overall calculators
+#TODO: assign playstyle deoending on result
+#TODO: assign playstyle icon depending on playstyle
+#TODO: apply buffed/debuffed attributes
+
+func calculate_pitcher_overall():
+	var att = attributes
+	var ratings = []
+	ratings.append(( (att.power + att.throwing) + att.focus + att.accuracy + att.confidence)/5)#fastball rating
+	ratings.append(( (att.power + att.throwing)/2 + att.focus * 2 + att.accuracy + att.confidence * 2)/6)#curveball rating
+	ratings.append((att.endurance * 2 + att.confidence + att.accuracy * 2 + (att.power + att.throwing)/2 + att.focus)/7) #workhorse rating
+	ratings.append((att.toughness + att.shooting + att.power + att.speedRating + att.durability + att.balance)/5) #enforcer rating
+	ratings.sort()
+	ratings.reverse()
+	return int((ratings[0] + ratings[1])/2)
+	
+func calculate_forward_overall():
+	var att = attributes
+	var ratings = []
+	ratings.append((att.shooting * 3 + att.accuracy * 3 + att.positioning + att.speed + att.reactions)/9)#goal scorer rating
+	ratings.append((att.power * 2 + att.speedRating * 2 + att.balance + att.endurance + att.durability)/7)#anti-keeper rating
+	ratings.append((att.power + att.accuracy + att.positioning + att.balance + att.reactions + att.durability)/6)#support forward rating
+	ratings.sort()
+	ratings.reverse()
+	return int((ratings[0] + ratings[1])/2)
+	
+func calculate_guard_overall():
+	var att = attributes
+	var ratings = []
+	ratings.append((att.speedRating + att.power + att.positioning + att.endurance)/4) #defender rating
+	ratings.append((att.reactions * 2 + att.blocking * 2 + att.speedRating + att.shooting + att.accuracy)/7) #ball hound rating
+	ratings.append((att.power * 2 + att.toughness + att.durability + att.endurance)/5) #bully rating
+	ratings.sort()
+	ratings.reverse()
+	return int((ratings[0] + ratings[1])/2)
+	
+func calculate_keeper_overall():
+	var att = attributes
+	var ratings = []
+	ratings.append((att.power + att.balance + att.durability + att.speedRating)/4)
+	ratings.append((att.reactions + att.blocking + att.positioning)/3)
+	ratings.append((att.shooting + att.accuracy + att.speedRating + att.endurance)/4)
+	ratings.append((att.blocking + att.shooting + att.accuracy + att.power)/4)
+	ratings.sort()
+	ratings.reverse()
+	return int((ratings[0] + ratings[1])/2)

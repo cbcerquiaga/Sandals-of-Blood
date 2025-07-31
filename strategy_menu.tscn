@@ -1,4 +1,4 @@
-[gd_scene load_steps=16 format=3 uid="uid://e818m1s2f5xp"]
+[gd_scene load_steps=18 format=3 uid="uid://e818m1s2f5xp"]
 
 [ext_resource type="Script" path="res://strategy_menu.gd" id="1_p0u7q"]
 [ext_resource type="Script" path="res://bench_section.gd" id="2_a8736"]
@@ -15,6 +15,8 @@
 [ext_resource type="Texture2D" uid="uid://cqfhq5hj3ofqv" path="res://UI/StrategyUI/PreviousButton_base.png" id="12_tr0tp"]
 [ext_resource type="Texture2D" uid="uid://gb8htff5kf03" path="res://UI/StrategyUI/NextButton_base.png" id="13_aqj5i"]
 [ext_resource type="Texture2D" uid="uid://tieg1bdd3qne" path="res://UI/StrategyUI/Revert_button_base.png" id="15_6juc1"]
+[ext_resource type="Texture2D" uid="uid://com3rbaqnyf3w" path="res://UI/StrategyUI/Reposition_button_base.png" id="16_xnd7x"]
+[ext_resource type="Texture2D" uid="uid://d25rahut8lc5l" path="res://UI/StrategyUI/PlayerInfo_button_base.png" id="17_2r3jq"]
 
 [node name="Strategy_Menu" type="Control"]
 process_mode = 2
@@ -613,6 +615,48 @@ text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. In condimentum,
 horizontal_alignment = 3
 autowrap_mode = 3
 
+[node name="PlayerPopup" type="PopupMenu" parent="."]
+title = "Player"
+initial_position = 5
+item_count = 3
+item_0/icon = ExtResource("6_x5r2x")
+item_1/icon = ExtResource("16_xnd7x")
+item_1/id = 1
+item_2/icon = ExtResource("17_2r3jq")
+item_2/id = 2
+
+[node name="BenchPopup" type="PopupMenu" parent="."]
+auto_translate_mode = 1
+title = "Player"
+initial_position = 5
+item_count = 2
+item_0/icon = ExtResource("6_x5r2x")
+item_1/icon = ExtResource("17_2r3jq")
+item_1/id = 2
+
+[node name="SubstitutionPopup" type="PopupMenu" parent="."]
+auto_translate_mode = 1
+title = "Substitute"
+initial_position = 5
+size = Vector2i(500, 1000)
+content_scale_size = Vector2i(50, 50)
+content_scale_aspect = 4
+
+[node name="RepositionPopup" type="PopupMenu" parent="."]
+auto_translate_mode = 1
+title = "Change Position"
+initial_position = 5
+size = Vector2i(500, 1000)
+content_scale_size = Vector2i(50, 50)
+
+[node name="InfoPopup" type="PopupMenu" parent="."]
+auto_translate_mode = 1
+title = "Player Info"
+initial_position = 1
+
 [connection signal="bench_switched_position" from="Bench" to="." method="_on_bench_bench_switched_position"]
 [connection signal="player_selected" from="Bench" to="." method="_on_bench_player_selected"]
 [connection signal="pressed" from="SubstitutionSection/SubButtonsContainer/SubButton" to="." method="_on_sub_button_pressed"]
+[connection signal="id_focused" from="PlayerPopup" to="." method="_on_player_popup_id_focused"]
+[connection signal="index_pressed" from="PlayerPopup" to="." method="_on_player_popup_index_pressed"]
+[connection signal="index_pressed" from="BenchPopup" to="." method="_on_bench_popup_index_pressed"]

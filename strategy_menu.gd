@@ -5,8 +5,6 @@ class_name StrategyMenu
 @onready var substitutionSection = $SubstitutionSection
 @onready var benchSection = $Bench
 @onready var background: Sprite2D
-@onready var subOn = $SubstitutionSection/SubContainer/SubOn
-@onready var subOff = $SubstitutionSection/SubContainer/SubOff
 @onready var subs_counter = $SubstitutionSection/SubsRemaining
 @onready var sub_button = $SubstitutionSection/SubButtonsContainer/SubButton
 @onready var discard_button = $SaveDiscardContainer/DiscardButton
@@ -17,6 +15,11 @@ class_name StrategyMenu
 @onready var lg_button = $SubstitutionSection/FieldGrid/LG_Button
 @onready var rg_button = $SubstitutionSection/FieldGrid/RG_Button
 @onready var k_button = $SubstitutionSection/FieldGrid/K_Button
+@onready var playerPopup = $PlayerPopup #when a player is selected
+@onready var subsPopup = $SubstitutionPopup #when the sub option is picked from players
+@onready var movePopup = $RepositionPopup #when the reposition option is picked from players
+@onready var infoPopup	= $InfoPopup #detailed attributes and game stats
+@onready var benchPopup = $BenchPopup #same as playerPopup but for a player who is not in the game
 var lf
 var rf
 var p
@@ -32,6 +35,7 @@ var pending_substitution : Array[Substitution]
 
 var is_in_match:bool = true #false if we got here from the team management menu, true if we got here from pausing a match
 var original_roster:Array
+var original_field: Array
 var original_strategy:Dictionary
 var original_bullpen:Array #array of of up to 3 bench pitchers
 var original_bench:Array#array of up to 6 fielders
@@ -44,6 +48,9 @@ var playerOff: Player
 var playerOn: Player
 var last_focused_button: Control
 var current_focus_owner: Control = null
+var chosen_position: String = ""
+var shuffle_player: Player
+var shuffle_from_bench: bool = false #if we pick "reposition" from a field player, this is false. if we pick "substitute" from a bench player, this is true. Same menu, slightly different functionality
 
 signal menu_closed
 signal new_sub
@@ -179,22 +186,11 @@ func open_menu(team: Team, handler: MatchHandler, in_match: bool):
 		tacticsSection.LF_Lbutton.grab_focus()
 	
 func field_player_chosen(position: String, player: Player):
-	print("field player chosen: " + str(player))
-	if not player:
-		return
-	if subOff_player:
-		if subOff_player == player:
-			subOff_player = null
-			subOff_position = ""
-			$SubstitutionSection/SubContainer/SubOff/Label.text = ""
-		else:
-			swap_player_spots(subOff_player, player, position)
-	else:
-		subOff_player = player
-		subOff_position = position
-		$SubstitutionSection/SubContainer/SubOff/Label.text = position + " " + player.bio.last_name
-	update_pending_display()
-	maintain_focus()
+	playerPopup.show()
+	highlight_0_player_popup()
+	pass
+	
+
 
 
 func swap_player_spots(player1, player2, player2_position):
@@ -221,21 +217,8 @@ func substitute_players() -> void:
 func bench_player_chosen(chosenPlayer: Player):
 	if not chosenPlayer:
 		return
-	if subOn_player:
-		if chosenPlayer.position_type == "pitcher" and subOn_player.position_type == "pitcher" and chosenPlayer != subOn_player:
-			switch_player_positions(chosenPlayer, subOn_player)
-		elif chosenPlayer.position_type != "pitcher" and subOn_player.position_type != "pitcher" and chosenPlayer != subOn_player:
-			switch_player_positions(chosenPlayer, subOn_player)
-		elif subOn_player == chosenPlayer:
-			subOn_player = null
-			#subOff_player = null
-			#subOff_position = ""
-			$SubstitutionSection/SubContainer/SubOn/Label.text = ""
-			#$SubstitutionSection/SubOff/Label.text = ""
-	else:
-		subOn_player = chosenPlayer
-		$SubstitutionSection/SubContainer/SubOn/Label.text = chosenPlayer.bio.last_name
-	update_pending_display()
+	shuffle_player = chosenPlayer
+	benchPopup.show()
 	maintain_focus()
 
 func update_pending_display():
@@ -342,12 +325,13 @@ func apply_team_to_field():
 	lf = current_team.LF
 	rf = current_team.RF
 	p = current_team.P
-	var lf_overall = benchSection.calculate_forward_overall(lf)
-	var rf_overall = benchSection.calculate_forward_overall(rf)
-	var p_overall = benchSection.calculate_pitcher_overall(p)
-	var lg_overall = benchSection.calculate_guard_overall(lg)
-	var rg_overall = benchSection.calculate_guard_overall(rg)
-	var k_overall = benchSection.calculate_keeper_overall(k)
+	original_field = [lg, rg, lf, rf, k, p]
+	var lf_overall = lf.calculate_forward_overall()
+	var rf_overall = rf.calculate_forward_overall()
+	var p_overall = p.calculate_pitcher_overall()
+	var lg_overall = lg.calculate_guard_overall()
+	var rg_overall = rg.calculate_guard_overall()
+	var k_overall = k.calculate_keeper_overall()
 	$SubstitutionSection/FieldGrid/LF_Button/Label.text = "LF: " + lf.bio.first_name + " " +  lf.bio.last_name + "\n" + str(lf_overall) + " Rating " + str(lf.status.energy) + "% Energy"
 	$SubstitutionSection/FieldGrid/P_Button/Label.text = "P: " + p.bio.first_name+ " "  + p.bio.last_name + "\n" + str(p_overall) + " Rating " + str(p.status.energy) + "% Energy"
 	$SubstitutionSection/FieldGrid/RF_Button/Label.text = "RF: " + rf.bio.first_name + " " + rf.bio.last_name + "\n" + str(rf_overall) + " Rating " + str(rf.status.energy) + "% Energy"
@@ -384,37 +368,41 @@ func switch_player_positions(player1: Player, player2: Player):
 	#original_bench = benchSection.bench
 
 func clear_subs():
-	$SubstitutionSection/SubContainer/SubOff/Label.text = ""
-	$SubstitutionSection/SubContainer/SubOn/Label.text = ""
 	pending_subs = []
 
 
 func _on_LF_button_pressed():
+	chosen_position = "LF"
 	field_player_chosen("LF", lf)
 	lf_button.grab_focus()
 	current_focus_owner = lf_button
 
 func _on_RF_button_pressed():
+	chosen_position = "RF"
 	field_player_chosen("RF", rf)
 	rf_button.grab_focus()
 	current_focus_owner = rf_button
 
 func _on_P_button_pressed():
+	chosen_position = "P"
 	field_player_chosen("P", p)
 	p_button.grab_focus()
 	current_focus_owner = p_button
 
 func _on_LG_button_pressed():
+	chosen_position = "LG"
 	field_player_chosen("LG", lg)
 	lg_button.grab_focus()
 	current_focus_owner = lg_button
 
 func _on_RG_button_pressed():
+	chosen_position = "RG"
 	field_player_chosen("RG", rg)
 	rg_button.grab_focus()
 	current_focus_owner = rg_button
 
 func _on_K_button_pressed():
+	chosen_position = "K"
 	field_player_chosen("K", k)
 	k_button.grab_focus()
 	current_focus_owner = k_button
@@ -433,3 +421,127 @@ func _on_bench_bench_switched_position() -> void:
 func _on_sub_button_pressed() -> void:
 	substitute_players()
 	new_sub.emit()
+
+
+func _on_player_popup_id_focused(id: int) -> void:
+	playerPopup.set_item_icon(0, preload("res://UI/StrategyUI/Substitute_button_base.png"))
+	playerPopup.set_item_icon(1, preload("res://UI/StrategyUI/Reposition_button_base.png"))
+	playerPopup.set_item_icon(2, preload("res://UI/StrategyUI/PlayerInfo_button_base.png"))
+	match id:
+		0:
+			playerPopup.set_item_icon(0, preload("res://UI/StrategyUI/Substitute_button_highlighted.png"))
+			pass
+		1:
+			playerPopup.set_item_icon(1, preload("res://UI/StrategyUI/Resposition_button_highlighted.png"))
+			pass
+		2:
+			playerPopup.set_item_icon(2, preload("res://UI/StrategyUI/PlayerInfo_button_highlighted.png"))
+			pass
+	pass
+
+
+func highlight_0_player_popup() -> void:
+	playerPopup.set_focused_item(0)
+	_on_player_popup_id_focused(0)
+	
+func highlight_0_subs_popup() -> void:
+	subsPopup.set_focused_item(0)
+	#_on_player_popup_id_focused(0)
+
+
+func _on_player_popup_index_pressed(index: int) -> void:
+	match index:
+		0:
+			subsPopup.show()
+			setup_substitute_popup()
+			highlight_0_subs_popup()
+			playerPopup.hide()
+		1:
+			movePopup.show()
+			populate_reposition_popup()
+			#highlight_0_reposition_popup()
+			playerPopup.hide()
+		2:
+			infoPopup.show()
+			playerPopup.hide()
+	pass
+
+
+func setup_substitute_popup() -> void:
+	subsPopup.clear()
+	subsPopup.add_theme_font_size_override("font_size", 50)     # Larger text
+	for player in current_team.roster:
+		if original_field.find(player) >= 0:
+			continue
+		var rating = str(get_current_position_overall(player))
+		var surname = player.bio.last_name
+		subsPopup.add_item(surname + " " + rating)
+	pass
+
+func get_current_position_overall(player: Player):
+	match chosen_position:
+		"LF":
+			return player.calculate_forward_overall()
+		"RF":
+			return player.calculate_forward_overall()
+		"P":
+			return player.calculate_pitcher_overall()
+		"LG":
+			return player.calculate_guard_overall()
+		"RG":
+			return player.calculate_guard_overall()
+		"K":
+			return player.calculate_keeper_overall()
+
+func get_player_icons(player: Player):
+	#TODO: set an icon to either ("res://UI/StrategyUI/in_position.png") or ("res://UI/StrategyUI/out_position.png") deoending on if they can play a position
+	pass
+
+
+func _on_bench_popup_index_pressed(index: int) -> void:
+	_on_player_popup_index_pressed(index + 1) #index 1 on the bench is index 2 on the field player, subbing in from the bench is the same menu as repositioning.
+	pass
+
+func populate_reposition_popup():
+	movePopup.clear()
+	movePopup.add_theme_constant_override("icon_max_width", 100)  # Smaller icons
+	movePopup.add_theme_constant_override("icon_max_height", 50) # Smaller icons
+	movePopup.add_theme_font_size_override("font_size", 50)     # Larger text
+	var index = 0
+	for player in original_field:
+		var texture
+		var role = get_position_by_index(index)
+		if shuffle_from_bench: #only care about whether the bench player can play the position
+			if shuffle_player.can_play_position(role):
+				texture = preload("res://UI/StrategyUI/in_position.png")
+			else:
+				texture = preload("res://UI/StrategyUI/out_position.png")
+		else: #we want both players to be playing their positions
+			if shuffle_player.can_play_position(role):
+				if player.can_play_position(role):
+					texture = preload("res://UI/StrategyUI/in_position_both.png")
+				else:
+					texture = preload("res://UI/StrategyUI/in_position_me.png")
+			else:
+				if player.can_play_position(role):
+					texture = preload("res://UI/StrategyUI/in_position_you.png")
+				else:
+					texture = preload("res://UI/StrategyUI/out_position_both.png")
+		movePopup.add_icon_item(texture, "      " + role + " " + player.bio.last_name)
+		index = index + 1
+
+func get_position_by_index(index: int):
+	#[lg, rg, lf, rf, k, p]
+	match index:
+		0:
+			return "LG"
+		1:
+			return "RG"
+		2:
+			return "LF"
+		3:
+			return "RF"
+		4:
+			return "K"
+		5:
+			return "P"
