@@ -6,7 +6,6 @@ class_name StrategyMenu
 @onready var benchSection = $Bench
 @onready var background: Sprite2D
 @onready var subs_counter = $SubstitutionSection/SubsRemaining
-@onready var sub_button = $SubstitutionSection/SubButtonsContainer/SubButton
 @onready var discard_button = $SaveDiscardContainer/DiscardButton
 @onready var save_button = $SaveDiscardContainer/SaveButton
 @onready var lf_button = $SubstitutionSection/FieldGrid/LF_Button
@@ -58,7 +57,6 @@ signal new_sub
 func _ready():
 	save_button.pressed.connect(_on_save_pressed)
 	discard_button.pressed.connect(_on_discard_pressed)
-	sub_button.pressed.connect(perform_substitution)
 	lf_button.focus_entered.connect(_on_lf_button_focus_entered)
 	lf_button.focus_exited.connect(_on_lf_button_focus_exited)
 	rf_button.focus_entered.connect(_on_rf_button_focus_entered)
@@ -71,15 +69,13 @@ func _ready():
 	rg_button.focus_exited.connect(_on_rg_button_focus_exited)
 	k_button.focus_entered.connect(_on_k_button_focus_entered)
 	k_button.focus_exited.connect(_on_k_button_focus_exited)
-	sub_button.focus_entered.connect(_on_sub_button_focus_entered)
-	sub_button.focus_exited.connect(_on_sub_button_focus_exited)
 	discard_button.focus_entered.connect(_on_discard_button_focus_entered)
 	discard_button.focus_exited.connect(_on_discard_button_focus_exited)
 	save_button.focus_entered.connect(_on_save_button_focus_entered)
 	save_button.focus_exited.connect(_on_save_button_focus_exited)
 	var focusable_buttons = [
 		lf_button, rf_button, p_button, lg_button, rg_button, k_button,
-		sub_button, discard_button, save_button
+		discard_button, save_button
 	]
 	
 	for button in focusable_buttons:
@@ -111,8 +107,6 @@ func _reset_all_button_styles():
 	lg_button.set_button_icon(load("res://UI/StrategyUI/Roster_holder_base.png"))
 	rg_button.set_button_icon(load("res://UI/StrategyUI/Roster_holder_base.png"))
 	k_button.set_button_icon(load("res://UI/StrategyUI/Roster_holder_base.png"))
-	
-	sub_button.set_button_icon(load("res://UI/StrategyUI/Substitute_button_base.png"))
 	discard_button.set_button_icon(load("res://UI/PauseUI/Discard-Exit_button_base.png"))
 	save_button.set_button_icon(load("res://UI/PauseUI/Save-Exit_button_base.png"))
 
@@ -151,12 +145,6 @@ func _on_k_button_focus_entered():
 
 func _on_k_button_focus_exited():
 	k_button.set_button_icon(load("res://UI/StrategyUI/Roster_holder_base.png"))
-
-func _on_sub_button_focus_entered():
-	sub_button.set_button_icon(load("res://UI/StrategyUI/Substitute_button_highlighted.png"))
-
-func _on_sub_button_focus_exited():
-	sub_button.set_button_icon(load("res://UI/StrategyUI/Substitute_button_base.png"))
 
 func _on_discard_button_focus_entered():
 	discard_button.set_button_icon(load("res://UI/PauseUI/Discard-Exit_button_highlighted.png"))
@@ -492,10 +480,6 @@ func get_current_position_overall(player: Player):
 			return player.calculate_guard_overall()
 		"K":
 			return player.calculate_keeper_overall()
-
-func get_player_icons(player: Player):
-	#TODO: set an icon to either ("res://UI/StrategyUI/in_position.png") or ("res://UI/StrategyUI/out_position.png") deoending on if they can play a position
-	pass
 
 
 func _on_bench_popup_index_pressed(index: int) -> void:
