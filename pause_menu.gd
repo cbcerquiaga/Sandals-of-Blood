@@ -121,8 +121,8 @@ func set_team(importedTeam: Team):
 	strategy_menu.set_team_info(team)
 
 
-func perform_substitions() -> void:
-	strategy_menu.perform_substitution()
+#func perform_substitions() -> void:
+	#strategy_menu.perform_substitution()
 
 	
 func _on_strategy_menu_closed():

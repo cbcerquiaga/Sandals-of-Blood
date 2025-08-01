@@ -51,15 +51,17 @@ var field_position: String
 @export var game_stats := {
 	"goals": 0, #scored goal
 	"assists": 0, #passed to teammate who scored
-	"sacks": 0, #stun opposing keeper
+	"sacks": 0, #stun opposing keeper- forward
 	"hits": 0, #aggressor in a collision
-	"sacks_allowed": 0,#mark gets a sack
+	"sacks_allowed": 0,#mark gets a sack - guard
 	"pitches_played": 0, #number of plays on field
 	"pitches_thrown": 0,
-	"aces": 0, #goals directly off pitch
-	"knockouts": 0, #knocked out opposing pitcher
+	"aces": 0, #goals directly off pitch- pitcher
+	"knockouts": 0, #knocked out opposing pitcher- pitcher
 	"goals_for":0, #team scored while on field
-	"goals_against":0 #team scored against while on field
+	"goals_against":0, #team scored against while on field
+	"returns": 0,#opposing pitch doesn't score- keeper
+	"aces_allowed": 0#opposing pitch goes in- keeper
 }
 
 #what the guards do on the counterattack is unique to a given player
@@ -105,11 +107,11 @@ var forward_strategy = {
 	"target_man": 100.0,
 	"shooter": 100.0,
 	"rebound": 50.0,
-	"defend": 25,
 	"pick": 10.0,
 	"bully": 10.0,
 	"fencing": 5.0,
-	"cower": 5.0
+	"cower": 5.0,
+	"defend": 25.0
 }
 
 #if the player is playing guard
@@ -136,6 +138,15 @@ var defense_strategy = {
 @onready var complexion: String
 @onready var playStyle: String
 @onready var playStyle_texture: String
+
+# Special Pitches- any player can pitch
+@onready var special_pitch_names: Array[String] = ["bouncer", "fake_curve", "looper"]
+@onready var special_pitch_groove: Array[float] = [0, 40, 10] #groove ratings needed to throw each pitch
+var special_pitch_available: Array[bool] = [false, false, false]
+#other pitcher things
+var human_ready: bool = false #AI pitcher won't throw until the player is ready
+
+
 
 #universal fields
 var current_behavior: String #used for state machine
@@ -663,6 +674,12 @@ func take_hit(attacker: Player, power: float):
 	elif knockback_power > 0: #shove
 		print("shove-", units, ", ", knockback_power * 2)
 		status.stability = status.stability - knockback_power
+		if status.stability < 0:
+			if attacker.team != team:
+				attacker.game_stats.hits += 1
+				if position_type == "keeper":
+					attacker.game_stats.sacks +=1
+			status.stability = 0
 		get_tossed(knockback_dir, units, 100)
 	else: #just a step back
 		scrum(attacker)
@@ -973,3 +990,73 @@ func calculate_keeper_overall():
 	ratings.sort()
 	ratings.reverse()
 	return int((ratings[0] + ratings[1])/2)
+
+func set_all_properties(old_player: Player) -> void:
+	playable_positions = old_player.playable_positions.duplicate()
+	declared_pitcher = old_player.declared_pitcher
+	field_position = old_player.field_position
+	attributes = old_player.attributes.duplicate(true)
+	status = old_player.status.duplicate(true)
+	bio = old_player.bio.duplicate(true)
+	game_stats = old_player.game_stats.duplicate(true)
+	guard_counterattack_preferences = old_player.guard_counterattack_preferences.duplicate(true)
+	goalkeeping_preferences = old_player.goalkeeping_preferences.duplicate(true)
+	team_strategy = old_player.team_strategy.duplicate(true)
+	fencing_params = old_player.fencing_params.duplicate(true)
+	forward_strategy = old_player.forward_strategy.duplicate(true)
+	defense_strategy = old_player.defense_strategy.duplicate(true)
+	portrait = old_player.portrait
+	head = old_player.head
+	haircut = old_player.haircut
+	glove = old_player.glove
+	shoe = old_player.shoe
+	body_type = old_player.body_type
+	skin_tone_primary = old_player.skin_tone_primary
+	skin_tone_secondary = old_player.skin_tone_secondary
+	complexion = old_player.complexion
+	playStyle = old_player.playStyle
+	playStyle_texture = old_player.playStyle_texture
+	current_behavior = old_player.current_behavior
+	needs_go_home = old_player.needs_go_home
+	attack_target = old_player.attack_target
+	current_opponent = old_player.current_opponent
+	fencing_timer = old_player.fencing_timer
+	attack_cooldown = old_player.attack_cooldown
+	is_dodging = old_player.is_dodging
+	is_juking = old_player.is_juking
+	is_clockwise = old_player.is_clockwise
+	dodge_phase = old_player.dodge_phase
+	current_dodge_frame = old_player.current_dodge_frame
+	dodge_frames = old_player.dodge_frames
+	dodge_direction = old_player.dodge_direction
+	special_ability = old_player.special_ability
+	is_machine = old_player.is_machine
+	is_maestro = old_player.is_maestro
+	is_spin_doctor = old_player.is_spin_doctor
+	active_buffs = old_player.active_buffs.duplicate(true)
+	starting_position = old_player.starting_position
+	debug = old_player.debug
+	debug_frames = old_player.debug_frames
+	current_debug_frame = old_player.current_debug_frame
+	current_sprint_target = old_player.current_sprint_target
+	current_sprint_curve = old_player.current_sprint_curve
+	ball = old_player.ball
+	can_move = old_player.can_move
+	assigned_half = old_player.assigned_half
+	is_controlling_player = old_player.is_controlling_player
+	is_sprinting = old_player.is_sprinting
+	is_spinning = old_player.is_spinning
+	is_stunned = old_player.is_stunned
+	is_incapacitated = old_player.is_incapacitated
+	is_in_brawl = old_player.is_in_brawl
+	team = old_player.team
+	position_type = old_player.position_type
+	overall_state = old_player.overall_state
+	behaviors = old_player.behaviors.duplicate()
+	brawl_attack_power = old_player.brawl_attack_power
+	brawl_defense = old_player.brawl_defense
+	brawl_health = old_player.brawl_health
+	brawl_opponents = old_player.brawl_opponents.duplicate()
+	fieldType = old_player.fieldType
+	fieldHeight = old_player.fieldHeight
+	returnSpeed = old_player.returnSpeed

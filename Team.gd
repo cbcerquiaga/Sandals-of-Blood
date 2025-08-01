@@ -6,7 +6,6 @@ var is_on_offense: bool
 var is_player_team: bool
 var roster: Array[Player] = [] #every player on the team
 var bench: Array[Player] = []
-var bullpen: Array[Player] = []
 var buffs: Array[Dictionary] = []
 var pending_substitutions: Array[Substitution] = []
 var strategy: Dictionary = {
@@ -38,51 +37,63 @@ var strategy: Dictionary = {
 	}
 }
 
-@export var K: Player
-@export var P: Player
-@export var LG: Player
-@export var RG: Player
-@export var LF: Player
-@export var RF: Player
+@export var K: Keeper
+@export var P: Reworked_Pitcher
+@export var LG: Guard
+@export var RG: Guard
+@export var LF: Forward
+@export var RF: Forward
 @export var subs_remaining: int = 6 #sub every starter off the field; play all of your team's pitchers and sub 3 fielders; sub through all but one of your team's pitchers and sub all your fielders except your goalkeeper
 
 
 @onready var onfield_players = [K, P, LG, RG, LF, RF]
+@onready var next_onfield_players: Array
+@onready var next_bench: Array
 var has_readied
 signal on_team_ready(id: int)
 
 func _init():
 	has_readied = false
-	K = Player.new()
-	P = Player.new()
-	LG = Player.new()
-	RG = Player.new()
-	LF = Player.new()
-	RF = Player.new()
+	K = Keeper.new()
+	P = Reworked_Pitcher.new()
+	LG = Guard.new()
+	RG = Guard.new()
+	LF = Forward.new()
+	RF = Forward.new()
+	reset_subs()
 	add_players_to_roster()
 	initialize_default_strategy()
-	cast_players_to_position_classes()
+	next_roster_no_subs()
 	
 func _process(delta: float) -> void:
 	if !has_readied:
 		if K.attributes.power != null && LF.attributes.power != null:
 			has_readied = true
 			on_team_ready.emit(team_id)
+			
+func change_all_players():
+	change_player("LG", next_onfield_players[0])
+	change_player("RG", next_onfield_players[1])
+	change_player("LF", next_onfield_players[2])
+	change_player("RF", next_onfield_players[3])
+	change_player("K", next_onfield_players[4])
+	change_player("P", next_onfield_players[5])
 
-# Cast field players to their respective position classes
-func cast_players_to_position_classes() -> void:
-	K = cast_player_to_position_class("K", K)
-	P = cast_player_to_position_class("P", P)
-	LG = cast_player_to_position_class("LG", LG)
-	RG = cast_player_to_position_class("RG", RG)
-	LF = cast_player_to_position_class("LF", LF)
-	RF = cast_player_to_position_class("RF", RF)
-
-# Helper function for casting players
-func cast_player_to_position_class(role: String, player: Player) -> Player:
-	player.field_position = role
-	return player
-	
+func change_player(position, newPlayer):
+	#[LG, RG, LF, RF, K, P]
+	match position:
+		"LG":
+			onfield_players[0].set_all_properties(newPlayer)
+		"RG":
+			onfield_players[1].set_all_properties(newPlayer)
+		"LF":
+			onfield_players[2].set_all_properties(newPlayer)
+		"RF":
+			onfield_players[3].set_all_properties(newPlayer)
+		"K":
+			onfield_players[4].set_all_properties(newPlayer)
+		"P":
+			onfield_players[5].set_all_properties(newPlayer)
 
 # Revert pending substitutions
 func revert_pending_substitutions() -> void:
@@ -90,69 +101,18 @@ func revert_pending_substitutions() -> void:
 	#TODO
 	pass
 	
-
-# Execute pending substitutions
-func execute_pending_substitutions() -> void:
-	#TODO loop through all pending substitutions
-	for i in range (0, pending_substitutions.size()):
-		var substitution = pending_substitutions[i]
-		if !substitution.countsAsTwo() and subs_remaining > 0:
-			perform_substitution(substitution)
-			subs_remaining -= 1
-		elif substitution.countsAsTwo() and subs_remaining > 1:
-			perform_substitution(substitution)
-			subs_remaining -= 2
-	pass
-
-func perform_substitution(sub: Substitution):
-	var off_index: int 
-	var temp_player
-	if sub.sub_position == "P":
-		off_index = bullpen.find(sub.playerOn)
-		bullpen[off_index] = sub.playerOff
-		temp_player = Reworked_Pitcher
-	else:
-		off_index = bench.find(sub.playerOn)
-		bench[off_index] = sub.playerOff
-	match sub.sub_position:
-		"LG":
-			temp_player = Guard
-			temp_player.defense_strategy = strategy.tactics.D
-			temp_player = update_substitute_info(temp_player, sub.playerOff)
-			temp_player.playing_position = "LG"
-			LG = temp_player
-		"RG":
-			temp_player = Guard
-			temp_player.defense_strategy = strategy.tactics.D
-			temp_player = update_substitute_info(temp_player, sub.playerOff)
-			temp_player.playing_position = "RG"
-			RG = temp_player
-		"LF":
-			temp_player = Forward
-			temp_player.forward_strategy = strategy.tactics.LF
-			temp_player = update_substitute_info(temp_player, sub.playerOff)
-			temp_player.playing_position = "LF"
-			LF = temp_player
-		"RF":
-			temp_player = Forward
-			temp_player.forward_strategy = strategy.tactics.RF
-			temp_player.playing_position = "RF"
-			temp_player = update_substitute_info(temp_player, sub.playerOff)
-			RF = temp_player
-		"K":
-			temp_player = Keeper
-			temp_player.playing_position = "K"
-			temp_player = update_substitute_info(temp_player, sub.playerOff)
-		"P":
-			temp_player = Reworked_Pitcher
-			temp_player.playing_position = "P"
-			temp_player = update_substitute_info(temp_player, sub.playerOff)
-
+func next_roster_no_subs():
+	next_onfield_players = onfield_players
+	next_bench = bench
+	
 func update_substitute_info(temp_player: Player, other: Player):
 	temp_player.bio = other.bio
 	temp_player.attributes = other.attributes
 	temp_player.status = other.status
 	temp_player.game_stats = other.game_stats
+	temp_player.special_pitch_names = other.special_pitch_names
+	temp_player.special_pitch_groove = other.special_pitch_groove
+	temp_player.team = other.team
 	return temp_player
 	
 func add_pending_substitution(sub: Substitution):
@@ -191,7 +151,7 @@ func add_players_to_roster():
 	add_player(RG)
 	add_player(RF)
 	add_player(LF)
-	onfield_players = [K, P, LG, RG, LF, RF]
+	onfield_players = [LG, RG, LF, RF, K, P] #this order is important!
 	
 func reset_subs():
 	subs_remaining = 6
@@ -308,6 +268,7 @@ func enlighten(aimTarget, ball, field, keeperWall, ownGoal, oppGoal, oppP, oppK,
 	RG.plays_left_side = false
 	LF.goal_position = oppGoal.global_position
 	LF.assigned_guard = oppRG
+	LF.other_guard = oppLG
 	LF.opposing_keeper = oppK
 	LF.forward_partner = RF
 	LF.ball = ball
@@ -318,6 +279,7 @@ func enlighten(aimTarget, ball, field, keeperWall, ownGoal, oppGoal, oppP, oppK,
 	RF.waiting_point = RfWaiting.global_position
 	RF.goal_position = oppGoal.global_position
 	RF.assigned_guard = oppLG
+	RF.other_guard = oppRG
 	RF.opposing_keeper = oppK
 	RF.forward_partner = LF
 	RF.ball = ball
@@ -387,6 +349,7 @@ func default_ai_state():
 	LF.current_behavior = "rebound"
 
 func nextPlayStatus():
+	update_field()
 	K.reset_state()
 	K.has_guessed = false
 	LG.reset_state()
@@ -396,6 +359,42 @@ func nextPlayStatus():
 	P.reset_state()
 	P.human_ready = false
 	bench_rest()
+	
+func update_field():
+	var current_players = [LG, RG, LF, RF, K, P]
+	var saved_ball = K.ball# players MUST know ball
+	for i in range(current_players.size()):
+		current_players[i].set_all_properties(next_onfield_players[i])
+		current_players[i].ball = saved_ball
+		current_players[i].reset_state()
+		current_players[i].can_move = false
+		current_players[i].velocity = Vector2.ZERO
+	bench = next_bench
+	onfield_players = current_players
+	if P.ball != saved_ball:
+		P.ball = saved_ball
+		if P.ball_pitched.is_connected(saved_ball.be_pitched):
+			P.ball_pitched.disconnect(saved_ball.be_pitched)
+		P.ball_pitched.connect(saved_ball.be_pitched)
+		if P.special_pitched.is_connected(saved_ball.be_special_pitched):
+			P.special_pitched.disconnect(saved_ball.be_special_pitched)
+		P.special_pitched.connect(saved_ball.be_special_pitched)
+	LG.position_type = "guard"
+	RG.position_type = "guard"
+	LF.position_type = "forward"
+	RF.position_type = "forward"
+	K.position_type = "keeper"
+	P.position_type = "pitcher"
+
+func print_sub_on():
+	var string
+	for sub in pending_substitutions:
+		string = sub.sub_position + " - " + sub.playerOn.bio.first_name[0] + ". " + sub.playerOn.bio.last_name + "\n"
+		
+func print_sub_off():
+	var string
+	for sub in pending_substitutions:
+		string = sub.sub_position + " - " + sub.playerOff.bio.first_name[0] + ". " + sub.playerOff.bio.last_name + "\n"
 
 func fire_up_bench():
 	for player in bench:
@@ -419,7 +418,6 @@ func switch_zone():
 func debug_default_roster():
 	roster.clear()
 	bench.clear()
-	bullpen.clear()
 	
 	# Create players as base Player class
 	var P1 = Player.new()
@@ -445,6 +443,12 @@ func debug_default_roster():
 		"toughness": 90,
 		"confidence": 60 
 	}
+	#TODO: figure out why I have to set variables to the exact types instead of just passing them in directly
+	var pitches: Array[String] = ["yoyo, knuckler, corker"]
+	var grooves: Array[float] = [25, 35, 45]
+	P1.special_pitch_names = pitches
+	P1.special_pitch_groove = grooves
+	P1.playable_positions = ["P", "LG"]
 	P1.bio = {
 	"first_name" :"Billy",
 	"last_name": "Knuckles",
@@ -460,6 +464,10 @@ func debug_default_roster():
 	var P2 = Player.new()
 	P2.position_type = "pitcher"
 	P2.declared_pitcher = true
+	pitches = ["zig-zag, looper, bouncer"]
+	grooves = [15, 20, 25]
+	P2.special_pitch_names = pitches
+	P2.special_pitch_groove = grooves
 	P2.playable_positions = ["P", "K", "LG", "RG", "LF", "RF"]
 	P2.bio = {
 	"first_name" :"Randy",
@@ -494,6 +502,7 @@ func debug_default_roster():
 	
 	var P3 = Player.new()
 	P3.position_type = "forward"
+	P3.playable_positions = ["LF", "RF"]
 	P3.bio = {
 	"first_name" :"Mike",
 	"last_name": "Lillard",
@@ -527,6 +536,7 @@ func debug_default_roster():
 	
 	var P4 = Player.new()
 	P4.position_type = "guard"
+	P4.playable_positions = ["RG"]
 	P4.bio = {
 	"first_name" :"Kyle",
 	"last_name": "Korpisalo",
@@ -563,9 +573,7 @@ func debug_default_roster():
 	add_player(P2)
 	add_player(P3)
 	add_player(P4)
-	
-	# Cast to position classes
-	cast_players_to_position_classes()
+	#change_all_players()
 	
 func applyTactics():
 	print("applying tactics. D:",  strategy.tactics.D, ", LF:", strategy.tactics.LF, ", RF:", strategy.tactics.RF)

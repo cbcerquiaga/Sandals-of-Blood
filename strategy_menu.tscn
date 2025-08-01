@@ -29,6 +29,14 @@ grow_vertical = 2
 scale = Vector2(0.475, 0.475)
 script = ExtResource("1_p0u7q")
 
+[node name="ColorRect" type="ColorRect" parent="."]
+layout_mode = 2
+offset_left = -3354.0
+offset_top = 78.0
+offset_right = 2699.0
+offset_bottom = 1128.0
+color = Color(0, 0, 0, 0.835294)
+
 [node name="Bench" type="VBoxContainer" parent="."]
 layout_mode = 1
 anchors_preset = 11
@@ -606,8 +614,10 @@ title = "Player Info"
 initial_position = 1
 
 [node name="VBoxContainer" type="VBoxContainer" parent="InfoPopup"]
-offset_right = 40.0
-offset_bottom = 40.0
+offset_left = 4.0
+offset_top = 4.0
+offset_right = 317.0
+offset_bottom = 184.0
 
 [node name="Top Row" type="HBoxContainer" parent="InfoPopup/VBoxContainer"]
 layout_mode = 2
@@ -658,3 +668,6 @@ Knockouts
 [connection signal="id_focused" from="PlayerPopup" to="." method="_on_player_popup_id_focused"]
 [connection signal="index_pressed" from="PlayerPopup" to="." method="_on_player_popup_index_pressed"]
 [connection signal="index_pressed" from="BenchPopup" to="." method="_on_bench_popup_index_pressed"]
+[connection signal="id_pressed" from="SubstitutionPopup" to="." method="_on_substitution_popup_id_pressed"]
+[connection signal="index_pressed" from="SubstitutionPopup" to="." method="_on_substitution_popup_index_pressed"]
+[connection signal="index_pressed" from="RepositionPopup" to="." method="_on_reposition_popup_index_pressed"]

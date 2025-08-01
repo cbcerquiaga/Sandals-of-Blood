@@ -11,17 +11,13 @@ var true_max_power = 1200 * (attributes.power * attributes.throwing/100)/100 #ma
 @export var max_curve: float = 2.0 # radians/second
 @export var curve_step: float = 0.1
 
-# Special Pitches
-@export var special_pitch_names: Array[String] = ["bouncer", "fake_curve", "looper"]
-var special_pitch_groove: Array[float] = [0, 40, 10] #groove ratings needed to throw each pitch
-var special_pitch_available: Array[bool] = [false, false, false]
+
 
 # AI Memory and Decision Making
 var successful_pitches: Array[Dictionary] = []
 var pitch_success_threshold: int = 3 # How many times a pitch needs to succeed to be "favored"
 var favor_successful_chance: float = 0.3 # 30% chance to use a favored pitch type
 var most_recent_pitch #dictionary of the data from current pitch
-var human_ready: bool = false #AI pitcher won't throw until the player is ready
 
 # AI Target Range (relative to pitcher position)
 var target_x_min: float = -60.0
@@ -420,6 +416,8 @@ func execute_pitch(pitch_type: String):
 			perform_corker_pitch()
 		"yoyo":
 			perform_yoyo_pitch()
+		"none":
+			perform_normal_pitch()
 	has_pitched = true
 	
 	var sp_index = special_pitch_names.find(pitch_type)
@@ -536,6 +534,7 @@ func update_special_pitch_availability():
 			special_pitch_available[i] = true
 
 func _on_goal_aced():
+	game_stats.aces += 1
 	status.groove += 15
 	if status.groove > attributes.confidence:
 		status.groove = attributes.confidence

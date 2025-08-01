@@ -52,7 +52,8 @@ func _ready():
 	"pick": 10.0,
 	"bully": 10.0,
 	"fencing": 5.0,
-	"cower": 5.0
+	"cower": 5.0,
+	"defend": 0
 }
 	z_index = 2
 	behaviors = ["bull_rush", "skill_rush", "target_man", "shooter", "rebound", "pick", "bully", "fencing", "cower", "returning"]
@@ -150,8 +151,7 @@ func execute_bull_rush():
 	var rush_line = Line2D.new()
 	rush_line.add_point(global_position)
 	rush_line.add_point(opposing_keeper.global_position)
-	var simple_line = global_position - opposing_keeper.global_position
-	var closest_point = get_closest_point(global_position, simple_line, assigned_guard.global_position)
+	var closest_point = get_closest_point_on_line(rush_line, assigned_guard.global_position)
 	var guard_distance_to_line = assigned_guard.global_position.distance_to(closest_point)
 	var guard_is_blocking = guard_distance_to_line < 30 and not assigned_guard.is_stunned
 	
@@ -271,13 +271,12 @@ func execute_rebound():
 		is_sprinting = false
 		move_and_slide()
 		
-
 func execute_pick():
 	if !other_guard:
 		return
 	if other_guard.is_stunned:
 		var sum = forward_strategy.shooter + forward_strategy.bull_rush + forward_strategy.bully + forward_strategy.rebound
-		var random = randf_range(0,sum)
+		var random = randf_range(0, sum)
 		if random < forward_strategy.shooter:
 			current_behavior = "shooter"
 		elif random < forward_strategy.shooter + forward_strategy.bull_rush:
@@ -285,29 +284,44 @@ func execute_pick():
 		elif random < forward_strategy.shooter + forward_strategy.bull_rush + forward_strategy.bully:
 			current_behavior = "bully"
 		else:
-			current_behavior = "rebound"
-	
+			#TODO: figure out where the "defend is being removed
+			if forward_strategy.has("defend"):
+				var choice = forward_strategy.rebound + forward_strategy.defend
+				var rand = randf_range(0, choice)
+				if rand < forward_strategy.defend:
+					current_behavior = "defend"
+				else:
+					current_behavior = "rebound"
+			else:
+				forward_strategy["defend"] = 25.0
+				current_behavior = "rebound"
+		return
 	var pick_line = Line2D.new()
 	pick_line.add_point(global_position)
 	pick_line.add_point(other_guard.global_position)
 	
 	var guard_blocking = false
 	if assigned_guard:
-		var guard_distance_to_line = get_closest_point(other_guard.global_position, pick_line, assigned_guard.global_position)
-		if guard_distance_to_line < 30 and not assigned_guard.is_stunned:
-			guard_blocking = true
-		else:
-			guard_blocking = false
+		var closest_point = get_closest_point_on_line(pick_line, assigned_guard.global_position)
+		var guard_distance_to_line = closest_point.distance_to(assigned_guard.global_position)
+		guard_blocking = guard_distance_to_line < 5 and !assigned_guard.is_stunned
 	
 	if guard_blocking:
-		navigate_to(assigned_guard.global_position)
-		if global_position.distance_to(assigned_guard.global_position) < attributes.aggression/2:
-			attempt_attack(assigned_guard.global_position)
+		var pick_direction = (other_guard.global_position - global_position).normalized()
+		var dodge_direction = pick_direction.rotated(PI/2 * (1 if randf() > 0.5 else -1))
+		var dodge_distance = 10
+		var dodge_target = global_position + dodge_direction * dodge_distance
+		navigation_agent.target_position = dodge_target
+		if global_position.distance_to(assigned_guard.global_position) < 20:
+			navigation_agent.target_position = other_guard.global_position
+			if status.boost > 0:
+				is_sprinting = true
 	else:
-		navigate_to(other_guard.global_position)
-		if global_position.distance_to(other_guard.global_position) < attributes.aggression/2:
-			attempt_attack(other_guard.global_position)
-	
+		navigation_agent.target_position = other_guard.global_position
+		if global_position.distance_to(assigned_guard.global_position) < 20:
+			if status.boost > 0:
+				is_sprinting = true
+	navigate_to(navigation_agent.target_position)
 	pick_line.queue_free()
 
 func execute_bully():
@@ -1117,3 +1131,14 @@ func perform_defending():
 		return
 	navigation_agent.target_position = desired_position
 	navigate_to(navigation_agent.target_position)
+
+func get_closest_point_on_line(line: Line2D, point: Vector2) -> Vector2:
+	if line.get_point_count() < 2:
+		return Vector2.ZERO
+	
+	var a = line.get_point_position(0)
+	var b = line.get_point_position(1)
+	var ap = point - a
+	var ab = b - a
+	var t = clamp(ap.dot(ab) / ab.length_squared(), 0.0, 1.0)
+	return a + t * ab

@@ -160,16 +160,34 @@ func _on_ball_exited_field():
 func _on_player_goal():
 	if match_ended or not is_instance_valid(ball):
 		return
+	aTeam.P.game_stats.goals_against += 1
+	aTeam.K.game_stats.goals_against += 1
+	aTeam.LG.game_stats.goals_against += 1
+	aTeam.RG.game_stats.goals_against += 1
+	aTeam.LF.game_stats.goals_against += 1
+	aTeam.RF.game_stats.goals_against += 1
+	pTeam.P.game_stats.goals_for += 1
+	pTeam.K.game_stats.goals_for += 1
+	pTeam.LG.game_stats.goals_for += 1
+	pTeam.RG.game_stats.goals_for += 1
+	pTeam.LF.game_stats.goals_for += 1
+	pTeam.RF.game_stats.goals_for += 1
 	
 	var was_ace = false
 	pTeam.K.deactivate_special()
+	var scorer = ball.last_hit_by
+	if scorer.team == 1:
+		scorer.game_stats.goals += 1
+	var passer = ball.assist_by
+	if passer and passer.team == scorer.team:
+		passer.game_stats.assists += 1
 	if ball.last_hit_by == pTeam.P:
 		print("it's an ace!")
 		pTeam.P._on_goal_aced()
 		was_ace = true
 		aTeam.K.lose_groove(5)#sucks to get aced on
-	elif ball.last_hit_by == pTeam.K or ball.assist_by == pTeam.K:
-		pTeam.K.add_groove(10)
+	elif ball.last_hit_by == pTeam.K or ball.assist_by == pTeam.K: #keeper feels good about scoring points
+		pTeam.K.add_groove(16)
 		aTeam.K.lose_groove(2) #sucks a little if your matchup scores on you
 	else: #everybody gets some groove for good teamwork
 		pTeam.P.add_groove(5)
@@ -194,9 +212,26 @@ func _on_player_goal():
 func _on_cpu_goal():
 	if match_ended or not is_instance_valid(ball):
 		return
-	
+	pTeam.P.game_stats.goals_against += 1
+	pTeam.K.game_stats.goals_against += 1
+	pTeam.LG.game_stats.goals_against += 1
+	pTeam.RG.game_stats.goals_against += 1
+	pTeam.LF.game_stats.goals_against += 1
+	pTeam.RF.game_stats.goals_against += 1
+	aTeam.P.game_stats.goals_for += 1
+	aTeam.K.game_stats.goals_for += 1
+	aTeam.LG.game_stats.goals_for += 1
+	aTeam.RG.game_stats.goals_for += 1
+	aTeam.LF.game_stats.goals_for += 1
+	aTeam.RF.game_stats.goals_for += 1
 	var was_ace = false
 	aTeam.K.deactivate_special()
+	var scorer = ball.last_hit_by
+	if scorer.team == 2:
+		scorer.game_stats.goals += 1
+	var passer = ball.assist_by
+	if passer and passer.team == scorer.team:
+		passer.game_stats.assists += 1
 	if ball.last_hit_by == aTeam.P:
 		print("it's an ace!")
 		aTeam.P._on_goal_aced()
@@ -237,6 +272,7 @@ func reset_match(p_offense):
 	pTeam.is_on_offense = p_offense
 	aTeam.is_on_offense = !p_offense
 	enlighten_players()
+	statusUI.assign_team(self)
 	pTeam.default_grooves()
 	aTeam.default_grooves()
 	reset_play()
@@ -307,17 +343,15 @@ func next_play():
 	# Reset play state but keep scores and pitching team assignment
 	current_play_time = 0.0
 	out_of_bounds_frames = 0
-	
 	# Update team status for next play
-	pauseMenu.perform_substitions()
 	#pTeam.check_pending_substitutions()
 	#aTeam.check_pending_substitutions()
-	statusUI.assign_team(self)
 	pTeam.nextPlayStatus()
 	aTeam.nextPlayStatus()
 	reset_ball_and_field()
 	reposition_players()
 	setup_pitching_team()
+	statusUI.assign_team(self)
 	
 	# Start play timer
 	play_timer.start(current_settings.play_length if current_settings.play_length > 0 else 9999)
@@ -339,6 +373,7 @@ func reset_players_for_next_play():
 	# Clear team control
 	pTeam.wipe_player_control()
 	aTeam.wipe_player_control()
+	statusUI.assign_team(self) #update the UI
 	
 
 func reset_ball_and_field():
@@ -461,9 +496,7 @@ func reset_ball():
 
 func apply_time_scale():
 	Engine.time_scale = current_settings.time_scale
-	#TODO: figure out if this messes up clock-based systems like 30 second play clock
-	# Adjust physics rates if needed
-	#PhysicsServer2D.set_active(!PhysicsServer2D.is_active()) # Force refresh
+
 
 func score_goal(team: int):
 	print("Goal! Team " + str(team) + " scored. New scores: " + str(team_scores))
@@ -554,6 +587,14 @@ func enlighten_players():
 	#TODO: field types
 	pTeam.P.legal_first_moves = [2, 1] #SE, SW
 	aTeam.P.legal_first_moves = [0, 3] #NW, NE
+	ball.shot_at_goal.disconnect(pTeam.K.on_shot_at_goal)
+	ball.shot_at_goal.disconnect(pTeam.LG.on_shot_at_goal)
+	ball.shot_at_goal.disconnect(pTeam.RG.on_shot_at_goal)
+	ball.shot_at_goal.disconnect(aTeam.K.on_shot_at_goal)
+	ball.shot_at_goal.disconnect(aTeam.LG.on_shot_at_goal)
+	ball.shot_at_goal.disconnect(aTeam.RG.on_shot_at_goal)
+	ball.pitch_side.disconnect(aTeam.K.save_pitch_from_ball)
+	#
 	ball.shot_at_goal.connect(pTeam.K.on_shot_at_goal)
 	ball.shot_at_goal.connect(pTeam.LG.on_shot_at_goal)
 	ball.shot_at_goal.connect(pTeam.RG.on_shot_at_goal)
@@ -573,6 +614,12 @@ func on_team_ready_signal(id: int) -> void:
 	
 func fill_team_rosters():
 	import_team_rosters()
+	pTeam.debug_default_roster() #just until we figure out how to import players from text file
+	aTeam.debug_default_roster()
+	pTeam.onfield_players = [pTeam.LG, pTeam.RG, pTeam.LF, pTeam.RF, pTeam.K, pTeam.P]
+	aTeam.onfield_players = [aTeam.LG, aTeam.RG, aTeam.LF, aTeam.RF, aTeam.K, aTeam.P]
+	pTeam.next_onfield_players = [pTeam.LG, pTeam.RG, pTeam.LF, pTeam.RF, pTeam.K, pTeam.P]
+	aTeam.next_onfield_players = [aTeam.LG, aTeam.RG, aTeam.LF, aTeam.RF, aTeam.K, aTeam.P]
 	#TODO: import player names, stats, and status from sheet
 	pTeam.K.special_ability = "spin_doctor"
 	aTeam.K.special_ability = "machine"
@@ -582,6 +629,8 @@ func fill_team_rosters():
 	var pUniform = Color( 0.93, 0.51, 0.93, 1 )#purple uniform
 	var aGoalie = Color( 1, 1, 0, 1 )#yellow goalie jersey
 	var aUniform = Color( 1, 0.71, 0.76, 1 )#pink jersey
+	if pTeam.K.has_node("PolyGon2D"):
+		print("I have a polygon")
 	pTeam.K.get_node("Polygon2D").color = pGoalie
 	pTeam.LG.get_node("Polygon2D").color = pUniform
 	pTeam.RG.get_node("Polygon2D").color = pUniform
@@ -681,6 +730,18 @@ func update_team_strategy(team: Team):
 	pTeam.strategy.tactics.RF = team.strategy.tactics.RF
 	pTeam.applyTactics()
 	pTeam.pending_substitutions = team.pending_substitutions
+	
+func update_team_roster(team: Team):
+	pTeam.next_bench = team.next_bench
+	pTeam.next_onfield_players = team.next_onfield_players
+	pTeam.subs_remaining = team.subs_remaining
+	if !is_play_live: #perform the substitution immediately
+		pTeam.update_field()
+		statusUI.assign_team(self)
+		pTeam.wipe_player_control()
+		pTeam.assign_player_control()
+	else: # Schedule update for next play
+		pTeam.pending_substitutions = team.pending_substitutions
 
 
 func _on_pause_menu_new_sub() -> void:

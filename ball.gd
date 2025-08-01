@@ -144,7 +144,8 @@ func handle_defender_collision(player: Player):
 	var pass_target = player.aim
 	var emit = true
 	if player.position_type == "keeper" and last_hit_by.position_type == "pitcher":
-		player.add_groove(4) #successful return builds groove
+		player.add_groove(8) #successful return builds groove
+		player.game_stats.returns = player.game_stats.returns + 1
 	if (player.position_type == "guard" and player.aim_point == player.oppGoal) or (player.position_type == "keeper" and player.aim.distance_to(player.opp_goal) < 10):
 		emit = true
 	# Add randomness based on accuracy

@@ -70,7 +70,7 @@ func make_name_string():
 	
 func get_player_portrait():
 	if !player or !player.portrait:
-		print("error loading player portrait for ", player.first_name, " ", player.last_name)
+		print("error loading player portrait for ", player.bio.first_name, " ", player.bio.last_name)
 		return
 	portrait.texture = load(player.portrait)
 	portrait.scale = Vector2(0.7, 0.7)

@@ -4,14 +4,14 @@ class_name SpecialPitches
 var indicator1: Sprite2D
 var indicator2: Sprite2D
 var indicator3: Sprite2D
-var pitcher: Reworked_Pitcher
+var pitcher: Player
 
 func _ready():
 	indicator1 = $"1"
 	indicator2 = $"2"
 	indicator3 = $"3"
 	
-func assign_pitcher(guy: Reworked_Pitcher):
+func assign_pitcher(guy: Player):
 	pitcher = guy
 
 func _process(delta: float) -> void:
