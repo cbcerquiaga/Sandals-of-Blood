@@ -6,8 +6,8 @@ enum EndCondition { SCORE_LIMIT, PITCH_LIMIT }
 enum FieldType { ROAD, CULDESAC, HORSESHOE }
 
 var current_settings := {
-	"score_limit": 3, #7 is standard, 11 is long, 3 is quick
-	"pitch_limit": 10, #20 is standard, 30 is long, 10 is quick
+	"score_limit": 7, #7 is standard, 11 is long, 3 is quick
+	"pitch_limit": 20, #20 is standard, 30 is long, 10 is quick
 	"regular_season": true, #if true, we use sudden death tie, otherwise we use infinite win by two
 	"play_length": 30.0, # seconds
 	"time_scale": 0.35,#0.8 works

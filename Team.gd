@@ -369,6 +369,7 @@ func update_field():
 		current_players[i].reset_state()
 		current_players[i].can_move = false
 		current_players[i].velocity = Vector2.ZERO
+		current_players[i].restore_behaviors()
 	bench = next_bench
 	onfield_players = current_players
 	if P.ball != saved_ball:

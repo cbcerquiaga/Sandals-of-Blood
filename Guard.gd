@@ -49,11 +49,14 @@ var counter_position: Vector2 #used for counterattack movements
 
 func _ready():
 	z_index = 2
-	behaviors = ["chasing", "marking", "pressing", "helping", "doubling", "intercepting", "fencing", "returning", "goalkeeping", "trapping", "escorting"]
+	restore_behaviors()
 	current_behavior = "marking"
 	super._ready()
 	position_type = "guard"
 	oppGoal = Vector2(defending_goal_position.x, 0 - defending_goal_position.y)
+	
+func restore_behaviors():
+	behaviors = ["chasing", "marking", "pressing", "helping", "doubling", "intercepting", "fencing", "returning", "goalkeeping", "trapping", "escorting"]
 
 func assign_forward(forward: Forward):
 	assigned_forward = forward

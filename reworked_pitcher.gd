@@ -97,9 +97,12 @@ func _ready():
 	current_behavior = "waiting"
 	collision_mask = 0b0000  # Collide with players (3) but not obstacles (2) or balls (1)
 	position_type = "pitcher"
-	behaviors = ["pitching", "going_away", "deciding", "waiting", "chilling", "chasing", "fleeing", "fighting"]
+	restore_behaviors()
 	if bio.leftHanded:
 		hand_offset = hand_offset * -1
+		
+func restore_behaviors():
+	behaviors = ["pitching", "going_away", "deciding", "waiting", "chilling", "chasing", "fleeing", "fighting"]
 
 func _physics_process(delta):
 	super._physics_process(delta)

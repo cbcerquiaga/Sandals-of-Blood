@@ -87,13 +87,16 @@ func _ready():
 	debug = false
 	z_index = 2
 	desperate = false #TODO: figure out when to set desperate
-	behaviors = ["waiting", "defending", "sweeping", "avoiding", "fencing", "attacking", "blocking", "returning"]
+	restore_behaviors()
 	current_behavior = "waiting"
 	super._ready()
 	position_type = "keeper"
 	navigation_agent = $NavigationAgent2D
 	navigation_agent.path_desired_distance = 10.0
 	navigation_agent.target_desired_distance = 10.0
+
+func restore_behaviors():
+	behaviors = ["waiting", "defending", "sweeping", "avoiding", "fencing", "attacking", "blocking", "returning"]
 
 func _physics_process(delta):
 	super._physics_process(delta)

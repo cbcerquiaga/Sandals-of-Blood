@@ -38,6 +38,7 @@ var circle_direction: float = 1.0
 var safe_area_center: Vector2 = Vector2.ZERO
 var panic_distance: float = 300.0
 var is_avoiding_guard: bool = false
+var pick_target: Vector2
 
 @onready var navigation_agent = $NavigationAgent2D
 
@@ -56,7 +57,7 @@ func _ready():
 	"defend": 0
 }
 	z_index = 2
-	behaviors = ["bull_rush", "skill_rush", "target_man", "shooter", "rebound", "pick", "bully", "fencing", "cower", "returning"]
+	restore_behaviors()
 	current_behavior = "bull_rush"
 	super._ready()
 	position_type = "forward"
@@ -69,6 +70,9 @@ func _ready():
 	# Initialize behavior cooldowns
 	for behavior in behaviors:
 		behavior_cooldowns[behavior] = 0.0
+
+func restore_behaviors():
+	behaviors = ["bull_rush", "skill_rush", "target_man", "shooter", "rebound", "pick", "bully", "fencing", "cower", "returning", "defend"]
 
 func _physics_process(delta):
 	super._physics_process(delta)
@@ -270,65 +274,77 @@ func execute_rebound():
 		velocity = attributes.speed * direction
 		is_sprinting = false
 		move_and_slide()
-		
+
 func execute_pick():
 	if !other_guard:
 		return
+		
 	if other_guard.is_stunned:
-		var sum = forward_strategy.shooter + forward_strategy.bull_rush + forward_strategy.bully + forward_strategy.rebound
-		var random = randf_range(0, sum)
-		if random < forward_strategy.shooter:
-			current_behavior = "shooter"
-		elif random < forward_strategy.shooter + forward_strategy.bull_rush:
-			current_behavior = "bull_rush"
-		elif random < forward_strategy.shooter + forward_strategy.bull_rush + forward_strategy.bully:
-			current_behavior = "bully"
-		else:
-			#TODO: figure out where the "defend is being removed
-			if forward_strategy.has("defend"):
-				var choice = forward_strategy.rebound + forward_strategy.defend
-				var rand = randf_range(0, choice)
-				if rand < forward_strategy.defend:
-					current_behavior = "defend"
-				else:
-					current_behavior = "rebound"
-			else:
-				forward_strategy["defend"] = 25.0
-				current_behavior = "rebound"
+		choose_post_pick_behavior()
+	var pick_target: Vector2
+	#if attributes.positioning > other_guard.attributes.positioning:
+		#pick_target = smart_pick_target()
+		#pass
+	pick_target = other_guard.global_position
+		
+	if global_position.distance_to(pick_target) <attributes.aggression - 25:
+		attempt_attack(pick_target)
 		return
-	var pick_line = Line2D.new()
-	pick_line.add_point(global_position)
-	pick_line.add_point(other_guard.global_position)
-	
-	var guard_blocking = false
-	if assigned_guard:
-		var closest_point = get_closest_point_on_line(pick_line, assigned_guard.global_position)
-		var guard_distance_to_line = closest_point.distance_to(assigned_guard.global_position)
-		guard_blocking = guard_distance_to_line < 5 and !assigned_guard.is_stunned
-	
-	if guard_blocking:
-		var pick_direction = (other_guard.global_position - global_position).normalized()
-		var dodge_direction = pick_direction.rotated(PI/2 * (1 if randf() > 0.5 else -1))
-		var dodge_distance = 10
-		var dodge_target = global_position + dodge_direction * dodge_distance
-		navigation_agent.target_position = dodge_target
-		if global_position.distance_to(assigned_guard.global_position) < 20:
-			navigation_agent.target_position = other_guard.global_position
-			if status.boost > 0:
-				is_sprinting = true
+	#elif status.boost > 0:
+		#is_sprinting = true
 	else:
-		navigation_agent.target_position = other_guard.global_position
-		if global_position.distance_to(assigned_guard.global_position) < 20:
-			if status.boost > 0:
-				is_sprinting = true
-	navigate_to(navigation_agent.target_position)
-	pick_line.queue_free()
+		is_sprinting = false
+	navigate_to(pick_target)
+	
+func smart_pick_target():
+	#TODO: improve
+	return (other_guard.target_position  + other_guard.global_position * 2)/3
+	
+func choose_post_pick_behavior():
+	var rush_weight = forward_strategy.bull_rush + forward_strategy.skill_rush
+	var shoot_weight = forward_strategy.shooter
+	if !forward_strategy.has("defend"): forward_strategy["defend"] = 20#TODO: figure out hwy it doesn't have it
+	var defend_weight = forward_strategy.defend
+	var bully_weight = forward_strategy.bully
+	var ball_weight = forward_strategy.rebound + forward_strategy.target_man
+	var sum = rush_weight + shoot_weight + defend_weight + bully_weight + ball_weight
+	var rand = randf_range(0, sum)
+	if rand < rush_weight:
+		rand = randf_range(0, rush_weight)
+		if rand < forward_strategy.bull_rush:
+			current_behavior = "bull_rush"
+		else:
+			current_behavior = "skill_rush"
+	elif rand < rush_weight + shoot_weight:
+		current_behavior = "shooter"
+	elif rand < rush_weight + shoot_weight + defend_weight:
+		current_behavior = "defend"
+	elif rand < rush_weight + shoot_weight + defend_weight + bully_weight:
+		rand = randf()
+		if rand < attributes.aggression/100: #go after the assigned guard too! mad lad
+			bullied_opponent = assigned_guard
+		else:
+			bullied_opponent = other_guard
+		current_behavior = "bully"
+	else: #must be ball
+		rand = randf_range(0, ball_weight)
+		if rand < forward_strategy.rebound:
+			current_behavior = "rebound"
+		else:
+			current_behavior = "target_man"
 
 func execute_bully():
 	if !bullied_opponent or !is_instance_valid(bullied_opponent) or !bullied_opponent.is_stunned:
-		find_stunned_opponent()
+		find_stunned_opponent() #try to pick on somebody who is helpless
 		if !bullied_opponent:
-			return
+			#pick somebody random
+			var rand = randf()
+			if rand < 0.3:
+				bullied_opponent = assigned_guard
+			elif rand < 0.6:
+				bullied_opponent = other_guard
+			else:
+				bullied_opponent = opposing_keeper
 	
 	if !bullied_opponent.is_stunned:
 		navigate_to(bullied_opponent.global_position)
@@ -389,7 +405,7 @@ func execute_cower():
 	else:
 		target_position = safe_area_center
 	
-	var field_width = 1000
+	var field_width = 114 #TODO: different field types
 	var field_height = abs(goal_position.y)
 	
 	target_position.x = clamp(target_position.x, -field_width * 0.8, field_width * 0.8)
@@ -693,7 +709,10 @@ func navigate_to(position: Vector2):
 		var stuck = 1
 		if is_incapacitated:
 			stuck = 0
-		velocity = global_position.direction_to(next_path_pos) * attributes.speed * stuck
+		var speed = attributes.speed
+		if is_sprinting:
+			speed = attributes.sprint_speed
+		velocity = global_position.direction_to(next_path_pos) * speed * stuck
 
 
 func choose_shooter_position():
