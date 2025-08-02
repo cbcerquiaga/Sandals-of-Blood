@@ -108,6 +108,8 @@ func next_roster_no_subs():
 func update_substitute_info(temp_player: Player, other: Player):
 	temp_player.bio = other.bio
 	temp_player.attributes = other.attributes
+	temp_player.playable_positions = other.playable_positions
+	temp_player.preferred_position = other.preferred_position
 	temp_player.status = other.status
 	temp_player.game_stats = other.game_stats
 	temp_player.special_pitch_names = other.special_pitch_names
@@ -450,6 +452,7 @@ func debug_default_roster():
 	P1.special_pitch_names = pitches
 	P1.special_pitch_groove = grooves
 	P1.playable_positions = ["P", "LG"]
+	P1.preferred_position = "P"
 	P1.bio = {
 	"first_name" :"Billy",
 	"last_name": "Knuckles",
@@ -465,11 +468,13 @@ func debug_default_roster():
 	var P2 = Player.new()
 	P2.position_type = "pitcher"
 	P2.declared_pitcher = true
+	P2.portrait = "res://Assets/Player Portraits/placeholder portrait 2.png"
 	pitches = ["zig-zag, looper, bouncer"]
 	grooves = [15, 20, 25]
 	P2.special_pitch_names = pitches
 	P2.special_pitch_groove = grooves
 	P2.playable_positions = ["P", "K", "LG", "RG", "LF", "RF"]
+	P2.preferred_position = "P"
 	P2.bio = {
 	"first_name" :"Randy",
 	"last_name": "Runningham",
@@ -504,6 +509,8 @@ func debug_default_roster():
 	var P3 = Player.new()
 	P3.position_type = "forward"
 	P3.playable_positions = ["LF", "RF"]
+	P3.preferred_position = "RF"
+	P3.portrait = "res://Assets/Player Portraits/placeholder_portrait 3.png"
 	P3.bio = {
 	"first_name" :"Mike",
 	"last_name": "Lillard",
@@ -538,6 +545,7 @@ func debug_default_roster():
 	var P4 = Player.new()
 	P4.position_type = "guard"
 	P4.playable_positions = ["RG"]
+	P4.portrait = "res://Assets/Player Portraits/placeholder portrait 4.png"
 	P4.bio = {
 	"first_name" :"Kyle",
 	"last_name": "Korpisalo",

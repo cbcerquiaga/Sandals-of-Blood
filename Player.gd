@@ -2,6 +2,7 @@ extends CharacterBody2D
 class_name Player
 
 var playable_positions = ["LG, RG, LF, RF, K, P"]#players can train to be more versatile and play more positions
+var preferred_position: String #affects player development
 var declared_pitcher = false #affects roster size rules
 var field_position: String
 # Player Attributes
@@ -1060,3 +1061,120 @@ func set_all_properties(old_player: Player) -> void:
 	fieldType = old_player.fieldType
 	fieldHeight = old_player.fieldHeight
 	returnSpeed = old_player.returnSpeed
+
+func calculate_player_type():
+	var bestOvr = 0
+	var bestPos
+	var currentOvr
+	if preferred_position:
+		match preferred_position:
+			"LG", "RG":
+				currentOvr = calculate_guard_overall()
+				if currentOvr > bestOvr:
+					bestPos = "guard"
+			"LF", "RF":
+				currentOvr = calculate_forward_overall()
+				if currentOvr > bestOvr:
+					bestPos = "forward"
+			"K":
+				currentOvr = calculate_keeper_overall()
+				if currentOvr > bestOvr:
+					bestPos = "keeper"
+			"P":
+				currentOvr = calculate_pitcher_overall()
+				if currentOvr > bestOvr:
+					bestPos = "pitcher"
+	else:
+		for role in playable_positions:
+			match role:
+				"LG", "RG":
+					currentOvr = calculate_guard_overall()
+					if currentOvr > bestOvr:
+						bestPos = "guard"
+				"LF", "RF":
+					currentOvr = calculate_forward_overall()
+					if currentOvr > bestOvr:
+						bestPos = "forward"
+				"K":
+					currentOvr = calculate_keeper_overall()
+					if currentOvr > bestOvr:
+						bestPos = "keeper"
+				"P":
+					currentOvr = calculate_pitcher_overall()
+					if currentOvr > bestOvr:
+						bestPos = "pitcher"
+	match bestPos:
+		"guard":
+			find_guard_style()
+		"forward":
+			find_forward_style()
+		"keeper":
+			find_keeper_style()
+		"pitcher":
+			find_pitcher_style()
+
+func find_forward_style():
+	var shooter = (attributes.shooting * 3 + attributes.accuracy * 3 + attributes.positioning + attributes.speed + attributes.reactions)/9
+	var antiKeeper = (attributes.power * 2 + attributes.speedRating * 2 + attributes.balance + attributes.endurance + attributes.durability)/7
+	var support = (attributes.power + attributes.accuracy + attributes.positioning + attributes.balance + attributes.reactions + attributes.durability)/6
+	if shooter > antiKeeper and shooter > support:
+		playStyle = "Goal Scorer"
+		playStyle_texture = "res://UI/PlayerTypeSymbols/playerType_cannon.png"
+	elif antiKeeper > shooter and antiKeeper > support:
+		playStyle = "Anti-Keeper"
+		playStyle_texture = "res://UI/PlayerTypeSymbols/playerType_anti_keeper.png"
+	elif support > antiKeeper > shooter:
+		playStyle = "Support Forward"
+		playStyle_texture = "res://UI/PlayerTypeSymbols/playerType_support.png"
+	else: #probably just 99 everything
+		playStyle = "Rocket"
+		playStyle_texture = "res://UI/PlayerTypeSymbols/playerType_rocket.png"
+
+func find_guard_style():
+	var defender = (attributes.speedRating + attributes.power + attributes.positioning + attributes.endurance)/4
+	var ballHound = (attributes.reactions * 2 + attributes.blocking * 2 + attributes.speedRating + attributes.shooting + attributes.accuracy)/7
+	var bully = (attributes.power * 2 + attributes.toughness + attributes.durability + attributes.endurance)/5
+	if ballHound > defender and ballHound > bully:
+		playStyle = "Ball Hound"
+		playStyle_texture = "res://UI/PlayerTypeSymbols/playerType_ballhound.png"
+	elif bully > ballHound and bully > defender:
+		playStyle = "Bully"
+		playStyle_texture = "res://UI/PlayerTypeSymbols/playerType_fist.png"
+	else:
+		playStyle = "defender"
+		playStyle_texture = "res://UI/PlayerTypeSymbols/playerType_brickwall.png"
+
+func find_keeper_style():
+	match special_ability:
+		"maestro":
+			playStyle = "Meastro"
+			playStyle_texture = "res://UI/PlayerTypeSymbols/playerType_music.png"
+		"machine":
+			playStyle = "Machine"
+			playStyle_texture = "res://UI/PlayerTypeSymbols/playerType_machine.png"
+		"spin_doctor":
+			playStyle = "Spin Doctor"
+			playStyle_texture = "res://UI/PlayerTypeSymbols/playerType_spindoctor.png"
+		_:
+			playStyle = "Prospect Goalkeeper"
+			playStyle_texture = "res://UI/PlayerTypeSymbols/playerType_prospectKeeper.png"
+	return
+
+func find_pitcher_style():
+	var fastball = ((attributes.power + attributes.throwing) + attributes.focus + attributes.accuracy + attributes.confidence)/5
+	var curveball = ((attributes.power + attributes.throwing)/2 + attributes.focus * 2 + attributes.accuracy + attributes.confidence * 2)/6
+	var workhorse = (attributes.endurance * 2 + attributes.confidence + attributes.accuracy * 2 + (attributes.power + attributes.throwing)/2 + attributes.focus)/7
+	var fighter = (attributes.toughness + attributes.shooting + attributes.power + attributes.speedRating + attributes.durability + attributes.balance)/5
+	if fastball > curveball and fastball > workhorse and fastball > fighter:
+		playStyle = "Fastball"
+		playStyle_texture = "res://UI/PlayerTypeSymbols/playerType_dart.png"
+	elif curveball > fastball and curveball > workhorse and curveball > fighter:
+		playStyle = "Curveball"
+		playStyle_texture = "res://UI/PlayerTypeSymbols/playerType_boomerang.png"
+	elif fighter > fastball and fighter > curveball and fighter > workhorse:
+		playStyle = "Enforcer"
+		playStyle_texture = "res://UI/PlayerTypeSymbols/playerType_hammer.png"
+	else:
+		playStyle = "Workhorse"
+		playStyle_texture = "res://UI/PlayerTypeSymbols/playerType_horseShoe.png"
+	return

@@ -395,6 +395,7 @@ func _on_player_popup_index_pressed(index: int) -> void:
 			playerPopup.hide()
 		2:
 			infoPopup.show()
+			shuffle_player.calculate_player_type()
 			populate_player_info(shuffle_player)
 			playerPopup.hide()
 	pass
@@ -483,16 +484,29 @@ func populate_player_info(player: Player):
 	var bio_label = $"InfoPopup/VBoxContainer/Bottom Row/Bio"
 	var attributes_label = $"InfoPopup/VBoxContainer/Bottom Row/Attributes"
 	var stats_label = $"InfoPopup/VBoxContainer/Bottom Row/Stats"
-	
-	portrait.custom_minimum_size = Vector2(100, 100)
-	portrait.size = Vector2(100, 100)
+	var type_holder = $"InfoPopup/VBoxContainer/Top Row/VBoxContainer/PlayerType"
+	var type_label = $"InfoPopup/VBoxContainer/Top Row/VBoxContainer/Label"
+	var type_container = $"InfoPopup/VBoxContainer/Top Row/VBoxContainer"
+	#type_container.custom_minimum_size = Vector2(50, 50)
+	#type_container.size = Vector2(50, 50)
+	portrait.custom_minimum_size = Vector2(300, 300)
+	portrait.size = Vector2(300, 300)
 	portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	type_holder.custom_minimum_size = Vector2(400, 400)
+	type_holder.size = Vector2(400, 400) 
+	type_holder.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	type_holder.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	type_label.text = player.playStyle
+	type_label.add_theme_font_size_override("font_size", 30)
 	name_label.add_theme_font_size_override("font_size", 50)
 	bio_label.add_theme_font_size_override("font_size", 30)
 	attributes_label.add_theme_font_size_override("font_size", 30)
 	stats_label.add_theme_font_size_override("font_size", 30)
 	portrait.texture = load(player.portrait)
+	var icon = load(player.playStyle_texture)
+	if icon:
+		type_holder.texture = icon
 	var nickname
 	if !player.bio.has("nickname"):
 		nickname = " "
