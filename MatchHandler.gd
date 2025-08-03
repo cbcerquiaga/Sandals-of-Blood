@@ -735,7 +735,8 @@ func update_team_roster(team: Team):
 	pTeam.next_bench = team.next_bench
 	pTeam.next_onfield_players = team.next_onfield_players
 	pTeam.subs_remaining = team.subs_remaining
-	if !is_play_live: #perform the substitution immediately
+	
+	if !is_play_live and current_play_time == 0: #perform the substitution immediately
 		pTeam.update_field()
 		statusUI.assign_team(self)
 		pTeam.wipe_player_control()

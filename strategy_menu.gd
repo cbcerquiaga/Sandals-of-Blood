@@ -159,9 +159,9 @@ func open_menu(team: Team, handler: MatchHandler, in_match: bool):
 	match_handler = handler
 	is_in_match = in_match
 	original_strategy = team.strategy.duplicate(true)
-	original_roster = []
-	for player in team.roster:
-		original_roster.append(player.export_to_dict())
+	original_field = team.next_onfield_players.duplicate(true)
+	original_bench = team.next_bench.duplicate(true)
+	original_subs = team.subs_remaining
 	apply_team_to_field()
 	_reset_all_button_styles()
 	if last_focused_button and last_focused_button.is_visible_in_tree():
