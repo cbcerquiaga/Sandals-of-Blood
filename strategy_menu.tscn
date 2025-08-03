@@ -666,6 +666,14 @@ Spin
 Positioning
 Toughness"
 
+[node name="Attributes2" type="Label" parent="InfoPopup/VBoxContainer/Bottom Row"]
+layout_mode = 2
+text = "Speed
+Power
+Spin
+Positioning
+Toughness"
+
 [node name="Stats" type="Label" parent="InfoPopup/VBoxContainer/Bottom Row"]
 layout_mode = 2
 text = "Pitches Played

@@ -1,7 +1,7 @@
 extends CharacterBody2D
 class_name Player
 
-var playable_positions = ["LG, RG, LF, RF, K, P"]#players can train to be more versatile and play more positions
+var playable_positions = ["LG", "RG", "LF", "RF", "K", "P"]#players can train to be more versatile and play more positions
 var preferred_position: String #affects player development
 var declared_pitcher = false #affects roster size rules
 var field_position: String
