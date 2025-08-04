@@ -1,28 +1,27 @@
-[gd_scene load_steps=2 format=3 uid="uid://b2a1xy1kwt5nn"]
+[gd_scene load_steps=8 format=3 uid="uid://b2a1xy1kwt5nn"]
 
 [ext_resource type="Script" path="res://pause_options.gd" id="1_fl5kn"]
+[ext_resource type="Texture2D" uid="uid://5rccbxmqb76a" path="res://UI/PauseUI/Save-Exit_button_base.png" id="2_1f627"]
+[ext_resource type="Texture2D" uid="uid://n4x2mkuundrs" path="res://UI/PauseUI/Default_button_base.png" id="2_m0cwv"]
+[ext_resource type="Texture2D" uid="uid://c4l1kmbq8kka5" path="res://UI/PauseUI/Save-Exit_button_highlighted.png" id="3_6cxbn"]
+[ext_resource type="Texture2D" uid="uid://nf57ed20an85" path="res://UI/PauseUI/Default_button_highlighted.png" id="3_em0te"]
+[ext_resource type="Texture2D" uid="uid://307owu6k2n6i" path="res://UI/PauseUI/Discard-Exit_button_base.png" id="4_j4bgc"]
+[ext_resource type="Texture2D" uid="uid://c0khwyynjo032" path="res://UI/PauseUI/Discard-Exit_button_highlighted.png" id="5_a6mel"]
 
 [node name="Pause_Options" type="Control"]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 175.0
-offset_top = 152.0
-offset_right = 175.0
-offset_bottom = 152.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_fl5kn")
 
 [node name="MarginContainer" type="MarginContainer" parent="."]
 layout_mode = 1
-anchors_preset = 9
-anchor_bottom = 1.0
 offset_right = 355.0
-offset_bottom = -1324.0
-grow_vertical = 2
-scale = Vector2(3, 3)
+offset_bottom = 421.0
+scale = Vector2(2.5, 2.5)
 
 [node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer"]
 layout_mode = 2
@@ -62,6 +61,10 @@ text = "Crowd Volume"
 [node name="CrowdVolume" type="HSlider" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
 
+[node name="StereoSound" type="CheckButton" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Stereo Sound"
+
 [node name="Display" type="Label" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
 text = "DISPLAY"
@@ -90,7 +93,7 @@ popup/item_3/id = 3
 popup/item_4/text = "HD"
 popup/item_4/id = 4
 
-[node name="CheckButton" type="CheckButton" parent="MarginContainer/VBoxContainer"]
+[node name="Fullscreen" type="CheckButton" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
 text = "Fullscreen"
 
@@ -104,7 +107,7 @@ offset_left = -428.0
 offset_right = -84.0
 grow_horizontal = 2
 grow_vertical = 2
-scale = Vector2(3, 3)
+scale = Vector2(2.5, 2.5)
 
 [node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer2"]
 layout_mode = 2
@@ -133,6 +136,10 @@ text = "InjuryFrequency"
 
 [node name="InjFrequency" type="HSlider" parent="MarginContainer2/VBoxContainer"]
 layout_mode = 2
+
+[node name="SevereInjuries" type="CheckButton" parent="MarginContainer2/VBoxContainer"]
+layout_mode = 2
+text = "Severe Injuries"
 
 [node name="HumanAlwaysPitches" type="CheckButton" parent="MarginContainer2/VBoxContainer"]
 layout_mode = 2
@@ -197,17 +204,54 @@ popup/item_3/id = 3
 layout_mode = 2
 text = "Controller Southpaw"
 
+[node name="HBoxContainer" type="HBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -540.0
+offset_top = -323.0
+offset_right = 540.0
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="DefaultButton" type="TextureButton" parent="HBoxContainer"]
+layout_mode = 2
+texture_normal = ExtResource("2_m0cwv")
+texture_pressed = ExtResource("3_em0te")
+texture_hover = ExtResource("3_em0te")
+texture_focused = ExtResource("3_em0te")
+
+[node name="DiscardButton" type="TextureButton" parent="HBoxContainer"]
+layout_mode = 2
+texture_normal = ExtResource("4_j4bgc")
+texture_pressed = ExtResource("5_a6mel")
+texture_hover = ExtResource("5_a6mel")
+texture_focused = ExtResource("5_a6mel")
+
+[node name="SaveButton" type="TextureButton" parent="HBoxContainer"]
+layout_mode = 2
+texture_normal = ExtResource("2_1f627")
+texture_pressed = ExtResource("3_6cxbn")
+texture_hover = ExtResource("3_6cxbn")
+texture_focused = ExtResource("3_6cxbn")
+
 [connection signal="value_changed" from="MarginContainer/VBoxContainer/MasterVolume" to="." method="_on_master_volume_value_changed"]
 [connection signal="value_changed" from="MarginContainer/VBoxContainer/MusicVolume" to="." method="_on_music_volume_value_changed"]
 [connection signal="value_changed" from="MarginContainer/VBoxContainer/SFXVolume" to="." method="_on_sfx_volume_value_changed"]
 [connection signal="value_changed" from="MarginContainer/VBoxContainer/CrowdVolume" to="." method="_on_crowd_volume_value_changed"]
+[connection signal="toggled" from="MarginContainer/VBoxContainer/StereoSound" to="." method="_on_stereo_sound_toggled"]
 [connection signal="value_changed" from="MarginContainer/VBoxContainer/Brightness" to="." method="_on_brightness_value_changed"]
 [connection signal="item_selected" from="MarginContainer/VBoxContainer/Resolution" to="." method="_on_resolution_item_selected"]
-[connection signal="toggled" from="MarginContainer/VBoxContainer/CheckButton" to="." method="_on_check_button_toggled"]
+[connection signal="toggled" from="MarginContainer/VBoxContainer/Fullscreen" to="." method="_on_check_button_toggled"]
 [connection signal="value_changed" from="MarginContainer2/VBoxContainer/GameSpeed" to="." method="_on_game_speed_value_changed"]
 [connection signal="value_changed" from="MarginContainer2/VBoxContainer/SPFrequency" to="." method="_on_sp_frequency_value_changed"]
 [connection signal="value_changed" from="MarginContainer2/VBoxContainer/InjFrequency" to="." method="_on_sp_frequency_value_changed"]
 [connection signal="value_changed" from="MarginContainer2/VBoxContainer/InjFrequency" to="." method="_on_inj_frequency_value_changed"]
+[connection signal="toggled" from="MarginContainer2/VBoxContainer/SevereInjuries" to="." method="_on_severe_injuries_toggled"]
+[connection signal="toggled" from="MarginContainer2/VBoxContainer/HumanAlwaysPitches" to="." method="_on_human_always_pitches_toggled"]
 [connection signal="value_changed" from="MarginContainer2/VBoxContainer/BuffHuman" to="." method="_on_buff_human_value_changed"]
 [connection signal="value_changed" from="MarginContainer2/VBoxContainer/BuffAI" to="." method="_on_buff_ai_value_changed"]
 [connection signal="item_selected" from="MarginContainer2/VBoxContainer/KeyboardScheme" to="." method="_on_keyboard_scheme_item_selected"]

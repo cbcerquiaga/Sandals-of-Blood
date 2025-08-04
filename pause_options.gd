@@ -78,3 +78,15 @@ func _on_crowd_volume_value_changed(value: float) -> void:
 
 func _on_brightness_value_changed(value: float) -> void:
 	pass # Replace with function body.
+
+
+func _on_severe_injuries_toggled(toggled_on: bool) -> void:
+	pass # Replace with function body.
+
+
+func _on_human_always_pitches_toggled(toggled_on: bool) -> void:
+	pass # Replace with function body.
+
+
+func _on_stereo_sound_toggled(toggled_on: bool) -> void:
+	pass # Replace with function body.

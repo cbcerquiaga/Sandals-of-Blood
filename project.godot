@@ -15,6 +15,10 @@ run/main_scene="res://test_match_scene.tscn"
 config/features=PackedStringArray("4.3", "Forward Plus")
 config/icon="res://icon.svg"
 
+[autoload]
+
+GlobalSettings="*res://global_settings.gd"
+
 [display]
 
 window/size/viewport_width=3024
