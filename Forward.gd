@@ -503,7 +503,7 @@ func is_ball_reachable() -> bool:
 func has_stunned_opponent() -> bool:
 	var players = get_tree().get_nodes_in_group("players")
 	for player in players:
-		if player.team != team and player.is_stunned():
+		if player.team != team and player.is_incapacitated:
 			return true
 	return false
 
@@ -1038,7 +1038,7 @@ func find_stunned_opponent():
 	var players = get_tree().get_nodes_in_group("players")
 	
 	for player in players:
-		if player.team != team and player.is_stunned():
+		if player.team != team and player.is_incapacitated:
 			var distance = global_position.distance_to(player.global_position)
 			if distance < closest_distance:
 				closest_distance = distance

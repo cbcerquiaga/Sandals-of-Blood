@@ -68,13 +68,13 @@ var field_position: String
 #what the guards do on the counterattack is unique to a given player
 #it can be coached in training, but not changed in the tactics menu
 @export var guard_counterattack_preferences := {
-	"link": 0.2, #tendency to try and link play
-	"deep": 0.2, #tendency to get open to shoot deep
-	"mid": 0.2, #tendency to get open to shoot from midfield
+	"link": 0.2, #tendency to try and link play at the center line
+	"deep": 0.2, #tendency to get open to shoot from the corner
+	"mid": 0.2, #tendency to run around in circles in midfield
 	"override": false, #if true, the player will just do their defending behavior
 	"bank": 0.1, #tendencyto just bank that shit off the wall
-	"shoot": 0.9, #tendency to shoot
-	"switch": 0.3, #tendency to pass to buddy guard
+	"shoot": 0.1, #tendency to shoot
+	"switch": 0.8, #tendency to pass to buddy guard
 	"send": 1.0 #tendency to pass to forwards
 }
 
@@ -257,6 +257,7 @@ func _ready():
 	status.stability = attributes.endurance
 	status.groove = 0#start the game with no groove
 	fencing_params.ball_proximity_threshold = attributes.reactions/2
+	add_to_group("players")
 	update_ui()
 
 func _physics_process(delta):

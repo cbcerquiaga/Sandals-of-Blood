@@ -42,6 +42,8 @@ var current_target: Vector2
 var engagement_decision: String = ""
 var path_update_timer: float = 0
 var counter_position: Vector2 #used for counterattack movements
+var best_pos: Vector2 #used for deep_shooting
+var best_clearness: float #used for deep_shooting
 
 # Nodes
 @onready var navigation_agent: NavigationAgent2D = $NavigationAgent2D
@@ -669,13 +671,19 @@ func is_countering()-> bool:
 
 #get to the midfield and try to find a pass for our teammate
 func perform_linking():
+	if global_position.distance_to(ball.global_position) < 20:
+		current_behavior = "chasing"
+		chase_ball()
+		return
 	if Engine.get_frames_drawn() % 60 == 0:
 		calculate_linking_position()	
 	if assigned_forward && global_position.distance_to(assigned_forward.global_position) < 6:
 		current_behavior = "fencing"
+		perform_fencing()
 		return
 	if global_position.distance_to(ball.global_position) < 20:
 		current_behavior = "chasing"
+		chase_ball()
 		return
 	
 	create_passing_lane()
@@ -683,83 +691,85 @@ func perform_linking():
 
 #find a place to shoot close to the corner of the field
 func perform_deep_shooting():
-	var field_width
-	var min_x
-	var max_x
-	var min_y
-	var max_y
-	
-	match fieldType: #TODO: field types
-		"road":
-			field_width = 110
-			min_y = 90
-			max_y = 100
-		"wideRoad":
-			field_width = 170
-			min_y = 90
-			max_y = 100
-		_: # Default to road
-			field_width = 110
-			min_y = 90
-			max_y = 100
-	
-	#correct for assigned field quadrant
-	if plays_left_side:
-		min_x = -field_width/2 - 10
-		max_x = -field_width/2 + 10
+	if global_position.distance_to(ball.global_position) < 20:
+		current_behavior = "chasing"
+		chase_ball()
+		return
+	var maneuver_distance = 10 #how far away from shooting position we'll go to get open
+	var good_enough = attributes.positioning/25 #2 to 3.96
+	var shooting_position = Vector2(starting_position.x * 2, starting_position.y * 0.8) #default target position
+	if Engine.get_frames_drawn() % 60 == 0:
+		find_best_shooting_position(shooting_position, maneuver_distance)
+	var closest_opponent: Forward
+	if global_position.distance_squared_to(assigned_forward.global_position) <= global_position.distance_squared_to(other_forward.global_position):
+		closest_opponent = assigned_forward
 	else:
-		min_x = field_width/2 - 10
-		max_x = field_width/2 + 10
-	if defending_goal_position.y < 0:
-		min_y = -min_y
-		max_y = -max_y
-	var shoot_position = Vector2(
-		randf_range(min_x, max_x),
-		randf_range(min_y, max_y)
-	)
-	if global_position.distance_squared_to(ball.global_position) < 225 or am_closest(): #15 units
-		shoot_position = ball.global_position
-	navigation_agent.target_position = shoot_position
+		closest_opponent = other_forward
+	if closest_opponent.global_position.distance_squared_to(global_position) <= maneuver_distance * maneuver_distance or best_clearness < attributes.aggression / 50:
+		attempt_attack(closest_opponent.global_position)
+		return
+	if best_clearness < good_enough:
+		var upfield_position = shooting_position  * 3/4
+		find_best_shooting_position(upfield_position, maneuver_distance)
+	navigation_agent.target_position = best_pos
+	navigate_to(navigation_agent.target_position)
 	make_counterattack_ball_choice()
-
-#get upfield and get open
-func perform_midfield_shooting():
-	var field_width
-	var min_x
-	var max_x
-	var min_y
-	var max_y
 	
-	match fieldType: #TODO: add other field types
-		"road":
-			field_width = 110
-			min_y = 0
-			max_y = 15
-		"wideRoad":
-			field_width = 170
-			min_y = 0
-			max_y = 15
-		_: # Default to road
-			field_width = 110
-			min_y = 0
-			max_y = 15
-	#make sure we're vaguely where we gotta be
-	if plays_left_side:
-		min_x = -field_width/2 - 10
-		max_x = -field_width/2 + 10
-	else:
-		min_x = field_width/2 - 10
-		max_x = field_width/2 + 10
-	if defending_goal_position.y < 0:
-		min_y = -min_y
-		max_y = -max_y
-	var shoot_position = Vector2(
-		randf_range(min_x, max_x),
-		randf_range(min_y, max_y)
-	)
-	if global_position.distance_squared_to(ball.global_position) < 225 or am_closest(): #15 units
-		shoot_position = ball.global_position
-	navigation_agent.target_position = shoot_position
+func find_best_shooting_position(base_position: Vector2, maneuver_distance: float):
+	var good_enough = attributes.positioning/25
+	var open_threshold = -0.00510204 * attributes.aggression + 1.2551 #1.0 at 50, 0.75 at 99
+	var positions_to_check = [
+		base_position,
+		base_position + Vector2(maneuver_distance, 0),
+		base_position + Vector2(-maneuver_distance, 0),
+		base_position + Vector2(0, maneuver_distance),
+		base_position + Vector2(0, -maneuver_distance)
+	]
+	
+	for target_pos in positions_to_check:
+		target_pos.x = clamp(target_pos.x, -55, 55)
+		target_pos.y = clamp(target_pos.y, -100, 100)
+		
+		var clearness_keeper = _path_clearness(target_pos, buddy_keeper.global_position)
+		if clearness_keeper <= open_threshold:
+			continue
+		var clearness_left = _path_clearness(target_pos, Vector2(leftPost.x, oppGoal.y))
+		var clearness_right = _path_clearness(target_pos, Vector2(rightPost.x, oppGoal.y))
+		var clearness_middle = _path_clearness(target_pos, oppGoal)
+		var clearness_send = _path_clearness(target_pos, buddySSF.global_position)
+		var clearness_switch = _path_clearness(target_pos, buddy_guard.global_position)
+		var sum_clearness = clearness_left + clearness_right + clearness_middle + clearness_send + clearness_switch #0 to 5
+		
+		if sum_clearness > best_clearness:
+			best_pos = target_pos
+			best_clearness = sum_clearness
+			if best_clearness > good_enough: #good enough is good enough
+				return
+
+#circle around in the middle of the zone
+func perform_midfield_shooting():
+	if global_position.distance_to(ball.global_position) < 20:
+		current_behavior = "chasing"
+		chase_ball()
+		return
+	var circle_center = defending_goal_position/2
+	var circle_radius = 20.0
+	var angular_speed = attributes.speed
+	var current_angle = atan2(global_position.y - circle_center.y, global_position.x - circle_center.x)
+	var rotation_direction = 1.0 if plays_left_side else -1.0
+	var target_angle = current_angle + (angular_speed * get_physics_process_delta_time() * rotation_direction)
+	var target_pos = circle_center + Vector2(cos(target_angle), sin(target_angle)) * circle_radius
+	var avoidance_force = Vector2.ZERO
+	var players = get_tree().get_nodes_in_group("players")
+	for player in players:
+		if player == self or player.is_incapacitated: continue
+		var distance = global_position.distance_to(player.global_position)
+		if distance < 30.0:
+			var repulsion_dir = (global_position - player.global_position).normalized()
+			var strength = (30.0 - distance) / 30.0
+			avoidance_force += repulsion_dir * strength * 20.0
+	target_pos += avoidance_force
+	navigation_agent.target_position = target_pos
 	make_counterattack_ball_choice()
 
 func is_goal_wide_open() -> bool:
