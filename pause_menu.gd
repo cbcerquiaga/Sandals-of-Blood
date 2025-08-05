@@ -15,7 +15,7 @@ const input_cooldown: int = 3
 @onready var submenu: String = ""
 @onready var strategy_menu = $Submenus/Strategy_Menu
 @onready var stats_screen
-@onready var options_menu
+@onready var options_menu = $Submenus/Pause_Options
 @onready var export_screen
 @onready var quit_popup
 
@@ -27,6 +27,7 @@ signal new_sub()
 
 func _ready():
 	strategy_menu.menu_closed.connect(_on_strategy_menu_closed)
+	options_menu.menu_closed.connect(_on_options_menu_closed)
 	resume.grab_focus()
 	hide()
 	
@@ -38,6 +39,8 @@ func open_menu(highlight: String = "resume"):
 			resume.grab_focus()
 		"strategy":
 			strategy.grab_focus()
+		"options":
+			options.grab_focus()
 		
 #
 #func _process(delta):
@@ -156,3 +159,14 @@ func _unhandled_input(event):
 			get_viewport().set_input_as_handled()
 		elif submenu == "strategy":
 			strategy_menu._on_discard_pressed()
+
+
+func _on_options_pressed() -> void:
+	options_menu.open_pause_menu()
+	submenu = "options"
+	$ButtonContainer.hide()
+	pass
+	
+func _on_options_menu_closed():
+	submenu = ""
+	open_menu("options")
