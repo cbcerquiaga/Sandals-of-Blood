@@ -10,6 +10,9 @@ var color_scheme: int = 1 #1-4, corresponds to Home_score_x and aAay_score_x pat
 @onready var away_label: Label = $Away_holder/AwayLabel
 @onready var playClockLabel: Label = $GameTime_holder/PlayClockLabel
 @onready var pitchesLeftLabel: Label = $GameTime_holder/PitchesLeftLabel
+@onready var ot_indicator: TextureRect = $TextureRect
+@onready var deuce_texture = preload("res://UI/StatusUI/OT_deuce.png")
+@onready var sudden_texture = preload("res://UI/StatusUI/OT_suddendeath.png")
 var is_human_team_pitching: bool = true
 var home_score: int = 0
 var away_score: int = 0
@@ -23,6 +26,7 @@ func _ready() -> void:
 	away_label.add_theme_font_size_override("font_size", 720)
 	playClockLabel.add_theme_font_size_override("font_size", 200)
 	pitchesLeftLabel.add_theme_font_size_override("font_size", 200)
+	ot_indicator.hide()
 
 
 func assign_color_scheme(scheme: int):
@@ -53,3 +57,9 @@ func update_scoreboard():
 		playClockLabel.text = ":" + str(int(play_time))
 	
 	
+func overtime(is_deuce: bool):
+	ot_indicator.show()
+	if is_deuce:
+		ot_indicator.texture = deuce_texture
+	else:
+		ot_indicator.texture = sudden_texture

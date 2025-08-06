@@ -57,3 +57,6 @@ func update_scoreboard():
 		scoreboard.away_score = matchHandler.team_scores[0]
 	scoreboard.play_time = matchHandler.max_play_time - matchHandler.current_play_time
 	scoreboard.update_scoreboard()
+	
+func overtime(is_deuce: bool):
+	scoreboard.overtime(is_deuce)

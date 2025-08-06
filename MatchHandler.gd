@@ -542,13 +542,13 @@ func check_match_end():
 		end_match(0)#tie by pitches
 	elif GlobalSettings.regular_season and pitches_remaining <= 0 and abs(team1_score - team2_score) == 1:
 		print("sudden death overtime!") #if winning team scores, they win. If losing team scores, they tie
-		#TODO: sudden death overtime graphic
+		statusUI.overtime(false)
 	elif GlobalSettings.regular_season and (team1_score == GlobalSettings.target_score or team2_score == GlobalSettings.target_score) and abs(team1_score - team2_score) == 1:
 		print("sudden death overtime!")
-		#TODO: sudden death overtime graphic
+		statusUI.overtime(false)
 	elif !GlobalSettings.regular_season and (pitches_remaining <= 0 or team1_score == GlobalSettings.target_score or team2_score == GlobalSettings.target_score) and abs(team1_score - team2_score) < 2:
 		print("Deuce!") #game will go on forever until one of the teams leads by 2
-		#TODO: deuce overtime graphic
+		statusUI.overtime(true)
 	else: #regular old game on
 		return
 

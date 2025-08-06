@@ -1,9 +1,10 @@
-[gd_scene load_steps=5 format=3 uid="uid://m5w1mmk5s0tv"]
+[gd_scene load_steps=6 format=3 uid="uid://m5w1mmk5s0tv"]
 
 [ext_resource type="Script" path="res://scoreboard.gd" id="1_niowp"]
 [ext_resource type="Texture2D" uid="uid://ck6tifoiflo7h" path="res://UI/ScorebugUI/Home_score_1.png" id="2_g7ef6"]
 [ext_resource type="Texture2D" uid="uid://cyaqg6b5lyx81" path="res://UI/ScorebugUI/Away_score_1.png" id="3_2njmh"]
 [ext_resource type="Texture2D" uid="uid://bihfi6c0ksf3j" path="res://UI/ScorebugUI/Pitch_Indicator_Arrow.png" id="4_uw3le"]
+[ext_resource type="Texture2D" uid="uid://b80rhxquh8e0i" path="res://UI/StatusUI/OT_suddendeath.png" id="5_cinp4"]
 
 [node name="Scoreboard" type="Control"]
 layout_mode = 3
@@ -54,3 +55,11 @@ offset_bottom = -377.0
 [node name="Arrow" type="Sprite2D" parent="."]
 position = Vector2(1694, -35)
 texture = ExtResource("4_uw3le")
+
+[node name="TextureRect" type="TextureRect" parent="."]
+layout_mode = 0
+offset_left = -1289.0
+offset_top = 527.0
+offset_right = 2249.0
+offset_bottom = 1425.0
+texture = ExtResource("5_cinp4")
