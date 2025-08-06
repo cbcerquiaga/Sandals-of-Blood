@@ -303,9 +303,8 @@ func _physics_process(delta):
 		execute_dodging()
 		move_and_slide()
 		return
-				
 	
-	if is_controlling_player:
+	if is_controlling_player and !GlobalSettings.semiAuto:
 		if can_move:
 			handle_human_input(delta)
 	else:

@@ -1,6 +1,10 @@
 extends Node
-class_name Global_Settings
+class_name Settings_Global #inverted so that the variable GlobalSettings comes up first in autocomplete
 
+enum FieldType { ROAD, CULDESAC, HORSESHOE }
+#current game
+var regular_season: bool = true #determines the type of overtime. In regular season, games can end in ties, while in playoffs someone must win
+var field_type: FieldType = FieldType.ROAD #impacts a bunch of stuff. TODO: make more kinds of fields
 #display
 var brightness: float = 55 #screen brightness
 var game_speed: float = 0.35 #speed of gameplay
@@ -11,9 +15,11 @@ var keyboard_control_scheme: String #which control scheme is used for keyboard
 var controller_control_scheme: String #which control scheme is used for controller
 var mouse_sensitivity: float #how much the game reacts to mouse movements
 var controller_sensitivity: float #how much the game reacts to controller analog stick inputs
+var semiAuto: bool = false #if true, the AI will move the human keeper around and the player just worries about aiming
 #gameplay
-var target_score: int #(usually) max score a team can get in the game before the game ends
-var pitch_limit: int #(usually) max number of pitches thrown by both teams before a game ends
+var target_score: int = 7 #(usually) max score a team can get in the game before the game ends
+var pitch_limit: int  = 20#(usually) max number of pitches thrown by both teams before a game ends
+var play_time: int #maximum length on seconds of a single play
 var human_buff: int #how much to buff all human player attributes
 var cpu_buff: int #how much to buff all cpu player attributes
 var human_always_pitch: bool #if on, human team always gets to pitch
@@ -41,7 +47,7 @@ var franchise: Franchise #team, arena, staff, inventory, relationships
 var world_state: Dictionary #leagues, teams, 
 var history #player, team, league stats
 
-func transfer_settings(other_settings: Global_Settings):
+func transfer_settings(other_settings: Settings_Global):
 	brightness = other_settings.brightness
 	game_speed = other_settings.game_speed
 	resolution = other_settings.resolution
@@ -49,6 +55,7 @@ func transfer_settings(other_settings: Global_Settings):
 	controller_control_scheme = other_settings.controller_control_scheme
 	target_score = other_settings.target_score
 	pitch_limit = other_settings.pitch_limit
+	play_time = other_settings.play_time
 	human_buff = other_settings.human_buff
 	cpu_buff = other_settings.cpu_buff
 	human_always_pitch = other_settings.human_always_pitch

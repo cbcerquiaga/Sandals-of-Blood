@@ -19,15 +19,17 @@ script = ExtResource("1_fl5kn")
 
 [node name="TextureRect" type="ColorRect" parent="."]
 layout_mode = 0
-offset_right = 3036.0
-offset_bottom = 1586.0
+offset_left = -238.0
+offset_top = -132.0
+offset_right = 3447.0
+offset_bottom = 2007.0
 color = Color(0.054902, 0.054902, 0.054902, 0.572549)
 
 [node name="AudioVisual" type="MarginContainer" parent="."]
 layout_mode = 1
 offset_right = 350.0
 offset_bottom = 559.0
-scale = Vector2(2.75, 2.75)
+scale = Vector2(2.5, 2.5)
 
 [node name="VBoxContainer" type="VBoxContainer" parent="AudioVisual"]
 layout_mode = 2
@@ -45,13 +47,11 @@ text = "Master Volume"
 
 [node name="MasterVolume" type="HSlider" parent="AudioVisual/VBoxContainer"]
 layout_mode = 2
-focus_neighbor_left = NodePath("../../../Career/VBoxContainer/SurvivalDifficulty")
 focus_neighbor_top = NodePath("../../../HBoxContainer/DefaultButton")
-focus_neighbor_right = NodePath("../../../InGame/VBoxContainer/GameSpeed")
 focus_neighbor_bottom = NodePath("../MusicVolume")
-step = 5.0
+step = 2.0
+value = 100.0
 rounded = true
-tick_count = 20
 
 [node name="MusicVolumeLabel" type="Label" parent="AudioVisual/VBoxContainer"]
 layout_mode = 2
@@ -59,13 +59,11 @@ text = "Menu Music Volume"
 
 [node name="MusicVolume" type="HSlider" parent="AudioVisual/VBoxContainer"]
 layout_mode = 2
-focus_neighbor_left = NodePath("../../../Career/VBoxContainer/TravelDanger")
 focus_neighbor_top = NodePath("../MasterVolume")
-focus_neighbor_right = NodePath("../../../InGame/VBoxContainer/SPFrequency")
 focus_neighbor_bottom = NodePath("../SFXVolume")
-step = 5.0
+step = 2.0
+value = 100.0
 rounded = true
-tick_count = 20
 
 [node name="SFXVolumeLabel" type="Label" parent="AudioVisual/VBoxContainer"]
 layout_mode = 2
@@ -73,13 +71,11 @@ text = "Match Sound Effects Volume"
 
 [node name="SFXVolume" type="HSlider" parent="AudioVisual/VBoxContainer"]
 layout_mode = 2
-focus_neighbor_left = NodePath("../../../Career/VBoxContainer/SigningDifficulty")
 focus_neighbor_top = NodePath("../MusicVolume")
-focus_neighbor_right = NodePath("../../../InGame/VBoxContainer/InjFrequency")
 focus_neighbor_bottom = NodePath("../CrowdVolume")
-step = 5.0
+step = 2.0
+value = 100.0
 rounded = true
-tick_count = 20
 
 [node name="CrowdVolumeLabel" type="Label" parent="AudioVisual/VBoxContainer"]
 layout_mode = 2
@@ -87,18 +83,15 @@ text = "Crowd Volume"
 
 [node name="CrowdVolume" type="HSlider" parent="AudioVisual/VBoxContainer"]
 layout_mode = 2
-focus_neighbor_left = NodePath("../../../Career/VBoxContainer/PoachButton")
 focus_neighbor_top = NodePath(".")
-focus_neighbor_right = NodePath("../../../InGame/VBoxContainer/SevereInjuries")
 focus_neighbor_bottom = NodePath("../StereoSound")
+step = 2.0
+value = 100.0
 rounded = true
-tick_count = 20
 
 [node name="StereoSound" type="CheckButton" parent="AudioVisual/VBoxContainer"]
 layout_mode = 2
-focus_neighbor_left = NodePath("../../../Career/VBoxContainer/ManageDifficulty")
 focus_neighbor_top = NodePath("../CrowdVolume")
-focus_neighbor_right = NodePath("../../../InGame/VBoxContainer/HumanAlwaysPitches")
 focus_neighbor_bottom = NodePath("../Brightness")
 text = "Stereo Sound"
 
@@ -112,13 +105,11 @@ text = "Brightness"
 
 [node name="Brightness" type="HSlider" parent="AudioVisual/VBoxContainer"]
 layout_mode = 2
-focus_neighbor_left = NodePath("../../../Career/VBoxContainer/MatchLength")
 focus_neighbor_top = NodePath("../CrowdVolume")
-focus_neighbor_right = NodePath("../../../InGame/VBoxContainer/BuffAI")
 focus_neighbor_bottom = NodePath("../Resolution")
 step = 5.0
+value = 50.0
 rounded = true
-tick_count = 20
 
 [node name="ResolutionLabel" type="Label" parent="AudioVisual/VBoxContainer"]
 layout_mode = 2
@@ -126,9 +117,7 @@ text = "Resolution"
 
 [node name="Resolution" type="OptionButton" parent="AudioVisual/VBoxContainer"]
 layout_mode = 2
-focus_neighbor_left = NodePath("../../../Career/VBoxContainer/PlayLength")
 focus_neighbor_top = NodePath("../Brightness")
-focus_neighbor_right = NodePath("../../../InGame/VBoxContainer/KeyboardScheme")
 focus_neighbor_bottom = NodePath("../Fullscreen")
 item_count = 5
 popup/item_0/text = "Default"
@@ -143,9 +132,7 @@ popup/item_4/id = 4
 
 [node name="Fullscreen" type="CheckButton" parent="AudioVisual/VBoxContainer"]
 layout_mode = 2
-focus_neighbor_left = NodePath("../../../Career/VBoxContainer/PlayLength")
 focus_neighbor_top = NodePath("../Resolution")
-focus_neighbor_right = NodePath("../../../InGame/VBoxContainer/KeyboardScheme")
 focus_neighbor_bottom = NodePath("../../../HBoxContainer/DefaultButton")
 text = "Fullscreen"
 
@@ -159,7 +146,7 @@ offset_left = -428.0
 offset_right = -78.0
 grow_horizontal = 2
 grow_vertical = 2
-scale = Vector2(2.75, 2.75)
+scale = Vector2(2.5, 2.5)
 
 [node name="VBoxContainer" type="VBoxContainer" parent="InGame"]
 layout_mode = 2
@@ -174,13 +161,12 @@ text = "Game Speed"
 
 [node name="GameSpeed" type="HSlider" parent="InGame/VBoxContainer"]
 layout_mode = 2
-focus_neighbor_left = NodePath("../../../AudioVisual/VBoxContainer/MasterVolume")
 focus_neighbor_top = NodePath("../../../HBoxContainer/DiscardButton")
-focus_neighbor_right = NodePath("../../../Career/VBoxContainer/SurvivalDifficulty")
 focus_neighbor_bottom = NodePath("../SPFrequency")
-max_value = 10.0
-rounded = true
-tick_count = 10
+min_value = 0.2
+max_value = 0.5
+step = 0.05
+value = 0.35
 
 [node name="SPFrequencyLabel" type="Label" parent="InGame/VBoxContainer"]
 layout_mode = 2
@@ -188,13 +174,11 @@ text = "Special Pitch Frequency"
 
 [node name="SPFrequency" type="HSlider" parent="InGame/VBoxContainer"]
 layout_mode = 2
-focus_neighbor_left = NodePath("../../../AudioVisual/VBoxContainer/MusicVolume")
 focus_neighbor_top = NodePath("../GameSpeed")
-focus_neighbor_right = NodePath("../../../Career/VBoxContainer/TravelDanger")
 focus_neighbor_bottom = NodePath("../InjFrequency")
-max_value = 10.0
-rounded = true
-tick_count = 10
+max_value = 2.0
+step = 0.25
+value = 1.0
 
 [node name="InjFrequencyLabel" type="Label" parent="InGame/VBoxContainer"]
 layout_mode = 2
@@ -202,27 +186,22 @@ text = "InjuryFrequency"
 
 [node name="InjFrequency" type="HSlider" parent="InGame/VBoxContainer"]
 layout_mode = 2
-focus_neighbor_left = NodePath("../../../AudioVisual/VBoxContainer/SFXVolume")
 focus_neighbor_top = NodePath("../SPFrequency")
-focus_neighbor_right = NodePath("../../../Career/VBoxContainer/SigningDifficulty")
 focus_neighbor_bottom = NodePath("../SevereInjuries")
-max_value = 10.0
+max_value = 2.0
+step = 0.25
+value = 1.0
 rounded = true
-tick_count = 10
 
 [node name="SevereInjuries" type="CheckButton" parent="InGame/VBoxContainer"]
 layout_mode = 2
-focus_neighbor_left = NodePath("../../../AudioVisual/VBoxContainer/CrowdVolume")
 focus_neighbor_top = NodePath("../InjFrequency")
-focus_neighbor_right = NodePath("../../../Career/VBoxContainer/PoachButton")
 focus_neighbor_bottom = NodePath("../HumanAlwaysPitches")
 text = "Severe Injuries"
 
 [node name="HumanAlwaysPitches" type="CheckButton" parent="InGame/VBoxContainer"]
 layout_mode = 2
-focus_neighbor_left = NodePath("../../../AudioVisual/VBoxContainer/StereoSound")
 focus_neighbor_top = NodePath("../SevereInjuries")
-focus_neighbor_right = NodePath("../../../Career/VBoxContainer/ManageDifficulty")
 focus_neighbor_bottom = NodePath("../BuffHuman")
 text = "Player Team Always Pitches"
 
@@ -232,13 +211,11 @@ text = "Buff Human Team Attributes"
 
 [node name="BuffHuman" type="HSlider" parent="InGame/VBoxContainer"]
 layout_mode = 2
-focus_neighbor_left = NodePath("../../../AudioVisual/VBoxContainer/Brightness")
 focus_neighbor_top = NodePath("../HumanAlwaysPitches")
-focus_neighbor_right = NodePath("../../../Career/VBoxContainer/MatchLength")
 focus_neighbor_bottom = NodePath("../BuffAI")
-max_value = 10.0
+max_value = 20.0
+step = 2.0
 rounded = true
-tick_count = 10
 
 [node name="BuffAILabel" type="Label" parent="InGame/VBoxContainer"]
 layout_mode = 2
@@ -246,17 +223,21 @@ text = "Buff CPU Team Attributes"
 
 [node name="BuffAI" type="HSlider" parent="InGame/VBoxContainer"]
 layout_mode = 2
-focus_neighbor_left = NodePath("../../../AudioVisual/VBoxContainer/Brightness")
 focus_neighbor_top = NodePath("../BuffHuman")
-focus_neighbor_right = NodePath("../../../Career/VBoxContainer/MatchLength")
 focus_neighbor_bottom = NodePath("../KeyboardScheme")
-max_value = 10.0
+max_value = 20.0
+step = 2.0
 rounded = true
-tick_count = 10
 
 [node name="ControlLabel" type="Label" parent="InGame/VBoxContainer"]
 layout_mode = 2
 text = "CONTROLS"
+
+[node name="SemiAutoControl" type="CheckButton" parent="InGame/VBoxContainer"]
+layout_mode = 2
+focus_neighbor_top = NodePath("../SevereInjuries")
+focus_neighbor_bottom = NodePath("../BuffHuman")
+text = "Semi-Automatic Keeper Control"
 
 [node name="KeyboardSchemeLabel" type="Label" parent="InGame/VBoxContainer"]
 layout_mode = 2
@@ -264,9 +245,7 @@ text = "Control Scheme: Keyboard"
 
 [node name="KeyboardScheme" type="OptionButton" parent="InGame/VBoxContainer"]
 layout_mode = 2
-focus_neighbor_left = NodePath("../../../AudioVisual/VBoxContainer/Fullscreen")
 focus_neighbor_top = NodePath("../BuffAI")
-focus_neighbor_right = NodePath("../../../Career/VBoxContainer/PlayLength")
 focus_neighbor_bottom = NodePath("../MouseSensitivity")
 item_count = 5
 popup/item_0/text = "Classic WSAD"
@@ -285,12 +264,12 @@ text = "Mouse Sensitivity"
 
 [node name="MouseSensitivity" type="HSlider" parent="InGame/VBoxContainer"]
 layout_mode = 2
-focus_neighbor_left = NodePath("../../../AudioVisual/VBoxContainer/Fullscreen")
 focus_neighbor_top = NodePath("../KeyboardScheme")
-focus_neighbor_right = NodePath("../../../Career/VBoxContainer/PlayLength")
 focus_neighbor_bottom = NodePath("../ControllerScheme")
-rounded = true
-tick_count = 20
+min_value = 0.5
+max_value = 1.5
+step = 0.1
+value = 1.0
 
 [node name="ControllerSchemeLabel" type="Label" parent="InGame/VBoxContainer"]
 layout_mode = 2
@@ -298,9 +277,7 @@ text = "Control Scheme: Controller"
 
 [node name="ControllerScheme" type="OptionButton" parent="InGame/VBoxContainer"]
 layout_mode = 2
-focus_neighbor_left = NodePath("../../../HBoxContainer/DiscardButton")
 focus_neighbor_top = NodePath("../MouseSensitivity")
-focus_neighbor_right = NodePath("../../../HBoxContainer/SaveButton")
 focus_neighbor_bottom = NodePath("../ControllerSensitivity")
 item_count = 4
 popup/item_0/text = "Classic"
@@ -317,12 +294,12 @@ text = "Controller Sensitivity"
 
 [node name="ControllerSensitivity" type="HSlider" parent="InGame/VBoxContainer"]
 layout_mode = 2
-focus_neighbor_left = NodePath("../../../HBoxContainer/DefaultButton")
 focus_neighbor_top = NodePath("../ControllerScheme")
-focus_neighbor_right = NodePath("../../../HBoxContainer/SaveButton")
 focus_neighbor_bottom = NodePath("../../../HBoxContainer/DiscardButton")
-rounded = true
-tick_count = 20
+min_value = 0.5
+max_value = 1.5
+step = 0.1
+value = 1.0
 
 [node name="Career" type="MarginContainer" parent="."]
 layout_mode = 1
@@ -351,13 +328,10 @@ text = "Survival Difficulty"
 
 [node name="SurvivalDifficulty" type="HSlider" parent="Career/VBoxContainer"]
 layout_mode = 2
-focus_neighbor_left = NodePath("../../../InGame/VBoxContainer/GameSpeed")
 focus_neighbor_top = NodePath("../../../HBoxContainer/SaveButton")
-focus_neighbor_right = NodePath("../../../AudioVisual/VBoxContainer/MasterVolume")
 focus_neighbor_bottom = NodePath("../TravelDanger")
 max_value = 5.0
 rounded = true
-tick_count = 5
 
 [node name="TravelLabel" type="Label" parent="Career/VBoxContainer"]
 layout_mode = 2
@@ -365,13 +339,10 @@ text = "Travel Danger"
 
 [node name="TravelDanger" type="HSlider" parent="Career/VBoxContainer"]
 layout_mode = 2
-focus_neighbor_left = NodePath("../../../InGame/VBoxContainer/SPFrequency")
 focus_neighbor_top = NodePath("../SurvivalDifficulty")
-focus_neighbor_right = NodePath("../../../AudioVisual/VBoxContainer/MusicVolume")
 focus_neighbor_bottom = NodePath("../SigningDifficulty")
 max_value = 5.0
 rounded = true
-tick_count = 5
 
 [node name="SignLabel" type="Label" parent="Career/VBoxContainer"]
 layout_mode = 2
@@ -379,17 +350,13 @@ text = "Player Signing Difficulty"
 
 [node name="SigningDifficulty" type="HSlider" parent="Career/VBoxContainer"]
 layout_mode = 2
-focus_neighbor_left = NodePath("../../../InGame/VBoxContainer/InjFrequency")
 focus_neighbor_top = NodePath("../TravelDanger")
-focus_neighbor_right = NodePath("../../../AudioVisual/VBoxContainer/SFXVolume")
 focus_neighbor_bottom = NodePath("../PoachButton")
-tick_count = 5
+max_value = 5.0
 
 [node name="PoachButton" type="CheckButton" parent="Career/VBoxContainer"]
 layout_mode = 2
-focus_neighbor_left = NodePath("../../../InGame/VBoxContainer/SevereInjuries")
 focus_neighbor_top = NodePath("../SigningDifficulty")
-focus_neighbor_right = NodePath("../../../AudioVisual/VBoxContainer/CrowdVolume")
 focus_neighbor_bottom = NodePath("../ManageDifficulty")
 text = "CPU Teams Poach Players"
 
@@ -399,13 +366,10 @@ text = "Management Difficulty"
 
 [node name="ManageDifficulty" type="HSlider" parent="Career/VBoxContainer"]
 layout_mode = 2
-focus_neighbor_left = NodePath("../../../InGame/VBoxContainer/BuffHuman")
 focus_neighbor_top = NodePath("../PoachButton")
-focus_neighbor_right = NodePath("../../../AudioVisual/VBoxContainer/StereoSound")
 focus_neighbor_bottom = NodePath("../MatchLength")
 max_value = 5.0
 rounded = true
-tick_count = 5
 
 [node name="MatchLengthLabel" type="Label" parent="Career/VBoxContainer"]
 layout_mode = 2
@@ -413,9 +377,7 @@ text = "Match Length"
 
 [node name="MatchLength" type="OptionButton" parent="Career/VBoxContainer"]
 layout_mode = 2
-focus_neighbor_left = NodePath("../../../InGame/VBoxContainer/BuffAI")
 focus_neighbor_top = NodePath("../ManageDifficulty")
-focus_neighbor_right = NodePath("../../../AudioVisual/VBoxContainer/Brightness")
 focus_neighbor_bottom = NodePath("../PlayLength")
 item_count = 3
 popup/item_0/text = "Short (Game to 3, 10 pitch limit)"
@@ -430,9 +392,7 @@ text = "Play Clock Length"
 
 [node name="PlayLength" type="OptionButton" parent="Career/VBoxContainer"]
 layout_mode = 2
-focus_neighbor_left = NodePath("../../../InGame/VBoxContainer/KeyboardScheme")
 focus_neighbor_top = NodePath("../MatchLength")
-focus_neighbor_right = NodePath("../../../AudioVisual/VBoxContainer/Resolution")
 focus_neighbor_bottom = NodePath("../../../HBoxContainer/SaveButton")
 item_count = 3
 popup/item_0/text = "Short (15 seconds)"
@@ -493,7 +453,7 @@ texture_focused = ExtResource("3_6cxbn")
 [connection signal="toggled" from="AudioVisual/VBoxContainer/StereoSound" to="." method="_on_stereo_sound_toggled"]
 [connection signal="value_changed" from="AudioVisual/VBoxContainer/Brightness" to="." method="_on_brightness_value_changed"]
 [connection signal="item_selected" from="AudioVisual/VBoxContainer/Resolution" to="." method="_on_resolution_item_selected"]
-[connection signal="toggled" from="AudioVisual/VBoxContainer/Fullscreen" to="." method="_on_check_button_toggled"]
+[connection signal="toggled" from="AudioVisual/VBoxContainer/Fullscreen" to="." method="_on_fullscreen_button_toggled"]
 [connection signal="value_changed" from="InGame/VBoxContainer/GameSpeed" to="." method="_on_game_speed_value_changed"]
 [connection signal="value_changed" from="InGame/VBoxContainer/SPFrequency" to="." method="_on_sp_frequency_value_changed"]
 [connection signal="value_changed" from="InGame/VBoxContainer/InjFrequency" to="." method="_on_sp_frequency_value_changed"]
@@ -502,6 +462,7 @@ texture_focused = ExtResource("3_6cxbn")
 [connection signal="toggled" from="InGame/VBoxContainer/HumanAlwaysPitches" to="." method="_on_human_always_pitches_toggled"]
 [connection signal="value_changed" from="InGame/VBoxContainer/BuffHuman" to="." method="_on_buff_human_value_changed"]
 [connection signal="value_changed" from="InGame/VBoxContainer/BuffAI" to="." method="_on_buff_ai_value_changed"]
+[connection signal="toggled" from="InGame/VBoxContainer/SemiAutoControl" to="." method="_on_semi_auto_control_toggled"]
 [connection signal="item_selected" from="InGame/VBoxContainer/KeyboardScheme" to="." method="_on_keyboard_scheme_item_selected"]
 [connection signal="value_changed" from="InGame/VBoxContainer/MouseSensitivity" to="." method="_on_mouse_sensitivity_value_changed"]
 [connection signal="value_changed" from="InGame/VBoxContainer/MouseSensitivity" to="." method="_on_buff_ai_value_changed"]

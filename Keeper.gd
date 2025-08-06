@@ -117,53 +117,65 @@ func _physics_process(delta):
 	
 	if not is_controlling_player and can_move:
 		#print("current behavior: ", current_behavior)
-		time_since_last_touch += delta
-		
-		# Update ball tracking
-		if ball:
-			ball_last_velocity = (ball.global_position - ball_last_position) / delta
-			ball_last_position = ball.global_position
-		
-		match current_behavior:
-			"waiting":
-				perform_waiting()
-			"holding":
-				perform_holding(hold_frame)
-			"defending":
-				defending_behavior(delta)
-				check_state()
-			"blocking":
-				perform_blocking()
-			"sweeping":
-				perform_sweeping()
-			"avoiding":
-				perform_avoiding()
-			"fencing":
-				perform_fencing()
-			"attacking":
-				perform_attacking()
-			"guessing":
-				perform_guessing()
+		AI_behavior(delta)
 		#if !is_in_half():
 			#if !is_stunned:
 				#move_towards_half()
-		print(current_behavior, " location: ", global_position, " | target: ", navigation_agent.target_position)
+		#print(current_behavior, " location: ", global_position, " | target: ", navigation_agent.target_position)
 		if debug:
 			current_debug_frame += 1
 			if current_debug_frame >= debug_frames:
 				current_debug_frame = 0
 				print(current_behavior)
+	elif GlobalSettings.semiAuto and is_controlling_player and can_move:
+		print("semi automatic control")
+		AI_behavior(delta)
+		human_aim()
+		
+		move_and_slide()
 	else:
-		if aim_target:
-			aim_target.on = true
-			aim = aim_target.global_position
+		human_aim()
 		if Input.is_action_just_pressed("activate_special_ability"):
 			if status.groove > 0:
 				activate_special_ability()
 		human_check_ball_close()
 		move_and_slide()
+		
+func human_aim():
+	if aim_target:
+			aim_target.on = true
+			aim = aim_target.global_position
 
 #region Behavior Implementations
+func AI_behavior(delta):
+	time_since_last_touch += delta
+	# Update ball tracking
+	if ball:
+		ball_last_velocity = (ball.global_position - ball_last_position) / delta
+		ball_last_position = ball.global_position
+	
+	match current_behavior:
+		"waiting":
+			perform_waiting()
+		"holding":
+			perform_holding(hold_frame)
+		"defending":
+			defending_behavior(delta)
+			check_state()
+		"blocking":
+			perform_blocking()
+		"sweeping":
+			perform_sweeping()
+		"avoiding":
+			perform_avoiding()
+		"fencing":
+			perform_fencing()
+		"attacking":
+			perform_attacking()
+		"guessing":
+			perform_guessing()
+			
+			
 func perform_waiting():
 	navigation_agent.target_position = global_position
 	velocity = Vector2.ZERO

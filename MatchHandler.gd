@@ -1,19 +1,6 @@
 extends Node
 class_name MatchHandler
 
-# Game Settings
-enum EndCondition { SCORE_LIMIT, PITCH_LIMIT }
-enum FieldType { ROAD, CULDESAC, HORSESHOE }
-
-var current_settings := {
-	"score_limit": 7, #7 is standard, 11 is long, 3 is quick
-	"pitch_limit": 20, #20 is standard, 30 is long, 10 is quick
-	"regular_season": true, #if true, we use sudden death tie, otherwise we use infinite win by two
-	"play_length": 30.0, # seconds
-	"time_scale": 0.35,#0.8 works
-	"field_type": FieldType.ROAD
-}
-
 # Match State
 var is_player_home: bool = true
 var team_scores := [0, 0]
@@ -137,7 +124,9 @@ func _on_ball_exited_field():
 	if (out_of_bounds_frames > too_much_out_of_bounds):
 		print("and the ball goes out of bounds, we'll re-set")
 		# Determine who put the ball out of bounds and switch accordingly
-		if !ball or !ball.last_hit_by:
+		if GlobalSettings.human_always_pitch:
+			is_human_team_pitching = true
+		elif !ball or !ball.last_hit_by:
 			# If no one hit it, switch pitching team
 			is_human_team_pitching = !is_human_team_pitching
 		elif ball.last_hit_by.team == 1: # Player team put it out
@@ -198,6 +187,8 @@ func _on_player_goal():
 	# If it was an ace, human team keeps pitching, otherwise switch
 	if !was_ace:
 		is_human_team_pitching = false
+	if GlobalSettings.human_always_pitch:
+		is_human_team_pitching = true
 	
 	pTeam.is_on_offense = is_human_team_pitching
 	aTeam.is_on_offense = !is_human_team_pitching
@@ -245,7 +236,7 @@ func _on_cpu_goal():
 		aTeam.K.add_groove(2)
 	
 	# If it was an ace, AI team keeps pitching, otherwise switch
-	if !was_ace:
+	if !was_ace or GlobalSettings.human_always_pitch:
 		is_human_team_pitching = true
 		pTeam.P.store_successful_pitch()
 		aTeam.K.status.groove -= 10
@@ -264,10 +255,12 @@ func _on_cpu_goal():
 func reset_match(p_offense):
 	print("reset match")
 	team_scores = [0, 0]
-	pitches_remaining = current_settings.pitch_limit
+	pitches_remaining = GlobalSettings.pitch_limit
 	is_in_extra_pitches = false
 	extra_pitches_used = 0
 	match_ended = false
+	if GlobalSettings.human_always_pitch:
+		p_offense = true
 	is_human_team_pitching = p_offense
 	pTeam.is_on_offense = p_offense
 	aTeam.is_on_offense = !p_offense
@@ -314,15 +307,15 @@ func _process(delta: float) -> void:
 	else:
 		if pTeam.K.is_special_active() or aTeam.K.is_special_active():
 			if pTeam.K.is_maestro and !aTeam.K.is_maestro:
-				Engine.time_scale = current_settings.time_scale * 0.5 #50% game speed for duration of play
+				Engine.time_scale = GlobalSettings.game_speed * 0.5 #50% game speed for duration of play
 				if pTeam.K.status.boost < 0.5:
 					pTeam.K.is_maestro = false
 			elif !pTeam.K.is_maestro and aTeam.K.is_maestro:
-				Engine.time_scale = current_settings.time_scale * 1.2 #120% game speed for duration of play
+				Engine.time_scale = GlobalSettings.game_speed * 1.2 #120% game speed for duration of play
 				if aTeam.K.status.boost < 0.5:
 					pTeam.K.is_maestro = false
 			else:
-				Engine.time_scale = current_settings.time_scale
+				Engine.time_scale = GlobalSettings.game_speed
 		if ball.current_state == Ball.BallState.PITCHING or ball.current_state == Ball.BallState.SPECIAL_PITCH:
 			if field.ball_in_play == false:
 				if field.is_position_in_bounds(ball.global_position):
@@ -354,7 +347,7 @@ func next_play():
 	statusUI.assign_team(self)
 	
 	# Start play timer
-	play_timer.start(current_settings.play_length if current_settings.play_length > 0 else 9999)
+	play_timer.start(GlobalSettings.play_time if GlobalSettings.play_time > 0 else 9999)
 	fighting_frame = 0
 	emit_signal("play_ended", "next_play")
 
@@ -495,7 +488,7 @@ func reset_ball():
 	setup_pitching_team()
 
 func apply_time_scale():
-	Engine.time_scale = current_settings.time_scale
+	Engine.time_scale = GlobalSettings.game_speed
 
 
 func score_goal(team: int):
@@ -515,7 +508,10 @@ func score_goal(team: int):
 func _on_play_timer_timeout():
 	# Play length expired - switch pitching team
 	print("Play timer expired - switching pitching team")
-	is_human_team_pitching = !is_human_team_pitching
+	if GlobalSettings.human_always_pitch:
+		is_human_team_pitching = true
+	else:
+		is_human_team_pitching = !is_human_team_pitching
 	pTeam.is_on_offense = is_human_team_pitching
 	aTeam.is_on_offense = !is_human_team_pitching
 	emit_signal("play_ended", "timeout")
@@ -532,25 +528,25 @@ func check_match_end():
 	var team1_score: int = team_scores[0]
 	var team2_score: int = team_scores[1]
 	
-	if team1_score >= current_settings.score_limit and team1_score - team2_score >= 2:
+	if team1_score >= GlobalSettings.target_score and team1_score - team2_score >= 2:
 		end_match(1)#team 1 wins by score
-	elif team2_score >= current_settings.score_limit and team2_score - team1_score >= 2:
+	elif team2_score >= GlobalSettings.target_score and team2_score - team1_score >= 2:
 		end_match(2)#team 2 wins by score
-	elif current_settings.regular_season and team1_score == current_settings.score_limit and team2_score == current_settings.score_limit:
+	elif GlobalSettings.regular_season and team1_score == GlobalSettings.target_score and team2_score == GlobalSettings.target_score:
 		end_match(0)#tie by score
 	elif pitches_remaining <= 0 and team1_score - team2_score >= 2:
 		end_match(1) #win by pitches
 	elif pitches_remaining <= 0 and team2_score - team1_score >= 2:
 		end_match(2)#win by pitches
-	elif current_settings.regular_season and pitches_remaining <= 0 and team1_score == team2_score:
+	elif GlobalSettings.regular_season and pitches_remaining <= 0 and team1_score == team2_score:
 		end_match(0)#tie by pitches
-	elif current_settings.regular_season and pitches_remaining <= 0 and abs(team1_score - team2_score) == 1:
+	elif GlobalSettings.regular_season and pitches_remaining <= 0 and abs(team1_score - team2_score) == 1:
 		print("sudden death overtime!") #if winning team scores, they win. If losing team scores, they tie
 		#TODO: sudden death overtime graphic
-	elif current_settings.regular_season and (team1_score == current_settings.score_limit or team2_score == current_settings.score_limit) and abs(team1_score - team2_score) == 1:
+	elif GlobalSettings.regular_season and (team1_score == GlobalSettings.target_score or team2_score == GlobalSettings.target_score) and abs(team1_score - team2_score) == 1:
 		print("sudden death overtime!")
 		#TODO: sudden death overtime graphic
-	elif !current_settings.regular_season and (pitches_remaining <= 0 or team1_score == current_settings.score_limit or team2_score == current_settings.score_limit) and abs(team1_score - team2_score) < 2:
+	elif !GlobalSettings.regular_season and (pitches_remaining <= 0 or team1_score == GlobalSettings.target_score or team2_score == GlobalSettings.target_score) and abs(team1_score - team2_score) < 2:
 		print("Deuce!") #game will go on forever until one of the teams leads by 2
 		#TODO: deuce overtime graphic
 	else: #regular old game on
@@ -566,16 +562,16 @@ func end_match(winning_team: int):
 		#1: match_ui.show_result("Team 1 Wins!")
 		#2: match_ui.show_result("Team 2 Wins!")
 
-func update_settings(new_settings: Dictionary):
-	current_settings = new_settings
+func update_settings():
+	
 	apply_time_scale()
 	
 	# TODO: Update UI to reflect new settings
-	#match_ui.update_settings_display(current_settings)
+	#match_ui.update_settings_display(GlobalSettings)
 
 # Accessibility setting
 func set_time_scale(scale: float):
-	current_settings.time_scale = clamp(scale, 0.2, 1.0)
+	GlobalSettings.game_speed = clamp(scale, 0.2, 0.8)
 	apply_time_scale()
 	
 #players must know each other. More importantly, they must know ball

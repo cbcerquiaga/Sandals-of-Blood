@@ -46,8 +46,8 @@ func _process(delta: float) -> void:
 	pass
 	
 func update_scoreboard():
-	scoreboard.max_pitches = matchHandler.current_settings.pitch_limit
-	scoreboard.pitches_thrown = matchHandler.current_settings.pitch_limit - matchHandler.pitches_remaining
+	scoreboard.max_pitches = GlobalSettings.pitch_limit
+	scoreboard.pitches_thrown = GlobalSettings.pitch_limit - matchHandler.pitches_remaining
 	scoreboard.is_human_team_pitching = matchHandler.is_human_team_pitching
 	if matchHandler.is_player_home:
 		scoreboard.home_score = matchHandler.team_scores[0]
