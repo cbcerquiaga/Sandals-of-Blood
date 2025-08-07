@@ -1,6 +1,7 @@
 extends Container
 class_name FieldStatusContainer
 
+@export var debug: bool = false
 var portrait_holder: Sprite2D#frame which contains the portrait
 var portrait: Sprite2D
 var name_tag: Sprite2D#background for nametag text
@@ -77,11 +78,13 @@ func get_player_portrait():
 	portrait.position = Vector2(0, 0)
 	
 func update_boost_bars():
-	var boost_percent = player.status.boost / 99 * 100 #max is 99 because of attributes
+	var boost_percent = float(player.status.boost) / 99 * 100 #max is 99 because of attributes
 	var boost_bar_position = boost_percent * 3 - 1 #100 is 300, 0 is -1
 	var boost_bar_scale = boost_percent * (0.0035657) + 0.001
-	var boost_container_scale = player.status.max_boost / 99 * 100 * (0.0035657) + 0.001
-	var boost_container_position = player.status.max_boost / 99 * 300 - 1
+	var boost_container_scale = float(player.status.max_boost) / 99 * 100 * (0.0035657) + 0.001
+	var boost_container_position = float(player.status.max_boost) / 99 * 300 - 1
+	if debug:
+		print("status container: player max boost " + str(player.status.max_boost) +  " with scale of " + str(boost_container_scale))
 	boostBar.scale = Vector2(boost_bar_scale, base_texture_size.y)
 	boostBar.position = Vector2(boost_bar_position, boostBar.position.y)
 	boostContainer.scale = Vector2(boost_container_scale, base_texture_size.y)

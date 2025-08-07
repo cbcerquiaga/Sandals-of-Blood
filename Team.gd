@@ -110,7 +110,7 @@ func update_substitute_info(temp_player: Player, other: Player):
 	temp_player.attributes = other.attributes
 	temp_player.playable_positions = other.playable_positions
 	temp_player.preferred_position = other.preferred_position
-	temp_player.status = other.status
+	temp_player.status = other.status.duplicate()
 	temp_player.game_stats = other.game_stats
 	temp_player.special_pitch_names = other.special_pitch_names
 	temp_player.special_pitch_groove = other.special_pitch_groove
