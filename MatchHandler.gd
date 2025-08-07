@@ -118,7 +118,9 @@ func _on_ball_crossed_midfield():
 	aTeam.K.ai_check_special_ability()
 	
 	if is_human_team_pitching:
-		aTeam.K.current_behavior = "guessing"
+		aTeam.K.current_behavior = "pitch_defense"
+	elif GlobalSettings.semiAuto and !is_human_team_pitching:
+		pTeam.K.current_behavior = "pitch_defense"
 
 func _on_ball_exited_field():
 	if (out_of_bounds_frames > too_much_out_of_bounds):
@@ -174,13 +176,17 @@ func _on_player_goal():
 		print("it's an ace!")
 		pTeam.P._on_goal_aced()
 		was_ace = true
-		aTeam.K.lose_groove(5)#sucks to get aced on
+		var groove_loss = 5 / GlobalSettings.special_pitch_frequency
+		aTeam.K.lose_groove(groove_loss)#sucks to get aced on
 	elif ball.last_hit_by == pTeam.K or ball.assist_by == pTeam.K: #keeper feels good about scoring points
-		pTeam.K.add_groove(16)
-		aTeam.K.lose_groove(2) #sucks a little if your matchup scores on you
+		var groove_gain = 16 * GlobalSettings.special_pitch_frequency
+		var groove_loss = 2 / GlobalSettings.special_pitch_frequency
+		pTeam.K.add_groove(groove_gain)
+		aTeam.K.lose_groove(groove_loss) #sucks a little if your matchup scores on you
 	else: #everybody gets some groove for good teamwork
-		pTeam.P.add_groove(5)
-		pTeam.K.add_groove(5)
+		var groove_gain = 5 * GlobalSettings.special_pitch_frequency
+		pTeam.P.add_groove(groove_gain)
+		pTeam.K.add_groove(groove_gain)
 		
 	
 	
@@ -227,13 +233,17 @@ func _on_cpu_goal():
 		print("it's an ace!")
 		aTeam.P._on_goal_aced()
 		was_ace = true
-		pTeam.K.lose_groove(5)#sucks to get aced on
+		var groove_loss = 5 / GlobalSettings.special_pitch_frequency
+		pTeam.K.lose_groove(groove_loss)#sucks to get aced on
 	elif ball.last_hit_by == aTeam.K or ball.assist_by == aTeam.K:
-		aTeam.K.add_groove(5)
-		pTeam.K.lose_groove(2) #sucks a little if your matchup scores on you
+		var groove_gain = GlobalSettings.special_pitch_frequency * 5
+		aTeam.K.add_groove(groove_gain)
+		var groove_loss = 2 / GlobalSettings.special_pitch_frequency
+		pTeam.K.lose_groove(groove_loss) #sucks a little if your matchup scores on you
 	else: #everybody gets some groove for good teamwork
-		aTeam.P.add_groove(2)
-		aTeam.K.add_groove(2)
+		var groove_gain = GlobalSettings.special_pitch_frequency * 2
+		aTeam.P.add_groove(groove_gain)
+		aTeam.K.add_groove(groove_gain)
 	
 	# If it was an ace, AI team keeps pitching, otherwise switch
 	if !was_ace or GlobalSettings.human_always_pitch:
@@ -690,9 +700,11 @@ func pitchers_fight():
 	
 func human_team_wins_fight():
 	print("Robot got KO'd")
-	pTeam.P.add_groove(20)
-	pTeam.K.add_groove(10)
-	aTeam.P.lose_groove(50)
+	var groove_gain = GlobalSettings.special_pitch_frequency * 20
+	pTeam.P.add_groove(groove_gain)
+	pTeam.K.add_groove(groove_gain / 2)
+	var groove_loss = 50 / GlobalSettings.special_pitch_frequency
+	aTeam.P.lose_groove(groove_loss)
 	aTeam.P.lose_energy(20)
 	#aTeam.P. injury chance
 	pTeam.fire_up_bench()
@@ -702,9 +714,11 @@ func human_team_wins_fight():
 	
 func cpu_team_wins_fight():
 	print("Suck on this shiny metal fist")
-	aTeam.P.add_groove(20)
-	aTeam.K.add_groove(10)
-	pTeam.P.lose_groove(50)
+	var groove_gain = GlobalSettings.special_pitch_frequency * 20
+	aTeam.P.add_groove(groove_gain)
+	aTeam.K.add_groove(groove_gain / 2)
+	var groove_loss = 50 / GlobalSettings.special_pitch_frequency
+	pTeam.P.lose_groove(groove_loss)
 	pTeam.P.lose_energy(20)
 	#pTeam.P. injury chance
 	aTeam.fire_up_bench()
@@ -716,8 +730,8 @@ func fight_fall_over():
 	print("anticlimax")
 	aTeam.P.current_behavior = "fallen"
 	pTeam.P.current_behavior = "fallen"
-	aTeam.P.add_groove(1)
-	pTeam.P.add_groove(1)
+	aTeam.P.add_groove(GlobalSettings.special_pitch_frequency)
+	pTeam.P.add_groove(GlobalSettings.special_pitch_frequency)
 	#injury chance for both
 	
 func update_team_strategy(team: Team):

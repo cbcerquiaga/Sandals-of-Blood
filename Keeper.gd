@@ -96,7 +96,7 @@ func _ready():
 	navigation_agent.target_desired_distance = 10.0
 
 func restore_behaviors():
-	behaviors = ["waiting", "defending", "sweeping", "avoiding", "fencing", "attacking", "blocking", "returning"]
+	behaviors = ["waiting", "defending", "sweeping", "avoiding", "fencing", "attacking", "blocking", "returning", "pitch_defense"]
 
 func _physics_process(delta):
 	super._physics_process(delta)
@@ -176,6 +176,8 @@ func AI_behavior(delta):
 			perform_attacking()
 		"guessing":
 			perform_guessing()
+		"pitch_defense":
+			perform_pitch_defense()
 			
 			
 func perform_waiting():
@@ -1149,3 +1151,68 @@ func human_check_ball_close():
 				super_block(ball.global_position, ball.global_position)
 			else:
 				human_assisted_block(ball.global_position, ball.global_position)
+				
+func perform_pitch_defense():
+	if !ball:
+		current_behavior = "defending"
+		return
+	
+	# Check if ball is in pitching state
+	if ball.current_state != ball.BallState.PITCHING && ball.current_state != ball.BallState.SPECIAL_PITCH:
+		current_behavior = "defending"
+		return
+	
+	# Calculate prediction parameters based on blocking attribute
+	var prediction_accuracy = 1.0 - (0.3 * (100 - attributes.blocking) / 100.0) #0.85 to 0.997
+	var distance = ball.global_position.distance_to(own_goal)
+	var margin_of_error = sqrt(distance) * 10 * (1.0 - prediction_accuracy) #15 to 0.3 at 100, 8 to 0.16 at 30
+	var block_position
+	if ball.current_state == ball.BallState.PITCHING:
+		block_position = predict_normal_pitch_path(prediction_accuracy)
+	else:  # Special pitch
+		block_position = predict_special_pitch_path(prediction_accuracy)
+	block_position.x += randf_range(-margin_of_error, margin_of_error)
+	navigation_agent.target_position = block_position
+	velocity = (block_position - global_position).normalized() * attributes.sprint_speed * BLOCKING_BONUS
+	# Freeze briefly when ball changes direction significantly
+	if ball_last_velocity != Vector2.ZERO:
+		var direction_change = ball_last_velocity.normalized().angle_to(ball.linear_velocity.normalized())
+		if abs(direction_change) > deg_to_rad(30):  # Significant direction change
+			velocity = Vector2.ZERO
+			reaction_timer = map_attribute_to_reaction_time(attributes.reactions)
+
+func predict_normal_pitch_path(accuracy: float) -> Vector2:
+	var goal_line_y = leftPost.y
+	var current_pos = ball.global_position
+	var current_vel = ball.linear_velocity
+	var spin = ball.current_spin
+	var time_to_goal = abs((goal_line_y - current_pos.y) / current_vel.y)
+	var predicted_x = current_pos.x + current_vel.x * time_to_goal
+	var curve_effect = spin * ball.spin_curve_factor * time_to_goal * accuracy
+	predicted_x += curve_effect
+	
+	return Vector2(predicted_x, goal_line_y)
+
+func predict_special_pitch_path(accuracy: float) -> Vector2:
+	var goal_line_y = leftPost.y
+	var current_pos = ball.global_position
+	var current_vel = ball.linear_velocity
+	var time_to_goal = abs((goal_line_y - current_pos.y) / current_vel.y)
+	var predicted_x = current_pos.x + current_vel.x * time_to_goal
+	var total_curve = 0.0
+	var time_accumulated = 0.0
+	var step = 0.1  # Time step in seconds
+	
+	# Simulate the special pitch curve sequence
+	while time_accumulated < time_to_goal && ball.current_sp_index < ball.special_curves.size():
+		var current_spin = ball.special_curves[ball.current_sp_index]
+		var time_in_step = min(step, time_to_goal - time_accumulated)
+		# Apply curve for this time segment
+		total_curve += current_spin * ball.spin_curve_factor * time_in_step * accuracy
+		time_accumulated += time_in_step
+		# Advance to next curve segment if needed
+		if time_accumulated > ball.special_frames[ball.current_sp_index] / 60.0:
+			ball.current_sp_index = min(ball.current_sp_index + 1, ball.special_curves.size() - 1)
+	predicted_x += total_curve
+	
+	return Vector2(predicted_x, goal_line_y)

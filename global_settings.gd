@@ -23,7 +23,7 @@ var play_time: int #maximum length on seconds of a single play
 var human_buff: int #how much to buff all human player attributes
 var cpu_buff: int #how much to buff all cpu player attributes
 var human_always_pitch: bool #if on, human team always gets to pitch
-var special_pitch_frequency: float #increases or decreases groove collection
+var special_pitch_frequency: float = 1 #increases or decreases groove collection
 var injury_frequency: float #how often unjuries occur
 var severe_injuries: bool #if players can get crippled, paralyzed, or killed in game
 #audio

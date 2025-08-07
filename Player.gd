@@ -849,7 +849,7 @@ func lose_boost(amount: float):
 		status.boost = 0
 
 func set_default_groove():
-	status.groove = int(attributes.confidence/4)
+	status.groove = attributes.confidence/4 * GlobalSettings.special_pitch_frequency
 	
 func get_socked(impact: float):
 	if impact < 0:
