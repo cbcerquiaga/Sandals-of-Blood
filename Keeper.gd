@@ -601,11 +601,16 @@ func weighted_random_choice(options: Array, weights: Array):
 
 #called when the ball is shot by an opposing forward
 func on_shot_at_goal(shot_from: Vector2, shot_direction: Vector2 , shooter_team: int):
+	var intercept
 	if shooter_team == team: #not my problem
 		return 
+	if abs(shot_direction.y) < 0.001 or abs(1 - shot_direction.y) < 0.001: #vertical shot- protect from dividing by 0
+		print("vertical shot")
+		intercept = Vector2(shot_from.y, global_position.x)
+	else: #normal intercept
+		intercept = shot_from + shot_direction * ((leftPost.y - shot_from.y) / shot_direction.y)
 	var reaction_time = map_attribute_to_reaction_time(attributes.reactions)
 	await get_tree().create_timer(reaction_time).timeout
-	var intercept = shot_from + shot_direction * ((leftPost.y - shot_from.y) / shot_direction.y)
 	var goal_width = leftPost.distance_to(rightPost)
 	if !is_controlling_player and !is_stunned:
 		ball_last_sighted = shot_from
@@ -693,7 +698,7 @@ func perform_blocking():
 	var time_to_goal = (goal_line - ball_last_sighted.y) / ball_direction_projection.y
 	var intercept = ball_last_sighted + (ball_direction_projection * time_to_goal)
 	
-	if intercept.distance_to(own_goal) > max_goal_offset:
+	if intercept.distance_to(own_goal) > max_goal_offset or is_nan(time_to_goal) or is_inf(time_to_goal) or is_nan(intercept.x) or is_nan(intercept.y) or is_inf(intercept.x) or is_inf(intercept.y):
 		current_behavior = "defending"
 		return
 		
