@@ -444,7 +444,8 @@ func debug_default_roster():
 		"focus": 60,  
 		"shooting": 90,    
 		"toughness": 90,
-		"confidence": 60 
+		"confidence": 60 ,
+		"composure": 50
 	}
 	#TODO: figure out why I have to set variables to the exact types instead of just passing them in directly
 	var pitches: Array[String] = ["yoyo, knuckler, corker"]
@@ -503,7 +504,8 @@ func debug_default_roster():
 		"focus": 80,  
 		"shooting": 50,    
 		"toughness": 52,
-		"confidence": 71 
+		"confidence": 71,
+		"composure": 75 
 	}
 	
 	var P3 = Player.new()
@@ -539,7 +541,8 @@ func debug_default_roster():
 		"focus": 60,  
 		"shooting": 60,    
 		"toughness": 90,
-		"confidence": 60 
+		"confidence": 60,
+		"composure": 65 
 	}
 	
 	var P4 = Player.new()
@@ -574,7 +577,8 @@ func debug_default_roster():
 		"focus": 60,  
 		"shooting": 65,    
 		"toughness": 80,
-		"confidence": 60 
+		"confidence": 60,
+		"composure": 80 
 	}
 	
 	# Add players

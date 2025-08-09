@@ -133,6 +133,7 @@ func _input(event):
 #if the menu is opened from the pause menu
 func open_pause_menu():
 	show()
+	import_from_settings()
 	scale_option_fonts()
 	pause_mode = true
 	set_discard_settings()
@@ -151,6 +152,7 @@ func open_pause_menu():
 #if the menu is opened from the career central hub menu
 func open_game_menu():
 	set_discard_settings()
+	import_from_settings()
 	scale_option_fonts()
 	pause_mode = false
 	discard_button.grab_focus()

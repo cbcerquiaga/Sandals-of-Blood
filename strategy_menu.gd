@@ -538,7 +538,7 @@ func print_player_attributes(player: Player):
 	var string: String
 	string = string + "Speed: " + str(player.attributes.speedRating) + "\n"
 	string = string + "Endurance: " + str(player.attributes.endurance) + "\n"
-	string = string + "Shooting: " + str(player.attributes.shooting) +  "\n"
+	string = string + "Striking: " + str(player.attributes.shooting) +  "\n"
 	string = string + "Blocking: " + str(player.attributes.blocking) +  "\n"
 	string = string + "Throwing: " + str(player.attributes.throwing) + "\n"
 	string = string + "Aggression: " + str(player.attributes.aggression)  + "\n"
@@ -555,6 +555,7 @@ func print_player_attributes2(player: Player):
 	string = string + "Curve: " + str(player.attributes.focus) + "\n"
 	string = string + "Positioning: " + str(player.attributes.positioning) + "\n"
 	string = string + "Confidence: " + str(player.attributes.confidence) + "\n"
+	string = string + "Composure: " + str(player.attributes.composure)
 	return string
 	
 func print_player_stats(player: Player):

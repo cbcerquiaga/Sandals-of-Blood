@@ -16,14 +16,15 @@ var field_position: String
 	"reactions": 90, #1-100, impacts AI speed
 	"durability": 75,	#1-100, impacts injury chance
 	"power": 70,        # 1-100, affects hit strength, pitch power
-	"throwing": 75, #1-100, modifies power when throwing
+	"throwing": 75, 	#1-100, modifies power when throwing
 	"endurance": 60,    # 1-100, affects boost recovery and maximum boost
 	"accuracy": 85,     # 1-100, affects shot precision and pitch accuracy
 	"balance": 55,		# 1-100, affects damage taken from hits and stability in fights
 	"focus": 70,        # 1-100, affects curve control
 	"shooting": 50,		# 1-100, affects shot and pass speed, punch power in fights
 	"toughness": 60,    # 1-100, fighting defense/skill
-	"confidence": 90    # 1-100, affects special moves
+	"confidence": 90,    # 1-100, affects special moves
+	"composure": 90 	#1-100, impacts player stats in overtime and elimination games
 }
 
 @export var status := {
@@ -124,7 +125,8 @@ var defense_strategy = {
 	"rg_trap": true,#in a zone, if the RG will trap. if false, RG plays gk
 	"chasing": 0.1,  # 0-inf, likelihood to chase loose balls
 	"goal_defense_threshold": 35,  # Distance at which keeper is considered out of position
-	"escort_distance": 10#how closely an escorting guard will follow the keeper
+	"escort_distance": 10, #how closely an escorting guard will follow the keeper
+	"ball_preference": 0.5 #0 for just protect keeper, 1 for just focus on ball
 }
 
 #character appearance. paths to assets
@@ -468,7 +470,7 @@ func attempt_dodge():
 			#roll(false, direction)
 
 func juke(direction: Vector2):
-	print("juke")
+	#print("juke")
 	dodge_frames = 5
 	is_dodging = true
 	is_juking = true
@@ -476,7 +478,7 @@ func juke(direction: Vector2):
 	dodge_direction = direction
 
 func roll(clockwise: bool, direction: Vector2):
-	print("roll")
+	#print("roll")
 	is_dodging = true
 	is_juking = false
 	dodge_frames = 5
@@ -607,7 +609,7 @@ func scrum(body: Player):
 	
 	# someone who steps away gets tossed. Somebody who steps sideways or holds ground (push of 0) just gets pushed
 	if opp_push < 0 and my_push > 0:
-		print("come on, man")
+		#print("come on, man")
 		body.get_tossed(scrumming_axis, int(my_power/10), my_power * 10)
 		return
 	# If I'm not pushing but opponent has momentum, I get tossed
@@ -635,7 +637,7 @@ func scrum(body: Player):
 	var stability_loss = 0.5
 	lose_stability(stability_loss)
 	body.lose_stability(stability_loss)
-	print("we scrumming. my push: ", my_push, " your push: ", opp_push)
+	#print("we scrumming. my push: ", my_push, " your push: ", opp_push)
 	
 
 func take_hit(attacker: Player, power: float):
@@ -654,14 +656,14 @@ func take_hit(attacker: Player, power: float):
 		units = 30
 	#print("power: " + str(power)+", knockback: " + str(knockback_power) + ", stability: " + str(status.stability), " my power: ", attributes.power, " units: ", units)
 	if knockback_power > status.stability * 2: #big hit!
-		print("big hit-", units, ", ", knockback_power * 2)
+		#print("big hit-", units, ", ", knockback_power * 2)
 		get_tossed(knockback_dir, units, 200)
 		attacker.game_stats.hits += 1
 		status.stability = 0
 		var stun_time = (445 - 4*attributes.toughness)/49 * 0.75 #3.35 for 50 toughness, 0.675 for 99 toughness
 		enter_stunned_state(stun_time)
 	elif knockback_power > status.stability: #hefty bump
-		print("bump-", units, ", ", 150)
+		#print("bump-", units, ", ", 150)
 		status.stability -= knockback_power/2
 		if status.stability < 0:
 			if attacker.team != team:
@@ -673,7 +675,7 @@ func take_hit(attacker: Player, power: float):
 			enter_stunned_state(stun_time)
 		get_tossed(knockback_dir, units, knockback_power * 2)
 	elif knockback_power > 0: #shove
-		print("shove-", units, ", ", knockback_power * 2)
+		#print("shove-", units, ", ", knockback_power * 2)
 		status.stability = status.stability - knockback_power
 		if status.stability < 0:
 			if attacker.team != team:
@@ -706,8 +708,8 @@ func apply_health_damage(amount: float):
 	pass
 
 func _on_stun_timer_timeout():
-	if position_type == "keeper":
-		print("should be able to move now")
+	#if position_type == "keeper":
+		#print("should be able to move now")
 	is_stunned = false
 	
 func _make_combat_decision(opponent_position: Vector2, current_dist: float):

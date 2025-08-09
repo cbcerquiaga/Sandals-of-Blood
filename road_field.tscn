@@ -25,7 +25,7 @@ size = Vector2(14, 238)
 [sub_resource type="NavigationPolygon" id="NavigationPolygon_bgms3"]
 vertices = PackedVector2Array(48, 109, -48, 109, -48, -109, 48, -109)
 polygons = Array[PackedInt32Array]([PackedInt32Array(0, 1, 2, 3)])
-outlines = Array[PackedVector2Array]([PackedVector2Array(-58, -119, 58, -119, 58, 119, -58, 119)])
+outlines = Array[PackedVector2Array]([PackedVector2Array(-58, -119, -20.865, -119, 58, -119, 58, 119, -58, 119)])
 
 [sub_resource type="CanvasTexture" id="CanvasTexture_88c2a"]
 specular_color = Color(0.77398, 0.681185, 0.283083, 1)

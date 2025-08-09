@@ -50,13 +50,14 @@ var D_strategy = {
 	"rg_trap": true,
 	"chasing": 0.1,
 	"goal_defense_threshold": 35,
-	"escort_distance": 10
+	"escort_distance": 10,
+	"ball_preference": 0.8
 }
 
 var team: Team
 
 var forward_assignments = ["Classic Forward", "Rusher", "Shooting Forward", "Rebounder", "Attacking Forward", "Target Forward", "Support Forward", "Roving Menace", "Pick and Roller", "Pick and Popper", "Defensive Forward"]
-var defense_schemes = ["Positional Man to Man", "Fluid Man to Man", "Left Guard Trap Zone", "Right Guard Trap Zone", "Tight Triangle Zone"]
+var defense_schemes = ["Positional Man to Man", "Fluid Man to Man", "Max Protect", "Left Guard Trap Zone", "Right Guard Trap Zone", "Tight Triangle Zone"]
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_WHEN_PAUSED
@@ -205,6 +206,8 @@ func update_forward_explanation_text(label: Label, assignment: String):
 	
 func update_defense_explanation_text(assignment: String):
 	match assignment:
+		"Max Protect":
+			D_explanation.text = "Guards will focus entirely on protecting the keeper from attack. They do not care about the ball. They do not care about the goal."
 		"Positional Man to Man":
 			D_explanation.text = "The most direct way to play defense. Our left guard covers the other team's right forward, our right guard covers the other team's left forward."
 		"Fluid Man to Man":
@@ -378,6 +381,18 @@ func update_forward_directions(directions: Dictionary, assignment: String):
 	
 func update_defense_directions(assignment:String):
 	match assignment:
+		"Max Protect":
+			D_strategy = {
+			"marking": 0.99,
+			"fluidity": 0.1,
+			"zone": false,
+			"lg_trap": false, 
+			"rg_trap": false,
+			"chasing": 0.01,
+			"goal_defense_threshold": 999,
+			"escort_distance": 10,
+			"ball_preference": 0
+			}
 		"Positional Man to Man":
 			D_strategy = {
 			"marking": 0.99,
@@ -387,7 +402,8 @@ func update_defense_directions(assignment:String):
 			"rg_trap": false,
 			"chasing": 0.01,
 			"goal_defense_threshold": 65,
-			"escort_distance": 10
+			"escort_distance": 10,
+			"ball_preference": 1
 			}
 		"Fluid Man to Man":
 			D_strategy = {
@@ -398,7 +414,8 @@ func update_defense_directions(assignment:String):
 			"rg_trap": false,
 			"chasing": 0.05,
 			"goal_defense_threshold": 35,
-			"escort_distance": 10
+			"escort_distance": 10,
+			"ball_preference": 1
 			}
 		"Left Guard Trap Zone":
 			D_strategy = {
@@ -409,7 +426,8 @@ func update_defense_directions(assignment:String):
 			"rg_trap": false,
 			"chasing": 0.5,
 			"goal_defense_threshold": 45,
-			"escort_distance": 15
+			"escort_distance": 15,
+			"ball_preference": 0.5
 			}
 		"Right Guard Trap Zone":
 			D_strategy = {
@@ -420,7 +438,8 @@ func update_defense_directions(assignment:String):
 			"rg_trap": true,
 			"chasing": 0.5,
 			"goal_defense_threshold": 45,
-			"escort_distance": 15
+			"escort_distance": 15,
+			"ball_preference": 0.5
 			}
 		"Tight Triangle Zone":
 			D_strategy = {
@@ -431,7 +450,8 @@ func update_defense_directions(assignment:String):
 			"rg_trap": false,
 			"chasing": 0.0,
 			"goal_defense_threshold": 35,
-			"escort_distance": 10
+			"escort_distance": 10,
+			"ball_preference": 1
 			}
 
 func import_team(importedTeam: Team):

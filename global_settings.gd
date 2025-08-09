@@ -13,26 +13,26 @@ var fullscreen: bool = false #true = fullscreen false = windowed
 #control
 var keyboard_control_scheme: String #which control scheme is used for keyboard
 var controller_control_scheme: String #which control scheme is used for controller
-var mouse_sensitivity: float #how much the game reacts to mouse movements
-var controller_sensitivity: float #how much the game reacts to controller analog stick inputs
+var mouse_sensitivity: float = 1 #how much the game reacts to mouse movements
+var controller_sensitivity: float = 1 #how much the game reacts to controller analog stick inputs
 var semiAuto: bool = false #if true, the AI will move the human keeper around and the player just worries about aiming
 #gameplay
 var target_score: int = 7 #(usually) max score a team can get in the game before the game ends
 var pitch_limit: int  = 20#(usually) max number of pitches thrown by both teams before a game ends
-var play_time: int #maximum length on seconds of a single play
+var play_time: int = 30 #maximum length on seconds of a single play
 var human_buff: int #how much to buff all human player attributes
 var cpu_buff: int #how much to buff all cpu player attributes
-var human_always_pitch: bool #if on, human team always gets to pitch
+var human_always_pitch: bool = false #if on, human team always gets to pitch
 var special_pitch_frequency: float = 1 #increases or decreases groove collection
-var injury_frequency: float #how often unjuries occur
-var severe_injuries: bool #if players can get crippled, paralyzed, or killed in game
+var injury_frequency: float = 1 #how often unjuries occur
+var severe_injuries: bool = true #if players can get crippled, paralyzed, or killed in game
 #audio
 var tracks: Dictionary #"title": bool format, whether or not particular songs play in the menu
 var master_vol: float
 var music_vol: float #volue of menu music
 var sfx_vol: float #sound effects of players in the game- footsteps, contact with ball, player voices
 var crowd_vol: float #cheering, chanting, bands, announcers
-var stereo: bool #whether the same sound comes out of every speaker or it is different from the left and right
+var stereo: bool = true #whether the same sound comes out of every speaker or it is different from the left and right
 #career
 var survival_difficulty: int #code for how tough it is to survive the wasteland
 var travel_danger: int #code for how dangerous it is to travel

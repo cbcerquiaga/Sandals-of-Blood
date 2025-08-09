@@ -255,8 +255,21 @@ func handle_help_defense():
 func cover_defense():
 	if !assigned_forward:
 		return
-	var default_position = (assigned_forward.global_position + defending_goal_position)/2
+	var default_position
+	var ball_preference = randf()
+	if ball_preference > defense_strategy.ball_preference: #defend the keeper
+		protect_defense()
+		return
+	else: #defend the goal
+		default_position = (assigned_forward.global_position + defending_goal_position)/2
+		var line_to_goal = assigned_forward.global_position - defending_goal_position
+		var attack_angle = line_to_goal.angle_to(Vector2(1,0))
+		attack_angle = abs(rad_to_deg(attack_angle)) #closer to 0 is closer to corner
+		if attack_angle < 20: #in the corner, angle the forward in to trap them
+			default_position.y = default_position.y * 0.9
 	#if the forward's position isn't too threatening yet, cheat to the middle
+		
+	
 	if assigned_forward.global_position.distance_to(global_position) > attributes.aggression/2 and assigned_forward.global_position.distance_squared_to(global_position) > global_position.distance_squared_to(defending_goal_position):
 		var rand = randi_range(0,100)
 		if rand < attributes.positioning:
@@ -279,8 +292,52 @@ func cover_defense():
 					current_behavior = "pressing"
 				else:
 					switch_forward()
+		navigate_to(default_position)
 	pass
-
+	
+func smart_cover_defense():
+	if !assigned_forward:
+		return
+	if global_position.distance_to(assigned_forward.global_position) < attributes.aggression/3:
+		attempt_attack(assigned_forward.global_position)
+	var default_position = (assigned_forward.global_position + defending_goal_position)/2
+	if assigned_forward.current_behavior == "target_man" or assigned_forward.current_behavior == "defend": #static ball-focused tactics
+		current_behavior = "pressing"
+		pressure_defense()
+	elif assigned_forward.current_behavior == "shooting": #finds an open space
+		var opp_target = assigned_forward.navigation_agent.target_position
+		if global_position.distance_squared_to(opp_target) < global_position.distance_to(assigned_forward.global_position):
+			navigation_agent.target_position = opp_target
+		else:
+			navigation_agent.target_position = assigned_forward.global_position
+	elif assigned_forward.current_behavior == "skill_rush" or assigned_forward.current_behavior == "bull_rush":
+		if assigned_forward.distance_squared_to(buddy_keeper.global_position) < global_position.distance_squared_to(buddy_keeper.global_position):
+			current_behavior = "pressing"
+		else:
+			protect_defense()
+	else:
+		cover_defense()
+		return
+	navigate_to(default_position)
+	
+func protect_defense():
+	if !assigned_forward:
+		return
+	var default_position =  (assigned_forward.global_position + buddy_keeper.global_position) * attributes.positioning/2
+	var line = default_position - assigned_forward.global_position
+	default_position = assigned_forward.global_position + (line.normalized() * 5 * (99 - attributes.positioning)) #more positioning means tighter coverage, 50 to 5 units distance
+	if default_position.distance_squared_to(assigned_forward.global_position) < buddy_keeper.global_position.distance_squared_to(assigned_forward.global_position):
+		default_position =  (assigned_forward.global_position + buddy_keeper.global_position) * attributes.positioning/2
+	if assigned_forward.is_incapacitated:
+		default_position = (default_position + (other_forward.global_position + buddy_keeper.global_position)/2)/2 #split position between both forwards
+		if other_forward.global_position.distance_squared_to(buddy_keeper.global_position) < buddy_guard.global_position.distance_squared_to(buddy_keeper.global_position):
+			attempt_attack(other_forward.global_position)
+			return
+	if global_position.distance_squared_to(assigned_forward.global_position) < attributes.aggression/5: #10 to 19.8
+		current_behavior = "pressing"
+		return
+	navigate_to(default_position)
+			
 
 func handle_intercept_movement():
 	var middle = (assigned_forward.global_position + other_forward.global_position)/2

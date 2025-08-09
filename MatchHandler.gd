@@ -79,7 +79,8 @@ func load_team_strategies():
 				"pick": 10.0,
 				"bully": 10.0,
 				"fencing": 5.0,
-				"cower": 5.0
+				"cower": 5.0,
+				"defend": 25
 				},
 		"RF": {
 				"bull_rush": 5.0,
@@ -90,7 +91,8 @@ func load_team_strategies():
 				"pick": 10.0,
 				"bully": 10.0,
 				"fencing": 5.0,
-				"cower": 5.0
+				"cower": 5.0,
+				"defend": 25
 				},
 		"D": {
 			"marking": 0.9,
@@ -100,7 +102,8 @@ func load_team_strategies():
 			"rg_trap": false,
 			"chasing": 0.1,
 			"goal_defense_threshold": 65,
-			"escort_distance": 10
+			"escort_distance": 10,
+			"ball_preference": 0.9
 			}
 	}
 	pTeam.strategy.tactics = default_strategy.duplicate(true)
