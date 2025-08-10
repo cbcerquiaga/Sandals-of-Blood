@@ -403,7 +403,7 @@ func update_defense_directions(assignment:String):
 			"chasing": 0.01,
 			"goal_defense_threshold": 65,
 			"escort_distance": 10,
-			"ball_preference": 1
+			"ball_preference": 0.8
 			}
 		"Fluid Man to Man":
 			D_strategy = {
@@ -415,7 +415,7 @@ func update_defense_directions(assignment:String):
 			"chasing": 0.05,
 			"goal_defense_threshold": 35,
 			"escort_distance": 10,
-			"ball_preference": 1
+			"ball_preference": 0.8
 			}
 		"Left Guard Trap Zone":
 			D_strategy = {

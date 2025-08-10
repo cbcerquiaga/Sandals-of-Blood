@@ -157,19 +157,21 @@ func execute_bull_rush():
 	rush_line.add_point(opposing_keeper.global_position)
 	var closest_point = get_closest_point_on_line(rush_line, assigned_guard.global_position)
 	var guard_distance_to_line = assigned_guard.global_position.distance_to(closest_point)
-	var guard_is_blocking = guard_distance_to_line < 30 and not assigned_guard.is_stunned
+	var guard_is_blocking = guard_distance_to_line < 30 and  !assigned_guard.is_stunned and (global_position.distance_squared_to(opposing_keeper.global_position) > assigned_guard.global_position.distance_squared_to(opposing_keeper.global_position))
 	
 	if guard_is_blocking:
 		navigate_to(assigned_guard.global_position)
 		if global_position.distance_to(assigned_guard.global_position) < 60:
 			if randf() < 0.7:
+				navigation_agent.target_position = assigned_guard.global_position
 				attempt_attack(assigned_guard.global_position)
+				return
 			else:
 				attempt_dodge()
-	else:
-		navigate_to(opposing_keeper.global_position)
-		if global_position.distance_to(opposing_keeper.global_position) < attributes.aggression:
-			attempt_attack(opposing_keeper.global_position)
+	navigation_agent.target_position = opposing_keeper.global_position
+	navigate_to(opposing_keeper.global_position)
+	if global_position.distance_to(opposing_keeper.global_position) < attributes.aggression:
+		attempt_attack(opposing_keeper.global_position)
 	
 	rush_line.queue_free()
 

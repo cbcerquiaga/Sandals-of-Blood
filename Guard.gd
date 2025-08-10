@@ -256,8 +256,13 @@ func cover_defense():
 	if !assigned_forward:
 		return
 	var default_position
-	var ball_preference = randf()
-	if ball_preference > defense_strategy.ball_preference: #defend the keeper
+	if assigned_forward.velocity== Vector2.ZERO and !assigned_forward.is_incapacitated:
+		var aggro = randf()
+		if aggro < attributes.aggression/100:
+			pressure_defense()
+			return
+	if (assigned_forward.global_position.distance_squared_to(buddy_keeper.global_position) * defense_strategy.ball_preference) <= assigned_forward.global_position.distance_squared_to(ball.global_position) * (1 - defense_strategy.ball_preference):
+		#defend the keeper
 		protect_defense()
 		return
 	else: #defend the goal
@@ -271,13 +276,18 @@ func cover_defense():
 		
 	
 	if assigned_forward.global_position.distance_to(global_position) > attributes.aggression/2 and assigned_forward.global_position.distance_squared_to(global_position) > global_position.distance_squared_to(defending_goal_position):
+		var towards_ball
+		if sign(ball.global_position.y) == sign(global_position.y): #ball same side
+			towards_ball = (default_position + ball.global_position)/2
+		else: #wrong side
+			towards_ball = Vector2(ball.global_position.x, sign(global_position.y) * 5)
 		var rand = randi_range(0,100)
 		if rand < attributes.positioning:
-			default_position.x = default_position.x * 5/6 #cheat to the middle a bit #TODO balance
+			default_position = (default_position * 3 + towards_ball)/4 #cheats the least
 		elif rand - attributes.positioning > 10: #bad positioning roll
-			default_position.x = default_position.x * 3/4 #too much cheat #TODO balance
+			default_position = (default_position + towards_ball)/2 #too much cheat
 		else: #close positioning roll
-			default_position.x = default_position.x * 7/8 #less than ideal cheating #TODO balance
+			default_position = (default_position * 2 + towards_ball)/3
 	else:
 		current_behavior = "pressing"
 		return
