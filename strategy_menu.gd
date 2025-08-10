@@ -263,8 +263,7 @@ func apply_team_to_field():
 	lf = current_team.LF
 	rf = current_team.RF
 	p = current_team.P
-	original_field = [lg, rg, lf, rf, k, p]
-	pending_field = original_field
+	pending_field = original_field.duplicate(true)
 	pending_bench = original_bench
 	pending_subs = current_team.subs_remaining
 	ui_update()
