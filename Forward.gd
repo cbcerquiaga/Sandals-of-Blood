@@ -176,9 +176,8 @@ func execute_bull_rush():
 	rush_line.queue_free()
 
 func execute_skill_rush():
-	if !ball or !opposing_keeper:
+	if !ball or !opposing_keeper or !assigned_guard:
 		return
-	
 	check_pass_opportunity()
 	
 	#if we've beaten our man, make a break for it
@@ -194,6 +193,15 @@ func execute_skill_rush():
 			speed = attributes.speed
 		velocity = direction * speed
 		return
+	elif forward_partner.current_behavior == "pick" and !forward_partner.is_incapacitated and !assigned_guard.is_incapacitated:
+		var pick_target = forward_partner.global_position + (forward_partner.global_position - goal_position).normalized() * 10
+		var read = randi_range(0, 100)
+		if read < attributes.positioning: #not using the pick is a big brain move
+			var behind = global_position + (forward_partner.global_position - global_position).normalized() * 15
+			if has_clear_path_to(goal_position, behind):
+				pick_target = behind
+		shooter_position = pick_target
+		#move towards but "over" partner
 	
 	if shooter_position == Vector2.ZERO:
 		choose_shooter_position()
@@ -202,7 +210,10 @@ func execute_skill_rush():
 	navigate_to(shooter_position)
 	
 	if global_position.distance_to(shooter_position) < 10:
-		handle_shooter_positioning()
+		if has_clear_path_to(opposing_keeper.global_position):
+			execute_bull_rush()
+		else:
+			handle_shooter_positioning()
 	
 	handle_defensive_pressure()
 
@@ -305,7 +316,6 @@ func smart_pick_target():
 func choose_post_pick_behavior():
 	var rush_weight = forward_strategy.bull_rush + forward_strategy.skill_rush
 	var shoot_weight = forward_strategy.shooter
-	if !forward_strategy.has("defend"): forward_strategy["defend"] = 20#TODO: figure out hwy it doesn't have it
 	var defend_weight = forward_strategy.defend
 	var bully_weight = forward_strategy.bully
 	var ball_weight = forward_strategy.rebound + forward_strategy.target_man

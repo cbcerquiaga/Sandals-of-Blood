@@ -702,7 +702,7 @@ func perform_escorting():
 	var rel_position = Vector2(0,0)
 	if buddy_keeper.is_stunned:
 		var positioning_error = (100 - attributes.positioning)/3 #0.33 at 99, 16.67 at 50
-		if global_position.distance_squared_to(defending_goal_position) - positioning_error < buddy_guard.distance_squared_to(defending_goal_position):
+		if global_position.distance_squared_to(defending_goal_position) - positioning_error < buddy_guard.global_position.distance_squared_to(defending_goal_position):
 			handle_goalkeeping_movement()
 			return
 		else:
