@@ -8,6 +8,7 @@ var pitches_remaining: int
 var current_play_time: float = 0.0
 var max_play_time: float = 30.0
 var is_play_live: bool = false
+var is_ball_pitched: bool = false
 var is_in_extra_pitches: bool = false
 var extra_pitches_used: int = 0
 var last_scoring_team: int = -1
@@ -43,6 +44,7 @@ func _ready():
 	ball= $Ball as Ball
 	ball.current_state = Ball.BallState.WAITING
 	ball.freeze = true
+	ball.ball_pitched.connect(on_ball_pitched)
 	pTeam = $PlayerTeam as Team
 	pTeam.set_team_id(1)
 	pTeam.is_player_team = true
@@ -283,6 +285,8 @@ func reset_match(p_offense):
 	aTeam.default_grooves()
 	reset_play()
 	
+func on_ball_pitched():
+	is_ball_pitched = true
 	
 func _process(delta: float) -> void:
 	if Input.is_action_just_pressed("pause"):
@@ -290,8 +294,10 @@ func _process(delta: float) -> void:
 		pauseMenu.open_menu()
 	#if Input.is_action_just_pressed("switch_zone"):
 		#pTeam.switch_zone()
-	if is_play_live:
+	if is_play_live or is_ball_pitched:
 		current_play_time += delta / Engine.time_scale#adjust for time scale so it's always one second per second
+		if current_play_time >= 5 and !is_play_live: #TODO: balance time before players are free
+			_on_ball_crossed_midfield()
 		if current_play_time > max_play_time:
 			print("time's up!")
 			is_human_team_pitching = !is_human_team_pitching
@@ -345,6 +351,7 @@ func _process(delta: float) -> void:
 func next_play():
 	print("Starting next play - Human pitching: " + str(is_human_team_pitching))
 	is_play_live = false
+	is_ball_pitched = false
 	reset_players_for_next_play()
 	# Reset play state but keep scores and pitching team assignment
 	current_play_time = 0.0

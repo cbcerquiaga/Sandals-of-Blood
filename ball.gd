@@ -40,6 +40,7 @@ signal special_pitch_interrupted
 signal area_entered(area: Area2D)
 signal shot_at_goal(ball_position: Vector2, shot_direction: Vector2, shooter_team: int)
 signal pitch_side(side: String)
+signal ball_pitched
 
 func _ready():
 	collision_layer = 0b0001  # Layer 1 (balls)
@@ -263,6 +264,7 @@ func be_pitched(huck: Vector2, curve: float):
 	linear_velocity = huck
 	current_spin = curve
 	freeze = false
+	emit_signal("ball_pitched")
 
 func be_special_pitched(direction: Vector2, power: float, curves: Array[float], frames: Array[int], pitch_type: String):
 	print("here comes a doozy")
