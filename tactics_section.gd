@@ -150,7 +150,7 @@ func RFL_pressed():
 func DL_pressed():
 	D_tactic_index -= 1
 	if D_tactic_index < 0:
-		D_tactic_index = 4
+		D_tactic_index = 5
 	D_assignment.text = defense_schemes[D_tactic_index]
 	update_defense_explanation_text(D_assignment.text)
 	update_defense_directions(D_assignment.text)
@@ -173,7 +173,7 @@ func RFR_pressed():
 	
 func DR_pressed():
 	D_tactic_index += 1
-	if D_tactic_index > 4:
+	if D_tactic_index > 5:
 		D_tactic_index = 0
 	D_assignment.text = defense_schemes[D_tactic_index]
 	update_defense_explanation_text(D_assignment.text)

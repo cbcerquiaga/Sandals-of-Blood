@@ -412,7 +412,7 @@ func should_help():
 	if other_forward.global_position.distance_to(defending_goal_position) < 50 and (other_forward.current_behavior == "bull_rush" or other_forward.current_behavior == "speed_rush") and !(assigned_forward.current_behavior == "bull_rush" or assigned_forward.current_behavior == "speed_rush"):
 		return true
 	if other_forward.is_in_pass_mode and assigned_forward.is_in_pass_mode:
-		return true     
+		return true
 	return false
 
 func set_aim_point():
@@ -625,7 +625,7 @@ func find_intercept_point():
 	return current_intercept_point
 	
 func on_shot_at_goal(shot_from: Vector2, shot_direction: Vector2, shooter_team: int):
-	if current_behavior != "trapping" and current_behavior != "goalkeeping" and current_behavior != "blocking" and current_behavior != "escorting":#not my job
+	if current_behavior != "trapping" and current_behavior != "goalkeeping" and current_behavior != "blocking" and current_behavior != "escorting" and !(current_behavior == "marking" and shot_from.distance_squared_to(assigned_forward.global_position) < 25):#not my job
 		return
 	if shooter_team == team: #not my problem
 		return 
@@ -699,10 +699,16 @@ func _should_break_fencing() -> bool:
 	return ball and global_position.distance_to(ball.global_position) < fencing_params["ball_proximity_threshold"] * (1.1 - attributes.reactions/100.0)
 
 func perform_escorting():
-	if buddy_keeper.is_stunned:
-		handle_goalkeeping_movement()
-		return
 	var rel_position = Vector2(0,0)
+	if buddy_keeper.is_stunned:
+		var positioning_error = (100 - attributes.positioning)/3 #0.33 at 99, 16.67 at 50
+		if global_position.distance_squared_to(defending_goal_position) - positioning_error < buddy_guard.distance_squared_to(defending_goal_position):
+			handle_goalkeeping_movement()
+			return
+		else:
+			var rand = randf()
+			if rand < defense_strategy.chasing:
+				chase_ball()
 	if defending_goal_position.y < 0:
 		rel_position = Vector2(defense_strategy.escort_distance, -defense_strategy.escort_distance) if plays_left_side else Vector2(-defense_strategy.escort_distance, -defense_strategy.escort_distance)
 	else:
@@ -716,15 +722,19 @@ func perform_escorting():
 				min_dist = dist
 				threat = target
 	if threat:
-		var threat_pos = threat.global_position
-		var keeper_to_threat = buddy_keeper.global_position.direction_to(threat_pos)
-		var side_check = keeper_to_threat.x * (-1 if plays_left_side else 1)
-		if side_check > 0:
-			var attack_pos = threat_pos - keeper_to_threat * defense_strategy.escort_distance
-			if attack_pos.distance_to(buddy_keeper.global_position) < defense_strategy.goal_defense_threshold:
-				navigation_agent.target_position = attack_pos
-				velocity = global_position.direction_to(attack_pos) * attributes.sprint_speed
-				return
+		if threat is Forward:
+			assigned_forward = threat
+			protect_defense()
+			return
+		else:
+			var threat_pos = threat.global_position
+			var keeper_to_threat = buddy_keeper.global_position.direction_to(threat_pos)
+			if abs(global_position.x - threat_pos.x) <  abs(buddy_guard.global_position.x - threat_pos.x):
+				var attack_pos = threat_pos - keeper_to_threat * defense_strategy.escort_distance
+				if attack_pos.distance_to(buddy_keeper.global_position) < defense_strategy.goal_defense_threshold:
+					navigation_agent.target_position = attack_pos
+					velocity = global_position.direction_to(attack_pos) * attributes.sprint_speed
+					return
 	navigation_agent.target_position = buddy_keeper.global_position + rel_position
 	var direction = global_position.direction_to(buddy_keeper.global_position + rel_position)
 	is_sprinting = buddy_keeper.is_sprinting and status.boost > 0.5

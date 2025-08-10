@@ -126,7 +126,7 @@ var defense_strategy = {
 	"chasing": 0.1,  # 0-inf, likelihood to chase loose balls
 	"goal_defense_threshold": 35,  # Distance at which keeper is considered out of position
 	"escort_distance": 10, #how closely an escorting guard will follow the keeper
-	"ball_preference": 0.5 #0 for just protect keeper, 1 for just focus on ball
+	"ball_preference": 0.5 #0 for just protect keeper, 1 for just focus on blocking shots
 }
 
 #character appearance. paths to assets
@@ -436,7 +436,7 @@ func get_closest_point(line_start : Vector2, line_direction : Vector2, point_pos
 
 func attempt_dodge():
 	#print("dodge: " + str(status.boost))
-	if status.boost < 0:
+	if status.boost < 0 or current_dodge_frame != 0:
 		return
 	status.boost -= 1
 	
