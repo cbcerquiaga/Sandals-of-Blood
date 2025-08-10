@@ -699,6 +699,10 @@ func perform_blocking():
 	var goal_line = leftPost.y
 	var time_to_goal = (goal_line - ball_last_sighted.y) / ball_direction_projection.y
 	var intercept = ball_last_sighted + (ball_direction_projection * time_to_goal)
+	var positioning_variance = (100 - attributes.positioning)/3 #16.67 at 50, 0.33 at 99
+	if intercept.distance_squared_to(own_goal) > ball.global_position.distance_squared_to(own_goal) + positioning_variance:
+		current_behavior = "defending"
+		return
 	
 	if intercept.distance_to(own_goal) > max_goal_offset or is_nan(time_to_goal) or is_inf(time_to_goal) or is_nan(intercept.x) or is_nan(intercept.y) or is_inf(intercept.x) or is_inf(intercept.y):
 		current_behavior = "defending"
