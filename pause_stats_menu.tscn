@@ -1,0 +1,64 @@
+[gd_scene load_steps=13 format=3 uid="uid://bkv78tqdrwbtv"]
+
+[ext_resource type="Texture2D" uid="uid://q43sw6oyjynj" path="res://UI/StatsUI/team_button_base.png" id="1_hyexv"]
+[ext_resource type="Texture2D" uid="uid://c56jxffr16ysx" path="res://UI/StatsUI/team_button_highlighted.png" id="2_ni0ov"]
+[ext_resource type="Texture2D" uid="uid://s6l0oh5dnjui" path="res://UI/StatsUI/scoring_button_base.png" id="3_y40pp"]
+[ext_resource type="Texture2D" uid="uid://df06sd7yr28b5" path="res://UI/StatsUI/scoring_button_highlighted.png" id="4_8fj15"]
+[ext_resource type="Texture2D" uid="uid://jalu1a8jmlys" path="res://UI/StatsUI/Rushing_button_base.png" id="5_md3br"]
+[ext_resource type="Texture2D" uid="uid://27kksw6qxhoc" path="res://UI/StatsUI/Rushing_button_highlighted.png" id="6_mhal1"]
+[ext_resource type="Texture2D" uid="uid://db0jenjohdfvj" path="res://UI/StatsUI/Blocking_button_base.png" id="7_bjokq"]
+[ext_resource type="Texture2D" uid="uid://b84jmp8wbxssh" path="res://UI/StatsUI/Blocking_button_highlighted.png" id="8_uejq4"]
+[ext_resource type="Texture2D" uid="uid://c7bnulpypt787" path="res://UI/StatsUI/pitching_button_base.png" id="9_crxav"]
+[ext_resource type="Texture2D" uid="uid://bod4mkc2mpvdc" path="res://UI/StatsUI/pitching_button_highlighted.png" id="10_2olga"]
+[ext_resource type="Texture2D" uid="uid://bxbirl8imqoxe" path="res://UI/StatsUI/Goalkeeping_button_base.png" id="11_lyhev"]
+[ext_resource type="Texture2D" uid="uid://bhjdpww7ppp4x" path="res://UI/StatsUI/Goalkeeping_button_highlighted.png" id="12_dcwys"]
+
+[node name="Pause_Statistics" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="."]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+scale = Vector2(0.5, 0.5)
+
+[node name="TeamButton" type="TextureButton" parent="HBoxContainer"]
+layout_mode = 2
+texture_normal = ExtResource("1_hyexv")
+texture_hover = ExtResource("2_ni0ov")
+texture_focused = ExtResource("2_ni0ov")
+
+[node name="ScoringButton" type="TextureButton" parent="HBoxContainer"]
+layout_mode = 2
+texture_normal = ExtResource("3_y40pp")
+texture_hover = ExtResource("4_8fj15")
+texture_focused = ExtResource("4_8fj15")
+
+[node name="RushingButton" type="TextureButton" parent="HBoxContainer"]
+layout_mode = 2
+texture_normal = ExtResource("5_md3br")
+texture_hover = ExtResource("6_mhal1")
+texture_focused = ExtResource("6_mhal1")
+
+[node name="BlockingButton" type="TextureButton" parent="HBoxContainer"]
+layout_mode = 2
+texture_normal = ExtResource("7_bjokq")
+texture_hover = ExtResource("8_uejq4")
+texture_focused = ExtResource("8_uejq4")
+
+[node name="PitchingButton" type="TextureButton" parent="HBoxContainer"]
+layout_mode = 2
+texture_normal = ExtResource("9_crxav")
+texture_hover = ExtResource("10_2olga")
+texture_focused = ExtResource("10_2olga")
+
+[node name="GoalkeepingButton" type="TextureButton" parent="HBoxContainer"]
+layout_mode = 2
+texture_normal = ExtResource("11_lyhev")
+texture_hover = ExtResource("12_dcwys")
+texture_focused = ExtResource("12_dcwys")
