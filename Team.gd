@@ -206,6 +206,12 @@ func get_modified_aggression(base_aggression: float, position_type: String) -> f
 
 
 func enlighten(aimTarget, ball, field, keeperWall, ownGoal, oppGoal, oppP, oppK, oppLG, oppRG, oppLF, oppRF, LfWaiting, RfWaiting, LPost, RPost, dHalf, oHalf, rest, lBanks, rBanks):
+	P.field_position = "P"
+	K.field_position = "K"
+	LF.field_position = "LF"
+	RF.field_position = "RF"
+	LG.field_position = "LG"
+	RG.field_position = "RG"
 	P.ball = ball
 	P.ball_pitched.connect(ball.be_pitched)
 	P.special_pitched.connect(ball.be_special_pitched)
@@ -631,3 +637,19 @@ func restore_player_behavior(player: Player):
 						player.current_behavior = "escorting"
 		"forward":
 			player.make_strategy_decision()
+
+func add_pitch_played():
+	P.game_stats.pitches_played += 1
+	K.game_stats.pitches_played += 1
+	LF.game_stats.pitches_played += 1
+	RF.game_stats.pitches_played += 1
+	LG.game_stats.pitches_played += 1
+	RG.game_stats.pitches_played += 1
+
+func reset_player_stats():
+	P.reset_game_stats()
+	K.reset_game_stats()
+	LG.reset_game_stats()
+	RG.reset_game_stats()
+	LF.reset_game_stats()
+	RF.reset_game_stats()

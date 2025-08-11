@@ -129,6 +129,7 @@ func handle_player_collision(player: Player):
 		save_value_for_keeper()
 	assist_by = last_hit_by
 	last_hit_by = player
+	player.game_stats.touches += 1
 	
 	match player.position_type:
 		"keeper", "guard":
@@ -282,6 +283,7 @@ func be_special_pitched(direction: Vector2, power: float, curves: Array[float], 
 	linear_velocity = direction.normalized() * power
 	freeze = false
 	chill_timer = 10
+	emit_signal("ball_pitched")
 
 func enter_hockey_state():
 	if current_state != BallState.HOCKEY:

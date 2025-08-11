@@ -65,6 +65,8 @@ func _ready():
 	statusUI.assign_team(self)
 	pauseMenu.set_team(pTeam)
 	pauseMenu.matchHandler = self
+	pTeam.reset_player_stats()
+	aTeam.reset_player_stats()
 	
 func load_team_strategies():
 	# TODO: load from file
@@ -144,7 +146,7 @@ func _on_ball_exited_field():
 		# Update team offense/defense status
 		pTeam.is_on_offense = is_human_team_pitching
 		aTeam.is_on_offense = !is_human_team_pitching
-		
+		pitches_remaining -= 1
 		# Start next play
 		next_play()
 	else:
@@ -174,13 +176,22 @@ func _on_player_goal():
 	var scorer = ball.last_hit_by
 	if scorer.team == 1:
 		scorer.game_stats.goals += 1
+		if scorer is Forward:
+			if scorer.assigned_guard:
+				scorer.assigned_guard.game_stats.mark_points += 1
+	elif ball.assist_by.team == 2 and ball.assist_by.team == 1:
+		ball.assist_by.game_stats.goals += 1
 	var passer = ball.assist_by
-	if passer and passer.team == scorer.team:
+	if passer and passer.team == scorer.team and scorer.team == 1:
 		passer.game_stats.assists += 1
-	if ball.last_hit_by == pTeam.P:
+		if passer is Forward:
+			if passer.assigned_guard:
+				passer.assigned_guard.game_stats.mark_points += 1
+	if ball.last_hit_by == pTeam.P or (ball.last_hit_by.team != pTeam.P.team and ball.assist_by == pTeam.P):
 		print("it's an ace!")
 		pTeam.P._on_goal_aced()
 		was_ace = true
+		aTeam.K.game_stats.aces_allowed += 1
 		var groove_loss = 5 / GlobalSettings.special_pitch_frequency
 		aTeam.K.lose_groove(groove_loss)#sucks to get aced on
 	elif ball.last_hit_by == pTeam.K or ball.assist_by == pTeam.K: #keeper feels good about scoring points
@@ -192,6 +203,8 @@ func _on_player_goal():
 		var groove_gain = 5 * GlobalSettings.special_pitch_frequency
 		pTeam.P.add_groove(groove_gain)
 		pTeam.K.add_groove(groove_gain)
+	if !was_ace:
+		pitch_returned()
 		
 	
 	
@@ -231,12 +244,21 @@ func _on_cpu_goal():
 	var scorer = ball.last_hit_by
 	if scorer.team == 2:
 		scorer.game_stats.goals += 1
+		if scorer is Forward:
+			if scorer.assigned_guard:
+				scorer.assigned_guard.game_stats.mark_points += 1
+	elif ball.assist_by.team == 1 and ball.assist_by.team == 2:
+		ball.assist_by.game_stats.goals += 1
 	var passer = ball.assist_by
-	if passer and passer.team == scorer.team:
+	if passer and passer.team == scorer.team and scorer.team == 2:
 		passer.game_stats.assists += 1
-	if ball.last_hit_by == aTeam.P:
+		if passer is Forward:
+			if !passer.assigned_guard:
+				passer.assigned_guard.game_stats.mark_points += 1
+	if ball.last_hit_by == aTeam.P or (ball.last_hit_by.team != aTeam.P.team and ball.assist_by == aTeam.P):
 		print("it's an ace!")
 		aTeam.P._on_goal_aced()
+		pTeam.K.game_stats.aces_allowed += 1
 		was_ace = true
 		var groove_loss = 5 / GlobalSettings.special_pitch_frequency
 		pTeam.K.lose_groove(groove_loss)#sucks to get aced on
@@ -249,6 +271,8 @@ func _on_cpu_goal():
 		var groove_gain = GlobalSettings.special_pitch_frequency * 2
 		aTeam.P.add_groove(groove_gain)
 		aTeam.K.add_groove(groove_gain)
+	if !was_ace:
+		pitch_returned()
 	
 	# If it was an ace, AI team keeps pitching, otherwise switch
 	if !was_ace or GlobalSettings.human_always_pitch:
@@ -286,7 +310,15 @@ func reset_match(p_offense):
 	reset_play()
 	
 func on_ball_pitched():
+	if !is_ball_pitched:
+		pTeam.add_pitch_played()
+		aTeam.add_pitch_played()
+		if is_human_team_pitching:
+			pTeam.P.game_stats.pitches_thrown += 1
+		else:
+			aTeam.P.game_stats.pitches_thrown += 1
 	is_ball_pitched = true
+	
 	
 func _process(delta: float) -> void:
 	if Input.is_action_just_pressed("pause"):
@@ -300,6 +332,7 @@ func _process(delta: float) -> void:
 			_on_ball_crossed_midfield()
 		if current_play_time > max_play_time:
 			print("time's up!")
+			pitch_returned()
 			is_human_team_pitching = !is_human_team_pitching
 			pTeam.is_on_offense = !pTeam.is_on_offense
 			aTeam.is_on_offense = !aTeam.is_on_offense
@@ -387,7 +420,12 @@ func reset_players_for_next_play():
 	pTeam.wipe_player_control()
 	aTeam.wipe_player_control()
 	statusUI.assign_team(self) #update the UI
-	
+
+func pitch_returned():
+	if is_human_team_pitching:
+		aTeam.K.game_stats.returns += 1
+	else:
+		pTeam.K.game_stats.returns += 1
 
 func reset_ball_and_field():
 	if is_instance_valid(ball):
@@ -535,6 +573,7 @@ func _on_play_timer_timeout():
 	pTeam.is_on_offense = is_human_team_pitching
 	aTeam.is_on_offense = !is_human_team_pitching
 	emit_signal("play_ended", "timeout")
+	pitches_remaining -= 1
 	next_play()
 	
 func on_ball_out_of_bounds():

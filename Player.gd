@@ -63,7 +63,10 @@ var field_position: String
 	"goals_for":0, #team scored while on field
 	"goals_against":0, #team scored against while on field
 	"returns": 0,#opposing pitch doesn't score- keeper
-	"aces_allowed": 0#opposing pitch goes in- keeper
+	"aces_allowed": 0, #opposing pitch goes in- keeper
+	"touches": 0, #times touching the ball, not including pitches
+	"mark_points": 0, #points from assigned forward, guard only
+	"partner_sacks": 0 #how many times a partner has sacked the keeper, forwards only
 }
 
 #what the guards do on the counterattack is unique to a given player
@@ -662,14 +665,24 @@ func take_hit(attacker: Player, power: float):
 		status.stability = 0
 		var stun_time = (445 - 4*attributes.toughness)/49 * 0.75 #3.35 for 50 toughness, 0.675 for 99 toughness
 		enter_stunned_state(stun_time)
+		if field_position == "K":
+					attacker.game_stats.sacks +=1
+					if attacker.assigned_guard:
+						attacker.assigned_guard.game_stats.sacks_allowed += 1
+					if attacker.forward_partner:
+						attacker.forward_partner.game_stats.partner_sacks += 1
 	elif knockback_power > status.stability: #hefty bump
 		#print("bump-", units, ", ", 150)
 		status.stability -= knockback_power/2
 		if status.stability < 0:
 			if attacker.team != team:
 				attacker.game_stats.hits += 1
-				if position_type == "keeper":
+				if field_position == "K":
 					attacker.game_stats.sacks +=1
+					if attacker.assigned_guard:
+						attacker.assigned_guard.game_stats.sacks_allowed += 1
+					if attacker.forward_partner:
+						attacker.forward_partner.game_stats.partner_sacks += 1
 			status.stability = 0
 			var stun_time = (445 - 4*attributes.toughness)/49 * 0.75 #3.35 for 50 toughness, 0.675 for 99 toughness
 			enter_stunned_state(stun_time)
@@ -680,8 +693,12 @@ func take_hit(attacker: Player, power: float):
 		if status.stability < 0:
 			if attacker.team != team:
 				attacker.game_stats.hits += 1
-				if position_type == "keeper":
+				if field_position == "K":
 					attacker.game_stats.sacks +=1
+					if attacker.assigned_guard:
+						attacker.assigned_guard.game_stats.sacks_allowed += 1
+					if attacker.forward_partner:
+						attacker.forward_partner.game_stats.partner_sacks += 1
 			status.stability = 0
 		get_tossed(knockback_dir, units, 100)
 	else: #just a step back
