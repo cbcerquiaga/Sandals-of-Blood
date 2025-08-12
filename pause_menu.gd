@@ -14,7 +14,7 @@ const input_cooldown: int = 3
 #submenus
 @onready var submenu: String = ""
 @onready var strategy_menu = $Submenus/Strategy_Menu
-@onready var stats_screen
+@onready var stats_screen = $Submenus/Pause_Statistics
 @onready var options_menu = $Submenus/Pause_Options
 @onready var export_screen
 @onready var quit_popup
@@ -170,3 +170,15 @@ func _on_options_pressed() -> void:
 func _on_options_menu_closed():
 	submenu = ""
 	open_menu("options")
+
+
+func _on_statistics_pressed() -> void:
+	if matchHandler.is_player_home:
+		stats_screen.homeTeam = matchHandler.pTeam
+		stats_screen.awayTeam = matchHandler.aTeam
+	else:
+		stats_screen.homeTeam = matchHandler.aTeam
+		stats_screen.awayTeam = matchHandler.pTeam
+	submenu = "statistics"
+	stats_screen.show()
+	$ButtonContainer.hide()

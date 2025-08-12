@@ -1,4 +1,4 @@
-[gd_scene load_steps=16 format=3 uid="uid://csyirpbcdrnoo"]
+[gd_scene load_steps=17 format=3 uid="uid://csyirpbcdrnoo"]
 
 [ext_resource type="Script" path="res://pause_menu.gd" id="1_2e70y"]
 [ext_resource type="Texture2D" uid="uid://3mobcbc75wt5" path="res://UI/PauseUI/Resume_button_base.png" id="1_l1b0n"]
@@ -15,6 +15,7 @@
 [ext_resource type="Texture2D" uid="uid://ccjk7lnkbyas0" path="res://UI/PauseUI/Export_button_highlighted.png" id="11_csx32"]
 [ext_resource type="Texture2D" uid="uid://cdvco7npy88ah" path="res://UI/PauseUI/Exit_button_highlighted.png" id="13_7usw0"]
 [ext_resource type="PackedScene" uid="uid://b2a1xy1kwt5nn" path="res://pause_options.tscn" id="15_vkq6c"]
+[ext_resource type="PackedScene" uid="uid://bkv78tqdrwbtv" path="res://pause_stats_menu.tscn" id="16_kjeac"]
 
 [node name="PauseMenu" type="CanvasLayer"]
 process_mode = 2
@@ -101,7 +102,12 @@ mouse_filter = 2
 visible = false
 layout_mode = 1
 
+[node name="Pause_Statistics" parent="Submenus" instance=ExtResource("16_kjeac")]
+visible = false
+layout_mode = 1
+
 [connection signal="pressed" from="ButtonContainer/Resume" to="." method="_on_resume_pressed"]
 [connection signal="pressed" from="ButtonContainer/Strategy" to="." method="_on_strategy_pressed"]
+[connection signal="pressed" from="ButtonContainer/Statistics" to="." method="_on_statistics_pressed"]
 [connection signal="pressed" from="ButtonContainer/Options" to="." method="_on_options_pressed"]
 [connection signal="new_sub" from="Submenus/Strategy_Menu" to="." method="_on_strategy_menu_new_sub"]

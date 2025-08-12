@@ -37,6 +37,17 @@ var strategy: Dictionary = {
 	}
 }
 
+var game_stats: Dictionary = {
+	"pitches" = 0, #how many pitches the team has thrown
+	"goals" = 0, #goals scored
+	"aces" = 0, #total goals aced
+	"starter_goals" = 0, #goals from starters
+	"bench_goals" = 0, #goals from substitutes
+	"ball_in_half" = 0, #time the ball has spent in our half
+	"touches" = 0, #number of times our players touch the ball, not including pitches
+	"sacks" = 0
+}
+
 @export var K: Keeper
 @export var P: Reworked_Pitcher
 @export var LG: Guard
@@ -640,11 +651,17 @@ func restore_player_behavior(player: Player):
 
 func add_pitch_played():
 	P.game_stats.pitches_played += 1
+	P.game_stats.pitches_p += 1
 	K.game_stats.pitches_played += 1
+	K.game_stats.pitches_k += 1
 	LF.game_stats.pitches_played += 1
+	LF.game_stats.pitches_f += 1
 	RF.game_stats.pitches_played += 1
+	RF.game_stats.pitches_f += 1
 	LG.game_stats.pitches_played += 1
+	LG.game_stats.pitches_g += 1
 	RG.game_stats.pitches_played += 1
+	RG.game_stats.pitches_g += 1
 
 func reset_player_stats():
 	P.reset_game_stats()

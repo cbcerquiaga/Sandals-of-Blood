@@ -564,7 +564,7 @@ func print_player_stats(player: Player):
 		string = string + "Pitches thrown: " + str(player.game_stats.pitches_thrown) + "\n"
 		string = string + "Aces: " +  str(player.game_stats.aces) + "\n"
 		string = string + "Assists: " +  str(player.game_stats.assists) + "\n"
-		string = string + "Knockouts: " +  str(player.game_stats.knockouts) + "\n"
+		string = string + "Knockouts: " +  str(player.game_stats.knockouts) + "-" + str(player.game_stats.got_kod) + "\n"
 		string = string + "Goals For: " +  str(player.game_stats.goals_for) + "\n"
 		string = string + "Goals Against: " +  str(player.game_stats.goals_against) + "\n"
 		string = string + "Goal Differential: " +  str(player.game_stats.goals_for - player.game_stats.goals_against)  + "\n"

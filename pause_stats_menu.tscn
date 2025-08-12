@@ -1,5 +1,6 @@
-[gd_scene load_steps=13 format=3 uid="uid://bkv78tqdrwbtv"]
+[gd_scene load_steps=14 format=3 uid="uid://bkv78tqdrwbtv"]
 
+[ext_resource type="Script" path="res://pause_stats_menu.gd" id="1_0rct8"]
 [ext_resource type="Texture2D" uid="uid://q43sw6oyjynj" path="res://UI/StatsUI/team_button_base.png" id="1_hyexv"]
 [ext_resource type="Texture2D" uid="uid://c56jxffr16ysx" path="res://UI/StatsUI/team_button_highlighted.png" id="2_ni0ov"]
 [ext_resource type="Texture2D" uid="uid://s6l0oh5dnjui" path="res://UI/StatsUI/scoring_button_base.png" id="3_y40pp"]
@@ -20,6 +21,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+script = ExtResource("1_0rct8")
 
 [node name="HBoxContainer" type="HBoxContainer" parent="."]
 layout_mode = 0
@@ -62,3 +64,35 @@ layout_mode = 2
 texture_normal = ExtResource("11_lyhev")
 texture_hover = ExtResource("12_dcwys")
 texture_focused = ExtResource("12_dcwys")
+
+[node name="TeamScrollContainer" type="ScrollContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+scale = Vector2(10, 10)
+
+[node name="GridContainer" type="GridContainer" parent="TeamScrollContainer"]
+layout_mode = 2
+columns = 3
+
+[node name="PlayerScrollContainer" type="ScrollContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="GridContainer" type="GridContainer" parent="PlayerScrollContainer"]
+layout_mode = 2
+columns = 6
+
+[connection signal="pressed" from="HBoxContainer/TeamButton" to="." method="_on_team_button_pressed"]
+[connection signal="pressed" from="HBoxContainer/ScoringButton" to="." method="_on_scoring_button_pressed"]
+[connection signal="pressed" from="HBoxContainer/RushingButton" to="." method="_on_rushing_button_pressed"]
+[connection signal="pressed" from="HBoxContainer/BlockingButton" to="." method="_on_blocking_button_pressed"]
+[connection signal="pressed" from="HBoxContainer/PitchingButton" to="." method="_on_pitching_button_pressed"]
+[connection signal="pressed" from="HBoxContainer/GoalkeepingButton" to="." method="_on_goalkeeping_button_pressed"]

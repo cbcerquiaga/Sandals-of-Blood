@@ -60,13 +60,18 @@ var field_position: String
 	"pitches_thrown": 0,
 	"aces": 0, #goals directly off pitch- pitcher
 	"knockouts": 0, #knocked out opposing pitcher- pitcher
+	"got_kod": 0, #knocked out by opposing pitcher- pitcher
 	"goals_for":0, #team scored while on field
 	"goals_against":0, #team scored against while on field
 	"returns": 0,#opposing pitch doesn't score- keeper
 	"aces_allowed": 0, #opposing pitch goes in- keeper
 	"touches": 0, #times touching the ball, not including pitches
 	"mark_points": 0, #points from assigned forward, guard only
-	"partner_sacks": 0 #how many times a partner has sacked the keeper, forwards only
+	"partner_sacks": 0, #how many times a partner has sacked the keeper, forwards only
+	"pitches_f": 0, #pitches played at forward position
+	"pitches_g": 0, #pitches played at guard position
+	"pitches_p": 0, #pitches played at pitcher position
+	"pitches_k": 0 #pitches played at keeper position
 }
 
 #what the guards do on the counterattack is unique to a given player

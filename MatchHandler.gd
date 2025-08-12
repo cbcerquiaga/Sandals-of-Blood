@@ -170,7 +170,6 @@ func _on_player_goal():
 	pTeam.RG.game_stats.goals_for += 1
 	pTeam.LF.game_stats.goals_for += 1
 	pTeam.RF.game_stats.goals_for += 1
-	
 	var was_ace = false
 	pTeam.K.deactivate_special()
 	var scorer = ball.last_hit_by
@@ -205,6 +204,9 @@ func _on_player_goal():
 		pTeam.K.add_groove(groove_gain)
 	if !was_ace:
 		pitch_returned()
+	else:
+		pTeam.game_stats.aces += 1
+	pTeam.game_stats.goals += 1
 		
 	
 	
@@ -273,6 +275,9 @@ func _on_cpu_goal():
 		aTeam.K.add_groove(groove_gain)
 	if !was_ace:
 		pitch_returned()
+	else:
+		aTeam.game_stats.aces += 1
+	aTeam.game_stats.goals += 1
 	
 	# If it was an ace, AI team keeps pitching, otherwise switch
 	if !was_ace or GlobalSettings.human_always_pitch:
@@ -328,6 +333,10 @@ func _process(delta: float) -> void:
 		#pTeam.switch_zone()
 	if is_play_live or is_ball_pitched:
 		current_play_time += delta / Engine.time_scale#adjust for time scale so it's always one second per second
+		if ball.global_position.distance_squared_to(field.cpuGoal.global_position) < ball.global_position.distance_squared_to(field.playerGoal.global_position):
+			aTeam.game_stats.ball_in_half += delta / Engine.time_scale
+		else:
+			pTeam.game_stats.ball_in_half += delta / Engine.time_scale
 		if current_play_time >= 5 and !is_play_live: #TODO: balance time before players are free
 			_on_ball_crossed_midfield()
 		if current_play_time > max_play_time:
