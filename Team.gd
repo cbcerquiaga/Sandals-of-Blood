@@ -1,6 +1,10 @@
 class_name Team
 extends Node
 
+var team_name: String
+var team_city: String
+var team_name_inverted: bool = false #"town mascots" if false, "mascots of town" if true
+var team_logo_path: String
 var team_id: int
 var is_on_offense: bool
 var is_player_team: bool
@@ -64,6 +68,8 @@ var has_readied
 signal on_team_ready(id: int)
 
 func _init():
+	team_name = "Test Faces" #TODO: import from file
+	team_city = "Test City"
 	has_readied = false
 	K = Keeper.new()
 	P = Reworked_Pitcher.new()

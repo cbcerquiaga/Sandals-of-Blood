@@ -173,14 +173,14 @@ func _on_player_goal():
 	var was_ace = false
 	pTeam.K.deactivate_special()
 	var scorer = ball.last_hit_by
+	var passer = ball.assist_by
 	if scorer.team == 1:
 		scorer.game_stats.goals += 1
 		if scorer is Forward:
 			if scorer.assigned_guard:
 				scorer.assigned_guard.game_stats.mark_points += 1
-	elif ball.assist_by.team == 2 and ball.assist_by.team == 1:
-		ball.assist_by.game_stats.goals += 1
-	var passer = ball.assist_by
+	elif passer and passer.team == 2 and passer.team == 1:
+		passer.game_stats.goals += 1
 	if passer and passer.team == scorer.team and scorer.team == 1:
 		passer.game_stats.assists += 1
 		if passer is Forward:
@@ -320,8 +320,10 @@ func on_ball_pitched():
 		aTeam.add_pitch_played()
 		if is_human_team_pitching:
 			pTeam.P.game_stats.pitches_thrown += 1
+			pTeam.game_stats.pitches += 1
 		else:
 			aTeam.P.game_stats.pitches_thrown += 1
+			aTeam.game_stats.pitches += 1
 	is_ball_pitched = true
 	
 	
@@ -677,6 +679,11 @@ func on_team_ready_signal(id: int) -> void:
 	pass
 	
 func fill_team_rosters():
+	pTeam.team_city = "Test Town"
+	pTeam.team_name = "TestFaces"
+	aTeam.team_city = "Turingville"
+	aTeam.team_name = "Bugs"
+	aTeam.team_name_inverted = true
 	import_team_rosters()
 	pTeam.debug_default_roster() #just until we figure out how to import players from text file
 	aTeam.debug_default_roster()

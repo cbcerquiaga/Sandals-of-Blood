@@ -180,5 +180,5 @@ func _on_statistics_pressed() -> void:
 		stats_screen.homeTeam = matchHandler.aTeam
 		stats_screen.awayTeam = matchHandler.pTeam
 	submenu = "statistics"
-	stats_screen.show()
+	stats_screen.open_menu()
 	$ButtonContainer.hide()

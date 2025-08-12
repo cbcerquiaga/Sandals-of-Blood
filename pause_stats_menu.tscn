@@ -21,7 +21,16 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 1
 script = ExtResource("1_0rct8")
+
+[node name="ColorRect" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 504.0
+offset_top = 188.0
+offset_right = 2728.0
+offset_bottom = 1620.0
+color = Color(0.054902, 0.054902, 0.054902, 0.572549)
 
 [node name="HBoxContainer" type="HBoxContainer" parent="."]
 layout_mode = 0
@@ -67,16 +76,21 @@ texture_focused = ExtResource("12_dcwys")
 
 [node name="TeamScrollContainer" type="ScrollContainer" parent="."]
 layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
+anchors_preset = -1
+anchor_left = 0.166667
+anchor_top = 0.0997963
+anchor_right = 0.901455
+anchor_bottom = 0.818737
+offset_left = 100.0
+offset_top = 100.0
+offset_right = -100.0
+offset_bottom = -100.0
 grow_horizontal = 2
 grow_vertical = 2
-scale = Vector2(10, 10)
+metadata/_edit_use_anchors_ = true
 
-[node name="GridContainer" type="GridContainer" parent="TeamScrollContainer"]
+[node name="GridContainer" type="HBoxContainer" parent="TeamScrollContainer"]
 layout_mode = 2
-columns = 3
 
 [node name="PlayerScrollContainer" type="ScrollContainer" parent="."]
 layout_mode = 1
@@ -86,9 +100,9 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="GridContainer" type="GridContainer" parent="PlayerScrollContainer"]
+[node name="GridContainer" type="HBoxContainer" parent="PlayerScrollContainer"]
 layout_mode = 2
-columns = 6
+size_flags_horizontal = 4
 
 [connection signal="pressed" from="HBoxContainer/TeamButton" to="." method="_on_team_button_pressed"]
 [connection signal="pressed" from="HBoxContainer/ScoringButton" to="." method="_on_scoring_button_pressed"]
