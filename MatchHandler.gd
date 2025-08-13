@@ -67,6 +67,8 @@ func _ready():
 	pauseMenu.matchHandler = self
 	pTeam.reset_player_stats()
 	aTeam.reset_player_stats()
+	pTeam.set_starters()
+	aTeam.set_starters()
 	
 func load_team_strategies():
 	# TODO: load from file
@@ -176,6 +178,10 @@ func _on_player_goal():
 	var passer = ball.assist_by
 	if scorer.team == 1:
 		scorer.game_stats.goals += 1
+		if scorer.status.starter:
+			pTeam.game_stats.starter_goals+= 1
+		else:
+			pTeam.game_stats.bench_goals += 1
 		if scorer is Forward:
 			if scorer.assigned_guard:
 				scorer.assigned_guard.game_stats.mark_points += 1
@@ -190,6 +196,7 @@ func _on_player_goal():
 		print("it's an ace!")
 		pTeam.P._on_goal_aced()
 		was_ace = true
+		pTeam.game_stats.aces += 1
 		aTeam.K.game_stats.aces_allowed += 1
 		var groove_loss = 5 / GlobalSettings.special_pitch_frequency
 		aTeam.K.lose_groove(groove_loss)#sucks to get aced on
@@ -246,6 +253,10 @@ func _on_cpu_goal():
 	var scorer = ball.last_hit_by
 	if scorer.team == 2:
 		scorer.game_stats.goals += 1
+		if scorer.status.starter:
+			pTeam.game_stats.starter_goals+= 1
+		else:
+			pTeam.game_stats.bench_goals += 1
 		if scorer is Forward:
 			if scorer.assigned_guard:
 				scorer.assigned_guard.game_stats.mark_points += 1
@@ -262,6 +273,7 @@ func _on_cpu_goal():
 		aTeam.P._on_goal_aced()
 		pTeam.K.game_stats.aces_allowed += 1
 		was_ace = true
+		aTeam.game_stats.aces += 1
 		var groove_loss = 5 / GlobalSettings.special_pitch_frequency
 		pTeam.K.lose_groove(groove_loss)#sucks to get aced on
 	elif ball.last_hit_by == aTeam.K or ball.assist_by == aTeam.K:

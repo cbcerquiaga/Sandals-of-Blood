@@ -35,7 +35,8 @@ var field_position: String
 	"max_energy": 100, #always 100
 	"max_boost": 100, #variable dependent on energy
 	"stability": 100, #fall chance, shoved chance
-	"groove": 100 #affected by confidence
+	"groove": 100, #affected by confidence
+	"starter": false #true if the player started the game
 }
 
 @export var bio := {

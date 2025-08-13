@@ -9,6 +9,7 @@ var team_id: int
 var is_on_offense: bool
 var is_player_team: bool
 var roster: Array[Player] = [] #every player on the team
+var starters: Array[Player] = [] #used for stats, the players on the field when the game starts
 var bench: Array[Player] = []
 var buffs: Array[Dictionary] = []
 var pending_substitutions: Array[Substitution] = []
@@ -87,6 +88,10 @@ func _process(delta: float) -> void:
 		if K.attributes.power != null && LF.attributes.power != null:
 			has_readied = true
 			on_team_ready.emit(team_id)
+			
+func set_starters():
+	for player in [K, LG, RG, LF, RF, P]:
+		player.status.starter = true
 			
 func change_all_players():
 	change_player("LG", next_onfield_players[0])
@@ -442,8 +447,8 @@ func switch_zone():
 	print("Zone? ", LG.strategy.zone)
 
 func debug_default_roster():
-	roster.clear()
-	bench.clear()
+	#roster.clear()
+	#bench.clear()
 	
 	# Create players as base Player class
 	var P1 = Player.new()
@@ -676,3 +681,12 @@ func reset_player_stats():
 	RG.reset_game_stats()
 	LF.reset_game_stats()
 	RF.reset_game_stats()
+
+func get_time_in_half():
+	var minutes = int(game_stats.ball_in_half/60)
+	var seconds = int(game_stats.ball_in_half - (minutes * 60))
+	var returnString = str(minutes) + ":"
+	if seconds < 10:
+		returnString += "0"
+	returnString += str(seconds)
+	return returnString

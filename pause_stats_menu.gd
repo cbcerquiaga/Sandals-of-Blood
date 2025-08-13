@@ -14,6 +14,23 @@ func clear_container(container: HBoxContainer):
 	for child in container.get_children():
 		child.queue_free()
 
+#TODO: doesn't work, needs debugging
+func get_team_sacks(team: Team):
+	var sacks = 0
+	for player in team.onfield_players:
+		sacks = sacks + player.game_stats.sacks
+	for player in team.bench:
+		sacks = sacks + player.game_stats.sacks
+	return sacks
+	
+func get_team_touches(team: Team):
+	var touches = 0
+	for player in team.onfield_players:
+		touches = touches + player.game_stats.touches
+	for player in team.bench:
+		touches = touches + player.game_stats.touches
+	return touches
+
 func _on_team_button_pressed() -> void:
 	print("team button pressed")
 	teamStatsContainer.show()
@@ -40,9 +57,34 @@ func populate_team_stats():
 	home_pitch_label.text = str(homeTeam.game_stats.pitches)
 	home_pitch_label.add_theme_font_size_override("font_size", 80)
 	home_pitch_label.set_horizontal_alignment(HORIZONTAL_ALIGNMENT_CENTER)
+	var home_aces_label = Label.new()
+	home_aces_label.text = str(homeTeam.game_stats.aces)
+	home_aces_label.add_theme_font_size_override("font_size", 80)
+	home_aces_label.set_horizontal_alignment(HORIZONTAL_ALIGNMENT_CENTER)
+	var home_sacks_label = Label.new()
+	home_sacks_label.text = str(get_team_sacks(homeTeam))
+	home_sacks_label.add_theme_font_size_override("font_size", 80)
+	home_sacks_label.set_horizontal_alignment(HORIZONTAL_ALIGNMENT_CENTER)
+	var home_time_label = Label.new()
+	home_time_label.text = homeTeam.get_time_in_half()
+	home_time_label.add_theme_font_size_override("font_size", 80)
+	home_time_label.set_horizontal_alignment(HORIZONTAL_ALIGNMENT_CENTER)
+	var home_starters_label = Label.new()
+	home_starters_label.text = str(homeTeam.game_stats.starter_goals)
+	home_starters_label.add_theme_font_size_override("font_size", 80)
+	home_starters_label.set_horizontal_alignment(HORIZONTAL_ALIGNMENT_CENTER)
+	var home_bench_label = Label.new()
+	home_bench_label.text = str(homeTeam.game_stats.bench_goals)
+	home_bench_label.add_theme_font_size_override("font_size", 80)
+	home_bench_label.set_horizontal_alignment(HORIZONTAL_ALIGNMENT_CENTER)
 	left_column.add_child(home_name_label)
 	left_column.add_child(home_goal_label)
 	left_column.add_child(home_pitch_label)
+	left_column.add_child(home_aces_label)
+	left_column.add_child(home_sacks_label)
+	left_column.add_child(home_time_label)
+	left_column.add_child(home_starters_label)
+	left_column.add_child(home_bench_label)
 	
 	#middle column is stat labels
 	var middle_cloumn = VBoxContainer.new()
@@ -54,9 +96,34 @@ func populate_team_stats():
 	pitches_label.text = "Pitches"
 	pitches_label.add_theme_font_size_override("font_size", 80)
 	pitches_label.set_horizontal_alignment(HORIZONTAL_ALIGNMENT_CENTER)
+	var aces_label = Label.new()
+	aces_label.text = "Aces"
+	aces_label.add_theme_font_size_override("font_size", 80)
+	aces_label.set_horizontal_alignment(HORIZONTAL_ALIGNMENT_CENTER)
+	var sacks_label = Label.new()
+	sacks_label.text = "Sacks"
+	sacks_label.add_theme_font_size_override("font_size", 80)
+	sacks_label.set_horizontal_alignment(HORIZONTAL_ALIGNMENT_CENTER)
+	var time_label = Label.new()
+	time_label.text = "Ball in Half"
+	time_label.add_theme_font_size_override("font_size", 80)
+	time_label.set_horizontal_alignment(HORIZONTAL_ALIGNMENT_CENTER)
+	var starter_label = Label.new()
+	starter_label.text = "Goals From Starters"
+	starter_label.add_theme_font_size_override("font_size", 80)
+	starter_label.set_horizontal_alignment(HORIZONTAL_ALIGNMENT_CENTER)
+	var bench_label = Label.new()
+	bench_label.text = "Goals From Bench"
+	bench_label.add_theme_font_size_override("font_size", 80)
+	bench_label.set_horizontal_alignment(HORIZONTAL_ALIGNMENT_CENTER)
 	middle_cloumn.add_spacer(true)
 	middle_cloumn.add_child(goals_label)
 	middle_cloumn.add_child(pitches_label)
+	middle_cloumn.add_child(aces_label)
+	middle_cloumn.add_child(sacks_label)
+	middle_cloumn.add_child(time_label)
+	middle_cloumn.add_child(starter_label)
+	middle_cloumn.add_child(bench_label)
 	
 	#right column is away team
 	var right_column = VBoxContainer.new()
@@ -75,9 +142,34 @@ func populate_team_stats():
 	road_pitch_label.text = str(awayTeam.game_stats.pitches)
 	road_pitch_label.add_theme_font_size_override("font_size", 80)
 	road_pitch_label.set_horizontal_alignment(HORIZONTAL_ALIGNMENT_CENTER)
+	var road_aces_label = Label.new()
+	road_aces_label.text = str(awayTeam.game_stats.aces)
+	road_aces_label.add_theme_font_size_override("font_size", 80)
+	road_aces_label.set_horizontal_alignment(HORIZONTAL_ALIGNMENT_CENTER)
+	var road_sacks_label = Label.new()
+	road_sacks_label.text = str(get_team_sacks(awayTeam))
+	road_sacks_label.add_theme_font_size_override("font_size", 80)
+	road_sacks_label.set_horizontal_alignment(HORIZONTAL_ALIGNMENT_CENTER)
+	var road_time_label = Label.new()
+	road_time_label.text = awayTeam.get_time_in_half()
+	road_time_label.add_theme_font_size_override("font_size", 80)
+	road_time_label.set_horizontal_alignment(HORIZONTAL_ALIGNMENT_CENTER)
+	var road_starters_label = Label.new()
+	road_starters_label.text = str(awayTeam.game_stats.starter_goals)
+	road_starters_label.add_theme_font_size_override("font_size", 80)
+	road_starters_label.set_horizontal_alignment(HORIZONTAL_ALIGNMENT_CENTER)
+	var road_bench_label = Label.new()
+	road_bench_label.text = str(awayTeam.game_stats.bench_goals)
+	road_bench_label.add_theme_font_size_override("font_size", 80)
+	road_bench_label.set_horizontal_alignment(HORIZONTAL_ALIGNMENT_CENTER)
 	right_column.add_child(away_name_label)
 	right_column.add_child(road_goal_label)
 	right_column.add_child(road_pitch_label)
+	right_column.add_child(road_aces_label)
+	right_column.add_child(road_sacks_label)
+	right_column.add_child(road_time_label)
+	right_column.add_child(road_starters_label)
+	right_column.add_child(road_bench_label)
 	
 	teamStatsContainer.add_child(left_column)
 	teamStatsContainer.add_child(middle_cloumn)
