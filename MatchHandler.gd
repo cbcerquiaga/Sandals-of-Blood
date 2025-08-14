@@ -254,7 +254,7 @@ func _on_cpu_goal():
 	if scorer.team == 2:
 		scorer.game_stats.goals += 1
 		if scorer.status.starter:
-			pTeam.game_stats.starter_goals+= 1
+			aTeam.game_stats.starter_goals+= 1
 		else:
 			pTeam.game_stats.bench_goals += 1
 		if scorer is Forward:

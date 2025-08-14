@@ -92,6 +92,8 @@ func _process(delta: float) -> void:
 func set_starters():
 	for player in [K, LG, RG, LF, RF, P]:
 		player.status.starter = true
+		if bench.has(player):
+			bench.erase(player)
 			
 func change_all_players():
 	change_player("LG", next_onfield_players[0])
@@ -169,22 +171,31 @@ func initialize_default_strategy():
 	}
 
 func add_players_to_roster():
+	onfield_players = [LG, RG, LF, RF, K, P] #this order is important!
 	add_player(K)
 	add_player(P)
 	add_player(LG)
 	add_player(RG)
 	add_player(RF)
 	add_player(LF)
-	onfield_players = [LG, RG, LF, RF, K, P] #this order is important!
+	
 	
 func reset_subs():
 	subs_remaining = 6
 
 func add_player(player: Player):
-	roster.append(player)
-	bench.append(player)
-	player.team = team_id
-	apply_team_buffs(player)
+	if not is_player_in_roster(player):
+		roster.append(player)
+		if not [K, LG, RG, LF, RF, P].has(player):
+			bench.append(player)
+		player.team = team_id
+		apply_team_buffs(player)
+
+func is_player_in_roster(player: Player) -> bool:
+	for p in roster:
+		if p.bio.first_name == player.bio.first_name and p.bio.last_name == player.bio.last_name:
+			return true
+	return false
 
 func apply_team_buffs(player: Player):
 	for buff in buffs:

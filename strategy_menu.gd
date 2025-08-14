@@ -403,7 +403,7 @@ func setup_substitute_popup() -> void:
 	subsPopup.clear()
 	sub_players.clear()
 	subsPopup.add_theme_font_size_override("font_size", 50)     # Larger text
-	for player in current_team.roster:
+	for player in pending_bench:
 		if original_field.find(player) >= 0:
 			continue
 		var rating = str(get_current_position_overall(player))
