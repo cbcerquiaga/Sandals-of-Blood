@@ -340,7 +340,16 @@ func _physics_process(delta):
 func handle_human_input(delta):
 	# Movement
 	var input_dir = Input.get_vector("move_left", "move_right", "move_up", "move_down")
-	
+	if field_position == "K" or field_position == "G":
+		var midfield = 0.0
+		if team == 1:  # Goal at bottom (positive y)
+			if global_position.y < midfield:
+				if input_dir.y < 0:
+					input_dir.y = 0
+		else:  # team == 2, goal at top (negative y)
+			if global_position.y > midfield:
+				if input_dir.y > 0:
+					input_dir.y = 0
 	
 	# Sprinting
 	if Input.is_action_pressed("sprint") and status.boost > 5 and not is_spinning:
