@@ -508,6 +508,9 @@ func populate_player_info(player: Player):
 	var icon = load(player.playStyle_texture)
 	if icon:
 		type_holder.texture = icon
+		type_holder.visible = true
+	else:
+		"failed to load icon for: " + player.playStyle
 	var nickname
 	if !player.bio.has("nickname"):
 		nickname = " "

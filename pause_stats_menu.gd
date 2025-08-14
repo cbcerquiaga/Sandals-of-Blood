@@ -255,7 +255,7 @@ func populate_scoring_stats():
 			container.add_child(label4)
 			container.add_child(label5)
 			container.add_child(label6)
-			containers.append(container)
+			containers.add_child(container)
 	#TODO: sort containers by goals, then assists, then goal differential, then touches, then alphabetical
 	var sorted_containers
 	var headerContainer = HBoxContainer.new()

@@ -343,6 +343,7 @@ func _process(delta: float) -> void:
 	if Input.is_action_just_pressed("pause"):
 		get_tree().paused = true
 		pauseMenu.open_menu()
+		pauseMenu.matchHandler = self
 	#if Input.is_action_just_pressed("switch_zone"):
 		#pTeam.switch_zone()
 	if is_play_live or is_ball_pitched:

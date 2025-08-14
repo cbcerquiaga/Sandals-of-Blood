@@ -460,7 +460,47 @@ func switch_zone():
 func debug_default_roster():
 	#roster.clear()
 	#bench.clear()
-	
+	var K1 = Keeper.new()
+	K1.playable_positions = ["K", "RG"]
+	K1.special_ability = "machine"
+	K1.declared_pitcher = false
+	K1.attributes = {
+		"speedRating": 75, 
+		"speed": 110.0, 
+		"sprint_speed": 130.0, 
+		"blocking": 80, 
+		"positioning": 80,
+		"aggression": 60,
+		"reactions": 80,
+		"durability": 75,
+		"power": 70,  
+		"throwing": 45,
+		"endurance": 70, 
+		"accuracy": 65,   
+		"balance": 75,    
+		"focus": 60,  
+		"shooting": 70,    
+		"toughness": 70,
+		"confidence": 70 ,
+		"composure": 50
+	}
+	#TODO: figure out why I have to set variables to the exact types instead of just passing them in directly
+	var pitches: Array[String] = ["yoyo, knuckler, corker"]
+	var grooves: Array[float] = [25, 35, 45]
+	K1.special_pitch_names = pitches
+	K1.special_pitch_groove = grooves
+	K1.preferred_position = "K"
+	K1.bio = {
+	"first_name" :"Simon",
+	"last_name": "Stopper",
+	"nickname": "The Collander",
+	"hometown": "Wasteland",
+	"leftHanded": false,
+	"feet": 5,
+	"inches": 9,
+	"pounds": 170,
+	"years": 24
+}
 	# Create players as base Player class
 	var P1 = Player.new()
 	P1.position_type = "pitcher"
@@ -487,8 +527,8 @@ func debug_default_roster():
 		"composure": 50
 	}
 	#TODO: figure out why I have to set variables to the exact types instead of just passing them in directly
-	var pitches: Array[String] = ["yoyo, knuckler, corker"]
-	var grooves: Array[float] = [25, 35, 45]
+	pitches  = ["yoyo, knuckler, corker"]
+	grooves = [25, 35, 45]
 	P1.special_pitch_names = pitches
 	P1.special_pitch_groove = grooves
 	P1.playable_positions = ["P", "LG"]
@@ -619,12 +659,180 @@ func debug_default_roster():
 		"confidence": 60,
 		"composure": 80 
 	}
+	var G1 = Guard.new()
+	G1.position_type = "guard"
+	G1.preferred_position = "RG"
+	G1.playable_positions = ["RG, LG"]
+	G1.portrait = "res://Assets/Player Portraits/placeholder_portrait 3.png"
+	G1.bio = {
+	"first_name" :"Vince",
+	"last_name": "Thompson",
+	"nickname": "Hitman",
+	"hometown": "Crater City",
+	"leftHanded": false,
+	"feet": 5,
+	"inches": 6,
+	"pounds": 165,
+	"years": 27
+}
+	G1.attributes = {
+		"speedRating": 70, 
+		"speed": 105.0, 
+		"sprint_speed": 130.0, 
+		"blocking": 80, 
+		"positioning": 88,
+		"aggression": 60,
+		"reactions": 65,
+		"durability": 65,
+		"throwing": 60,
+		"power": 70,  
+		"endurance": 76, 
+		"accuracy": 70,   
+		"balance": 80,    
+		"focus": 60,  
+		"shooting": 85,    
+		"toughness": 70,
+		"confidence": 60,
+		"composure": 80 
+	}
+	var G2 = Guard.new()
+	G2.position_type = "guard"
+	G2.preferred_position = "LG"
+	G2.playable_positions = ["LF, LG"]
+	G2.portrait = "res://Assets/Player Portraits/placeholder portrait 4.png"
+	G2.bio = {
+	"first_name" :"Bertrand",
+	"last_name": "Porter",
+	"nickname": "Big Funky",
+	"hometown": "Crater City",
+	"leftHanded": false,
+	"feet": 5,
+	"inches": 11,
+	"pounds": 235,
+	"years": 23
+}
+	G2.attributes = {
+		"speedRating": 60, 
+		"speed": 95.0, 
+		"sprint_speed": 120.0, 
+		"blocking": 60, 
+		"positioning": 78,
+		"aggression": 90,
+		"reactions": 65,
+		"durability": 95,
+		"throwing": 60,
+		"power": 95,  
+		"endurance": 86, 
+		"accuracy": 70,   
+		"balance": 80,    
+		"focus": 60,  
+		"shooting": 55,    
+		"toughness": 70,
+		"confidence": 60,
+		"composure": 80 
+	}
+	
+	var F1 = Forward.new()
+	F1.position_type = "forward"
+	F1.preferred_position = "LF"
+	F1.playable_positions = ["LF, LG"]
+	F1.portrait = "res://Assets/Player Portraits/placeholder_portrait 2.png"
+	F1.bio = {
+	"first_name" :"Norm",
+	"last_name": "Gonzalez",
+	"nickname": "Nacho",
+	"hometown": "Grand Junction",
+	"leftHanded": true,
+	"feet": 5,
+	"inches": 11,
+	"pounds": 200,
+	"years": 30
+}
+	G1.attributes = {
+		"speedRating": 70, 
+		"speed": 105.0, 
+		"sprint_speed": 130.0, 
+		"blocking": 80, 
+		"positioning": 88,
+		"aggression": 60,
+		"reactions": 65,
+		"durability": 65,
+		"throwing": 60,
+		"power": 70,  
+		"endurance": 76, 
+		"accuracy": 70,   
+		"balance": 80,    
+		"focus": 60,  
+		"shooting": 85,    
+		"toughness": 70,
+		"confidence": 60,
+		"composure": 80 
+	}
+	var F2 = Guard.new()
+	F2.position_type = "forward"
+	F2.preferred_position = "RF"
+	F2.playable_positions = ["LF, RF"]
+	F2.portrait = "res://Assets/Player Portraits/placeholder_portrait 1.png"
+	F2.bio = {
+	"first_name" :"Danton",
+	"last_name": "Le Corbusier",
+	"nickname": "Boyardee",
+	"hometown": "New Beach",
+	"leftHanded": false,
+	"feet": 6,
+	"inches": 6,
+	"pounds": 215,
+	"years": 26
+}
+	G2.attributes = {
+		"speedRating": 60, 
+		"speed": 95.0, 
+		"sprint_speed": 120.0, 
+		"blocking": 60, 
+		"positioning": 78,
+		"aggression": 90,
+		"reactions": 65,
+		"durability": 95,
+		"throwing": 60,
+		"power": 95,  
+		"endurance": 86, 
+		"accuracy": 70,   
+		"balance": 80,    
+		"focus": 60,  
+		"shooting": 55,    
+		"toughness": 70,
+		"confidence": 60,
+		"composure": 80 
+	}
 	
 	# Add players
 	add_player(P1)
 	add_player(P2)
 	add_player(P3)
 	add_player(P4)
+	add_player(K1)
+	add_player(G1)
+	K.set_all_properties(K1)
+	RG.set_all_properties(G1)
+	LG.set_all_properties(G2)
+	RF.set_all_properties(F2)
+	LF.set_all_properties(F1)
+	
+	K1.calculate_player_type()
+	print("K1 type: " + K1.playStyle)
+	P1.calculate_player_type()  
+	P2.calculate_player_type()  
+	P3.calculate_player_type()  
+	P4.calculate_player_type()  
+	G1.calculate_player_type()  
+	print("G1 type: " + G1.playStyle)
+	G2.calculate_player_type()  
+	print("G2 type: " + G2.playStyle)
+	F1.calculate_player_type()  
+	print("F1 type: " + F1.playStyle)
+	F2.calculate_player_type()  
+	print("F2 type: " + F2.playStyle)
+	
 	#change_all_players()
 	
 func applyTactics():
