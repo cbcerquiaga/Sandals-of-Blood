@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3 uid="uid://bkv78tqdrwbtv"]
+[gd_scene load_steps=16 format=3 uid="uid://bkv78tqdrwbtv"]
 
 [ext_resource type="Script" path="res://pause_stats_menu.gd" id="1_0rct8"]
 [ext_resource type="Texture2D" uid="uid://q43sw6oyjynj" path="res://UI/StatsUI/team_button_base.png" id="1_hyexv"]
@@ -13,6 +13,8 @@
 [ext_resource type="Texture2D" uid="uid://bod4mkc2mpvdc" path="res://UI/StatsUI/pitching_button_highlighted.png" id="10_2olga"]
 [ext_resource type="Texture2D" uid="uid://bxbirl8imqoxe" path="res://UI/StatsUI/Goalkeeping_button_base.png" id="11_lyhev"]
 [ext_resource type="Texture2D" uid="uid://bhjdpww7ppp4x" path="res://UI/StatsUI/Goalkeeping_button_highlighted.png" id="12_dcwys"]
+[ext_resource type="Texture2D" uid="uid://msxwiftij82j" path="res://UI/PauseUI/Exit_button_base.png" id="14_2qksh"]
+[ext_resource type="Texture2D" uid="uid://cdvco7npy88ah" path="res://UI/PauseUI/Exit_button_highlighted.png" id="15_qkthc"]
 
 [node name="Pause_Statistics" type="Control"]
 layout_mode = 3
@@ -26,9 +28,9 @@ script = ExtResource("1_0rct8")
 
 [node name="ColorRect" type="ColorRect" parent="."]
 layout_mode = 0
-offset_left = 504.0
+offset_left = 21.0
 offset_top = 188.0
-offset_right = 2728.0
+offset_right = 3240.0
 offset_bottom = 1620.0
 color = Color(0.054902, 0.054902, 0.054902, 0.572549)
 
@@ -97,12 +99,33 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_left = 320.0
+offset_top = 247.0
+offset_right = -5.0
+offset_bottom = -442.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="GridContainer" type="HBoxContainer" parent="PlayerScrollContainer"]
+[node name="GridContainer" type="VBoxContainer" parent="PlayerScrollContainer"]
 layout_mode = 2
 size_flags_horizontal = 4
+
+[node name="HBoxContainer2" type="HBoxContainer" parent="."]
+layout_mode = 0
+offset_left = 1369.0
+offset_top = 1502.0
+offset_right = 2569.0
+offset_bottom = 2432.0
+scale = Vector2(0.5, 0.5)
+
+[node name="ExitButton" type="TextureButton" parent="HBoxContainer2"]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+texture_normal = ExtResource("14_2qksh")
+texture_pressed = ExtResource("15_qkthc")
+texture_hover = ExtResource("15_qkthc")
+texture_focused = ExtResource("15_qkthc")
 
 [connection signal="pressed" from="HBoxContainer/TeamButton" to="." method="_on_team_button_pressed"]
 [connection signal="pressed" from="HBoxContainer/ScoringButton" to="." method="_on_scoring_button_pressed"]
@@ -110,3 +133,4 @@ size_flags_horizontal = 4
 [connection signal="pressed" from="HBoxContainer/BlockingButton" to="." method="_on_blocking_button_pressed"]
 [connection signal="pressed" from="HBoxContainer/PitchingButton" to="." method="_on_pitching_button_pressed"]
 [connection signal="pressed" from="HBoxContainer/GoalkeepingButton" to="." method="_on_goalkeeping_button_pressed"]
+[connection signal="pressed" from="HBoxContainer2/ExitButton" to="." method="_on_exit_button_pressed"]

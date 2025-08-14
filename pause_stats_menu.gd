@@ -1,16 +1,18 @@
 extends Control
 
 @onready var teamStatsContainer: HBoxContainer = $TeamScrollContainer/GridContainer
-@onready var playerStatsContainer: HBoxContainer = $PlayerScrollContainer/GridContainer
+@onready var playerStatsContainer: VBoxContainer = $PlayerScrollContainer/GridContainer
 var homeTeam: Team
 var awayTeam: Team
+
+signal menu_closed
 
 func open_menu():
 	show()
 	$HBoxContainer/TeamButton.grab_focus()
 	_on_team_button_pressed()
 
-func clear_container(container: HBoxContainer):
+func clear_container(container: BoxContainer):
 	for child in container.get_children():
 		child.queue_free()
 
@@ -77,6 +79,10 @@ func populate_team_stats():
 	home_bench_label.text = str(homeTeam.game_stats.bench_goals)
 	home_bench_label.add_theme_font_size_override("font_size", 80)
 	home_bench_label.set_horizontal_alignment(HORIZONTAL_ALIGNMENT_CENTER)
+	var home_touch_label = Label.new()
+	home_touch_label.text = str(get_team_touches(homeTeam))
+	home_touch_label.add_theme_font_size_override("font_size", 80)
+	home_touch_label.set_horizontal_alignment(HORIZONTAL_ALIGNMENT_CENTER)
 	left_column.add_child(home_name_label)
 	left_column.add_child(home_goal_label)
 	left_column.add_child(home_pitch_label)
@@ -85,6 +91,7 @@ func populate_team_stats():
 	left_column.add_child(home_time_label)
 	left_column.add_child(home_starters_label)
 	left_column.add_child(home_bench_label)
+	left_column.add_child(home_touch_label)
 	
 	#middle column is stat labels
 	var middle_cloumn = VBoxContainer.new()
@@ -116,6 +123,10 @@ func populate_team_stats():
 	bench_label.text = "Goals From Bench"
 	bench_label.add_theme_font_size_override("font_size", 80)
 	bench_label.set_horizontal_alignment(HORIZONTAL_ALIGNMENT_CENTER)
+	var touch_label = Label.new()
+	touch_label.text = "Ball Touches"
+	touch_label.add_theme_font_size_override("font_size", 80)
+	touch_label.set_horizontal_alignment(HORIZONTAL_ALIGNMENT_CENTER)
 	middle_cloumn.add_spacer(true)
 	middle_cloumn.add_child(goals_label)
 	middle_cloumn.add_child(pitches_label)
@@ -124,6 +135,7 @@ func populate_team_stats():
 	middle_cloumn.add_child(time_label)
 	middle_cloumn.add_child(starter_label)
 	middle_cloumn.add_child(bench_label)
+	middle_cloumn.add_child(touch_label)
 	
 	#right column is away team
 	var right_column = VBoxContainer.new()
@@ -162,6 +174,10 @@ func populate_team_stats():
 	road_bench_label.text = str(awayTeam.game_stats.bench_goals)
 	road_bench_label.add_theme_font_size_override("font_size", 80)
 	road_bench_label.set_horizontal_alignment(HORIZONTAL_ALIGNMENT_CENTER)
+	var road_touch_label = Label.new()
+	road_touch_label.text = str(get_team_touches(awayTeam))
+	road_touch_label.add_theme_font_size_override("font_size", 80)
+	road_touch_label.set_horizontal_alignment(HORIZONTAL_ALIGNMENT_CENTER)
 	right_column.add_child(away_name_label)
 	right_column.add_child(road_goal_label)
 	right_column.add_child(road_pitch_label)
@@ -170,6 +186,7 @@ func populate_team_stats():
 	right_column.add_child(road_time_label)
 	right_column.add_child(road_starters_label)
 	right_column.add_child(road_bench_label)
+	right_column.add_child(road_touch_label)
 	
 	teamStatsContainer.add_child(left_column)
 	teamStatsContainer.add_child(middle_cloumn)
@@ -177,8 +194,107 @@ func populate_team_stats():
 
 
 func _on_scoring_button_pressed() -> void:
-	pass # Replace with function body.
-
+	teamStatsContainer.hide()
+	playerStatsContainer.show()
+	populate_scoring_stats()
+	
+func populate_scoring_stats():
+	var containers = []
+	for player in homeTeam.roster:
+		if player.game_stats.pitches_played > 0:
+			var labels = []
+			var label1 = Label.new()
+			label1.text = player.last_name
+			var label2 = Label.new()
+			label2.text = homeTeam.team_city
+			var label3 = Label.new()
+			label3.text = player.game_stats.touches
+			var label4 = Label.new()
+			label4.text = player.game_stats.goals
+			var label5 = Label.new()
+			label5.text = player.game_stats.assists
+			var label6 = Label.new()
+			var diff = player.game_stats.goals_for + player.game_stats.goals_against
+			if diff > 0:
+				diff = "+" + str(diff)
+			else:
+				diff = str(diff)
+			label6.text = diff
+			var container = HBoxContainer.new()
+			container.add_child(label1)
+			container.add_child(label2)
+			container.add_child(label3)
+			container.add_child(label4)
+			container.add_child(label5)
+			container.add_child(label6)
+			containers.append(container)
+	for player in awayTeam.roster:
+		if player.game_stats.pitches_played > 0:
+			var labels = []
+			var label1 = Label.new()
+			label1.text = player.last_name
+			var label2 = Label.new()
+			label2.text = awayTeam.team_city
+			var label3 = Label.new()
+			label3.text = player.game_stats.touches
+			var label4 = Label.new()
+			label4.text = player.game_stats.goals
+			var label5 = Label.new()
+			label5.text = player.game_stats.assists
+			var label6 = Label.new()
+			var diff = player.game_stats.goals_for + player.game_stats.goals_against
+			if diff > 0:
+				diff = "+" + str(diff)
+			else:
+				diff = str(diff)
+			label6.text = diff
+			var container = HBoxContainer.new()
+			container.add_child(label1)
+			container.add_child(label2)
+			container.add_child(label3)
+			container.add_child(label4)
+			container.add_child(label5)
+			container.add_child(label6)
+			containers.append(container)
+	#TODO: sort containers by goals, then assists, then goal differential, then touches, then alphabetical
+	var sorted_containers
+	var headerContainer = HBoxContainer.new()
+	var label1 = Label.new()
+	label1.text = "Player"
+	label1.add_theme_font_size_override("font_size", 80)
+	label1.set_horizontal_alignment(HORIZONTAL_ALIGNMENT_CENTER)
+	var label2 = Label.new()
+	label2.text = "Team"
+	label2.add_theme_font_size_override("font_size", 80)
+	label2.set_horizontal_alignment(HORIZONTAL_ALIGNMENT_CENTER)
+	var label3 = Label.new()
+	label3.text = "Touches"
+	label3.add_theme_font_size_override("font_size", 80)
+	label3.set_horizontal_alignment(HORIZONTAL_ALIGNMENT_CENTER)
+	var label4 = Label.new()
+	label4.text = "Goals"
+	label4.add_theme_font_size_override("font_size", 80)
+	label4.set_horizontal_alignment(HORIZONTAL_ALIGNMENT_CENTER)
+	var label5 = Label.new()
+	label5.text = "Assists"
+	label5.add_theme_font_size_override("font_size", 80)
+	label5.set_horizontal_alignment(HORIZONTAL_ALIGNMENT_CENTER)
+	var label6 = Label.new()
+	label6.text = "Goal Differential"
+	label6.add_theme_font_size_override("font_size", 80)
+	label6.set_horizontal_alignment(HORIZONTAL_ALIGNMENT_CENTER)
+	headerContainer.add_child(label1)
+	headerContainer.add_child(label2)
+	headerContainer.add_child(label3)
+	headerContainer.add_child(label4)
+	headerContainer.add_child(label5)
+	headerContainer.add_child(label6)
+	playerStatsContainer.add_child(headerContainer)
+	for container in containers:
+		for label in container:
+			label.add_theme_font_size_override("font_size", 80)
+			label.set_horizontal_alignment(HORIZONTAL_ALIGNMENT_CENTER)
+		playerStatsContainer.add_child(container)
 
 func _on_rushing_button_pressed() -> void:
 	pass # Replace with function body.
@@ -194,3 +310,10 @@ func _on_pitching_button_pressed() -> void:
 
 func _on_goalkeeping_button_pressed() -> void:
 	pass # Replace with function body.
+
+
+func _on_exit_button_pressed() -> void:
+	if !visible:
+		return
+	emit_signal("menu_closed")
+	hide()

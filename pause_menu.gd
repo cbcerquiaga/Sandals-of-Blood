@@ -28,6 +28,7 @@ signal new_sub()
 func _ready():
 	strategy_menu.menu_closed.connect(_on_strategy_menu_closed)
 	options_menu.menu_closed.connect(_on_options_menu_closed)
+	stats_screen.menu_closed.connect(_on_stats_menu_closed)
 	resume.grab_focus()
 	hide()
 	
@@ -41,71 +42,9 @@ func open_menu(highlight: String = "resume"):
 			strategy.grab_focus()
 		"options":
 			options.grab_focus()
+		"statistics":
+			statistics.grab_focus()
 		
-#
-#func _process(delta):
-	#if get_tree().paused == true:
-		#if submenu == "strategy":
-			#hide()
-		#else:
-			#show()
-	#if cooldown_frame < input_cooldown:
-		#cooldown_frame += 1
-	##if Input.is_action_just_pressed("pause") and cooldown_frame >= input_cooldown: #TODO: debug
-		##resume_game()
-	#if current_index == 0:
-		#resume.grab_focus()
-		#if Input.is_action_just_pressed("move_down") and cooldown_frame >= input_cooldown:
-			#cooldown_frame = 0
-			#current_index = 1
-		#elif Input.is_action_just_pressed("move_up") and cooldown_frame >= input_cooldown:
-			#cooldown_frame = 0
-			#current_index = 5
-		#elif Input.is_action_just_pressed("UI_enter") and cooldown_frame >= input_cooldown:
-			#cooldown_frame = 0
-			#resume_game()
-	#elif current_index == 1:
-		#strategy.grab_focus()
-		#if Input.is_action_just_pressed("move_down") and cooldown_frame >= input_cooldown:
-			#cooldown_frame = 0
-			#current_index = 2
-		#elif Input.is_action_just_pressed("move_up") and cooldown_frame >= input_cooldown:
-			#cooldown_frame = 0
-			#current_index = 0
-		#elif Input.is_action_just_pressed("UI_enter") and cooldown_frame >= input_cooldown:
-			#show_strategy_menu()
-	#elif current_index == 2:
-		#statistics.grab_focus()
-		#if Input.is_action_just_pressed("move_down") and cooldown_frame >= input_cooldown:
-			#cooldown_frame = 0
-			#current_index = 3
-		#elif Input.is_action_just_pressed("move_up") and cooldown_frame >= input_cooldown:
-			#cooldown_frame = 0
-			#current_index = 1
-	#elif current_index == 3:
-		#options.grab_focus()
-		#if Input.is_action_just_pressed("move_down") and cooldown_frame >= input_cooldown:
-			#cooldown_frame = 0
-			#current_index = 4
-		#elif Input.is_action_just_pressed("move_up") and cooldown_frame >= input_cooldown:
-			#cooldown_frame = 0
-			#current_index = 2
-	#elif current_index == 4:
-		#export.grab_focus()
-		#if Input.is_action_just_pressed("move_down") and cooldown_frame >= input_cooldown:
-			#cooldown_frame = 0
-			#current_index = 5
-		#elif Input.is_action_just_pressed("move_up") and cooldown_frame >= input_cooldown:
-			#cooldown_frame = 0
-			#current_index = 3
-	#elif current_index == 5:
-		#exit.grab_focus()
-		#if Input.is_action_just_pressed("move_down") and cooldown_frame >= input_cooldown:
-			#cooldown_frame = 0
-			#current_index = 0
-		#elif Input.is_action_just_pressed("move_up") and cooldown_frame >= input_cooldown:
-			#cooldown_frame = 0
-			#current_index = 4
 	
 func resume_game():
 	#print("resume the game")
@@ -122,10 +61,6 @@ func show_strategy_menu():
 func set_team(importedTeam: Team):
 	team = importedTeam
 	strategy_menu.set_team_info(team)
-
-
-#func perform_substitions() -> void:
-	#strategy_menu.perform_substitution()
 
 	
 func _on_strategy_menu_closed():
@@ -159,6 +94,10 @@ func _unhandled_input(event):
 			get_viewport().set_input_as_handled()
 		elif submenu == "strategy":
 			strategy_menu._on_discard_pressed()
+		elif submenu == "statistics":
+			stats_screen._on_exit_button_pressed()
+		elif submenu == "options":
+			options_menu._on_discard_button_pressed()
 
 
 func _on_options_pressed() -> void:
@@ -170,6 +109,10 @@ func _on_options_pressed() -> void:
 func _on_options_menu_closed():
 	submenu = ""
 	open_menu("options")
+	
+func _on_stats_menu_closed():
+	submenu = ""
+	open_menu("statistics")
 
 
 func _on_statistics_pressed() -> void:
