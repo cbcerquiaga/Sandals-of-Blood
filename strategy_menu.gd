@@ -505,6 +505,7 @@ func populate_player_info(player: Player):
 	attributes_label2.add_theme_font_size_override("font_size", 30)
 	stats_label.add_theme_font_size_override("font_size", 30)
 	portrait.texture = load(player.portrait)
+	player.calculate_player_type()
 	var icon = load(player.playStyle_texture)
 	if icon:
 		type_holder.texture = icon

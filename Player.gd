@@ -1028,6 +1028,7 @@ func calculate_keeper_overall():
 
 func set_all_properties(old_player: Player) -> void:
 	playable_positions = old_player.playable_positions.duplicate()
+	preferred_position = old_player.preferred_position
 	declared_pitcher = old_player.declared_pitcher
 	field_position = old_player.field_position
 	attributes = old_player.attributes.duplicate(true)
@@ -1157,7 +1158,7 @@ func find_forward_style():
 	elif antiKeeper > shooter and antiKeeper > support:
 		playStyle = "Anti-Keeper"
 		playStyle_texture = "res://UI/PlayerTypeSymbols/playerType_anti_keeper.png"
-	elif support > antiKeeper > shooter:
+	elif support > antiKeeper and support > shooter:
 		playStyle = "Support Forward"
 		playStyle_texture = "res://UI/PlayerTypeSymbols/playerType_support.png"
 	else: #probably just 99 everything

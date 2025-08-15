@@ -705,8 +705,6 @@ func fill_team_rosters():
 	pTeam.next_onfield_players = [pTeam.LG, pTeam.RG, pTeam.LF, pTeam.RF, pTeam.K, pTeam.P]
 	aTeam.next_onfield_players = [aTeam.LG, aTeam.RG, aTeam.LF, aTeam.RF, aTeam.K, aTeam.P]
 	#TODO: import player names, stats, and status from sheet
-	pTeam.K.special_ability = "spin_doctor"
-	aTeam.K.special_ability = "machine"
 	#TODO: import player sprites
 	#Debug only: color player polygons
 	var pGoalie = Color( 1, 1, 0, 1 )#yellow goalie jersey

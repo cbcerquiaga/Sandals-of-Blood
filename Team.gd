@@ -748,22 +748,22 @@ func debug_default_roster():
 	"pounds": 200,
 	"years": 30
 }
-	G1.attributes = {
+	F1.attributes = {
 		"speedRating": 70, 
 		"speed": 105.0, 
 		"sprint_speed": 130.0, 
 		"blocking": 80, 
 		"positioning": 88,
 		"aggression": 60,
-		"reactions": 65,
-		"durability": 65,
+		"reactions": 85,
+		"durability": 85,
 		"throwing": 60,
-		"power": 70,  
+		"power": 80,  
 		"endurance": 76, 
 		"accuracy": 70,   
 		"balance": 80,    
 		"focus": 60,  
-		"shooting": 85,    
+		"shooting": 65,    
 		"toughness": 70,
 		"confidence": 60,
 		"composure": 80 
