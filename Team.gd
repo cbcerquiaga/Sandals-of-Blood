@@ -3,6 +3,7 @@ extends Node
 
 var team_name: String
 var team_city: String
+var team_abbreviation: String
 var team_name_inverted: bool = false #"town mascots" if false, "mascots of town" if true
 var team_logo_path: String
 var team_id: int

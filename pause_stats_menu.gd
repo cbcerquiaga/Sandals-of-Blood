@@ -239,19 +239,23 @@ func populate_scoring_stats():
 	headerContainer.add_child(label6)
 	playerStatsContainer.add_child(headerContainer)
 	for container in containers:
-		for label in container.get_children():
-			label.add_theme_font_size_override("font_size", 80)
-			label.set_horizontal_alignment(HORIZONTAL_ALIGNMENT_CENTER)
 		playerStatsContainer.add_child(container)
+	for container in playerStatsContainer.get_children():
+		container.add_theme_constant_override("separation", 80)
+		for label in container.get_children():
+			label.add_theme_font_size_override("font_size", 50)
+			label.size = Vector2(300, 100)  # More reasonable size
+			label.custom_minimum_size = Vector2(300, 100)
+			label.set_horizontal_alignment(HORIZONTAL_ALIGNMENT_CENTER)
 
 func loop_scoring_player(list, containers, team):
 	for player in list:
-		if player.game_stats.pitches_played > 0:
+		if player.game_stats.pitches_played > 0 or player.status.starter:
 			var labels = []
 			var label1 = Label.new()
 			label1.text = player.bio.last_name
 			var label2 = Label.new()
-			label2.text = team.team_city
+			label2.text = team.team_abbreviation
 			var label3 = Label.new()
 			label3.text = str(player.game_stats.touches)
 			var label4 = Label.new()

@@ -694,9 +694,11 @@ func on_team_ready_signal(id: int) -> void:
 func fill_team_rosters():
 	pTeam.team_city = "Test Town"
 	pTeam.team_name = "TestFaces"
+	pTeam.team_abbreviation = "TTT"
 	aTeam.team_city = "Turingville"
 	aTeam.team_name = "Bugs"
 	aTeam.team_name_inverted = true
+	aTeam.team_abbreviation = "BOT"
 	import_team_rosters()
 	pTeam.debug_default_roster() #just until we figure out how to import players from text file
 	aTeam.debug_default_roster()
