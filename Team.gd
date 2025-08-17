@@ -174,11 +174,17 @@ func initialize_default_strategy():
 func add_players_to_roster():
 	onfield_players = [LG, RG, LF, RF, K, P] #this order is important!
 	add_player(K)
+	K.field_position == "K"
 	add_player(P)
+	P.field_position == "P"
 	add_player(LG)
+	LG.field_position == "G"
 	add_player(RG)
+	RG.field_position == "G"
 	add_player(RF)
+	RF.field_position == "F"
 	add_player(LF)
+	LF.field_position == "F"
 	
 	
 func reset_subs():
