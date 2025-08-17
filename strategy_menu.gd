@@ -26,19 +26,19 @@ var k
 var lg
 var rg
 
-var pending_substitutions : Array[Substitution]
+var pending_substitutions : Array
 
 var is_in_match:bool = true #false if we got here from the team management menu, true if we got here from pausing a match
 #the "original" values are populated from team's next_<variable> fields, and are used for revertiyn
 var original_subs: int #how many subs the team started with, used for reverting
-var original_roster:Array
-var original_field: Array
+var original_roster:Array[Player]
+var original_field: Array[Player]
 var original_strategy:Dictionary
-var original_bench:Array#array of up to 6 fielders and 3 pitchers
+var original_bench:Array[Player]#array of up to 6 fielders and 3 pitchers
 #the "pending" values start out as team's next_<variable> but are changed. If save is pressed, they become the team's next
 var pending_subs: int #how many subs the team has left after the pending subs take effect
-var pending_field: Array #for pending substitutions
-var pending_bench: Array
+var pending_field: Array[Player] #for pending substitutions
+var pending_bench: Array[Player]
 #
 var current_team: Team
 var match_handler: MatchHandler
@@ -47,7 +47,7 @@ var current_focus_owner: Control = null
 var chosen_position: String = ""
 var shuffle_player: Player
 var shuffle_from_bench: bool = false #if we pick "reposition" from a field player, this is false. if we pick "substitute" from a bench player, this is true. Same menu, slightly different functionality
-var sub_players: Array
+var sub_players: Array[Player]
 signal menu_closed
 signal new_sub
 
@@ -159,9 +159,30 @@ func open_menu(team: Team, handler: MatchHandler, in_match: bool):
 	match_handler = handler
 	is_in_match = in_match
 	original_strategy = team.strategy.duplicate(true)
-	original_field = team.next_onfield_players.duplicate(true)
-	original_bench = team.next_bench.duplicate(true)
 	original_subs = team.subs_remaining
+	original_field = []
+	for player in team.next_onfield_players:
+		var p = Player.new()
+		p.set_all_properties(player)
+		original_field.append(p)
+	original_bench = []
+	for player in team.next_bench:
+		var p = Player.new()
+		p.set_all_properties(player)
+		original_bench.append(p)
+	pending_field = []
+	for player in team.next_onfield_players:
+		var p = Player.new()
+		p.set_all_properties(player)
+		pending_field.append(p)
+	pending_bench = []
+	for player in team.next_bench:
+		var p = Player.new()
+		p.set_all_properties(player)
+		pending_bench.append(p)
+	pending_subs = original_subs
+	pending_substitutions.clear()
+	
 	apply_team_to_field()
 	_reset_all_button_styles()
 	if last_focused_button and last_focused_button.is_visible_in_tree():
@@ -189,19 +210,29 @@ func bench_player_chosen(chosenPlayer: Player):
 	
 func _on_save_pressed():
 	if is_in_match:
-		apply_strategy_changes()
-		apply_next_roster()
-		match_handler.update_team_strategy(current_team)
+		current_team.next_bench = []
+		for player in pending_bench:
+			var p = Player.new()
+			p.set_all_properties(player)
+			current_team.next_bench.append(p)
+		current_team.next_onfield_players = []
+		for player in pending_field:
+			var p = Player.new()
+			p.set_all_properties(player)
+			current_team.next_onfield_players.append(p)
+		current_team.subs_remaining = pending_subs
+		current_team.pending_substitutions = pending_substitutions.duplicate()
 		match_handler.update_team_roster(current_team)
+		emit_signal("new_sub")
 	else:
+		apply_next_roster()
 		save_strategy(current_team, "user://player_team_strategy.json")
-	current_team.pending_substitutions = pending_substitutions
 	emit_signal("menu_closed")
 	hide()
 	
 func apply_next_roster():
-	current_team.next_onfield_players = pending_field
-	current_team.next_bench = pending_bench
+	current_team.next_onfield_players = pending_field.duplicate(true)
+	current_team.next_bench = pending_bench.duplicate(true)
 	current_team.subs_remaining = pending_subs
 	
 func _on_discard_pressed():
@@ -220,14 +251,19 @@ func apply_strategy_changes():
 	current_team.strategy.tactics.D = tacticsSection.D_strategy
 		
 func revert_changes():
-	current_team.strategy = original_strategy.duplicate(true)
-	current_team.pending_substitutions.clear()
-	current_team.next_bench = original_bench
-	current_team.next_onfield_players = original_field
-	current_team.subs_remaining = original_subs
-	pending_bench = original_bench
-	pending_field = original_field
+	pending_field = []
+	for player in original_field:
+		var p = Player.new()
+		p.set_all_properties(player)
+		pending_field.append(p)
+	pending_bench = []
+	for player in original_bench:
+		var p = Player.new()
+		p.set_all_properties(player)
+		pending_bench.append(p)
 	pending_subs = original_subs
+	pending_substitutions = []
+	apply_team_to_field()
 	
 func _unhandled_input(event):
 	if visible:
@@ -253,37 +289,47 @@ func load_strategy(team: Team, file_path: String):
 
 func set_team_info(team: Team):
 	benchSection.import_roster(team.roster)
-	original_bench = team.next_bench
+	original_bench = team.next_bench.duplicate(true)
 	tacticsSection.import_team(team)
 	
 func apply_team_to_field():
-	lg = current_team.LG
-	rg = current_team.RG
-	k = current_team.K
-	lf = current_team.LF
-	rf = current_team.RF
-	p = current_team.P
-	pending_field = original_field.duplicate(true)
-	pending_bench = original_bench
-	pending_subs = current_team.subs_remaining
+	lg = pending_field[0]
+	rg = pending_field[1]
+	k = pending_field[4]
+	lf = pending_field[2]
+	rf = pending_field[3]
+	p = pending_field[5]
 	ui_update()
 	
 func ui_update():
-	var lf_overall = lf.calculate_forward_overall()
-	var rf_overall = rf.calculate_forward_overall()
-	var p_overall = p.calculate_pitcher_overall()
-	var lg_overall = lg.calculate_guard_overall()
-	var rg_overall = rg.calculate_guard_overall()
-	var k_overall = k.calculate_keeper_overall()
-	$SubstitutionSection/FieldGrid/LF_Button/Label.text = "LF: " + lf.bio.first_name + " " +  lf.bio.last_name + "\n" + str(lf_overall) + " Rating " + str(lf.status.energy) + "% Energy"
-	$SubstitutionSection/FieldGrid/P_Button/Label.text = "P: " + p.bio.first_name+ " "  + p.bio.last_name + "\n" + str(p_overall) + " Rating " + str(p.status.energy) + "% Energy"
-	$SubstitutionSection/FieldGrid/RF_Button/Label.text = "RF: " + rf.bio.first_name + " " + rf.bio.last_name + "\n" + str(rf_overall) + " Rating " + str(rf.status.energy) + "% Energy"
-	$SubstitutionSection/FieldGrid/LG_Button/Label.text = "LG: " + lg.bio.first_name + " " + lg.bio.last_name + "\n" + str(lg_overall) + " Rating " + str(lg.status.energy) + "% Energy"
-	$SubstitutionSection/FieldGrid/K_Button/Label.text = "K: " + k.bio.first_name + " "+ k.bio.last_name + "\n" + str(k_overall) + " Rating " + str(k.status.energy) + "% Energy"
-	$SubstitutionSection/FieldGrid/RG_Button/Label.text = "RG: " + rg.bio.first_name + " "+ rg.bio.last_name + "\n" + str(rg_overall) + " Rating " + str(rg.status.energy) + "% Energy"
-	benchSection.on_field = pending_field
+	var combined_roster = []
+	for player in pending_field:
+		combined_roster.append(player)
+	for player in pending_bench:
+		combined_roster.append(player)
+	benchSection.roster = combined_roster
+	benchSection.on_field = pending_field.duplicate(true)
 	benchSection.apply_roster_to_UI()
-	
+	var lf_player = pending_field[2]
+	var rf_player = pending_field[3]
+	var p_player = pending_field[5]
+	var lg_player = pending_field[0]
+	var rg_player = pending_field[1]
+	var k_player = pending_field[4]
+	var lf_overall = lf_player.calculate_forward_overall()
+	var rf_overall = rf_player.calculate_forward_overall()
+	var p_overall = p_player.calculate_pitcher_overall()
+	var lg_overall = lg_player.calculate_guard_overall()
+	var rg_overall = rg_player.calculate_guard_overall()
+	var k_overall = k_player.calculate_keeper_overall()
+	$SubstitutionSection/FieldGrid/LF_Button/Label.text = "LF: " + lf_player.bio.first_name + " " +  lf_player.bio.last_name + "\n" + str(lf_overall) + " Rating " + str(lf_player.status.energy) + "% Energy"
+	$SubstitutionSection/FieldGrid/P_Button/Label.text = "P: " + p_player.bio.first_name+ " "  + p_player.bio.last_name + "\n" + str(p_overall) + " Rating " + str(p_player.status.energy) + "% Energy"
+	$SubstitutionSection/FieldGrid/RF_Button/Label.text = "RF: " + rf_player.bio.first_name + " " + rf_player.bio.last_name + "\n" + str(rf_overall) + " Rating " + str(rf_player.status.energy) + "% Energy"
+	$SubstitutionSection/FieldGrid/LG_Button/Label.text = "LG: " + lg_player.bio.first_name + " " + lg_player.bio.last_name + "\n" + str(lg_overall) + " Rating " + str(lg_player.status.energy) + "% Energy"
+	$SubstitutionSection/FieldGrid/K_Button/Label.text = "K: " + k_player.bio.first_name + " "+ k_player.bio.last_name + "\n" + str(k_overall) + " Rating " + str(k_player.status.energy) + "% Energy"
+	$SubstitutionSection/FieldGrid/RG_Button/Label.text = "RG: " + rg_player.bio.first_name + " "+ rg_player.bio.last_name + "\n" + str(rg_overall) + " Rating " + str(rg_player.status.energy) + "% Energy"
+
+
 func position_labels_left():
 	var offset = Vector2(175, 75)
 	var label_scale = Vector2(0.75, 0.75)
@@ -404,7 +450,7 @@ func setup_substitute_popup() -> void:
 	sub_players.clear()
 	subsPopup.add_theme_font_size_override("font_size", 50)     # Larger text
 	for player in pending_bench:
-		if original_field.find(player) >= 0:
+		if pending_field.find(player) >= 0:
 			continue
 		var rating = str(get_current_position_overall(player))
 		var surname = player.bio.last_name
@@ -438,7 +484,7 @@ func populate_reposition_popup():
 	movePopup.add_theme_constant_override("icon_max_height", 50) # Smaller icons
 	movePopup.add_theme_font_size_override("font_size", 50)     # Larger text
 	var index = 0
-	for player in original_field:
+	for player in pending_field:
 		var texture
 		var role = get_position_by_index(index)
 		if shuffle_from_bench: #only care about whether the bench player can play the position
@@ -599,7 +645,7 @@ func print_player_stats(player: Player):
 	return string
 
 func _on_reposition_popup_index_pressed(index: int) -> void:
-	var subOff_player = original_field[index]
+	var subOff_player = pending_field[index]
 	var role = get_position_by_index(index)
 	print("Subbing into position ", role)
 	if shuffle_from_bench:
@@ -615,75 +661,45 @@ func _on_substitution_popup_index_pressed(index: int) -> void:
 	pass
 	
 func substitute(playerOff, playerOn):
-	#print("substitute " + playerOn.bio.last_name +  " for " +  playerOff.bio.last_name)
-	#print("before substitution")
-	#print_roster()
-	
 	if pending_subs <= 0:
-		print("No substitutions remaining!")
 		return
-	
 	var on_index = pending_field.find(playerOff)
 	var off_index = pending_bench.find(playerOn)
-	
-	if on_index == -1:
-		print("Player to substitute off not found in field: " + playerOff.bio.last_name)
+	if on_index == -1 or off_index == -1:
 		return
-	
-	if off_index == -1:
-		print("Player to substitute on not found in bench: " + playerOn.bio.last_name)
-		return
-
-	pending_field[on_index] = playerOn
-	pending_bench[off_index] = playerOff
+	var temp = Player.new()
+	temp.set_all_properties(playerOn)
+	pending_bench[off_index].set_all_properties(playerOff)
+	pending_field[on_index].set_all_properties(temp)
 	pending_subs -= 1
-	
-	roster_update()
-	ui_update()
+	apply_team_to_field()
 	subsPopup.hide()
 	movePopup.hide()
 	playerPopup.hide()
 	benchPopup.hide()
 	maintain_focus()
-
+	maintain_focus()
+	
 func reposition(player1, player2):
-	#print("reposition " + player1.bio.last_name + " and " + player2.bio.last_name)
-	#print("before reposition")
-	#print_roster()
-
-	var index1 = pending_field.find(player1)
-	var index2 = pending_field.find(player2)
-	if index1 == -1:
-		print("Player 1 not found in field: " + player1.bio.last_name)
+	var index1 = -1
+	var index2 = -1
+	for i in range(pending_field.size()):
+		if pending_field[i].bio.last_name == player1.bio.last_name:
+			index1 = i
+		if pending_field[i].bio.last_name == player2.bio.last_name:
+			index2 = i
+	if index1 == -1 || index2 == -1:
+		print("Player not found in field")
 		return
-	
-	if index2 == -1:
-		print("Player 2 not found in field: " + player2.bio.last_name)
-		return
-	pending_field[index1] = player2
-	pending_field[index2] = player1
-
-	roster_update()
-	ui_update()
+	var temp1 = Player.new()
+	var temp2 = Player.new()
+	temp1.set_all_properties(pending_field[index1])
+	temp2.set_all_properties(pending_field[index2])
+	pending_field[index1].set_all_properties(temp2)
+	pending_field[index2].set_all_properties(temp1)
+	apply_team_to_field()
 	subsPopup.hide()
 	movePopup.hide()
 	playerPopup.hide()
 	benchPopup.hide()
 	maintain_focus()
-	
-func roster_update():
-	#[lg, rg, lf, rf, k, p]
-	lg = pending_field[0]
-	rg = pending_field[1]
-	lf = pending_field[2]
-	rf = pending_field[3]
-	k = pending_field[4]
-	p = pending_field[5]
-	#print("after roster update")
-	#print_roster()
-	
-func print_roster():
-	var string = ""
-	for player in pending_field:
-		string = string + player.bio.last_name
-	print(string)

@@ -199,13 +199,42 @@ func _on_scoring_button_pressed() -> void:
 	populate_scoring_stats()
 	
 func populate_scoring_stats():
-	var containers = []
-	loop_scoring_player(homeTeam.onfield_players, containers, homeTeam)
-	loop_scoring_player(homeTeam.bench, containers, homeTeam)
-	loop_scoring_player(awayTeam.onfield_players, containers, awayTeam)
-	loop_scoring_player(awayTeam.bench, containers, awayTeam)
-	#TODO: sort containers by goals, then assists, then goal differential, then touches, then alphabetical
-	var sorted_containers
+	clear_container(playerStatsContainer)
+	
+	var players = []
+	collect_scoring_players(homeTeam.onfield_players, players, homeTeam)
+	collect_scoring_players(homeTeam.bench, players, homeTeam)
+	collect_scoring_players(awayTeam.onfield_players, players, awayTeam)
+	collect_scoring_players(awayTeam.bench, players, awayTeam)
+	
+	players.sort_custom(func(a, b):
+		var a_stats = a["player"].game_stats
+		var b_stats = b["player"].game_stats
+		
+		#Sort by goals + assists descending
+		var a_points = a_stats.goals + a_stats.assists
+		var b_points = b_stats.goals + b_stats.assists
+		if a_points != b_points:
+			return a_points > b_points
+			
+		# Then by goals descending
+		if a_stats.goals != b_stats.goals:
+			return a_stats.goals > b_stats.goals
+			
+		# Then by goal differential descending
+		var a_diff = a_stats.goals_for - a_stats.goals_against
+		var b_diff = b_stats.goals_for - b_stats.goals_against
+		if a_diff != b_diff:
+			return a_diff > b_diff
+			
+		# Then by touches descending
+		if a_stats.touches != b_stats.touches:
+			return a_stats.touches > b_stats.touches
+			
+		# Finally by last name ascending
+		return a["player"].bio.last_name < b["player"].bio.last_name
+	)
+	
 	var headerContainer = HBoxContainer.new()
 	var label1 = Label.new()
 	label1.text = "Player"
@@ -238,45 +267,46 @@ func populate_scoring_stats():
 	headerContainer.add_child(label5)
 	headerContainer.add_child(label6)
 	playerStatsContainer.add_child(headerContainer)
-	for container in containers:
+	
+	for player_data in players:
+		var player = player_data["player"]
+		var team = player_data["team"]
+		var container = HBoxContainer.new()
+		var plabel1 = Label.new()
+		plabel1.text = player.bio.last_name
+		var plabel2 = Label.new()
+		plabel2.text = team.team_abbreviation
+		var plabel3 = Label.new()
+		plabel3.text = str(player.game_stats.touches)
+		var plabel4 = Label.new()
+		plabel4.text = str(player.game_stats.goals)
+		var plabel5 = Label.new()
+		plabel5.text = str(player.game_stats.assists)
+		var plabel6 = Label.new()
+		var diff = player.game_stats.goals_for - player.game_stats.goals_against
+		if diff > 0:
+			plabel6.text = "+" + str(diff)
+		else:
+			plabel6.text = str(diff)
+		
+		container.add_child(plabel1)
+		container.add_child(plabel2)
+		container.add_child(plabel3)
+		container.add_child(plabel4)
+		container.add_child(plabel5)
+		container.add_child(plabel6)
+		
 		playerStatsContainer.add_child(container)
-	for container in playerStatsContainer.get_children():
-		container.add_theme_constant_override("separation", 80)
 		for label in container.get_children():
 			label.add_theme_font_size_override("font_size", 50)
-			label.size = Vector2(300, 100)  # More reasonable size
-			label.custom_minimum_size = Vector2(300, 100)
+			label.size = Vector2(350, 100)
+			label.custom_minimum_size = Vector2(350, 100)
 			label.set_horizontal_alignment(HORIZONTAL_ALIGNMENT_CENTER)
 
-func loop_scoring_player(list, containers, team):
+func collect_scoring_players(list, array, team):
 	for player in list:
 		if player.game_stats.pitches_played > 0 or player.status.starter:
-			var labels = []
-			var label1 = Label.new()
-			label1.text = player.bio.last_name
-			var label2 = Label.new()
-			label2.text = team.team_abbreviation
-			var label3 = Label.new()
-			label3.text = str(player.game_stats.touches)
-			var label4 = Label.new()
-			label4.text = str(player.game_stats.goals)
-			var label5 = Label.new()
-			label5.text = str(player.game_stats.assists)
-			var label6 = Label.new()
-			var diff = player.game_stats.goals_for + player.game_stats.goals_against
-			if diff > 0:
-				diff = "+" + str(diff)
-			else:
-				diff = str(diff)
-			label6.text = diff
-			var container = HBoxContainer.new()
-			container.add_child(label1)
-			container.add_child(label2)
-			container.add_child(label3)
-			container.add_child(label4)
-			container.add_child(label5)
-			container.add_child(label6)
-			containers.append(container)
+			array.append({"player": player, "team": team})
 
 func _on_rushing_button_pressed() -> void:
 	pass # Replace with function body.

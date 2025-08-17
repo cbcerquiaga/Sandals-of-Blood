@@ -1096,6 +1096,7 @@ func set_all_properties(old_player: Player) -> void:
 	fieldType = old_player.fieldType
 	fieldHeight = old_player.fieldHeight
 	returnSpeed = old_player.returnSpeed
+	ball = old_player.ball
 
 func calculate_player_type():
 	var bestOvr = 0

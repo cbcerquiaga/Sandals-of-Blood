@@ -418,6 +418,8 @@ func next_play():
 	#aTeam.check_pending_substitutions()
 	pTeam.nextPlayStatus()
 	aTeam.nextPlayStatus()
+	pTeam.update_field()
+	aTeam.update_field()
 	reset_ball_and_field()
 	reposition_players()
 	setup_pitching_team()
@@ -622,8 +624,6 @@ func check_match_end():
 	elif pitches_remaining <= 0 and team2_score - team1_score >= 2:
 		end_match(2)#win by pitches
 	elif GlobalSettings.regular_season and pitches_remaining <= 0 and team1_score == team2_score:
-		end_match(0)#tie by pitches
-	elif GlobalSettings.regular_season and pitches_remaining <= 0 and abs(team1_score - team2_score) == 1:
 		print("sudden death overtime!") #if winning team scores, they win. If losing team scores, they tie
 		statusUI.overtime(false)
 	elif GlobalSettings.regular_season and (team1_score == GlobalSettings.target_score or team2_score == GlobalSettings.target_score) and abs(team1_score - team2_score) == 1:
@@ -823,17 +823,28 @@ func update_team_roster(team: Team):
 	pTeam.next_bench = team.next_bench
 	pTeam.next_onfield_players = team.next_onfield_players
 	pTeam.subs_remaining = team.subs_remaining
-	
-	if !is_play_live and current_play_time == 0: #perform the substitution immediately
+
+	# Only update immediately if conditions are safe
+	if !is_play_live && !is_ball_pitched && current_play_time == 0:
 		pTeam.update_field()
 		statusUI.assign_team(self)
 		pTeam.wipe_player_control()
 		pTeam.assign_player_control()
-	else: # Schedule update for next play
-		pTeam.pending_substitutions = team.pending_substitutions
+		if is_human_team_pitching:
+			ball.last_hit_by = pTeam.P
+		else:
+			ball.last_hit_by = aTeam.P
 
 
 func _on_pause_menu_new_sub() -> void:
-	if not has_started:
+	if !is_play_live and !is_ball_pitched and current_play_time == 0:
 		pTeam.execute_pending_substitutions()
 		pauseMenu.perform_substitution()
+		pTeam.update_field()
+		statusUI.assign_team(self)
+		pTeam.wipe_player_control()
+		pTeam.assign_player_control()
+		if is_human_team_pitching:
+			ball.last_hit_by = pTeam.P
+		else:
+			ball.last_hit_by = aTeam.P

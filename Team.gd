@@ -9,11 +9,11 @@ var team_logo_path: String
 var team_id: int
 var is_on_offense: bool
 var is_player_team: bool
-var roster: Array[Player] = [] #every player on the team
-var starters: Array[Player] = [] #used for stats, the players on the field when the game starts
-var bench: Array[Player] = []
+var roster: Array[Player]= [] #every player on the team
+var starters: Array[Player]= [] #used for stats, the players on the field when the game starts
+var bench: Array[Player]= []
 var buffs: Array[Dictionary] = []
-var pending_substitutions: Array[Substitution] = []
+@onready var pending_substitutions = []
 var strategy: Dictionary = {
 	"base_aggression": 1.0,
 	"position_aggression": {
@@ -63,9 +63,9 @@ var game_stats: Dictionary = {
 @export var subs_remaining: int = 6 #sub every starter off the field; play all of your team's pitchers and sub 3 fielders; sub through all but one of your team's pitchers and sub all your fielders except your goalkeeper
 
 
-@onready var onfield_players = [K, P, LG, RG, LF, RF]
-@onready var next_onfield_players: Array
-@onready var next_bench: Array
+@onready var onfield_players: Array[Player] = [K, P, LG, RG, LF, RF]
+@onready var next_onfield_players: Array[Player]
+@onready var next_bench: Array[Player]
 var has_readied
 signal on_team_ready(id: int)
 
@@ -403,31 +403,34 @@ func nextPlayStatus():
 	bench_rest()
 	
 func update_field():
-	var current_players = [LG, RG, LF, RF, K, P]
 	var saved_ball = K.ball# players MUST know ball
-	for i in range(current_players.size()):
-		current_players[i].set_all_properties(next_onfield_players[i])
-		current_players[i].ball = saved_ball
-		current_players[i].reset_state()
-		current_players[i].can_move = false
-		current_players[i].velocity = Vector2.ZERO
-		current_players[i].restore_behaviors()
-	bench = next_bench
-	onfield_players = current_players
-	if P.ball != saved_ball:
-		P.ball = saved_ball
-		if P.ball_pitched.is_connected(saved_ball.be_pitched):
-			P.ball_pitched.disconnect(saved_ball.be_pitched)
-		P.ball_pitched.connect(saved_ball.be_pitched)
-		if P.special_pitched.is_connected(saved_ball.be_special_pitched):
-			P.special_pitched.disconnect(saved_ball.be_special_pitched)
-		P.special_pitched.connect(saved_ball.be_special_pitched)
+	
+	# Update from next roster
+	for i in range(onfield_players.size()):
+		onfield_players[i].set_all_properties(next_onfield_players[i])
+		onfield_players[i].ball = saved_ball
+	
+	bench = next_bench.duplicate(true)
+	P.ball = saved_ball
+	if P.ball_pitched.is_connected(saved_ball.be_pitched):
+		P.ball_pitched.disconnect(saved_ball.be_pitched)
+	P.ball_pitched.connect(saved_ball.be_pitched)
+	if P.special_pitched.is_connected(saved_ball.be_special_pitched):
+		P.special_pitched.disconnect(saved_ball.be_special_pitched)
+	P.special_pitched.connect(saved_ball.be_special_pitched)
 	LG.position_type = "guard"
 	RG.position_type = "guard"
 	LF.position_type = "forward"
 	RF.position_type = "forward"
 	K.position_type = "keeper"
 	P.position_type = "pitcher"
+	
+	# Reset player states
+	for player in onfield_players:
+		player.reset_state()
+		player.can_move = false
+		player.velocity = Vector2.ZERO
+		player.restore_behaviors()
 
 func print_sub_on():
 	var string
@@ -910,3 +913,19 @@ func get_time_in_half():
 		returnString += "0"
 	returnString += str(seconds)
 	return returnString
+	
+func execute_pending_substitutions():
+	if pending_substitutions.is_empty():
+		return
+		
+	for sub in pending_substitutions:
+		var on_index = next_onfield_players.find(sub.playerOff)
+		var off_index = next_bench.find(sub.playerOn)
+		if on_index != -1 and off_index != -1:
+			var temp = Player.new()
+			temp.set_all_properties(next_onfield_players[on_index])
+			next_onfield_players[on_index].set_all_properties(next_bench[off_index])
+			next_bench[off_index].set_all_properties(temp)
+			subs_remaining -= 1
+	pending_substitutions = []
+	
