@@ -178,13 +178,13 @@ func add_players_to_roster():
 	add_player(P)
 	P.field_position == "P"
 	add_player(LG)
-	LG.field_position == "G"
+	LG.field_position == "LG"
 	add_player(RG)
-	RG.field_position == "G"
+	RG.field_position == "RG"
 	add_player(RF)
-	RF.field_position == "F"
+	RF.field_position == "LF"
 	add_player(LF)
-	LF.field_position == "F"
+	LF.field_position == "RF"
 	
 	
 func reset_subs():
