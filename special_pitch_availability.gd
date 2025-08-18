@@ -29,13 +29,13 @@ func _process(delta: float) -> void:
 		indicator3.visible = true
 	else:
 		indicator3.visible = false
-	indicator1.scale = Vector2(0.05, 0.05)
-	indicator2.scale = Vector2(0.05, 0.05)
-	indicator3.scale = Vector2(0.05, 0.05)
-	var x = 20
-	indicator1.position = Vector2(x + pitcher.special_pitch_groove[0], 382)
-	indicator2.position = Vector2(x + pitcher.special_pitch_groove[1], 382)
-	indicator3.position = Vector2(x + pitcher.special_pitch_groove[2], 382)
+	indicator1.scale = Vector2(0.02, 0.02)
+	indicator2.scale = Vector2(0.02, 0.02)
+	indicator3.scale = Vector2(0.02, 0.02)
+	var x = 201
+	indicator1.position = Vector2(x + pitcher.special_pitch_groove[0], -140)
+	indicator2.position = Vector2(x + pitcher.special_pitch_groove[1], -140)
+	indicator3.position = Vector2(x + pitcher.special_pitch_groove[2], -140)
 	indicator1.z_index = 100
 	indicator2.z_index = 100
 	indicator3.z_index = 100
