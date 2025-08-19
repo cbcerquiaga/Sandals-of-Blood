@@ -264,7 +264,7 @@ func empty_ui() -> void:
 func apply_roster_to_UI():
 	empty_players()
 	for player in roster:
-		if on_field.find(player) >= 0:
+		if player_on_field(player) == true:
 			continue
 		if player.position_type == "pitcher":
 			var pitches
@@ -449,3 +449,9 @@ func get_pitch_texture(string):
 			return "res://UI/PitchTypeSymbols/pitch_yoyo.png"
 		"none":
 			return null #TODO
+
+func player_on_field(player:Player):
+	for on in on_field:
+		if player.bio.last_name == on.bio.last_name and player.bio.first_name == on.bio.first_name:
+			return true
+	return false
