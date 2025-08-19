@@ -153,7 +153,7 @@ var defense_strategy = {
 
 # Special Pitches- any player can pitch
 @onready var special_pitch_names: Array[String] = ["bouncer", "fake_curve", "looper"]
-@onready var special_pitch_groove: Array[float] = [0, 40, 10] #groove ratings needed to throw each pitch
+@onready var special_pitch_groove: Array[float] = [0, 40, 20] #groove ratings needed to throw each pitch
 var special_pitch_available: Array[bool] = [false, false, false]
 #other pitcher things
 var human_ready: bool = false #AI pitcher won't throw until the player is ready

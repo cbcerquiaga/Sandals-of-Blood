@@ -518,7 +518,7 @@ func perform_corker_pitch():
 	var frames: Array[int] = [40, 46, 58, 90]
 	current_power = 200
 	special_pitched.emit(aim_direction, current_power, curves, frames, "corker")
-	most_recent_pitch = {"pitch_type": "bouncer", "power": current_power, "curve": 0, "direction": aim_direction}
+	most_recent_pitch = {"pitch_type": "corker", "power": current_power, "curve": 0, "direction": aim_direction}
 	release_ball()
 	
 func perform_yoyo_pitch():

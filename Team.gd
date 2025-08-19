@@ -495,7 +495,7 @@ func debug_default_roster():
 		"composure": 50
 	}
 	#TODO: figure out why I have to set variables to the exact types instead of just passing them in directly
-	var pitches: Array[String] = ["yoyo, knuckler, corker"]
+	var pitches: Array[String] = ["yoyo", "knuckler", "corker"]
 	var grooves: Array[float] = [25, 35, 45]
 	K1.special_pitch_names = pitches
 	K1.special_pitch_groove = grooves
@@ -537,7 +537,7 @@ func debug_default_roster():
 		"composure": 50
 	}
 	#TODO: figure out why I have to set variables to the exact types instead of just passing them in directly
-	pitches  = ["yoyo, knuckler, corker"]
+	pitches  = ["yoyo", "knuckler", "corker"]
 	grooves = [25, 35, 45]
 	P1.special_pitch_names = pitches
 	P1.special_pitch_groove = grooves
@@ -559,7 +559,7 @@ func debug_default_roster():
 	P2.position_type = "pitcher"
 	P2.declared_pitcher = true
 	P2.portrait = "res://Assets/Player Portraits/placeholder portrait 2.png"
-	pitches = ["zig-zag, looper, bouncer"]
+	pitches = ["zig-zag", "looper", "bouncer"]
 	grooves = [15, 20, 25]
 	P2.special_pitch_names = pitches
 	P2.special_pitch_groove = grooves

@@ -18,6 +18,17 @@ class_name BenchSection
 @onready var bench6 = $BenchContainer/Button9
 @onready var bullpen_container: VBoxContainer = $BullpenContainer
 @onready var bench_container: VBoxContainer = $BenchContainer
+@onready var pitcher1pitch1: Label = $BullpenContainer/Button1/Label/Control/PitchLabel1
+@onready var pitcher1pitch2: Label = $BullpenContainer/Button1/Label/Control/PitchLabel2
+@onready var pitcher1pitch3: Label = $BullpenContainer/Button1/Label/Control/PitchLabel3
+@onready var pitcher2pitch1: Label = $BullpenContainer/Button2/Label/Control/PitchLabel1
+@onready var pitcher2pitch2: Label = $BullpenContainer/Button2/Label/Control/PitchLabel2
+@onready var pitcher2pitch3: Label = $BullpenContainer/Button2/Label/Control/PitchLabel3
+@onready var pitcher3pitch1: Label = $BullpenContainer/Button3/Label/Control/PitchLabel1
+@onready var pitcher3pitch2: Label = $BullpenContainer/Button3/Label/Control/PitchLabel2
+@onready var pitcher3pitch3: Label = $BullpenContainer/Button3/Label/Control/PitchLabel3
+
+
 var bullpenPlayer1: Player
 var bullpenPlayer2: Player
 var bullpenPlayer3: Player
@@ -92,6 +103,11 @@ func _ready()-> void:
 	bench5.focus_exited.connect(_on_bench5_focus_exited)
 	bench6.focus_entered.connect(_on_bench6_focus_entered)
 	bench6.focus_exited.connect(_on_bench6_focus_exited)
+	
+	#set text to left on the pitch labels
+	var pitcher_labels = [pitcher1pitch1, pitcher1pitch2, pitcher1pitch3, pitcher2pitch1, pitcher2pitch2, pitcher2pitch3, pitcher3pitch1,pitcher3pitch2, pitcher3pitch3]
+	for label in pitcher_labels:
+		label.set_horizontal_alignment(HORIZONTAL_ALIGNMENT_LEFT)
 
 func _on_bullpen1_focus_entered():
 	if bullpenPlayer1:
@@ -234,6 +250,9 @@ func empty_ui() -> void:
 			continue
 		button.get_node("Label").text = ""
 		button.set_button_icon(load("res://UI/StrategyUI/ClippedHolder_grey.png"))
+		var control = button.get_child(0).get_child(0)
+		for label in control.get_children():
+			label.text = ""
 	
 	for button in bench_container.get_children():
 		if not button is Button:
@@ -248,18 +267,37 @@ func apply_roster_to_UI():
 		if on_field.find(player) >= 0:
 			continue
 		if player.position_type == "pitcher":
+			var pitches
+			print("player is pitcher. special pitch names array: " + str(player.special_pitch_names))
+			pitches = player.special_pitch_names.duplicate(true)
+			if pitches.size() < 3:
+				print(player.bio.last_name + " has no pitches")
+				pitches = ["none", "none","none"]
+			else:
+				print(player.bio.last_name + " throws sick pitches")
 			if !bullpenPlayer1:
 				bullpenPlayer1 = player
 				$BullpenContainer/Button1/Label.text = player.bio.last_name + "\n" + str(calculate_pitcher_overall(player)) + " Rating " + str(player.status.energy) + "% Energy"
 				bullpen1.set_button_icon(load("res://UI/StrategyUI/ClippedHolder_base.png"))
+				pitcher1pitch1.text = get_pitch_text(pitches[0])
+				pitcher1pitch2.text = get_pitch_text(pitches[1])
+				pitcher1pitch3.text = get_pitch_text(pitches[2])
+				print("special pitches[0] = " + pitches[0])
+				print("pitcher1pitch1 text =" + pitcher1pitch1.text)
 			elif !bullpenPlayer2:
 				bullpenPlayer2 = player
 				$BullpenContainer/Button2/Label.text = player.bio.last_name + "\n" + str(calculate_pitcher_overall(player)) + " Rating " + str(player.status.energy) + "% Energy"
 				bullpen2.set_button_icon(load("res://UI/StrategyUI/ClippedHolder_base.png"))
+				pitcher2pitch1.text = get_pitch_text(pitches[0])
+				pitcher2pitch2.text = get_pitch_text(pitches[1])
+				pitcher2pitch3.text = get_pitch_text(pitches[2])
 			elif !bullpenPlayer3:
 				bullpenPlayer3 = player
 				$BullpenContainer/Button3/Label.text = player.bio.last_name + "\n" + str(calculate_pitcher_overall(player)) + " Rating " + str(player.status.energy) + "% Energy"
 				bullpen3.set_button_icon(load("res://UI/StrategyUI/ClippedHolder_base.png"))
+				pitcher3pitch1.text = get_pitch_text(pitches[0])
+				pitcher3pitch2.text = get_pitch_text(pitches[1])
+				pitcher3pitch3.text = get_pitch_text(pitches[2])
 		else:
 			var text = player.bio.last_name
 			match player.position_type:
@@ -370,3 +408,44 @@ func switch_player_positions(secondaryPlayer: Player):
 func bench_player_chosen(player: Player):
 	if player:
 		emit_signal("player_selected", player)
+		
+func get_pitch_text(string):
+	print("getting pitch text with string: " + string)
+	if !string:
+		return ""
+	match string:
+		"fake_curve":
+			return "Fake Curveball"
+		"zig-zag":
+			return "Zig-Zag"
+		"knuckler":
+			return "Knuckleball"
+		"bouncer":
+			return "Bouncer"
+		"looper":
+			return "Looper"
+		"corker":
+			return "Corkball"
+		"yoyo":
+			return "Yo-Yo"
+		"none":
+			return "N/A"
+			
+func get_pitch_texture(string):
+	match string:
+		"fake_curve":
+			return "res://UI/PitchTypeSymbols/pitch_fakeCurve.png"
+		"zig-zag":
+			return null #TODO
+		"knuckler":
+			return "res://UI/PitchTypeSymbols/pitch_knuckle.png"
+		"bouncer":
+			return "res://UI/PitchTypeSymbols/pitch_bouncer.png"
+		"looper":
+			return "Looper"
+		"corker":
+			return "res://UI/PitchTypeSymbols/pitch_corker.png"
+		"yoyo":
+			return "res://UI/PitchTypeSymbols/pitch_yoyo.png"
+		"none":
+			return null #TODO

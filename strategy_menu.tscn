@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=3 uid="uid://e818m1s2f5xp"]
+[gd_scene load_steps=16 format=3 uid="uid://e818m1s2f5xp"]
 
 [ext_resource type="Script" path="res://strategy_menu.gd" id="1_p0u7q"]
 [ext_resource type="Script" path="res://bench_section.gd" id="2_a8736"]
@@ -12,6 +12,7 @@
 [ext_resource type="Script" path="res://tactics_section.gd" id="12_emdlp"]
 [ext_resource type="Texture2D" uid="uid://cqfhq5hj3ofqv" path="res://UI/StrategyUI/PreviousButton_base.png" id="12_tr0tp"]
 [ext_resource type="Texture2D" uid="uid://gb8htff5kf03" path="res://UI/StrategyUI/NextButton_base.png" id="13_aqj5i"]
+[ext_resource type="Texture2D" uid="uid://dxpax0mt6ar3n" path="res://UI/PitchTypeSymbols/pitch_bouncer.png" id="15_6vvp3"]
 [ext_resource type="Texture2D" uid="uid://com3rbaqnyf3w" path="res://UI/StrategyUI/Reposition_button_base.png" id="16_xnd7x"]
 [ext_resource type="Texture2D" uid="uid://d25rahut8lc5l" path="res://UI/StrategyUI/PlayerInfo_button_base.png" id="17_2r3jq"]
 
@@ -80,6 +81,62 @@ text = "OPEN ROSTER SPOT"
 horizontal_alignment = 1
 vertical_alignment = 1
 
+[node name="Control" type="Control" parent="Bench/BullpenContainer/Button1/Label"]
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="PitchLabel1" type="Label" parent="Bench/BullpenContainer/Button1/Label/Control"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 1287.0
+offset_top = 40.0
+offset_right = 1692.0
+offset_bottom = 75.0
+grow_horizontal = 2
+grow_vertical = 2
+focus_neighbor_right = NodePath("../../../../../../Tactics/LF/LB")
+theme_override_font_sizes/font_size = 42
+text = "Knuckleball"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="PitchLabel2" type="Label" parent="Bench/BullpenContainer/Button1/Label/Control"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 1287.0
+offset_top = 120.0
+offset_right = 1692.0
+offset_bottom = 155.0
+grow_horizontal = 2
+grow_vertical = 2
+focus_neighbor_right = NodePath("../../../../../../Tactics/LF/LB")
+theme_override_font_sizes/font_size = 42
+text = "Corkscrew"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="PitchLabel3" type="Label" parent="Bench/BullpenContainer/Button1/Label/Control"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 1287.0
+offset_top = 200.0
+offset_right = 1692.0
+offset_bottom = 235.0
+grow_horizontal = 2
+grow_vertical = 2
+focus_neighbor_right = NodePath("../../../../../../Tactics/LF/LB")
+theme_override_font_sizes/font_size = 42
+text = "Corkscrew"
+horizontal_alignment = 1
+vertical_alignment = 1
+
 [node name="Button2" type="Button" parent="Bench/BullpenContainer"]
 layout_mode = 2
 focus_neighbor_left = NodePath("../../../SubstitutionSection/FieldGrid/RF_Button")
@@ -100,6 +157,63 @@ text = "OPEN ROSTER SPOT"
 horizontal_alignment = 1
 vertical_alignment = 1
 
+[node name="Control" type="Control" parent="Bench/BullpenContainer/Button2/Label"]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="PitchLabel1" type="Label" parent="Bench/BullpenContainer/Button2/Label/Control"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 1287.0
+offset_top = 40.0
+offset_right = 1692.0
+offset_bottom = 75.0
+grow_horizontal = 2
+grow_vertical = 2
+focus_neighbor_right = NodePath("../../../../../../Tactics/LF/LB")
+theme_override_font_sizes/font_size = 42
+text = "Knuckleball"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="PitchLabel2" type="Label" parent="Bench/BullpenContainer/Button2/Label/Control"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 1287.0
+offset_top = 120.0
+offset_right = 1692.0
+offset_bottom = 155.0
+grow_horizontal = 2
+grow_vertical = 2
+focus_neighbor_right = NodePath("../../../../../../Tactics/LF/LB")
+theme_override_font_sizes/font_size = 42
+text = "Corkscrew"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="PitchLabel3" type="Label" parent="Bench/BullpenContainer/Button2/Label/Control"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 1287.0
+offset_top = 200.0
+offset_right = 1692.0
+offset_bottom = 235.0
+grow_horizontal = 2
+grow_vertical = 2
+focus_neighbor_right = NodePath("../../../../../../Tactics/LF/LB")
+theme_override_font_sizes/font_size = 42
+text = "Corkscrew"
+horizontal_alignment = 1
+vertical_alignment = 1
+
 [node name="Button3" type="Button" parent="Bench/BullpenContainer"]
 layout_mode = 2
 focus_neighbor_left = NodePath("../../../SubstitutionSection/FieldGrid/RF_Button")
@@ -117,6 +231,63 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_font_sizes/font_size = 71
 text = "OPEN ROSTER SPOT"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Control" type="Control" parent="Bench/BullpenContainer/Button3/Label"]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="PitchLabel1" type="Label" parent="Bench/BullpenContainer/Button3/Label/Control"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 1287.0
+offset_top = 40.0
+offset_right = 1692.0
+offset_bottom = 75.0
+grow_horizontal = 2
+grow_vertical = 2
+focus_neighbor_right = NodePath("../../../../../../Tactics/LF/LB")
+theme_override_font_sizes/font_size = 42
+text = "Knuckleball"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="PitchLabel2" type="Label" parent="Bench/BullpenContainer/Button3/Label/Control"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 1287.0
+offset_top = 120.0
+offset_right = 1692.0
+offset_bottom = 155.0
+grow_horizontal = 2
+grow_vertical = 2
+focus_neighbor_right = NodePath("../../../../../../Tactics/LF/LB")
+theme_override_font_sizes/font_size = 42
+text = "Corkscrew"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="PitchLabel3" type="Label" parent="Bench/BullpenContainer/Button3/Label/Control"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 1287.0
+offset_top = 200.0
+offset_right = 1692.0
+offset_bottom = 235.0
+grow_horizontal = 2
+grow_vertical = 2
+focus_neighbor_right = NodePath("../../../../../../Tactics/LF/LB")
+theme_override_font_sizes/font_size = 42
+text = "Corkscrew"
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -612,6 +783,7 @@ content_scale_size = Vector2i(50, 50)
 auto_translate_mode = 1
 title = "Player Info"
 initial_position = 1
+size = Vector2i(700, 200)
 
 [node name="VBoxContainer" type="VBoxContainer" parent="InfoPopup"]
 offset_left = 4.0
@@ -683,6 +855,33 @@ Assists
 Sacks
 Knockouts
 "
+
+[node name="PitchType1" type="TextureRect" parent="."]
+layout_mode = 0
+offset_left = -1600.0
+offset_top = 1500.0
+offset_right = -520.0
+offset_bottom = 2580.0
+scale = Vector2(0.5, 0.5)
+texture = ExtResource("15_6vvp3")
+
+[node name="PitchType2" type="TextureRect" parent="."]
+layout_mode = 0
+offset_left = -1100.0
+offset_top = 1500.0
+offset_right = -20.0
+offset_bottom = 2580.0
+scale = Vector2(0.5, 0.5)
+texture = ExtResource("15_6vvp3")
+
+[node name="PitchType3" type="TextureRect" parent="."]
+layout_mode = 0
+offset_left = -600.0
+offset_top = 1500.0
+offset_right = 480.0
+offset_bottom = 2580.0
+scale = Vector2(0.5, 0.5)
+texture = ExtResource("15_6vvp3")
 
 [connection signal="bench_switched_position" from="Bench" to="." method="_on_bench_bench_switched_position"]
 [connection signal="player_selected" from="Bench" to="." method="_on_bench_player_selected"]
