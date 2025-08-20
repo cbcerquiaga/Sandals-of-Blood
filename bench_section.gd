@@ -108,6 +108,9 @@ func _ready()-> void:
 	var pitcher_labels = [pitcher1pitch1, pitcher1pitch2, pitcher1pitch3, pitcher2pitch1, pitcher2pitch2, pitcher2pitch3, pitcher3pitch1,pitcher3pitch2, pitcher3pitch3]
 	for label in pitcher_labels:
 		label.set_horizontal_alignment(HORIZONTAL_ALIGNMENT_LEFT)
+		label.add_theme_font_size_override("font_size", 60)
+		label.custom_minimum_size = Vector2(400, 80)
+		label.size = Vector2(600, 80)
 
 func _on_bullpen1_focus_entered():
 	if bullpenPlayer1:
@@ -270,11 +273,6 @@ func apply_roster_to_UI():
 			var pitches
 			print("player is pitcher. special pitch names array: " + str(player.special_pitch_names))
 			pitches = player.special_pitch_names.duplicate(true)
-			if pitches.size() < 3:
-				print(player.bio.last_name + " has no pitches")
-				pitches = ["none", "none","none"]
-			else:
-				print(player.bio.last_name + " throws sick pitches")
 			if !bullpenPlayer1:
 				bullpenPlayer1 = player
 				$BullpenContainer/Button1/Label.text = player.bio.last_name + "\n" + str(calculate_pitcher_overall(player)) + " Rating " + str(player.status.energy) + "% Energy"
@@ -282,8 +280,8 @@ func apply_roster_to_UI():
 				pitcher1pitch1.text = get_pitch_text(pitches[0])
 				pitcher1pitch2.text = get_pitch_text(pitches[1])
 				pitcher1pitch3.text = get_pitch_text(pitches[2])
-				print("special pitches[0] = " + pitches[0])
-				print("pitcher1pitch1 text =" + pitcher1pitch1.text)
+				#print("special pitches[0] = " + pitches[0])
+				#print("pitcher1pitch1 text =" + pitcher1pitch1.text)
 			elif !bullpenPlayer2:
 				bullpenPlayer2 = player
 				$BullpenContainer/Button2/Label.text = player.bio.last_name + "\n" + str(calculate_pitcher_overall(player)) + " Rating " + str(player.status.energy) + "% Energy"
@@ -410,7 +408,7 @@ func bench_player_chosen(player: Player):
 		emit_signal("player_selected", player)
 		
 func get_pitch_text(string):
-	print("getting pitch text with string: " + string)
+	#print("getting pitch text with string: " + string)
 	if !string:
 		return ""
 	match string:
@@ -430,25 +428,6 @@ func get_pitch_text(string):
 			return "Yo-Yo"
 		"none":
 			return "N/A"
-			
-func get_pitch_texture(string):
-	match string:
-		"fake_curve":
-			return "res://UI/PitchTypeSymbols/pitch_fakeCurve.png"
-		"zig-zag":
-			return null #TODO
-		"knuckler":
-			return "res://UI/PitchTypeSymbols/pitch_knuckle.png"
-		"bouncer":
-			return "res://UI/PitchTypeSymbols/pitch_bouncer.png"
-		"looper":
-			return "Looper"
-		"corker":
-			return "res://UI/PitchTypeSymbols/pitch_corker.png"
-		"yoyo":
-			return "res://UI/PitchTypeSymbols/pitch_yoyo.png"
-		"none":
-			return null #TODO
 
 func player_on_field(player:Player):
 	for on in on_field:

@@ -137,8 +137,8 @@ func update_substitute_info(temp_player: Player, other: Player):
 	temp_player.preferred_position = other.preferred_position
 	temp_player.status = other.status.duplicate()
 	temp_player.game_stats = other.game_stats
-	temp_player.special_pitch_names = other.special_pitch_names
-	temp_player.special_pitch_groove = other.special_pitch_groove
+	temp_player.special_pitch_names = other.special_pitch_names.duplicate()
+	temp_player.special_pitch_groove = other.special_pitch_groove.duplicate()
 	temp_player.team = other.team
 	return temp_player
 	
@@ -935,3 +935,10 @@ func execute_pending_substitutions():
 			subs_remaining -= 1
 	pending_substitutions = []
 	
+func validate_players():
+	for player in roster:
+		if player.special_pitch_names.size() != 3:
+			print(player.bio.last_name +  " has no pitches. Correcting that.")
+			player.special_pitch_names = ["none", "none", "none"]
+		else:
+			print(player.bio.last_name +  " throws these pitches: " + str(player.special_pitch_names))

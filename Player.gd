@@ -1041,6 +1041,8 @@ func set_all_properties(old_player: Player) -> void:
 	fencing_params = old_player.fencing_params.duplicate(true)
 	forward_strategy = old_player.forward_strategy.duplicate(true)
 	defense_strategy = old_player.defense_strategy.duplicate(true)
+	special_pitch_names = old_player.special_pitch_names.duplicate(true)
+	special_pitch_groove = old_player.special_pitch_groove.duplicate(true)
 	portrait = old_player.portrait
 	head = old_player.head
 	haircut = old_player.haircut

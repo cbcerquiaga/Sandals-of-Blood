@@ -25,6 +25,9 @@ var p
 var k
 var lg
 var rg
+@onready var pitcher_pitch1: TextureRect = $"PitchType1"
+@onready var pitcher_pitch2: TextureRect = $"PitchType2"
+@onready var pitcher_pitch3: TextureRect = $"PitchType3"
 
 var pending_substitutions : Array
 
@@ -322,6 +325,21 @@ func ui_update():
 	var lg_overall = lg_player.calculate_guard_overall()
 	var rg_overall = rg_player.calculate_guard_overall()
 	var k_overall = k_player.calculate_keeper_overall()
+	if p_player.special_pitch_names[0]:
+		pitcher_pitch1.show()
+		pitcher_pitch1.texture = load(get_pitch_texture(p_player.special_pitch_names[0]))
+	else:
+		pitcher_pitch1.hide()
+	if p_player.special_pitch_names[1]:
+		pitcher_pitch2.show()
+		pitcher_pitch2.texture = load(get_pitch_texture(p_player.special_pitch_names[1]))
+	else:
+		pitcher_pitch2.hide()
+	if p_player.special_pitch_names[2]:
+		pitcher_pitch3.show()
+		pitcher_pitch3.texture = load(get_pitch_texture(p_player.special_pitch_names[2]))
+	else:
+		pitcher_pitch3.hide()
 	$SubstitutionSection/FieldGrid/LF_Button/Label.text = "LF: " + lf_player.bio.first_name + " " +  lf_player.bio.last_name + "\n" + str(lf_overall) + " Rating " + str(lf_player.status.energy) + "% Energy"
 	$SubstitutionSection/FieldGrid/P_Button/Label.text = "P: " + p_player.bio.first_name+ " "  + p_player.bio.last_name + "\n" + str(p_overall) + " Rating " + str(p_player.status.energy) + "% Energy"
 	$SubstitutionSection/FieldGrid/RF_Button/Label.text = "RF: " + rf_player.bio.first_name + " " + rf_player.bio.last_name + "\n" + str(rf_overall) + " Rating " + str(rf_player.status.energy) + "% Energy"
@@ -703,3 +721,22 @@ func reposition(player1, player2):
 	playerPopup.hide()
 	benchPopup.hide()
 	maintain_focus()
+
+func get_pitch_texture(string):
+	match string:
+		"fake_curve":
+			return "res://UI/PitchTypeSymbols/pitch_fakeCurve.png"
+		"zig-zag":
+			return "res://UI/PitchTypeSymbols/pitch_zigzag.png"
+		"knuckler":
+			return "res://UI/PitchTypeSymbols/pitch_knuckle.png"
+		"bouncer":
+			return "res://UI/PitchTypeSymbols/pitch_bouncer.png"
+		"looper":
+			return "res://UI/PitchTypeSymbols/pitch_looper.png"
+		"corker":
+			return "res://UI/PitchTypeSymbols/pitch_corker.png"
+		"yoyo":
+			return "res://UI/PitchTypeSymbols/pitch_yoyo.png"
+		"none":
+			return "" #TODO

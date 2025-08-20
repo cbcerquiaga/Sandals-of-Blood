@@ -731,6 +731,8 @@ func fill_team_rosters():
 func import_team_rosters():
 	pTeam.debug_default_roster()
 	aTeam.debug_default_roster()
+	pTeam.validate_players()
+	aTeam.validate_players()
 	pass
 
 func pitchers_fight():
