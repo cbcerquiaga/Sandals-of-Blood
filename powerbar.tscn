@@ -1,0 +1,38 @@
+[gd_scene load_steps=4 format=3 uid="uid://dn6ldpemxhwv7"]
+
+[ext_resource type="Texture2D" uid="uid://bd7bmtxehfuku" path="res://UI/PowerBarUI/aim_triangle_green.png" id="1_1iope"]
+[ext_resource type="Script" path="res://powerbar.gd" id="1_vh8hc"]
+[ext_resource type="Texture2D" uid="uid://cd31cepuvny53" path="res://UI/PowerBarUI/aim_rect_green.png" id="2_wb8n8"]
+
+[node name="Control" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_vh8hc")
+
+[node name="Triangle" type="TextureRect" parent="."]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+texture = ExtResource("1_1iope")
+
+[node name="Segment1" type="TextureRect" parent="."]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+texture = ExtResource("2_wb8n8")
+
+[node name="Segment2" type="TextureRect" parent="."]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+texture = ExtResource("2_wb8n8")
+
+[node name="Segment3" type="TextureRect" parent="."]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+texture = ExtResource("2_wb8n8")
