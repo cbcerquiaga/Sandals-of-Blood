@@ -10,6 +10,7 @@ var true_max_power = 1200 * (attributes.power * attributes.throwing/100)/100 #ma
 @export var min_power: float = 100
 @export var max_curve: float = 2.0 # radians/second
 @export var curve_step: float = 0.1
+@onready var powerbar = $UI/PowerBar
 
 
 
@@ -44,7 +45,7 @@ var is_aiming: bool = false
 var aim_direction: Vector2 = Vector2(0,1)
 var has_ball: bool = false
 var increasing := true
-var variance_factor = ((100 - attributes.focus)/100 + 1)/4 #between 25% and 50% maximum error
+var variance_factor = ((100 - attributes.accuracy)/100 + 1)/4 #between 25% and 50% maximum error
 var current_variance = 0 #ranges from -100 to 100, then multiplied by variance factor
 var variance_increment = 5
 var hand_offset: float = 5.0 #how far to move the ball in the X to keep it from colliding
@@ -97,6 +98,7 @@ func _ready():
 	current_behavior = "waiting"
 	collision_mask = 0b0000  # Collide with players (3) but not obstacles (2) or balls (1)
 	position_type = "pitcher"
+	max_curve = 2.0 * (attributes.focus + attributes.throwing)/200
 	restore_behaviors()
 	if bio.leftHanded:
 		hand_offset = hand_offset * -1
@@ -108,6 +110,7 @@ func _physics_process(delta):
 	super._physics_process(delta)
 	await ball
 	update_special_pitch_availability()
+	powerbar.visible = false
 	if Input.is_action_pressed("pitch"):
 		human_ready = true
 		prepare_ai_to_pitch()
@@ -146,10 +149,12 @@ func _physics_process(delta):
 	if is_controlling_player and is_aiming:
 		current_behavior = "pitching"
 		has_arrived = false
+		powerbar.visible = true
 		current_waypoint = Vector2.ZERO
 		velocity = Vector2.ZERO
 		_handle_pitch_controls()
 		variance_timer()
+		handle_powerbar()
 	elif !can_pitch:
 		increment_pitch_time()
 	elif not is_controlling_player and has_ball:
@@ -931,3 +936,12 @@ func find_groove(effect: float):
 		status.groove = attributes.confidence
 	elif status.groove < 0:
 		status.groove = 0
+
+func handle_powerbar():
+	powerbar.maxPower = ball.pitching_max_speed
+	powerbar.maxCurve = 2.0 #theoretical maximum
+	powerbar.global_position = global_position + Vector2(0, 0)
+	powerbar.turn(aim_direction)
+	powerbar.bend(current_curve)
+	powerbar.stretch(current_power)
+	#powerbar.color(current_variance)

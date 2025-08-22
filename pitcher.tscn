@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3 uid="uid://bjdgqu7nj5ewa"]
+[gd_scene load_steps=3 format=3 uid="uid://bjdgqu7nj5ewa"]
 
 [ext_resource type="Script" path="res://reworked_pitcher.gd" id="1_ogwsy"]
+[ext_resource type="PackedScene" uid="uid://dn6ldpemxhwv7" path="res://powerbar.tscn" id="2_1tb6b"]
 
 [node name="CharacterBody2D" type="CharacterBody2D"]
 script = ExtResource("1_ogwsy")
@@ -45,6 +46,9 @@ offset_right = 40.0
 offset_bottom = 40.0
 
 [node name="Status" type="Sprite2D" parent="UI"]
+
+[node name="PowerBar" parent="UI" instance=ExtResource("2_1tb6b")]
+scale = Vector2(0.01, 0.01)
 
 [node name="Audio" type="Node2D" parent="."]
 

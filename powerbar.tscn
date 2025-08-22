@@ -1,38 +1,78 @@
 [gd_scene load_steps=4 format=3 uid="uid://dn6ldpemxhwv7"]
 
-[ext_resource type="Texture2D" uid="uid://bd7bmtxehfuku" path="res://UI/PowerBarUI/aim_triangle_green.png" id="1_1iope"]
 [ext_resource type="Script" path="res://powerbar.gd" id="1_vh8hc"]
-[ext_resource type="Texture2D" uid="uid://cd31cepuvny53" path="res://UI/PowerBarUI/aim_rect_green.png" id="2_wb8n8"]
+[ext_resource type="Texture2D" uid="uid://cajr8krtan6js" path="res://UI/PowerBarUI/aim_triangle_yellow.png" id="2_qejfc"]
+[ext_resource type="Texture2D" uid="uid://cj4sgr0fwoc1q" path="res://UI/PowerBarUI/aim_rectangle_yellow.png" id="3_jaklt"]
 
-[node name="Control" type="Control"]
-layout_mode = 3
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
+[node name="Control" type="Node2D"]
 script = ExtResource("1_vh8hc")
 
 [node name="Triangle" type="TextureRect" parent="."]
-layout_mode = 0
-offset_right = 40.0
-offset_bottom = 40.0
-texture = ExtResource("1_1iope")
+offset_left = -574.0
+offset_top = -677.0
+offset_right = 537.0
+offset_bottom = 403.0
+texture = ExtResource("2_qejfc")
+
+[node name="DuplicateTriangle" type="TextureRect" parent="."]
+offset_left = -574.0
+offset_top = -677.0
+offset_right = 537.0
+offset_bottom = 403.0
+texture = ExtResource("2_qejfc")
 
 [node name="Segment1" type="TextureRect" parent="."]
-layout_mode = 0
-offset_right = 40.0
-offset_bottom = 40.0
-texture = ExtResource("2_wb8n8")
+offset_left = -574.0
+offset_top = -677.0
+offset_right = 537.0
+offset_bottom = 403.0
+texture = ExtResource("3_jaklt")
 
 [node name="Segment2" type="TextureRect" parent="."]
-layout_mode = 0
-offset_right = 40.0
-offset_bottom = 40.0
-texture = ExtResource("2_wb8n8")
+offset_left = -574.0
+offset_top = -677.0
+offset_right = 537.0
+offset_bottom = 403.0
+texture = ExtResource("3_jaklt")
 
 [node name="Segment3" type="TextureRect" parent="."]
-layout_mode = 0
-offset_right = 40.0
-offset_bottom = 40.0
-texture = ExtResource("2_wb8n8")
+offset_left = -574.0
+offset_top = -677.0
+offset_right = 537.0
+offset_bottom = 403.0
+texture = ExtResource("3_jaklt")
+
+[node name="Segment4" type="TextureRect" parent="."]
+offset_left = -574.0
+offset_top = -677.0
+offset_right = 537.0
+offset_bottom = 403.0
+texture = ExtResource("3_jaklt")
+
+[node name="Duplicate1" type="TextureRect" parent="."]
+offset_left = -574.0
+offset_top = -677.0
+offset_right = 537.0
+offset_bottom = 403.0
+texture = ExtResource("3_jaklt")
+
+[node name="Duplicate2" type="TextureRect" parent="."]
+offset_left = -574.0
+offset_top = -677.0
+offset_right = 537.0
+offset_bottom = 403.0
+texture = ExtResource("3_jaklt")
+
+[node name="Duplicate3" type="TextureRect" parent="."]
+offset_left = -574.0
+offset_top = -677.0
+offset_right = 537.0
+offset_bottom = 403.0
+texture = ExtResource("3_jaklt")
+
+[node name="Duplicate4" type="TextureRect" parent="."]
+offset_left = -574.0
+offset_top = -677.0
+offset_right = 537.0
+offset_bottom = 403.0
+texture = ExtResource("3_jaklt")
