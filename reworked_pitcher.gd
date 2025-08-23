@@ -938,6 +938,7 @@ func find_groove(effect: float):
 		status.groove = 0
 
 func handle_powerbar():
+	powerbar.minPower = min_power
 	powerbar.maxPower = ball.pitching_max_speed
 	powerbar.maxCurve = 2.0 #theoretical maximum
 	powerbar.global_position = global_position + Vector2(0, 0)
