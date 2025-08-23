@@ -10,6 +10,7 @@ var brightness: float = 55 #screen brightness
 var game_speed: float = 0.35 #speed of gameplay
 var resolution: Vector2
 var fullscreen: bool = false #true = fullscreen false = windowed
+var colorblind: bool = false #replaces green textures with teal ones
 #control
 var keyboard_control_scheme: String #which control scheme is used for keyboard
 var controller_control_scheme: String #which control scheme is used for controller

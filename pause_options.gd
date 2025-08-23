@@ -356,3 +356,7 @@ func _on_fullscreen_button_toggled(toggled_on: bool) -> void:
 
 func _on_semi_auto_control_toggled(toggled_on: bool) -> void:
 	GlobalSettings.semiAuto = toggled_on
+
+
+func _on_colorblind_toggled(toggled_on: bool) -> void:
+	GlobalSettings.colorblind = toggled_on

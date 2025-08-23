@@ -5,14 +5,12 @@ signal ball_pitched(power: float, spin: float, direction: Vector2, position: Vec
 signal special_pitched(direction: Vector2, power: float, curves: Array[float], frames: Array[int], pitch_type: String)
 
 # Pitching Controls
-var true_max_power = 1200 * (attributes.power * attributes.throwing/100)/100 #maximum possible power at 100% energy
+var true_max_power = 104 * (attributes.power * attributes.throwing/100)/100 #maximum possible power at 100% energy, 26 to 101.9
 @export var max_power: float = true_max_power * status.energy
 @export var min_power: float = 100
 @export var max_curve: float = 2.0 # radians/second
 @export var curve_step: float = 0.1
 @onready var powerbar = $UI/PowerBar
-
-
 
 # AI Memory and Decision Making
 var successful_pitches: Array[Dictionary] = []
@@ -39,7 +37,7 @@ var lastPower: float
 var lastCurve: float
 
 # Pitch State
-var current_power: float = 200
+var current_power: float = 250
 var current_curve: float = 0.0
 var is_aiming: bool = false
 var aim_direction: Vector2 = Vector2(0,1)
@@ -47,7 +45,7 @@ var has_ball: bool = false
 var increasing := true
 var variance_factor = ((100 - attributes.accuracy)/100 + 1)/4 #between 25% and 50% maximum error
 var current_variance = 0 #ranges from -100 to 100, then multiplied by variance factor
-var variance_increment = 5
+var variance_increment = 3
 var hand_offset: float = 5.0 #how far to move the ball in the X to keep it from colliding
 var aim_max_angle : float = 100
 var aim_increment: float = 2
@@ -63,7 +61,7 @@ var current_frame:int = 0
 var can_pitch:bool = false
 
 #post-pitch combat and movement
-@export var rest_position: Vector2 = Vector2(-1000, -1000)  # Set this in editor or via code
+@export var rest_position: Vector2 = Vector2(-1000, -1000)
 @onready var navigation_agent: NavigationAgent2D = $NavigationAgent2D
 @export var scrapping := {
 	"flee": 20,
@@ -96,10 +94,12 @@ var legal_first_moves: Array
 func _ready():
 	super._ready()
 	current_behavior = "waiting"
-	collision_mask = 0b0000  # Collide with players (3) but not obstacles (2) or balls (1)
+	collision_mask = 0b0000  # Collide with nothing
 	position_type = "pitcher"
 	max_curve = 2.0 * (attributes.focus + attributes.throwing)/200
 	restore_behaviors()
+	powerbar.currentPower = current_power
+	powerbar.maxPower = true_max_power
 	if bio.leftHanded:
 		hand_offset = hand_offset * -1
 		
@@ -202,13 +202,12 @@ func _on_pitch_phase_started():
 	has_made_first_move = false
 	max_power = true_max_power * status.energy
 	is_aiming = true
-	current_power = lerp(min_power, max_power, 0.5)
+	current_power = lerp(min_power, max_power, 0.51)
 	current_curve = 0.0
-	# Reset movement states when new pitch starts
 	is_chasing = false
 	is_fleeing = false
 	direction_changes = 0
-	current_behavior = "waiting"  # Add this line
+	current_behavior = "waiting"
 	prepare_target_position()
 
 func _handle_pitch_controls():
@@ -216,19 +215,14 @@ func _handle_pitch_controls():
 	if target == Vector2.ZERO:
 		prepare_target_position()
 		aim_direction = global_position.direction_to(target).normalized()
-	# Power adjustment
 	if Input.is_action_pressed("move_up"):
 		current_power = min(max_power, current_power + 10)
 	elif Input.is_action_pressed("move_down"):
 		current_power = max(min_power, current_power - 10)
-	
-	# Curve adjustment
 	if Input.is_action_pressed("increase_spin"):
 		current_curve = min(max_curve, current_curve + curve_step)
 	elif Input.is_action_pressed("decrease_spin"):
 		current_curve = max(0-max_curve, current_curve - curve_step)
-	
-	# Aim direction (mouse/joystick)
 	var input_direction = Input.get_vector("move_left", "move_right", "move_up", "move_down")
 	input_direction = input_direction * Vector2(1,0)#we only care about x axis
 	if input_direction.length() > 0.1:
@@ -244,7 +238,6 @@ func _handle_pitch_controls():
 			else:
 				target.x = aim_max_angle
 		aim_direction = global_position.direction_to(target).normalized()
-		
 	if Input.is_action_just_pressed("pitch"):
 		execute_pitch("normal")
 	elif Input.is_action_just_pressed("sp_pitch_1") and special_pitch_available[0]:
@@ -558,13 +551,13 @@ func get_closest_wall():
 func variance_timer():
 	if increasing:
 		if current_variance < 100:
-			current_variance = current_variance + variance_increment
+			current_variance = current_variance + variance_increment * GlobalSettings.game_speed
 		else:
 			current_variance = 100
 			increasing = false
 	else:
 		if current_variance > -100:
-			current_variance = current_variance - variance_increment
+			current_variance = current_variance - variance_increment * GlobalSettings.game_speed
 		else:
 			current_variance = -100
 			increasing = true
@@ -945,4 +938,4 @@ func handle_powerbar():
 	powerbar.turn(aim_direction)
 	powerbar.bend(current_curve)
 	powerbar.stretch(current_power)
-	#powerbar.color(current_variance)
+	powerbar.color(current_variance)

@@ -8,23 +8,26 @@
 script = ExtResource("1_vh8hc")
 
 [node name="Triangle" type="TextureRect" parent="."]
-offset_left = -574.0
-offset_top = -677.0
-offset_right = 537.0
-offset_bottom = 403.0
+offset_left = -271.0
+offset_top = -300.0
+offset_right = 271.0
+offset_bottom = -27.0
+pivot_offset = Vector2(271, 273)
 texture = ExtResource("2_qejfc")
 
 [node name="DuplicateTriangle" type="TextureRect" parent="."]
-offset_left = -574.0
-offset_top = -677.0
-offset_right = 537.0
-offset_bottom = 403.0
+offset_left = -271.0
+offset_top = -300.0
+offset_right = 271.0
+offset_bottom = -27.0
+pivot_offset = Vector2(271, 273)
 texture = ExtResource("2_qejfc")
 
 [node name="Segment1" type="TextureRect" parent="."]
 offset_left = -271.0
 offset_right = 272.0
 offset_bottom = 136.0
+pivot_offset = Vector2(271, 65)
 texture = ExtResource("3_jaklt")
 stretch_mode = 2
 
@@ -32,6 +35,7 @@ stretch_mode = 2
 offset_left = -271.0
 offset_right = 272.0
 offset_bottom = 135.0
+pivot_offset = Vector2(271, 65)
 texture = ExtResource("3_jaklt")
 stretch_mode = 2
 
@@ -39,13 +43,15 @@ stretch_mode = 2
 offset_left = -271.0
 offset_right = 272.0
 offset_bottom = 136.0
+pivot_offset = Vector2(271, 65)
 texture = ExtResource("3_jaklt")
 stretch_mode = 2
 
 [node name="Segment4" type="TextureRect" parent="."]
 offset_left = -271.0
 offset_right = 272.0
-offset_bottom = 139.0
+offset_bottom = 135.0
+pivot_offset = Vector2(271, 65)
 texture = ExtResource("3_jaklt")
 stretch_mode = 2
 
@@ -53,6 +59,7 @@ stretch_mode = 2
 offset_left = -271.0
 offset_right = 272.0
 offset_bottom = 135.0
+pivot_offset = Vector2(271, 65)
 texture = ExtResource("3_jaklt")
 stretch_mode = 2
 
@@ -60,6 +67,7 @@ stretch_mode = 2
 offset_left = -271.0
 offset_right = 272.0
 offset_bottom = 135.0
+pivot_offset = Vector2(271, 65)
 texture = ExtResource("3_jaklt")
 stretch_mode = 2
 
@@ -67,6 +75,7 @@ stretch_mode = 2
 offset_left = -271.0
 offset_right = 272.0
 offset_bottom = 135.0
+pivot_offset = Vector2(271, 65)
 texture = ExtResource("3_jaklt")
 stretch_mode = 2
 
@@ -74,6 +83,6 @@ stretch_mode = 2
 offset_left = -271.0
 offset_right = 272.0
 offset_bottom = 135.0
-pivot_offset = Vector2(271, 0)
+pivot_offset = Vector2(271, 65)
 texture = ExtResource("3_jaklt")
 stretch_mode = 2
