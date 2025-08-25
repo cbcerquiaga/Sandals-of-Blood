@@ -495,7 +495,7 @@ func debug_default_roster():
 		"composure": 50
 	}
 	#TODO: figure out why I have to set variables to the exact types instead of just passing them in directly
-	var pitches: Array[String] = ["yoyo", "knuckler", "corker"]
+	var pitches: Array[String] = ["chnageup", "moonball", "stop_go"]
 	var grooves: Array[float] = [25, 35, 45]
 	K1.special_pitch_names = pitches
 	K1.special_pitch_groove = grooves
@@ -537,7 +537,7 @@ func debug_default_roster():
 		"composure": 50
 	}
 	#TODO: figure out why I have to set variables to the exact types instead of just passing them in directly
-	pitches  = ["yoyo", "knuckler", "corker"]
+	pitches  = ["flutter", "knuckler", "fake_curve"]
 	grooves = [25, 35, 45]
 	P1.special_pitch_names = pitches
 	P1.special_pitch_groove = grooves
@@ -554,12 +554,53 @@ func debug_default_roster():
 	"pounds": 255,
 	"years": 29
 }
+	var P0 = Player.new()
+	P0.position_type = "pitcher"
+	P0.declared_pitcher = true
+	P0.portrait = "res://Assets/Player Portraits/placeholder portrait 2.png"
+	pitches = ["changeup", "moonball", "stop_go"]
+	grooves = [15, 20, 25]
+	P0.special_pitch_names = pitches
+	P0.special_pitch_groove = grooves
+	P0.playable_positions = ["P", "K", "LG", "RG", "LF", "RF"]
+	P0.preferred_position = "P"
+	P0.bio = {
+	"first_name" :"Filipe",
+	"last_name": "Manu",
+	"nickname": "The Trebuchet",
+	"hometown": "New Beach",
+	"leftHanded": false,
+	"feet": 5,
+	"inches": 6,
+	"pounds": 140,
+	"years": 27
+}
+	P0.attributes = {
+		"speedRating": 85, 
+		"speed": 120.0, 
+		"sprint_speed": 160.0, 
+		"blocking": 50, 
+		"positioning": 50,
+		"aggression": 50,
+		"reactions": 70,
+		"durability": 55,
+		"power": 90,  
+		"throwing": 90,
+		"endurance": 60, 
+		"accuracy": 75,   
+		"balance": 65,    
+		"focus": 90,  
+		"shooting": 50,    
+		"toughness": 32,
+		"confidence": 71,
+		"composure": 75 
+	}
 	
 	var P2 = Player.new()
 	P2.position_type = "pitcher"
 	P2.declared_pitcher = true
 	P2.portrait = "res://Assets/Player Portraits/placeholder portrait 2.png"
-	pitches = ["zig-zag", "looper", "bouncer"]
+	pitches = ["changeup", "moonball", "stop_go"]
 	grooves = [15, 20, 25]
 	P2.special_pitch_names = pitches
 	P2.special_pitch_groove = grooves
@@ -822,6 +863,7 @@ func debug_default_roster():
 	add_player(P4)
 	add_player(K1)
 	add_player(G1)
+	add_player(P0)
 	K.set_all_properties(K1)
 	RG.set_all_properties(G1)
 	LG.set_all_properties(G2)

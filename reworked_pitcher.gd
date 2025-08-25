@@ -2,12 +2,12 @@ extends Player
 class_name Reworked_Pitcher
 
 signal ball_pitched(power: float, spin: float, direction: Vector2, position: Vector2)
-signal special_pitched(direction: Vector2, power: float, curves: Array[float], frames: Array[int], pitch_type: String)
+signal special_pitched(direction: Vector2, power: float, curves: Array[float], frames: Array[int], pitch_type: String, power_curve: bool)
 
 # Pitching Controls
-var true_max_power = 104 * (attributes.power * attributes.throwing/100)/100 #maximum possible power at 100% energy, 26 to 101.9
-@export var max_power: float = true_max_power * status.energy
-@export var min_power: float = 100
+var true_max_power = 5.204 * (attributes.power + attributes.throwing)  - 40.408 #maximum possible power at 100% energy, 990 at 99 throwing and power, 480 at 50 throwing and power
+@export var max_power: float = true_max_power * status.energy/100
+@export var min_power: float = 200
 @export var max_curve: float = 2.0 # radians/second
 @export var curve_step: float = 0.1
 @onready var powerbar = $UI/PowerBar
@@ -417,6 +417,14 @@ func execute_pitch(pitch_type: String):
 			perform_corker_pitch()
 		"yoyo":
 			perform_yoyo_pitch()
+		"changeup":
+			perform_changeup_pitch()
+		"flutter":
+			perform_flutter_pitch()
+		"moonball":
+			perform_moonball_pitch()
+		"stop_go":
+			perform_stop_go_pitch()
 		"none":
 			perform_normal_pitch()
 	has_pitched = true
@@ -438,6 +446,7 @@ func perform_ai_normal_pitch(point):
 	go_away()
 
 func perform_normal_pitch():
+	print("current power: " + str(current_power))
 	# Ensure target and aim direction are properly set
 	if target == Vector2.ZERO:
 		target = global_position + Vector2(0, 0 if field_type != "road" else 100)  # Default direction based on field
@@ -451,27 +460,85 @@ func perform_normal_pitch():
 	var huck = current_power * varied_direction
 	release_ball()
 	ball_pitched.emit(huck, current_curve)
+	
+#starts fast then slows down, mimicing a tricky throw that looks like it will come fast
+func perform_changeup_pitch():
+	aim_direction = global_position.direction_to(target).normalized()
+	status.energy = status.energy - (10 - attributes.endurance/10)
+	var toss_speed = current_power * 0.75
+	var change_speed = (149 - attributes.focus)/100 * toss_speed  #50% at 99 focus, 99% at 50 focus
+	if change_speed > toss_speed:
+		change_speed = toss_speed
+	var curves: Array[float] = [toss_speed, toss_speed, change_speed]
+	var frames: Array[int] = [0, 50, 60]
+	current_power = 300
+	special_pitched.emit(aim_direction, current_curve, curves, frames, "changeup", true)
+	most_recent_pitch = {"pitch_type": "changeup", "power": current_power, "curve": current_curve, "direction": aim_direction}
+	release_ball()
+	
+#fake changeup
+func perform_stop_go_pitch():
+	aim_direction = global_position.direction_to(target).normalized()
+	status.energy = status.energy - (10 - attributes.endurance/10)
+	var toss_speed = current_power * 0.75
+	var change_speed = (149 - attributes.focus)/100 * toss_speed  #50% at 99 focus, 99% at 50 focus
+	if change_speed > toss_speed:
+		change_speed = toss_speed
+	var curves: Array[float] = [toss_speed, change_speed, toss_speed]
+	var frames: Array[int] = [0, 50, 60]
+	special_pitched.emit(aim_direction, current_curve, curves, frames, "stop_go", true)
+	most_recent_pitch = {"pitch_type": "stopgo", "power": current_power, "curve": current_curve, "direction": aim_direction}
 
+#starts slow then speeds up, mimicing a ball that was thrown way up into the air
+func perform_moonball_pitch():
+	aim_direction = global_position.direction_to(target).normalized()
+	status.energy = status.energy - (10 - attributes.endurance/10)
+	var toss_speed = current_power * 0.75
+	var change_speed = (149 - attributes.focus)/100 * toss_speed  #50% at 99 focus, 99% at 50 focus
+	if change_speed > toss_speed:
+		change_speed = toss_speed
+	var curves: Array[float] = [toss_speed, toss_speed, change_speed]
+	var frames: Array[int] = [0, 50, 60]
+	special_pitched.emit(aim_direction, current_curve, curves, frames, "moonball", true)
+	most_recent_pitch = {"pitch_type": "changeup", "power": current_power, "curve": current_curve, "direction": aim_direction}
+	release_ball()
+	
+#changes speed a lot
+func perform_flutter_pitch():
+	aim_direction = global_position.direction_to(target).normalized()
+	status.energy = status.energy - (10 - attributes.endurance/10)
+	var toss_speed = current_power * 0.75
+	var change_speed = (((149 - attributes.focus)/100 * toss_speed) + toss_speed)/2
+	if change_speed > toss_speed:
+		change_speed = toss_speed
+	var curves: Array[float] = [toss_speed, change_speed, toss_speed, change_speed, toss_speed, change_speed]
+	var frames: Array[int] = [20, 40, 60, 80, 100, 120]
+	special_pitched.emit(aim_direction, current_curve, curves, frames, "flutter", true)
+	most_recent_pitch = {"pitch_type": "changeup", "power": current_power, "curve": current_curve, "direction": aim_direction}
+	release_ball()
+
+#looks like it will curve and then straightens out
 func perform_fake_curve_pitch():
 	aim_direction = global_position.direction_to(target).normalized()
 	status.energy = status.energy - (10 - attributes.endurance/10)
 	var curves: Array[float] = [-2.4, 8, 0.0]
 	var frames: Array[int] = [40, 50, 60]
-	current_power = 300
 	special_pitched.emit(aim_direction, current_power, curves, frames, "fake_curve")
 	most_recent_pitch = {"pitch_type": "fake_curve", "power": current_power, "curve": 0, "direction": aim_direction}
 	release_ball()
 
+#changes direction a bunch of times
 func perform_zig_zag_pitch():
 	aim_direction = global_position.direction_to(target).normalized()
 	status.energy = status.energy - (10 - attributes.endurance/10)
 	var curves: Array[float] = [0, 100, 0, -100, 0]
 	var frames: Array[int] = [20, 22, 42, 44, 200]
-	current_power = 200
+	#current_power = 200
 	special_pitched.emit(aim_direction, current_power, curves, frames, "zig-zag")
 	most_recent_pitch = {"pitch_type": "zif-zag", "power": current_power, "curve": 0, "direction": aim_direction}
 	release_ball()
 	
+#loops around backwards towards a guard
 func perform_looper_pitch():
 	aim_direction = global_position.direction_to(target).normalized()
 	status.energy = status.energy - (10 - attributes.endurance/10)
@@ -482,13 +549,13 @@ func perform_looper_pitch():
 	most_recent_pitch = {"pitch_type": "looper", "power": current_power, "curve": 0, "direction": aim_direction}
 	release_ball()
 
+#semi-random
 func perform_knuckler_pitch():
 	aim_direction = global_position.direction_to(target).normalized()
 	status.energy = status.energy - (10 - attributes.endurance/10)
 	var knuckle = attributes.focus/5 #10 for 50, 19.8 for 99
 	var curves: Array[float] = [0, 0, randf_range(-knuckle, knuckle),randf_range(-knuckle, knuckle), randf_range(-knuckle, knuckle), randf_range(-knuckle, knuckle)]
 	var frames: Array[int] = [10, 20, 30, 40, 50, 60]
-	current_power = 300
 	special_pitched.emit(aim_direction, current_power, curves, frames, "knuckler")
 	most_recent_pitch = {"pitch_type": "knuckler", "power": current_power, "curve": 0, "direction": aim_direction}
 	release_ball()
@@ -499,6 +566,7 @@ func find_wall_normal(wall:StaticBody2D) -> Vector2:
 	else:
 		return Vector2.LEFT
 
+#makes a sudden change, mimicing like it bounced off the ground
 func perform_bouncer_pitch():
 	aim_direction = global_position.direction_to(target).normalized()
 	status.energy = status.energy - (10 - attributes.endurance/10)
@@ -509,6 +577,7 @@ func perform_bouncer_pitch():
 	most_recent_pitch = {"pitch_type": "bouncer", "power": current_power, "curve": 0, "direction": aim_direction}
 	release_ball()
 	
+#does a loop-the-loop
 func perform_corker_pitch():
 	aim_direction = global_position.direction_to(target).normalized()
 	status.energy = status.energy - (10 - attributes.endurance/10)
@@ -518,7 +587,8 @@ func perform_corker_pitch():
 	special_pitched.emit(aim_direction, current_power, curves, frames, "corker")
 	most_recent_pitch = {"pitch_type": "corker", "power": current_power, "curve": 0, "direction": aim_direction}
 	release_ball()
-	
+
+#loops back around onto the keeper
 func perform_yoyo_pitch():
 	aim_direction = global_position.direction_to(target).normalized()
 	status.energy = status.energy - (10 - attributes.endurance/10)

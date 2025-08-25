@@ -17,6 +17,7 @@ var special_frames: Array[int] = []
 var current_sp_frame: int = 0
 var current_sp_index: int = 0
 var special_pitch_type: String = ""
+var power_curves: bool = false #if true, uses the power value for curve and the curves to have multiple powers
 
 # Game State
 enum BallState { WAITING, PITCHING, SPECIAL_PITCH, HOCKEY }
@@ -104,10 +105,12 @@ func apply_special_pitch_physics(delta):
 		if current_sp_frame >= special_frames[current_sp_index]:
 			current_sp_index += 1
 		else:
-			current_spin = special_curves[current_sp_index]
+			if power_curves:
+				linear_velocity = linear_velocity * special_curves[current_sp_index]
+			else:
+				current_spin = special_curves[current_sp_index]
 	else:
 		current_spin = 0
-	hockey_max_speed
 	apply_pitching_physics(delta)
 
 func apply_hockey_physics(delta):
@@ -267,7 +270,7 @@ func be_pitched(huck: Vector2, curve: float):
 	freeze = false
 	emit_signal("ball_pitched")
 
-func be_special_pitched(direction: Vector2, power: float, curves: Array[float], frames: Array[int], pitch_type: String):
+func be_special_pitched(direction: Vector2, power: float, curves: Array[float], frames: Array[int], pitch_type: String, curves_as_power: bool = false):
 	print("here comes a doozy")
 	print("Type: ", pitch_type)
 	print("Direction: ", direction)
@@ -280,7 +283,12 @@ func be_special_pitched(direction: Vector2, power: float, curves: Array[float], 
 	special_pitch_type = pitch_type
 	current_sp_frame = 0
 	current_sp_index = 0
-	linear_velocity = direction.normalized() * power
+	power_curves = curves_as_power
+	if !power_curves:
+		linear_velocity = direction.normalized() * power
+	else:
+		linear_velocity = direction.normalized() * curves[0]
+		current_spin = power
 	freeze = false
 	chill_timer = 10
 	emit_signal("ball_pitched")

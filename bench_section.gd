@@ -426,6 +426,14 @@ func get_pitch_text(string):
 			return "Corkball"
 		"yoyo":
 			return "Yo-Yo"
+		"flutter":
+			return "Flutterball"
+		"stop_go":
+			return "Stop & Go"
+		"moonball":
+			return "Moonball"
+		"changeup":
+			return "Changeup"
 		"none":
 			return "N/A"
 

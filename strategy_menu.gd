@@ -738,5 +738,13 @@ func get_pitch_texture(string):
 			return "res://UI/PitchTypeSymbols/pitch_corker.png"
 		"yoyo":
 			return "res://UI/PitchTypeSymbols/pitch_yoyo.png"
+		"changeup":
+			return "res://UI/PitchTypeSymbols/pitch_changeup.png"
+		"stop_go":
+			return "res://UI/PitchTypeSymbols/pitch_stop_go.png"
+		"flutter":
+			return "res://UI/PitchTypeSymbols/pitch_flutter.png"
+		"moonball":
+			return "res://UI/PitchTypeSymbols/pitch_moonball.png"
 		"none":
 			return "" #TODO

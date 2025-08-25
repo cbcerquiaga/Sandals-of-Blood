@@ -1179,7 +1179,7 @@ func find_guard_style():
 		playStyle = "Bully"
 		playStyle_texture = "res://UI/PlayerTypeSymbols/playerType_fist.png"
 	else:
-		playStyle = "defender"
+		playStyle = "Defender"
 		playStyle_texture = "res://UI/PlayerTypeSymbols/playerType_brickwall.png"
 
 func find_keeper_style():
