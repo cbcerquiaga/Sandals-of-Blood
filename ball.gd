@@ -106,7 +106,8 @@ func apply_special_pitch_physics(delta):
 			current_sp_index += 1
 		else:
 			if power_curves:
-				linear_velocity = linear_velocity * special_curves[current_sp_index]
+				linear_velocity = linear_velocity.normalized() * special_curves[current_sp_index]
+				print("power curve linear velocity: " + str(linear_velocity) + " at frame " + str(current_sp_frame) + " on index " + str(current_sp_index))
 			else:
 				current_spin = special_curves[current_sp_index]
 	else:

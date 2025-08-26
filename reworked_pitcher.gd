@@ -464,14 +464,14 @@ func perform_normal_pitch():
 #starts fast then slows down, mimicing a tricky throw that looks like it will come fast
 func perform_changeup_pitch():
 	aim_direction = global_position.direction_to(target).normalized()
-	status.energy = status.energy - (10 - attributes.endurance/10)
+	status.energy = status.energy - (5 - attributes.endurance/20)#not an energy intensive pitch
 	var toss_speed = current_power * 0.75
-	var change_speed = (149 - attributes.focus)/100 * toss_speed  #50% at 99 focus, 99% at 50 focus
+	var change_speed = (149 - attributes.focus)/100.0 * toss_speed  #50% at 99 focus, 99% at 50 focus
 	if change_speed > toss_speed:
 		change_speed = toss_speed
-	var curves: Array[float] = [toss_speed, toss_speed, change_speed]
-	var frames: Array[int] = [0, 50, 60]
-	current_power = 300
+	print("toss speed: " + str(toss_speed) + "; change speed: " + str(change_speed))
+	var curves: Array[float] = [toss_speed, change_speed, change_speed]
+	var frames: Array[int] = [55, 65, 200]
 	special_pitched.emit(aim_direction, current_curve, curves, frames, "changeup", true)
 	most_recent_pitch = {"pitch_type": "changeup", "power": current_power, "curve": current_curve, "direction": aim_direction}
 	release_ball()
@@ -481,24 +481,24 @@ func perform_stop_go_pitch():
 	aim_direction = global_position.direction_to(target).normalized()
 	status.energy = status.energy - (10 - attributes.endurance/10)
 	var toss_speed = current_power * 0.75
-	var change_speed = (149 - attributes.focus)/100 * toss_speed  #50% at 99 focus, 99% at 50 focus
+	var change_speed = (149 - attributes.focus)/100.0 * toss_speed  #50% at 99 focus, 99% at 50 focus
 	if change_speed > toss_speed:
 		change_speed = toss_speed
-	var curves: Array[float] = [toss_speed, change_speed, toss_speed]
-	var frames: Array[int] = [0, 50, 60]
+	var curves: Array[float] = [toss_speed, change_speed, toss_speed, toss_speed]
+	var frames: Array[int] = [50, 55, 75, 300]
 	special_pitched.emit(aim_direction, current_curve, curves, frames, "stop_go", true)
 	most_recent_pitch = {"pitch_type": "stopgo", "power": current_power, "curve": current_curve, "direction": aim_direction}
 
 #starts slow then speeds up, mimicing a ball that was thrown way up into the air
 func perform_moonball_pitch():
 	aim_direction = global_position.direction_to(target).normalized()
-	status.energy = status.energy - (10 - attributes.endurance/10)
-	var toss_speed = current_power * 0.75
-	var change_speed = (149 - attributes.focus)/100 * toss_speed  #50% at 99 focus, 99% at 50 focus
+	status.energy = status.energy - (5 - attributes.endurance/20)
+	var toss_speed = current_power * (attributes.focus/100.0) #99% at 99, 50% at 50
+	var change_speed = toss_speed * 0.75
 	if change_speed > toss_speed:
 		change_speed = toss_speed
-	var curves: Array[float] = [toss_speed, toss_speed, change_speed]
-	var frames: Array[int] = [0, 50, 60]
+	var curves: Array[float] = [change_speed, toss_speed, toss_speed]
+	var frames: Array[int] = [50, 75, 300]
 	special_pitched.emit(aim_direction, current_curve, curves, frames, "moonball", true)
 	most_recent_pitch = {"pitch_type": "changeup", "power": current_power, "curve": current_curve, "direction": aim_direction}
 	release_ball()
@@ -508,7 +508,7 @@ func perform_flutter_pitch():
 	aim_direction = global_position.direction_to(target).normalized()
 	status.energy = status.energy - (10 - attributes.endurance/10)
 	var toss_speed = current_power * 0.75
-	var change_speed = (((149 - attributes.focus)/100 * toss_speed) + toss_speed)/2
+	var change_speed = (((149 - attributes.focus)/100.0 * toss_speed) + toss_speed)/2
 	if change_speed > toss_speed:
 		change_speed = toss_speed
 	var curves: Array[float] = [toss_speed, change_speed, toss_speed, change_speed, toss_speed, change_speed]
@@ -552,7 +552,7 @@ func perform_looper_pitch():
 #semi-random
 func perform_knuckler_pitch():
 	aim_direction = global_position.direction_to(target).normalized()
-	status.energy = status.energy - (10 - attributes.endurance/10)
+	status.energy = status.energy - (5 - attributes.endurance/20)
 	var knuckle = attributes.focus/5 #10 for 50, 19.8 for 99
 	var curves: Array[float] = [0, 0, randf_range(-knuckle, knuckle),randf_range(-knuckle, knuckle), randf_range(-knuckle, knuckle), randf_range(-knuckle, knuckle)]
 	var frames: Array[int] = [10, 20, 30, 40, 50, 60]
