@@ -5,7 +5,7 @@ class_name Ball
 @export var base_speed: float = 500.0
 var max_speed: float = 1500.0
 @export var hockey_max_speed: float = 800.0
-@export var pitching_max_speed: float = 1500
+@export var pitching_max_speed: float = 999.0
 @export var min_bounce_speed: float = 50.0
 var bounce_drag = 0.95 #how much speed ball retains when bouncing off walls
 var center_influence = 0.5 #affects how close to 0,0 ball bounces when it's not sure where to go

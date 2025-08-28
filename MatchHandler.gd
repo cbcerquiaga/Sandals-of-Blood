@@ -624,7 +624,10 @@ func check_match_end():
 	elif pitches_remaining <= 0 and team2_score - team1_score >= 2:
 		end_match(2)#win by pitches
 	elif GlobalSettings.regular_season and pitches_remaining <= 0 and team1_score == team2_score:
-		print("sudden death overtime!") #if winning team scores, they win. If losing team scores, they tie
+		print("that's a tie")
+		end_match(0) #tie by pitches
+	elif GlobalSettings.regular_season and pitches_remaining <= 0 and abs(team1_score - team2_score) == 1:
+		print("sudden death overtime!")
 		statusUI.overtime(false)
 	elif GlobalSettings.regular_season and (team1_score == GlobalSettings.target_score or team2_score == GlobalSettings.target_score) and abs(team1_score - team2_score) == 1:
 		print("sudden death overtime!")
@@ -836,6 +839,11 @@ func update_team_roster(team: Team):
 			ball.last_hit_by = pTeam.P
 		else:
 			ball.last_hit_by = aTeam.P
+		if pTeam.P.bio.leftHanded:
+			position_player(pTeam.P, field.human_lhp_spawn, field.human_orientation)
+		else:
+			position_player(pTeam.P, field.human_rhp_spawn, field.human_orientation)
+		ball.reset_ball(Vector2(pTeam.P.global_position.x + pTeam.P.hand_offset, pTeam.P.global_position.y))
 
 
 func _on_pause_menu_new_sub() -> void:
@@ -850,3 +858,8 @@ func _on_pause_menu_new_sub() -> void:
 			ball.last_hit_by = pTeam.P
 		else:
 			ball.last_hit_by = aTeam.P
+		if pTeam.P.bio.leftHanded:
+			position_player(pTeam.P, field.human_lhp_spawn, field.human_orientation)
+		else:
+			position_player(pTeam.P, field.human_rhp_spawn, field.human_orientation)
+		ball.reset_ball(Vector2(pTeam.P.global_position.x + pTeam.P.hand_offset, pTeam.P.global_position.y))
