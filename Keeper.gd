@@ -116,7 +116,7 @@ func _physics_process(delta):
 	
 	
 	if not is_controlling_player and can_move:
-		#print("current behavior: ", current_behavior)
+		print("current behavior: ", current_behavior)
 		AI_behavior(delta)
 		#if !is_in_half():
 			#if !is_stunned:
@@ -245,7 +245,8 @@ func perform_sweeping():
 		if global_position.distance_to(defensive_position) < 20:
 			current_behavior = "defending"
 			return
-	check_ball_close()
+	if check_ball_close():
+		return
 	
 	var anticipated_pos = _calculate_ball_intercept_with_bounces()
 	
@@ -253,19 +254,26 @@ func perform_sweeping():
 		anticipated_pos.y = min(anticipated_pos.y, goal_line_y - buffer)
 	else:  # Top goal (negative Y)
 		anticipated_pos.y = max(anticipated_pos.y, goal_line_y + buffer)
-	
-	# Only move forward (toward center) during sweeping
+	if sign(global_position.y) != sign(anticipated_pos.y) or anticipated_pos.distance_squared_to(Vector2(0,0)) > own_goal.distance_squared_to(Vector2(0,0)):
+		current_behavior = "defending"
+		return
+	if global_position.distance_squared_to(anticipated_pos) > ball.global_position.distance_squared_to(own_goal):
+		current_behavior = "defending"
+		return
 	var ball_to_center = (Vector2(0, 0) - ball.global_position).normalized()
 	if (global_position - anticipated_pos).normalized().dot(ball_to_center) < 0.7:
-		# Ball is behind us, stay put rather than backtracking
-		velocity = Vector2.ZERO
+		#get the fuck back in the goal
+		is_sprinting = status.boost > 0
+		var speed = attributes.speed
+		if is_sprinting:
+			speed = attributes.sprint_speed
+		navigation_agent.target_position = own_goal
+		velocity = (navigation_agent.target_position - global_position).normalized() * speed
 		return
 	
 	navigation_agent.target_position = anticipated_pos
 	velocity = (anticipated_pos - global_position).normalized() * attributes.sprint_speed
-	
-	# Safety check - if ball gets too far or we've been sweeping too long, go back to defending
-	if distance_to_ball > sweeping_params["max_distance"] * 1.5:
+	if distance_to_ball > sweeping_params["max_distance"]:
 		current_behavior = "defending"
 	
 func _calculate_ball_intercept_with_bounces() -> Vector2:
@@ -1141,10 +1149,13 @@ func _on_ball_emit_pitch_side():
 		
 func check_ball_close():
 	if !ball:
-		return
+		return false
 	if ball.global_position.distance_to(own_goal) < max_goal_offset or ball.global_position.distance_to(global_position) < sqrt(attributes.reactions):
 		current_behavior = "blocking"
 		perform_blocking()
+		return true
+	else:
+		return false
 		
 #if we're close enough to the ball and have no input, help the player out a little bit
 func human_check_ball_close():
