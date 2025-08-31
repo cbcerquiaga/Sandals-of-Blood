@@ -111,12 +111,81 @@ func update_behavior():
 	if goalie_has_it() and !guard_counterattack_preferences.override:
 		pick_counterattack_behavior()
 		return
+	elif buddy_keeper.current_behavior == "brawling":
+		handle_brawl_behavior()
 	elif should_play_zone:
 		handle_zone_defense_behavior()
 	else:
 		handle_man_defense_behavior()
 	
 	navigation_agent.target_position = current_target
+
+#brawl behavior is determined by a player's brawl preferences
+func handle_brawl_behavior():
+	var brawl_behaviors = ["lurking", "joining", "partnering", "cowering"]
+	if brawl_behaviors.has(current_behavior):
+		match current_behavior:
+			"lurking":
+				brawl_lurk()
+			"joining":
+				velocity = global_position.direction_to(buddy_keeper.global_position).normalized() * attributes.sprint_speed
+				move_and_slide()
+				current_behavior = "brawling"
+				brawl_opponents += buddy_keeper.brawl_opponents
+				join_brawl_movement()
+			"partnering":
+				if assigned_forward.current_behavior != "brawling":
+					current_opponent = assigned_forward
+					brawl_opponents.append(assigned_forward)
+					current_behavior = "brawling"
+				elif other_forward.current_behavior != "brawling":
+					current_opponent = other_forward
+					brawl_opponents.append(other_forward)
+					current_behavior = "brawling"
+				else:
+					#find the next closest bastard, even if it's not in the defensive half
+					var possible_opponents = [buddy_keeper.oppKeeper, buddy_keeper.oppLF, buddy_keeper.oppRF] #TODO: maybe the pitcher?
+					var min_distance = INF
+					for player in possible_opponents:
+						if player.global_position.distance_squared_to(global_position) < min_distance:
+							current_opponent = player
+							min_distance = player.global_position.distance_squared_to(global_position)
+					brawl_opponents.append(current_opponent)
+					current_behavior = "fencing"
+			"cowering":
+				var cower_spots = [counter_position, buddy_guard.counter_position, Vector2(counter_position.x, counter_position.y/2), Vector2(buddy_guard.counter_position.x, buddy_guard.counter_position.y/2), Vector2(0, defending_goal_position.y/2)]
+				var best_spot
+				var longest_distance = -1
+				for spot in cower_spots:
+					var distance = spot.distance_squared_to(assigned_forward.global_position) + spot.distance_squared_to(other_forward.global_position)
+					if distance > longest_distance:
+						best_spot = spot
+						longest_distance = distance
+				navigation_agent.target_position = best_spot
+				navigate_to(best_spot)
+	else:
+		var sum = brawl_preferences.lurk + brawl_preferences.join + brawl_preferences.partner + brawl_preferences.cower + brawl_preferences.game
+		var rand = randf_range(0, sum)
+		if rand < brawl_preferences.lurk:
+			current_behavior = "lurking"
+		elif rand < brawl_preferences.lurk + brawl_preferences.join:
+			current_behavior = "joining"
+		elif rand < brawl_preferences.lurk + brawl_preferences.join + brawl_preferences.partner:
+			current_behavior = "partnering"
+		elif rand < brawl_preferences.lurk + brawl_preferences.join + brawl_preferences.partner + brawl_preferences.cower:
+			current_behavior = "cowering"
+		else:
+			if should_play_zone:
+				handle_zone_defense_behavior()
+			else:
+				handle_man_defense_behavior()
+				
+
+func brawl_lurk():
+	lurk_brawl_movement(buddy_keeper)
+	if buddy_keeper.is_stunned:
+		current_opponent = buddy_keeper.current_opponent
+		current_behavior = "brawling"
 
 #in zone defense, one player will take over the goal and the other will usually trap midfield, but may go rogue
 func handle_zone_defense_behavior():
@@ -682,18 +751,8 @@ func perform_fencing():
 		current_behavior = last_behavior
 		current_opponent = null
 		return
-	
-	fencing_timer += get_physics_process_delta_time()
-	var current_dist = global_position.distance_to(current_opponent.global_position)
-	var spacing_error = current_dist - fencing_params["ideal_distance"]
-	
-	if spacing_error > 0:  # Advance
-		velocity = (current_opponent.global_position - global_position).normalized() * attributes.speed * fencing_params["advance_speed"]
-	else:  # Retreat
-		velocity = (global_position - current_opponent.global_position).normalized() * attributes.speed * fencing_params["retreat_speed"]
-	
-	if fencing_timer > fencing_params["attack_cooldown"]:
-		_make_combat_decision(current_opponent.global_position,current_dist)
+	if current_opponent.global_position.distance_squared_to(global_position) < 400:
+		current_behavior = "brawling"
 		
 func _should_break_fencing() -> bool:
 	return ball and global_position.distance_to(ball.global_position) < fencing_params["ball_proximity_threshold"] * (1.1 - attributes.reactions/100.0)

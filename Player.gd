@@ -95,6 +95,14 @@ var field_position: String
 	"sweeper_keeper": true, #if the keeper will go out and chase loose balls
 }
 
+@export var brawl_preferences := {
+	"lurk": 0.5, #wait outside the brawl
+	"join": 0.5, #join the big brawl
+	"parnter": 0.5, #fight a random uninvolved person
+	"game": 0.5, #find a ball-focused task
+	"cower": 0.5 #run away
+}
+
 #TODO: update for different parts of strategy
 #TODO: import from team.gd
 @export var team_strategy := {
@@ -402,6 +410,8 @@ func join_brawl_movement():
 			if dist_sq < closest_distance_squared:
 				closest_distance_squared = dist_sq
 				closest_opponent = opponent
+		#navigation_agent.target_position = closest_opponent.global_position
+		
 	pass
 	
 func jumped_brawl(opponent: Player):
@@ -416,9 +426,20 @@ func lurk_brawl_movement(teammate: Player):
 		current_opponent = teammate.current_opponent
 	if !teammate.is_stunned:
 		if teammate.current_behavior == "brawling":
+			var lurk_value #TODO: calculate lurk value based on distance to opponents
 			#TODO: get close to the opponent, circle around to be in good offensive or defensive position too
 			pass
 	pass
+	
+func get_lurk_value():
+	match field_position:
+		"LF", "RF", "F":
+			var forward_self = self as Forward
+			#TODO: get a value based on open shot and path to ball
+		"LG", "RG", "G":
+			#TODO: Get a value based on protect and ball preference
+			var guard_self = self as Guard
+			
 
 func brawl_footwork(opponent: Player):
 	if !opponent:
@@ -716,6 +737,7 @@ func stop_brawling():
 				
 		"K":
 			current_behavior = "defending"
+	brawl_opponents = []
 			
 func has_same_name(player: Player):
 	if bio.first_name == player.bio.first_name and bio.last_name == player.bio.last_name:
