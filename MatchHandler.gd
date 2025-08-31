@@ -404,6 +404,23 @@ func _process(delta: float) -> void:
 			if fighting_frame >= max_fighting_frame:
 				fighting_frame = 0
 				pitchers_fight()
+		var brawlers = pTeam.get_brawlers() + aTeam.get_brawlers()
+		if brawlers.size() > 0:
+			var pairs = []
+			for brawler in brawlers:
+				var pair = [brawler, brawler.current_opponent]
+				pairs.append(pair)
+			pairs.shuffle()
+			var already_fought = []
+			for pair in pairs:
+				if already_fought.size() > 0:
+					for fight in already_fought:
+						if (fight[0].has_same_name(pair[1]) and fight[1].has_same_name_name(pair[0])) or (fight[0].has_same_name(pair[0]) and fight[1].has_same_name_name(pair[1])):
+							continue
+						else:
+							players_fight(pair[0], pair[1])
+							already_fought.append(pair)
+		
 
 func next_play():
 	print("Starting next play - Human pitching: " + str(is_human_team_pitching))
@@ -780,6 +797,80 @@ func pitchers_fight():
 		cpu_team_wins_fight()
 	elif aTeam.P.status.stability <= 0:
 		human_team_wins_fight()
+		
+#brawling is mostly similar to pitcher fighting, but has potentially different outcomes. It also has to factor in that players need to worry about additional fighters and the ball
+func players_fight(p1: Player, p2: Player):
+	var tough_diff = p1.attributes.toughness - p2.attributes.toughness
+	var p1_punch_power = p1.attributes.toughness * 2 + p1.attributes.power + p1.attributes.shooting + p1.status.boost #between 200 and 495
+	var p2_punch_power = p2.attributes.toughness * 2 + p2.attributes.power + p2.attributes.shooting + p2.status.boost
+	var p1_chin = p1.attributes.toughness * 2 + p1.attributes.durability + p1.status.boost#between 150 and 396
+	var p2_chin = p2.attributes.toughness * 2 + p2.attributes.durability + p2.status.boost
+	var p1_hit_chance = 0.5 + (tough_diff * 0.48)/49.0
+	var p2_hit_chance = 1 - p1_hit_chance
+	var p1_roll = randf()
+	var p2_roll = randf()
+	var p1_aggMod = 0 #used to determine the player's desire to stop fighting
+	var p2_aggMod = 0
+	if p1_roll < p1_hit_chance and p2_roll < p2_hit_chance: #Rocky
+		#take stability damage, roll for injury
+		p1.get_socked(p2_punch_power - p1_chin)
+		p1.lose_stability(sqrt(p2_punch_power)/5)#between 2.8 and 4.5, relatively minor stability loss
+		p2.get_socked(p1_punch_power - p2_chin)
+		p2.lose_stability(sqrt(p1_punch_power)/5)
+		p1_aggMod += 2
+		p2_aggMod += 2
+	elif p1_roll < p1_hit_chance:
+		p2.get_socked(p1_punch_power - p2_chin)
+		p1.lose_stability(1)  #almost no stability loss
+		p2.lose_stability(sqrt(p1_punch_power)/5)
+		p2_aggMod += 5
+	elif p2_roll < p2_hit_chance:
+		p1.get_socked(p2_punch_power - p1_chin)
+		p2.lose_stability(1)  #almost no stability loss
+		p1.lose_stability(sqrt(p2_punch_power)/5)
+		p1_aggMod += 5
+	else: #no wrestling, just whiff
+		print("whiff")
+		#TODO: missed punch animation
+		p1_aggMod += 8 #why bother fighting if you suck at it?
+		p2_aggMod += 8
+	#always lose some boost
+	var p1_loss = (100 - p1.attributes.endurance)/10 + 2 #between 2.1 and 7; between 7 and 47 punches before using up all boost if at max boost to start
+	var p2_loss = (100 - p2.attributes.endurance)/10 + 2
+	p1.lose_boost(p1_loss)
+	p2.lose_boost(p2_loss)
+	#check if anybody has fallen over
+	if p1.status.stability <= 0 and p2.status.stability <= 0:
+		p1.enter_stunned_state(10)#TODO: balance
+		p2.enter_stunned_state(10)
+		#TODO: injuries
+	elif p1.status.stability <= 0:
+		p1.enter_stunned_state(10)
+	elif p2.status.stability <= 0:
+		p2.enter_stunned_state(10)
+	else:#check if anybody wants to stop
+		var desire_1 = p1.attributes.aggression - p1_aggMod
+		var desire_2 = p2.attributes.aggression - p2_aggMod
+		var rand1 = randi_range(0, 100)
+		var rand2 = randi_range(0,100)
+		if rand1 < desire_1 and rand2 < desire_2:
+			p1.stop_brawling()
+			p2.stop_brawling()
+			#TODO: both stop wating to fight animation
+		elif rand1 < desire_1:
+			var diff1 = desire_1 - rand1
+			var diff2 = rand2 - desire_2
+			if p1.attributes.power + diff1 > p2.attributes.power + diff2:#check if they can escape. need strength and need to want it
+				p1.stop_brawling()
+				p2.stop_brawling()
+				#TODO: wrenching away animation
+		elif rand2 < desire_2:
+			var diff1 = rand1 - desire_1
+			var diff2 = desire_2 - rand2
+			if p2.attributes.power + diff2 > p1.attributes.power + diff1:
+				p1.stop_brawling()
+				p2.stop_brawling()
+				#TODO: wrenching away animation
 	
 func human_team_wins_fight():
 	print("Robot got KO'd")

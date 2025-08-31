@@ -984,3 +984,11 @@ func validate_players():
 			player.special_pitch_names = ["none", "none", "none"]
 		else:
 			print(player.bio.last_name +  " throws these pitches: " + str(player.special_pitch_names))
+
+func get_brawlers():
+	var fielders = [K, LG, RG, LF, RF]
+	var brawlers = []
+	for player in fielders:
+		if player.current_behavior == "brawling":
+			brawlers.append(player)
+	return brawlers

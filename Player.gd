@@ -407,10 +407,17 @@ func join_brawl_movement():
 func jumped_brawl(opponent: Player):
 	velocity = Vector2.ZERO
 	current_behavior = "brawling"
+	current_opponent = opponent
 	brawl_opponents.append(opponent)
 	
 
-func lurk_brawl_movement():
+func lurk_brawl_movement(teammate: Player):
+	if teammate.current_opponent:
+		current_opponent = teammate.current_opponent
+	if !teammate.is_stunned:
+		if teammate.current_behavior == "brawling":
+			#TODO: get close to the opponent, circle around to be in good offensive or defensive position too
+			pass
 	pass
 
 func brawl_footwork(opponent: Player):
@@ -689,7 +696,32 @@ func scrum(body: Player):
 	lose_stability(stability_loss)
 	body.lose_stability(stability_loss)
 	#print("we scrumming. my push: ", my_push, " your push: ", opp_push)
-	
+
+func stop_brawling():
+	match field_position:
+		"LF", "RF", "F":
+			var preferred_strat
+			var weight = -99
+			for strat in forward_strategy:
+				var value = forward_strategy[strat]
+				if value > weight:
+					weight = value
+					preferred_strat = strat
+			current_behavior = preferred_strat
+		"LG", "RG", "G":
+				var guard_instance = self as Guard
+				guard_instance.update_behavior()
+				current_behavior = guard_instance.current_behavior
+				guard_instance.queue_free()
+				
+		"K":
+			current_behavior = "defending"
+			
+func has_same_name(player: Player):
+	if bio.first_name == player.bio.first_name and bio.last_name == player.bio.last_name:
+		return true
+	else:
+		return false
 
 func take_hit(attacker: Player, power: float):
 	if is_machine:
