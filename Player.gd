@@ -390,6 +390,39 @@ func reset_game_stats():
 func handle_ai_input():
 	# To be implemented by child classes
 	pass
+	
+func join_brawl_movement():
+	var closest_opponent
+	var closest_distance_squared = INF
+	if brawl_opponents.size() < 1:
+		return
+	else:
+		for opponent in brawl_opponents:
+			var dist_sq = global_position.distance_squared_to(opponent.global_position)
+			if dist_sq < closest_distance_squared:
+				closest_distance_squared = dist_sq
+				closest_opponent = opponent
+	pass
+	
+func jumped_brawl(opponent: Player):
+	velocity = Vector2.ZERO
+	current_behavior = "brawling"
+	brawl_opponents.append(opponent)
+	
+
+func lurk_brawl_movement():
+	pass
+
+func brawl_footwork(opponent: Player):
+	if !opponent:
+		return
+	var direction: Vector2
+	if global_position.distance_to(opponent.global_position) > 20: #slightly closer than pitcher fights
+		direction = global_position.direction_to(opponent.global_position)
+	else:
+		direction = Vector2(randf_range(-1,1), randf_range(-1,1))
+	velocity = direction * (attributes.speed * 0.1)
+	move_and_slide()
 
 func handle_stun_movement(delta):
 	# Slow stumbling movement when stunned

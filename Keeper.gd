@@ -351,18 +351,13 @@ func perform_fencing():
 		current_behavior = "defending"
 		current_opponent = null
 		return
-	
-	fencing_timer += get_physics_process_delta_time()
-	var current_dist = global_position.distance_to(current_opponent.global_position)
-	var spacing_error = current_dist - fencing_params["ideal_distance"]
-	
-	if spacing_error > 0:  # Advance
-		velocity = (current_opponent.global_position - global_position).normalized() * attributes.speed * fencing_params["advance_speed"]
-	else:  # Retreat
-		velocity = (global_position - current_opponent.global_position).normalized() * attributes.speed * fencing_params["retreat_speed"]
-	
-	if fencing_timer > fencing_params["attack_cooldown"]:
-		_make_combat_decision(current_opponent.global_position, current_dist)
+	if global_position.distance_squared_to(current_opponent.global_position) < 400: #dist less than 20, saving some compute
+		if current_opponent.current_behavior != "brawling":
+			current_opponent.jumped_brawl(self)
+		brawl_footwork(current_opponent)
+	else:
+		navigation_agent.target_position = current_opponent.global_position
+		velocity = global_position.direction_to(navigation_agent.target_position).normalized() * attributes.speed
 
 func perform_attacking():
 	if attack_cooldown > 0:
