@@ -98,7 +98,7 @@ var field_position: String
 @export var brawl_preferences := {
 	"lurk": 0.5, #wait outside the brawl
 	"join": 0.5, #join the big brawl
-	"parnter": 0.5, #fight a random uninvolved person
+	"partner": 0.5, #fight a random uninvolved person
 	"game": 0.5, #find a ball-focused task
 	"cower": 0.5 #run away
 }

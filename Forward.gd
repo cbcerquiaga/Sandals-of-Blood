@@ -427,11 +427,14 @@ func execute_cower():
 
 # --- Behavior Selection System ---
 
-func choose_behavior():
+func choose_behavior(skip = false):
+	if !skip:
+		if opposing_keeper.current_behavior == "fencing" or opposing_keeper.current_behavior == "brawling" or forward_partner.current_behavior == "brawling" or assigned_guard.current_behavior == "brawling":
+			handle_brawl_behavior()
+			return
+	
 	# Calculate situational modifiers
 	var situational_weights = calculate_situational_weights()
-	
-	# Combine all weights
 	var combined_weights = {}
 	var total_weight = 0.0
 		
@@ -511,6 +514,72 @@ func is_ball_reachable() -> bool:
 	return (ball and 
 			global_position.distance_to(ball.global_position) < attributes.speed/1.5 and 
 			has_clear_path_to(ball.global_position))
+			
+func handle_brawl_behavior():
+	var brawl_behaviors = ["lurking", "joining", "partnering", "cowering"]
+	if brawl_behaviors.has(current_behavior):
+		match current_behavior:
+			"lurking":
+				brawl_lurk()
+			"joining":
+				velocity = global_position.direction_to(forward_partner.global_position).normalized() * attributes.sprint_speed
+				move_and_slide()
+				current_behavior = "brawling"
+				brawl_opponents += forward_partner.brawl_opponents
+				join_brawl_movement()
+			"partnering":
+				if assigned_guard.current_behavior != "brawling":
+					current_opponent = assigned_guard
+					brawl_opponents.append(assigned_guard)
+					current_behavior = "brawling"
+				elif other_guard.current_behavior != "brawling":
+					current_opponent = other_guard
+					brawl_opponents.append(other_guard)
+					current_behavior = "brawling"
+				elif opposing_keeper.current_behavior != "brawling":
+					current_opponent = opposing_keeper
+					brawl_opponents.append(opposing_keeper)
+					current_behavior = "brawling"
+				else:
+					#find the next closest bastard, even if it's not in the offensive half
+					var possible_opponents = [buddy_keeper.oppLF, buddy_keeper.oppRF] #TODO: maybe the pitcher?
+					var min_distance = INF
+					for player in possible_opponents:
+						if player.global_position.distance_squared_to(global_position) < min_distance:
+							current_opponent = player
+							min_distance = player.global_position.distance_squared_to(global_position)
+					brawl_opponents.append(current_opponent)
+					current_behavior = "fencing"
+			"cowering":
+				var cower_spots = [assigned_guard.counter_position, other_guard.counter_position, waiting_point, forward_partner.waiting_point, Vector2(0, waiting_point.y)]
+				var best_spot
+				var longest_distance = -1
+				for spot in cower_spots:
+					var distance = spot.distance_squared_to(assigned_guard.global_position) + spot.distance_squared_to(other_guard.global_position)
+					if distance > longest_distance:
+						best_spot = spot
+						longest_distance = distance
+				navigation_agent.target_position = best_spot
+				navigate_to(best_spot)
+	else:
+		var sum = brawl_preferences.lurk + brawl_preferences.join + brawl_preferences.partner + brawl_preferences.cower + brawl_preferences.game
+		var rand = randf_range(0, sum)
+		if rand < brawl_preferences.lurk:
+			current_behavior = "lurking"
+		elif rand < brawl_preferences.lurk + brawl_preferences.join:
+			current_behavior = "joining"
+		elif rand < brawl_preferences.lurk + brawl_preferences.join + brawl_preferences.partner:
+			current_behavior = "partnering"
+		elif rand < brawl_preferences.lurk + brawl_preferences.join + brawl_preferences.partner + brawl_preferences.cower:
+			current_behavior = "cowering"
+		else:
+			choose_behavior(true)
+			
+func brawl_lurk():
+	lurk_brawl_movement(forward_partner)
+	if forward_partner.is_stunned:
+		current_opponent = forward_partner.current_opponent
+		current_behavior = "fencing"
 
 func has_stunned_opponent() -> bool:
 	var players = get_tree().get_nodes_in_group("players")
@@ -1105,22 +1174,22 @@ func has_clear_path_to(target: Vector2, from_pos: Vector2 = global_position) -> 
 	return !result
 	
 func perform_fencing():
+	if !current_opponent:
+		if global_position.distance_squared_to(assigned_guard.global_position) < global_position.distance_squared_to(opposing_keeper.global_position) and !assigned_guard.is_stunned:
+			current_opponent = assigned_guard
+		elif !opposing_keeper.is_stunned:
+			current_opponent = opposing_keeper
+		else:
+			current_opponent = other_guard
 	if !current_opponent or current_opponent.is_stunned or _should_break_fencing():
 		choose_behavior()
 		current_opponent = null
 		return
-	
-	fencing_timer += get_physics_process_delta_time()
-	var current_dist = global_position.distance_to(current_opponent.global_position)
-	var spacing_error = current_dist - fencing_params["ideal_distance"]
-	
-	if spacing_error > 0:  # Advance
-		velocity = (current_opponent.global_position - global_position).normalized() * attributes.speed * fencing_params["advance_speed"]
-	else:  # Retreat
-		velocity = (global_position - current_opponent.global_position).normalized() * attributes.speed * fencing_params["retreat_speed"]
-	
-	if fencing_timer > fencing_params["attack_cooldown"]:
-		_make_combat_decision(current_opponent.global_position,current_dist)
+	if current_opponent.global_position.distance_squared_to(global_position) < 400:
+		current_behavior = "brawling"
+	navigation_agent.target_position = current_opponent.global_position
+	velocity = global_position.direction_to(navigation_agent.target_position).normalized() * attributes.speed
+	move_and_slide()
 		
 func _should_break_fencing() -> bool:
 	return ball and global_position.distance_to(ball.global_position) < fencing_params["ball_proximity_threshold"] * (1.1 - attributes.reactions/100.0)

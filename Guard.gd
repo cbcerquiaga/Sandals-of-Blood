@@ -111,7 +111,7 @@ func update_behavior():
 	if goalie_has_it() and !guard_counterattack_preferences.override:
 		pick_counterattack_behavior()
 		return
-	elif buddy_keeper.current_behavior == "brawling":
+	elif buddy_keeper.current_behavior == "brawling" or (assigned_forward.current_behavior == "brawling" and other_forward.current_behavior == "brawling"):
 		handle_brawl_behavior()
 	elif should_play_zone:
 		handle_zone_defense_behavior()
@@ -185,7 +185,7 @@ func brawl_lurk():
 	lurk_brawl_movement(buddy_keeper)
 	if buddy_keeper.is_stunned:
 		current_opponent = buddy_keeper.current_opponent
-		current_behavior = "brawling"
+		current_behavior = "fencing"
 
 #in zone defense, one player will take over the goal and the other will usually trap midfield, but may go rogue
 func handle_zone_defense_behavior():
@@ -753,6 +753,9 @@ func perform_fencing():
 		return
 	if current_opponent.global_position.distance_squared_to(global_position) < 400:
 		current_behavior = "brawling"
+	navigation_agent.target_position = current_opponent.global_position
+	velocity = global_position.direction_to(navigation_agent.target_position).normalized() * attributes.speed
+	move_and_slide()
 		
 func _should_break_fencing() -> bool:
 	return ball and global_position.distance_to(ball.global_position) < fencing_params["ball_proximity_threshold"] * (1.1 - attributes.reactions/100.0)
