@@ -422,24 +422,52 @@ func jumped_brawl(opponent: Player):
 	
 
 func lurk_brawl_movement(teammate: Player):
+	var min_lurk = 15.0 #min distance
+	var max_lurk = 35.0 #max distance
 	if teammate.current_opponent:
 		current_opponent = teammate.current_opponent
 	if !teammate.is_stunned:
 		if teammate.current_behavior == "brawling":
-			var lurk_value #TODO: calculate lurk value based on distance to opponents
-			#TODO: get close to the opponent, circle around to be in good offensive or defensive position too
+			var lurk_value = get_lurk_value(teammate)
+			if lurk_value < 0.7: #not a great lurk position
+				move_to_new_lurk_position(lurk_value, teammate.global_position, min_lurk, max_lurk)
 			pass
 	pass
 	
-func get_lurk_value():
+func get_lurk_value(teammate: Player):
+	var value = 0.0
 	match field_position:
 		"LF", "RF", "F":
-			var forward_self = self as Forward
-			#TODO: get a value based on open shot and path to ball
+			var forward_instance = self as Forward
+			if forward_instance and forward_instance.assigned_guard and forward_instance.other_guard:
+				var ball_dist = global_position.distance_to(ball.global_position)
+				var guard1_dist = global_position.distance_to(forward_instance.assigned_guard.global_position)
+				var guard2_dist = global_position.distance_to(forward_instance.other_guard.global_position)
+				# Value increases when closer to ball and farther from guards
+				value = (1.0 - clamp(ball_dist / 200.0, 0, 1)) + \
+					   clamp(guard1_dist / 150.0, 0, 1) + \
+					   clamp(guard2_dist / 150.0, 0, 1)
+				value = clamp(value / 2.0, 0.0, 1.0)
 		"LG", "RG", "G":
-			#TODO: Get a value based on protect and ball preference
-			var guard_self = self as Guard
+			var guard_instance = self as Guard
+			if guard_instance:
+				var goal_dist = global_position.distance_to(guard_instance.defending_goal_position)
+				var ball_dist = global_position.distance_to(ball.global_position)
+				value = (1.0 - clamp(goal_dist / 100.0, 0, 1)) * (1.0 - guard_instance.defense_strategy.ball_preference) + \
+					   (1.0 - clamp(ball_dist / 150.0, 0, 1)) * guard_instance.defense_strategy.ball_preference
+	return value
 			
+
+func move_to_new_lurk_position(value: float, point: Vector2, min_dist: float, max_dist: float):
+	var angle = randf() * 2 * PI
+	var distance = lerp(min_dist, max_dist, randf())
+	var target_pos = point + Vector2(cos(angle), sin(angle)) * distance
+	
+	if has_node("NavigationAgent2D"):
+		$NavigationAgent2D.target_position = target_pos
+		var next_pos = $NavigationAgent2D.get_next_path_position()
+		velocity = global_position.direction_to(next_pos) * attributes.speed * (1 - value)
+	
 
 func brawl_footwork(opponent: Player):
 	if !opponent:
