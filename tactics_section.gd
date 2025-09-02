@@ -56,7 +56,7 @@ var D_strategy = {
 
 var team: Team
 
-var forward_assignments = ["Classic Forward", "Rusher", "Shooting Forward", "Rebounder", "Attacking Forward", "Target Forward", "Support Forward", "Roving Menace", "Pick and Roller", "Pick and Popper", "Defensive Forward"]
+var forward_assignments = ["Classic Forward", "Rusher", "Shooting Forward", "Rebounder", "Attacking Forward", "Target Forward", "Support Forward", "Roving Menace", "Goon", "Pick and Roller", "Pick and Popper", "Defensive Forward"]
 var defense_schemes = ["Positional Man to Man", "Fluid Man to Man", "Max Protect", "Left Guard Trap Zone", "Right Guard Trap Zone", "Tight Triangle Zone"]
 
 func _ready() -> void:
@@ -134,7 +134,7 @@ func import_assignments(lf: String, rf: String, d: String):
 func LFL_pressed():
 	LF_tactic_index -= 1
 	if LF_tactic_index < 0:
-		LF_tactic_index = 10
+		LF_tactic_index = 11
 	LF_assignment.text = forward_assignments[LF_tactic_index]
 	update_forward_explanation_text(LF_explanation, LF_assignment.text)
 	update_forward_directions(LF_directions, LF_assignment.text)
@@ -142,7 +142,7 @@ func LFL_pressed():
 func RFL_pressed():
 	RF_tactic_index -= 1
 	if RF_tactic_index < 0:
-		RF_tactic_index = 10
+		RF_tactic_index = 11
 	RF_assignment.text = forward_assignments[RF_tactic_index]
 	update_forward_explanation_text(RF_explanation, RF_assignment.text)
 	update_forward_directions(RF_directions, RF_assignment.text)
@@ -157,7 +157,7 @@ func DL_pressed():
 	
 func LFR_pressed():
 	LF_tactic_index += 1
-	if LF_tactic_index > 10:
+	if LF_tactic_index > 11:
 		LF_tactic_index = 0
 	LF_assignment.text = forward_assignments[LF_tactic_index]
 	update_forward_explanation_text(LF_explanation, LF_assignment.text)
@@ -165,7 +165,7 @@ func LFR_pressed():
 	
 func RFR_pressed():
 	RF_tactic_index += 1
-	if RF_tactic_index > 10:
+	if RF_tactic_index > 11:
 		RF_tactic_index = 0
 	RF_assignment.text = forward_assignments[RF_tactic_index]
 	update_forward_explanation_text(RF_explanation, RF_assignment.text)
@@ -203,6 +203,8 @@ func update_forward_explanation_text(label: Label, assignment: String):
 			label.text = "The Pick and Popper will set picks for their forward partner, then looks to find open space- either a shooting lane or to a position in midfield to link up play."
 		"Defensive Forward":
 			label.text = "The Defensive Forward takes away passing options for the opposing keeper, in the hopes of intercepting the ball and scoring an easy goal."
+		"Goon":
+			label.text = "A Goon may occasionally do something related to the game, but mostly they will just look to fight."
 	
 func update_defense_explanation_text(assignment: String):
 	match assignment:
@@ -273,7 +275,7 @@ func update_forward_directions(directions: Dictionary, assignment: String):
 				"rebound": 250.0,
 				"pick": 10.0,
 				"bully": 10.0,
-				"fencing": 50.0,
+				"fencing": 20.0,
 				"cower": 5.0,
 				"wing_preference": 0.1,#rebounder goes to the middle
 				"defend": 150
@@ -375,6 +377,20 @@ func update_forward_directions(directions: Dictionary, assignment: String):
 				"cower": 5.0,
 				"wing_preference": 0.5,
 				"defend": 200
+				}
+		"Goon":
+			new_directions = {
+				"bull_rush": 10.0,
+				"skill_rush": 10.0,
+				"target_man": 0.0,
+				"shooter": 1.0,
+				"rebound": 1.0,
+				"pick": 20.0,
+				"bully": 10.0,
+				"fencing": 200.0,
+				"cower": 0.0,
+				"wing_preference": 0,
+				"defend": 0
 				}
 	directions.clear()
 	directions.merge(new_directions)

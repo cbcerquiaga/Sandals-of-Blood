@@ -139,6 +139,8 @@ func execute_attack_plan():
 			execute_cower()
 		"defend":
 			perform_defending()
+		"brawling":
+			handle_brawl_behavior()
 		#"returning":
 			#print("forward out of position")
 			#move_towards_half()
@@ -429,7 +431,7 @@ func execute_cower():
 
 func choose_behavior(skip = false):
 	if !skip:
-		if opposing_keeper.current_behavior == "fencing" or opposing_keeper.current_behavior == "brawling" or forward_partner.current_behavior == "brawling" or assigned_guard.current_behavior == "brawling":
+		if ((opposing_keeper.current_behavior == "fencing" or opposing_keeper.current_behavior == "brawling") and randf() < attributes.aggression/100 - 0.5) or ((forward_partner.current_behavior == "brawling" or assigned_guard.current_behavior == "brawling") and randf() < attributes.aggression/100 - 0.4):
 			handle_brawl_behavior()
 			return
 	
@@ -516,7 +518,7 @@ func is_ball_reachable() -> bool:
 			has_clear_path_to(ball.global_position))
 			
 func handle_brawl_behavior():
-	var brawl_behaviors = ["lurking", "joining", "partnering", "cowering"]
+	var brawl_behaviors = ["lurking", "joining", "partnering", "cower"]
 	if brawl_behaviors.has(current_behavior):
 		match current_behavior:
 			"lurking":
@@ -550,17 +552,8 @@ func handle_brawl_behavior():
 							min_distance = player.global_position.distance_squared_to(global_position)
 					brawl_opponents.append(current_opponent)
 					current_behavior = "fencing"
-			"cowering":
-				var cower_spots = [assigned_guard.counter_position, other_guard.counter_position, waiting_point, forward_partner.waiting_point, Vector2(0, waiting_point.y)]
-				var best_spot
-				var longest_distance = -1
-				for spot in cower_spots:
-					var distance = spot.distance_squared_to(assigned_guard.global_position) + spot.distance_squared_to(other_guard.global_position)
-					if distance > longest_distance:
-						best_spot = spot
-						longest_distance = distance
-				navigation_agent.target_position = best_spot
-				navigate_to(best_spot)
+			"cower":
+				execute_cower()
 	else:
 		var sum = brawl_preferences.lurk + brawl_preferences.join + brawl_preferences.partner + brawl_preferences.cower + brawl_preferences.game
 		var rand = randf_range(0, sum)
@@ -571,7 +564,7 @@ func handle_brawl_behavior():
 		elif rand < brawl_preferences.lurk + brawl_preferences.join + brawl_preferences.partner:
 			current_behavior = "partnering"
 		elif rand < brawl_preferences.lurk + brawl_preferences.join + brawl_preferences.partner + brawl_preferences.cower:
-			current_behavior = "cowering"
+			current_behavior = "cower"
 		else:
 			choose_behavior(true)
 			

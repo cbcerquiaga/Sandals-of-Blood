@@ -111,7 +111,7 @@ func update_behavior():
 	if goalie_has_it() and !guard_counterattack_preferences.override:
 		pick_counterattack_behavior()
 		return
-	elif buddy_keeper.current_behavior == "brawling" or (assigned_forward.current_behavior == "brawling" and other_forward.current_behavior == "brawling"):
+	elif ((buddy_keeper.current_behavior == "brawling"  or buddy_keeper.current_behavior == "fencing") and randf() < attributes.aggression/100 - 0.3) or ((assigned_forward.current_behavior == "brawling" or assigned_forward.current_behavior == "fencing") and randf() < attributes.aggression/100 - 0.5) or ((other_forward.current_behavior == "brawling" or other_forward.current_behavior == "fencing") and randf() < attributes.aggression/100 - 0.5):
 		handle_brawl_behavior()
 	elif should_play_zone:
 		handle_zone_defense_behavior()
