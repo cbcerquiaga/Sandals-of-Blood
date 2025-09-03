@@ -1108,17 +1108,31 @@ func calculate_pitcher_overall():
 	ratings.append((att.toughness + att.shooting + att.power + att.speedRating + att.durability + att.balance)/5) #enforcer rating
 	ratings.sort()
 	ratings.reverse()
-	return int((ratings[0] + ratings[1])/2)
+	var bestRating = ratings[0]
+	var second = ratings[1]
+	var third = ratings[2]
+	var overall = ((bestRating * 1.5) + second + (third * 0.5))/3
+	return int(overall)
 	
 func calculate_forward_overall():
 	var att = attributes
 	var ratings = []
-	ratings.append((att.shooting * 3 + att.accuracy * 3 + att.positioning + att.speed + att.reactions)/9)#goal scorer rating
-	ratings.append((att.power * 2 + att.speedRating * 2 + att.balance + att.endurance + att.durability)/7)#anti-keeper rating
-	ratings.append((att.power + att.accuracy + att.positioning + att.balance + att.reactions + att.durability)/6)#support forward rating
+	var shooter = (attributes.shooting * 3 + attributes.accuracy * 3 + attributes.positioning + attributes.speedRating + attributes.reactions + attributes.composure + attributes.endurance)/11
+	var antiKeeper = (attributes.power * 3 + attributes.speedRating * 3 + attributes.balance + attributes.endurance + attributes.durability)/9
+	var support = (attributes.power + attributes.accuracy + attributes.positioning + attributes.balance + attributes.reactions + attributes.durability)/6
+	var goon = (attributes.power + attributes.balance + attributes.durability + attributes.toughness*2 + attributes.shooting + attributes.aggression)/7
+	
+	ratings.append(shooter)#goal scorer rating
+	ratings.append(antiKeeper)#anti-keeper rating
+	ratings.append(support)#support forward rating
+	ratings.append(goon)#goon rating
 	ratings.sort()
 	ratings.reverse()
-	return int((ratings[0] + ratings[1])/2)
+	var bestRating = ratings[0]
+	var second = ratings[1]
+	var third = ratings[2]
+	var overall = ((bestRating * 1.5) + second + (third * 0.5))/3
+	return int(overall)
 	
 func calculate_guard_overall():
 	var att = attributes
@@ -1128,7 +1142,11 @@ func calculate_guard_overall():
 	ratings.append((att.power * 2 + att.toughness + att.durability + att.endurance)/5) #bully rating
 	ratings.sort()
 	ratings.reverse()
-	return int((ratings[0] + ratings[1])/2)
+	var bestRating = ratings[0]
+	var second = ratings[1]
+	var third = ratings[2]
+	var overall = ((bestRating * 1.5) + second + (third * 0.5))/3
+	return int(overall)
 	
 func calculate_keeper_overall():
 	var att = attributes
@@ -1139,7 +1157,11 @@ func calculate_keeper_overall():
 	ratings.append((att.blocking + att.shooting + att.accuracy + att.power)/4)
 	ratings.sort()
 	ratings.reverse()
-	return int((ratings[0] + ratings[1])/2)
+	var bestRating = ratings[0]
+	var second = ratings[1]
+	var third = ratings[2]
+	var overall = ((bestRating * 1.5) + second + (third * 0.5))/3
+	return int(overall)
 
 func set_all_properties(old_player: Player) -> void:
 	playable_positions = old_player.playable_positions.duplicate()
@@ -1267,21 +1289,23 @@ func calculate_player_type():
 			find_pitcher_style()
 
 func find_forward_style():
-	var shooter = (attributes.shooting * 3 + attributes.accuracy * 3 + attributes.positioning + attributes.speed + attributes.reactions)/9
-	var antiKeeper = (attributes.power * 2 + attributes.speedRating * 2 + attributes.balance + attributes.endurance + attributes.durability)/7
+	var shooter = (attributes.shooting * 3 + attributes.accuracy * 3 + attributes.positioning + attributes.speedRating + attributes.reactions + attributes.composure + attributes.endurance)/11
+	var antiKeeper = (attributes.power * 3 + attributes.speedRating * 3 + attributes.balance + attributes.endurance + attributes.durability)/9
 	var support = (attributes.power + attributes.accuracy + attributes.positioning + attributes.balance + attributes.reactions + attributes.durability)/6
-	if shooter > antiKeeper and shooter > support:
+	var goon = (attributes.power + attributes.balance + attributes.durability + attributes.toughness*2 + attributes.shooting)/6
+	goon = goon * (1 - brawl_preferences.cower)
+	if shooter > antiKeeper and shooter > support and shooter > goon:
 		playStyle = "Goal Scorer"
 		playStyle_texture = "res://UI/PlayerTypeSymbols/playerType_cannon.png"
-	elif antiKeeper > shooter and antiKeeper > support:
+	elif antiKeeper > shooter and antiKeeper > support and antiKeeper > goon:
 		playStyle = "Anti-Keeper"
 		playStyle_texture = "res://UI/PlayerTypeSymbols/playerType_anti_keeper.png"
-	elif support > antiKeeper and support > shooter:
+	elif support > antiKeeper and support > shooter and support > goon:
 		playStyle = "Support Forward"
 		playStyle_texture = "res://UI/PlayerTypeSymbols/playerType_support.png"
-	else: #probably just 99 everything
-		playStyle = "Rocket"
-		playStyle_texture = "res://UI/PlayerTypeSymbols/playerType_rocket.png"
+	else:
+		playStyle = "Skull Cracker"
+		playStyle_texture = "res://UI/PlayerTypeSymbols/playerType_skull.png"
 
 func find_guard_style():
 	var defender = (attributes.speedRating + attributes.power + attributes.positioning + attributes.endurance)/4
