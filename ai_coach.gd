@@ -2,6 +2,9 @@ extends Node
 
 var flexibility #0-1, impacts how likely the coach is to change strategies to accomodate the best players
 var reactivity #0-1, impacts how likely the coach is to make substitutions or changes early in the game
+var matchups #0-1, impacts how likely the coach is to pursue an enforcer vs thrower matchup or avoid a thrower vs enforcer
+var violence #0-1, impacts how likely the coach is to look to injure opposing players
+var injury_tolerance #0-1, impacts how likely the coach is to pull a player with a minor injury
 var defense_1 #preferred defense strategy
 var defense_2 #backup strategy if defense 1 is not working
 var lf_role_1 #preferred role for the left forward
@@ -23,30 +26,63 @@ var sub_frequency_p: float = 0.7 # 0-1, how often the coach will substitute pitc
 var sub_frequency_g: float = 0.2
 var sub_frewuency_f: float = 0.3
 var sub_frequency_k: float = 0.1
-var p_matchups = { #F for fastball, C for curveball, W for workhorse, E for enforcer; first is us, second is them
-	"FvF": true,
-	"FvC": true,
-	"FvW": true,
-	"FvE": false,
-	"CvF": true,
-	"CvC": true,
-	"CvW": true,
-	"CvE": false,
-	"WvF": true,
-	"WvC": false,
-	"WvW": true,
-	"WvE": true,
-	"EvF": true,
-	"EvC": true,
-	"EvW": true,
-	"EvE": true
-}
-var p_plan_players = ["W", "E", "C"] #planned pitcher substitution scheme
+var p_plan_players = ["Workhorse", "Enforcer", "Curveball"] #planned pitcher substitution scheme
 var p_plan_time = [9, 6, 6] #how many pitches each player will play
 var endurance_sub = 0.5 #how much max boost a player would need to be considered tired, modified by sub frequency for a position
 
-func find_forward_sub():
+func check_substitution_plans(myTeam: Team, pitchCount: int):
+	var plan_player
+	for count in p_plan_time:
+		if count == pitchCount:
+			plan_player = p_plan_players[p_plan_time.find(count)]
+	#plan_player is now a string for the player typeinstead of the actual Player object
+	#TODO: loop through the bullpen and find the most suitable replacement at that type
+	
+
+func check_need_substitution(myTeam: Team, otherTeam: Team, myScore: int, otherScore: int, pitchCount: int):
+	var p_better = get_p_better(myTeam, otherTeam) #-1 my guy better, 0 even, 1 other guy better
+	var p_tougher = get_p_tougher(myTeam, otherTeam) #-1 my guy tougher, 0 even, other guy tougher
+	
+	if pitchCount < GlobalSettings.pitch_limit/2: #early game, generally avoid making subs
+		var sub_chance
+		#TODO: check if any players are injured, measure their injury against injury_tolerance
+		#TODO: if injured, see if we have enough players on the bench who can play their position
+		var p_mismatch = p_better - p_tougher #TODO: math out how to calculate this
+		#TODO: check p_mismatch against matchups rating and violence rating
+		#TODO: only make a sub if the mismatch is severe or the coach has a serious tendency towards pushing the mismatch
+		#TODO: make sure to save at least subs_reserve unless substituting for a major injury
+	else:
+		var sub_chance #late game, more likely to make a sub
+		
+		
+
+func get_p_better(myTeam: Team, otherTeam: Team):
+	if otherTeam.P.calculate_pitcher_overall() - myTeam.P.calculate_pitcher_overall() > 10: #their guy is better
+		return 2
+	elif otherTeam.P.calculate_pitcher_overall() - myTeam.P.calculate_pitcher_overall() > 5:
+		return 1
+	elif myTeam.P.calculate_pitcher_overall() - otherTeam.P.calculate_pitcher_overall() > 10:
+		return -2
+	elif myTeam.P.calculate_pitcher_overall() - otherTeam.P.calculate_pitcher_overall() > 5:
+		return -1
+	else:
+		return 0
+		
+func get_p_tougher(myTeam: Team, otherTeam: Team):
+	if otherTeam.P.attributes.toughness - myTeam.P.attributes.toughness > 10: #their guy is tougher
+		return 2
+	elif otherTeam.P.attributes.toughness- myTeam.P.attributes.toughness > 5:
+		return 1
+	elif myTeam.P.attributes.toughness - otherTeam.P.attributes.toughness > 10:
+		return -2
+	elif myTeam.P.attributes.toughness - otherTeam.P.attributes.toughness > 5:
+		return -1
+	else:
+		return 0
+			
+func find_forward_sub(myTeam: Team, otherTeam: Team):
 	#TODO: if the team's current lf strategy is 1:
 	var game_weight #TODO: calculate based on score and pitches remaining
 	#TODO: rank players based on overall in preferred role
 	pass
+	
