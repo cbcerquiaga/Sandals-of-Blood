@@ -1,0 +1,178 @@
+[gd_scene load_steps=2 format=3 uid="uid://chh0siq2nhw3n"]
+
+[ext_resource type="Texture2D" uid="uid://qarbf5mcboqa" path="res://Assets/Player Portraits/placeholder portrait 4.png" id="1_2vy1y"]
+
+[node name="Control" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="P1" type="Control" parent="."]
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="TextureRect" type="TextureRect" parent="P1"]
+layout_mode = 0
+offset_right = 1080.0
+offset_bottom = 1350.0
+scale = Vector2(0.3, 0.3)
+texture = ExtResource("1_2vy1y")
+
+[node name="NameLabel" type="Label" parent="P1"]
+layout_mode = 0
+offset_left = 600.0
+offset_right = 815.0
+offset_bottom = 23.0
+text = "First Star: Jaques Letterman"
+
+[node name="TeamLabel" type="Label" parent="P1"]
+layout_mode = 0
+offset_left = 600.0
+offset_top = 40.0
+offset_right = 815.0
+offset_bottom = 63.0
+text = "Overpassville Fumes"
+
+[node name="StatLabel1" type="Label" parent="P1"]
+layout_mode = 0
+offset_left = 400.0
+offset_top = 300.0
+offset_right = 443.0
+offset_bottom = 349.0
+text = "Goals
+3"
+
+[node name="StatLabel2" type="Label" parent="P1"]
+layout_mode = 0
+offset_left = 600.0
+offset_top = 300.0
+offset_right = 643.0
+offset_bottom = 349.0
+text = "Sacks
+2"
+
+[node name="StatLabel3" type="Label" parent="P1"]
+layout_mode = 0
+offset_left = 800.0
+offset_top = 300.0
+offset_right = 912.0
+offset_bottom = 349.0
+pivot_offset = Vector2(3154, 923)
+text = "Pitches Played
+20"
+
+[node name="P2" type="Control" parent="."]
+anchors_preset = 0
+offset_top = 550.0
+offset_right = 40.0
+offset_bottom = 590.0
+
+[node name="TextureRect" type="TextureRect" parent="P2"]
+layout_mode = 0
+offset_right = 1080.0
+offset_bottom = 1350.0
+scale = Vector2(0.3, 0.3)
+texture = ExtResource("1_2vy1y")
+
+[node name="NameLabel" type="Label" parent="P2"]
+layout_mode = 0
+offset_left = 600.0
+offset_right = 815.0
+offset_bottom = 23.0
+text = "First Star: Jaques Letterman"
+
+[node name="TeamLabel" type="Label" parent="P2"]
+layout_mode = 0
+offset_left = 600.0
+offset_top = 40.0
+offset_right = 815.0
+offset_bottom = 63.0
+text = "Overpassville Fumes"
+
+[node name="StatLabel1" type="Label" parent="P2"]
+layout_mode = 0
+offset_left = 400.0
+offset_top = 300.0
+offset_right = 443.0
+offset_bottom = 349.0
+text = "Goals
+3"
+
+[node name="StatLabel2" type="Label" parent="P2"]
+layout_mode = 0
+offset_left = 600.0
+offset_top = 300.0
+offset_right = 643.0
+offset_bottom = 349.0
+text = "Sacks
+2"
+
+[node name="StatLabel3" type="Label" parent="P2"]
+layout_mode = 0
+offset_left = 800.0
+offset_top = 300.0
+offset_right = 912.0
+offset_bottom = 349.0
+pivot_offset = Vector2(3154, 923)
+text = "Pitches Played
+20"
+
+[node name="P3" type="Control" parent="."]
+anchors_preset = 0
+offset_top = 1100.0
+offset_right = 40.0
+offset_bottom = 1140.0
+
+[node name="TextureRect" type="TextureRect" parent="P3"]
+layout_mode = 0
+offset_right = 1080.0
+offset_bottom = 1350.0
+scale = Vector2(0.3, 0.3)
+texture = ExtResource("1_2vy1y")
+
+[node name="NameLabel" type="Label" parent="P3"]
+layout_mode = 0
+offset_left = 600.0
+offset_right = 815.0
+offset_bottom = 23.0
+text = "First Star: Jaques Letterman"
+
+[node name="TeamLabel" type="Label" parent="P3"]
+layout_mode = 0
+offset_left = 600.0
+offset_top = 40.0
+offset_right = 815.0
+offset_bottom = 63.0
+text = "Overpassville Fumes"
+
+[node name="StatLabel1" type="Label" parent="P3"]
+layout_mode = 0
+offset_left = 400.0
+offset_top = 300.0
+offset_right = 443.0
+offset_bottom = 349.0
+text = "Goals
+3"
+
+[node name="StatLabel2" type="Label" parent="P3"]
+layout_mode = 0
+offset_left = 600.0
+offset_top = 300.0
+offset_right = 643.0
+offset_bottom = 349.0
+text = "Sacks
+2"
+
+[node name="StatLabel3" type="Label" parent="P3"]
+layout_mode = 0
+offset_left = 800.0
+offset_top = 300.0
+offset_right = 912.0
+offset_bottom = 349.0
+pivot_offset = Vector2(3154, 923)
+text = "Pitches Played
+20"

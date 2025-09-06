@@ -1,0 +1,90 @@
+[gd_scene load_steps=5 format=3 uid="uid://70twyyxact8f"]
+
+[ext_resource type="Texture2D" uid="uid://b530okb827gvu" path="res://UI/PauseUI/Export_button_base.png" id="1_rvxql"]
+[ext_resource type="Texture2D" uid="uid://ccjk7lnkbyas0" path="res://UI/PauseUI/Export_button_highlighted.png" id="2_cftso"]
+[ext_resource type="Texture2D" uid="uid://msxwiftij82j" path="res://UI/PauseUI/Exit_button_base.png" id="3_roiwy"]
+[ext_resource type="Texture2D" uid="uid://cdvco7npy88ah" path="res://UI/PauseUI/Exit_button_highlighted.png" id="4_x58we"]
+
+[node name="Control" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ReplayLineEdit" type="LineEdit" parent="."]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 0
+offset_right = 67.0625
+offset_bottom = 31.0
+
+[node name="Label" type="Label" parent="."]
+layout_mode = 0
+offset_left = 205.0
+offset_right = 245.0
+offset_bottom = 23.0
+text = ".gif"
+
+[node name="ReplayExplanationLabel" type="Label" parent="."]
+layout_mode = 0
+offset_top = 40.0
+offset_right = 455.0
+offset_bottom = 63.0
+text = "This will export a video replay of the match up to this point"
+
+[node name="ReplayExportButton" type="TextureButton" parent="."]
+layout_mode = 0
+offset_left = -5.0
+offset_top = 60.0
+offset_right = 1075.0
+offset_bottom = 383.0
+scale = Vector2(0.2, 0.2)
+texture_normal = ExtResource("1_rvxql")
+texture_hover = ExtResource("2_cftso")
+texture_focused = ExtResource("2_cftso")
+
+[node name="LogLineEdit" type="LineEdit" parent="."]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 0
+offset_top = 200.0
+offset_right = 200.0
+offset_bottom = 231.0
+
+[node name="Label2" type="Label" parent="."]
+layout_mode = 0
+offset_left = 205.0
+offset_top = 200.0
+offset_right = 245.0
+offset_bottom = 223.0
+text = ".txt"
+
+[node name="LogExplanationLabel" type="Label" parent="."]
+layout_mode = 0
+offset_top = 240.0
+offset_right = 455.0
+offset_bottom = 263.0
+text = "This will export the game event log up to this point"
+
+[node name="LogExportButton" type="TextureButton" parent="."]
+layout_mode = 0
+offset_left = -5.0
+offset_top = 260.0
+offset_right = 1075.0
+offset_bottom = 583.0
+scale = Vector2(0.2, 0.2)
+texture_normal = ExtResource("1_rvxql")
+texture_hover = ExtResource("2_cftso")
+texture_focused = ExtResource("2_cftso")
+
+[node name="ExitButton" type="TextureButton" parent="."]
+layout_mode = 0
+offset_left = -5.0
+offset_top = 360.0
+offset_right = 1075.0
+offset_bottom = 683.0
+scale = Vector2(0.2, 0.2)
+pivot_offset = Vector2(2135, -265)
+texture_normal = ExtResource("3_roiwy")
+texture_hover = ExtResource("4_x58we")
+texture_focused = ExtResource("4_x58we")
