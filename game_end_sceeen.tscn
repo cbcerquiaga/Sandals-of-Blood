@@ -1,0 +1,66 @@
+[gd_scene load_steps=10 format=3 uid="uid://byf4dctuakt63"]
+
+[ext_resource type="Texture2D" uid="uid://b7v5ou5pp4qti" path="res://UI/EndMatchUI/gameOver_victory.png" id="1_k5dj2"]
+[ext_resource type="Texture2D" uid="uid://trcg1bsoc4gx" path="res://UI/EndMatchUI/stars_button_base.png" id="2_bif40"]
+[ext_resource type="Texture2D" uid="uid://kinapsn4qavx" path="res://UI/EndMatchUI/stars_button_highlighted.png" id="3_nm7d4"]
+[ext_resource type="Texture2D" uid="uid://7e44eg3lk0xt" path="res://UI/PauseUI/Statistics_button_base.png" id="4_t7vlc"]
+[ext_resource type="Texture2D" uid="uid://beufj6fb0geis" path="res://UI/PauseUI/Statistics_button_highlighted.png" id="5_gj4fi"]
+[ext_resource type="Texture2D" uid="uid://b530okb827gvu" path="res://UI/PauseUI/Export_button_base.png" id="6_kb4wu"]
+[ext_resource type="Texture2D" uid="uid://ccjk7lnkbyas0" path="res://UI/PauseUI/Export_button_highlighted.png" id="7_d88v3"]
+[ext_resource type="Texture2D" uid="uid://msxwiftij82j" path="res://UI/PauseUI/Exit_button_base.png" id="8_q08jg"]
+[ext_resource type="Texture2D" uid="uid://cdvco7npy88ah" path="res://UI/PauseUI/Exit_button_highlighted.png" id="9_iytbu"]
+
+[node name="Game_endSceeen" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 491.0
+offset_bottom = 491.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ResultText" type="TextureRect" parent="."]
+layout_mode = 0
+offset_top = -200.0
+offset_right = 1080.0
+offset_bottom = 123.0
+pivot_offset = Vector2(2561, 1111)
+texture = ExtResource("1_k5dj2")
+
+[node name="StarsButton" type="TextureButton" parent="."]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+texture_normal = ExtResource("2_bif40")
+texture_hover = ExtResource("3_nm7d4")
+texture_focused = ExtResource("3_nm7d4")
+
+[node name="StatsButton" type="TextureButton" parent="."]
+layout_mode = 0
+offset_top = 300.0
+offset_right = 1080.0
+offset_bottom = 623.0
+pivot_offset = Vector2(476, 871)
+texture_normal = ExtResource("4_t7vlc")
+texture_hover = ExtResource("5_gj4fi")
+texture_focused = ExtResource("5_gj4fi")
+
+[node name="ExportButton" type="TextureButton" parent="."]
+layout_mode = 0
+offset_top = 600.0
+offset_right = 1080.0
+offset_bottom = 923.0
+pivot_offset = Vector2(1028, 1229)
+texture_normal = ExtResource("6_kb4wu")
+texture_hover = ExtResource("7_d88v3")
+texture_focused = ExtResource("7_d88v3")
+
+[node name="ExitButton" type="TextureButton" parent="."]
+layout_mode = 0
+offset_top = 900.0
+offset_right = 1080.0
+offset_bottom = 1223.0
+texture_normal = ExtResource("8_q08jg")
+texture_hover = ExtResource("9_iytbu")
+texture_focused = ExtResource("9_iytbu")
