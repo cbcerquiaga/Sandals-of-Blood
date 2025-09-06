@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3 uid="uid://byf4dctuakt63"]
+[gd_scene load_steps=14 format=3 uid="uid://byf4dctuakt63"]
 
 [ext_resource type="Script" path="res://game_end_sceeen.gd" id="1_5nhp2"]
 [ext_resource type="Texture2D" uid="uid://b7v5ou5pp4qti" path="res://UI/EndMatchUI/gameOver_victory.png" id="1_k5dj2"]
@@ -10,7 +10,9 @@
 [ext_resource type="Texture2D" uid="uid://ccjk7lnkbyas0" path="res://UI/PauseUI/Export_button_highlighted.png" id="7_d88v3"]
 [ext_resource type="Texture2D" uid="uid://msxwiftij82j" path="res://UI/PauseUI/Exit_button_base.png" id="8_q08jg"]
 [ext_resource type="Texture2D" uid="uid://cdvco7npy88ah" path="res://UI/PauseUI/Exit_button_highlighted.png" id="9_iytbu"]
+[ext_resource type="PackedScene" uid="uid://chh0siq2nhw3n" path="res://3stars_screen.tscn" id="11_pmbhh"]
 [ext_resource type="PackedScene" uid="uid://bkv78tqdrwbtv" path="res://pause_stats_menu.tscn" id="11_x3xu7"]
+[ext_resource type="PackedScene" uid="uid://70twyyxact8f" path="res://export_menu.tscn" id="13_q7qv6"]
 
 [node name="Game_endSceeen" type="Control"]
 layout_mode = 3
@@ -73,6 +75,14 @@ anchors_preset = 0
 offset_right = 40.0
 offset_bottom = 40.0
 
+[node name="3Stars_Screen" parent="Submenus" instance=ExtResource("11_pmbhh")]
+visible = false
+layout_mode = 1
+
 [node name="Pause_Statistics" parent="Submenus" instance=ExtResource("11_x3xu7")]
+visible = false
+layout_mode = 1
+
+[node name="Export_Menu" parent="Submenus" instance=ExtResource("13_q7qv6")]
 visible = false
 layout_mode = 1

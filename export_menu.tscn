@@ -1,17 +1,19 @@
-[gd_scene load_steps=5 format=3 uid="uid://70twyyxact8f"]
+[gd_scene load_steps=6 format=3 uid="uid://70twyyxact8f"]
 
+[ext_resource type="Script" path="res://export_menu.gd" id="1_ir74w"]
 [ext_resource type="Texture2D" uid="uid://b530okb827gvu" path="res://UI/PauseUI/Export_button_base.png" id="1_rvxql"]
 [ext_resource type="Texture2D" uid="uid://ccjk7lnkbyas0" path="res://UI/PauseUI/Export_button_highlighted.png" id="2_cftso"]
 [ext_resource type="Texture2D" uid="uid://msxwiftij82j" path="res://UI/PauseUI/Exit_button_base.png" id="3_roiwy"]
 [ext_resource type="Texture2D" uid="uid://cdvco7npy88ah" path="res://UI/PauseUI/Exit_button_highlighted.png" id="4_x58we"]
 
-[node name="Control" type="Control"]
+[node name="Export_Menu" type="Control"]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+script = ExtResource("1_ir74w")
 
 [node name="ReplayLineEdit" type="LineEdit" parent="."]
 custom_minimum_size = Vector2(200, 0)

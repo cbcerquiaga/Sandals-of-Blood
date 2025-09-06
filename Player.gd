@@ -1289,11 +1289,11 @@ func calculate_player_type():
 			find_pitcher_style()
 
 func find_forward_style():
-	var shooter = (attributes.shooting * 3 + attributes.accuracy * 3 + attributes.positioning + attributes.speedRating + attributes.reactions + attributes.composure + attributes.endurance)/11
-	var antiKeeper = (attributes.power * 3 + attributes.speedRating * 3 + attributes.balance + attributes.endurance + attributes.durability)/9
-	var support = (attributes.power + attributes.accuracy + attributes.positioning + attributes.balance + attributes.reactions + attributes.durability)/6
-	var goon = (attributes.power + attributes.balance + attributes.durability + attributes.toughness*2 + attributes.shooting)/6
-	goon = goon * (1 - brawl_preferences.cower)
+	var shooter = (attributes.shooting + attributes.accuracy + attributes.speedRating + attributes.positioning + attributes.composure)/5
+	var antiKeeper = (attributes.power + attributes.speedRating + attributes.endurance + attributes.balance + attributes.aggression)/5
+	var support = (attributes.power + attributes.positioning + attributes.reactions + attributes.endurance + attributes.blocking)/5
+	var goon = (attributes.power + attributes.toughness*2 + attributes.durability + attributes.shooting)/5
+	#goon = goon * (1 - brawl_preferences.cower)
 	if shooter > antiKeeper and shooter > support and shooter > goon:
 		playStyle = "Goal Scorer"
 		playStyle_texture = "res://UI/PlayerTypeSymbols/playerType_cannon.png"
@@ -1308,9 +1308,9 @@ func find_forward_style():
 		playStyle_texture = "res://UI/PlayerTypeSymbols/playerType_skull.png"
 
 func find_guard_style():
-	var defender = (attributes.speedRating + attributes.power + attributes.positioning + attributes.endurance)/4
-	var ballHound = (attributes.reactions * 2 + attributes.blocking * 2 + attributes.speedRating + attributes.shooting + attributes.accuracy)/7
-	var bully = (attributes.power * 2 + attributes.toughness + attributes.durability + attributes.endurance)/5
+	var defender = (attributes.speedRating*2 + attributes.power*2 + attributes.positioning + attributes.endurance)/6
+	var ballHound = (attributes.reactions + attributes.speedRating + attributes.shooting*2 + attributes.accuracy + attributes.blocking)/6
+	var bully = (attributes.power + attributes.toughness + attributes.aggression + attributes.shooting)/4
 	if ballHound > defender and ballHound > bully:
 		playStyle = "Ball Hound"
 		playStyle_texture = "res://UI/PlayerTypeSymbols/playerType_ballhound.png"

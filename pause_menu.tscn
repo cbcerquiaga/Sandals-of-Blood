@@ -1,4 +1,4 @@
-[gd_scene load_steps=17 format=3 uid="uid://csyirpbcdrnoo"]
+[gd_scene load_steps=18 format=3 uid="uid://csyirpbcdrnoo"]
 
 [ext_resource type="Script" path="res://pause_menu.gd" id="1_2e70y"]
 [ext_resource type="Texture2D" uid="uid://3mobcbc75wt5" path="res://UI/PauseUI/Resume_button_base.png" id="1_l1b0n"]
@@ -16,6 +16,7 @@
 [ext_resource type="Texture2D" uid="uid://cdvco7npy88ah" path="res://UI/PauseUI/Exit_button_highlighted.png" id="13_7usw0"]
 [ext_resource type="PackedScene" uid="uid://b2a1xy1kwt5nn" path="res://pause_options.tscn" id="15_vkq6c"]
 [ext_resource type="PackedScene" uid="uid://bkv78tqdrwbtv" path="res://pause_stats_menu.tscn" id="16_kjeac"]
+[ext_resource type="PackedScene" uid="uid://70twyyxact8f" path="res://export_menu.tscn" id="17_w8rwx"]
 
 [node name="PauseMenu" type="CanvasLayer"]
 process_mode = 2
@@ -103,6 +104,10 @@ visible = false
 layout_mode = 1
 
 [node name="Pause_Statistics" parent="Submenus" instance=ExtResource("16_kjeac")]
+visible = false
+layout_mode = 1
+
+[node name="Export_Menu" parent="Submenus" instance=ExtResource("17_w8rwx")]
 visible = false
 layout_mode = 1
 
