@@ -873,6 +873,7 @@ func players_fight(p1: Player, p2: Player):
 				#TODO: wrenching away animation
 	
 func human_team_wins_fight():
+	GlobalSettings.record_event(pTeam.P.bio.last_name + " knocked out " + aTeam.P.bio.last_name + " at " + str(current_play_time) + " in play " + str(pitches_remaining))
 	print("Robot got KO'd")
 	var groove_gain = GlobalSettings.special_pitch_frequency * 20
 	pTeam.P.add_groove(groove_gain)
@@ -887,6 +888,7 @@ func human_team_wins_fight():
 	pTeam.P.overall_state = Player.PlayerState.SOLO_CELEBRATION
 	
 func cpu_team_wins_fight():
+	GlobalSettings.record_event(aTeam.P.bio.last_name + " knocked out " + pTeam.P.bio.last_name + " at " + str(current_play_time) + " in play " + str(pitches_remaining))
 	print("Suck on this shiny metal fist")
 	var groove_gain = GlobalSettings.special_pitch_frequency * 20
 	aTeam.P.add_groove(groove_gain)
