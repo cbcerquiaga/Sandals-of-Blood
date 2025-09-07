@@ -31,6 +31,7 @@ var pitcher_position: Vector2
 var chill_timer: int = 0
 var original_collision_mask: int = 0b0110
 var field_type = "road"
+var last_touched_time: int
 
 const spin_drag_factor: float = 0.995
 
@@ -62,10 +63,13 @@ func _physics_process(delta):
 	match current_state:
 		BallState.PITCHING:
 			apply_pitching_physics(delta)
+			last_touched_time += 1
 		BallState.SPECIAL_PITCH:
 			apply_special_pitch_physics(delta)
+			last_touched_time += 1
 		BallState.HOCKEY:
 			apply_hockey_physics(delta)
+			last_touched_time += 1
 		BallState.WAITING:
 			apply_waiting_physics()
 	
@@ -134,6 +138,7 @@ func handle_player_collision(player: Player):
 	assist_by = last_hit_by
 	last_hit_by = player
 	player.game_stats.touches += 1
+	last_touched_time = 0
 	
 	match player.position_type:
 		"keeper", "guard":
@@ -257,6 +262,7 @@ func handle_wall_collision(wall: StaticBody2D):
 func be_pitched(huck: Vector2, curve: float):
 	max_speed = pitching_max_speed
 	current_state = BallState.PITCHING
+	last_touched_time = 0
 	
 	var current_pos = global_position
 	freeze = false  # Unfreeze to allow physics

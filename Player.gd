@@ -112,11 +112,7 @@ var field_position: String
 }
 
 @export var fencing_params := {
-	"ideal_distance": 12.0,
-	"advance_speed": attributes.speed * 0.75,
-	"retreat_speed": attributes.speed,
-	"attack_cooldown": 1.0,
-	"ball_proximity_threshold": 45
+	"ball_proximity_threshold": 30
 }
 
 #if the player is playing forward
@@ -1297,15 +1293,43 @@ func find_forward_style():
 	if shooter > antiKeeper and shooter > support and shooter > goon:
 		playStyle = "Goal Scorer"
 		playStyle_texture = "res://UI/PlayerTypeSymbols/playerType_cannon.png"
+		brawl_preferences = {
+		"lurk": 0.5, #wait outside the brawl
+		"join": 0.5, #join the big brawl
+		"partner": 0.5, #fight a random uninvolved person
+		"game": 0.5, #find a ball-focused task
+		"cower": 0.5 #run away
+		}
 	elif antiKeeper > shooter and antiKeeper > support and antiKeeper > goon:
 		playStyle = "Anti-Keeper"
 		playStyle_texture = "res://UI/PlayerTypeSymbols/playerType_anti_keeper.png"
+		brawl_preferences = {
+		"lurk": 0.1, #wait outside the brawl
+		"join": 0.6, #join the big brawl
+		"partner": 0.6, #fight a random uninvolved person
+		"game": 0.8, #find a ball-focused task
+		"cower": 0.1 #run away
+		}
 	elif support > antiKeeper and support > shooter and support > goon:
 		playStyle = "Support Forward"
 		playStyle_texture = "res://UI/PlayerTypeSymbols/playerType_support.png"
+		brawl_preferences = {
+		"lurk": 0.5, #wait outside the brawl
+		"join": 0.8, #join the big brawl
+		"partner": 0.2, #fight a random uninvolved person
+		"game": 0.5, #find a ball-focused task
+		"cower": 0.1 #run away
+		}
 	else:
 		playStyle = "Skull Cracker"
 		playStyle_texture = "res://UI/PlayerTypeSymbols/playerType_skull.png"
+		brawl_preferences = {
+		"lurk": 0.1, #wait outside the brawl
+		"join": 0.8, #join the big brawl
+		"partner": 0.8, #fight a random uninvolved person
+		"game": 0.1, #find a ball-focused task
+		"cower": 0.001 #run away
+		}
 
 func find_guard_style():
 	var defender = (attributes.speedRating*2 + attributes.power*2 + attributes.positioning + attributes.endurance)/6
@@ -1314,12 +1338,33 @@ func find_guard_style():
 	if ballHound > defender and ballHound > bully:
 		playStyle = "Ball Hound"
 		playStyle_texture = "res://UI/PlayerTypeSymbols/playerType_ballhound.png"
+		brawl_preferences = {
+		"lurk": 0.5, #wait outside the brawl
+		"join": 0.5, #join the big brawl
+		"partner": 0.5, #fight a random uninvolved person
+		"game": 0.5, #find a ball-focused task
+		"cower": 0.1 #run away
+		}
 	elif bully > ballHound and bully > defender:
 		playStyle = "Bully"
 		playStyle_texture = "res://UI/PlayerTypeSymbols/playerType_fist.png"
+		brawl_preferences = {
+		"lurk": 0.1, #wait outside the brawl
+		"join": 0.8, #join the big brawl
+		"partner": 0.8, #fight a random uninvolved person
+		"game": 0.1, #find a ball-focused task
+		"cower": 0.001 #run away
+		}
 	else:
 		playStyle = "Defender"
 		playStyle_texture = "res://UI/PlayerTypeSymbols/playerType_brickwall.png"
+		brawl_preferences = {
+		"lurk": 0.5, #wait outside the brawl
+		"join": 0.6, #join the big brawl
+		"partner": 0.4, #fight a random uninvolved person
+		"game": 0.5, #find a ball-focused task
+		"cower": 0.1 #run away
+		}
 
 func find_keeper_style():
 	match special_ability:

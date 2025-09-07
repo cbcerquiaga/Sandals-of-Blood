@@ -318,6 +318,7 @@ func handle_help_defense():
 	else:
 		cheat_direction = (other_forward.global_position - global_position).normalized()
 	helpPos = helpPos + cheat_direction * (attributes.aggression / 10)
+	#print("current position: " + str(global_position) + ", help position: " + str(helpPos))
 	navigation_agent.target_position = helpPos
 	
 #get between man and goal. Cheat to the middle a bit to push the forward away when it comes

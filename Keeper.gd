@@ -398,6 +398,10 @@ func _make_sweeping_decision():
 	var keeper_bias = (attributes.aggression * 0.7 + attributes.confidence * 0.3) / 100.0#have o want it and believe in yourself
 	var clearness = _path_clearness(global_position, ball.global_position)
 	var choice = clearness * keeper_bias * dist_modifier * corner_modifier
+	if ball.last_touched_time > 180:
+		choice = choice * 1.2
+	elif ball.last_touched_time > 90:
+		choice = choice * 1.1
 	if randf() < choice:
 		current_behavior = "sweeping"
 		print("gimme that ball!")

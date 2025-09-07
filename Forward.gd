@@ -115,6 +115,7 @@ func update_ai_behavior(delta):
 		clamp_target_position()
 
 func make_strategy_decision():
+	
 	choose_behavior()
 
 func execute_attack_plan():
@@ -305,8 +306,8 @@ func execute_pick():
 	if global_position.distance_to(pick_target) <attributes.aggression - 25:
 		attempt_attack(pick_target)
 		return
-	#elif status.boost > 0:
-		#is_sprinting = true
+	if status.boost > 0:
+		is_sprinting = true
 	else:
 		is_sprinting = false
 	navigate_to(pick_target)
@@ -439,7 +440,6 @@ func choose_behavior(skip = false):
 	var situational_weights = calculate_situational_weights()
 	var combined_weights = {}
 	var total_weight = 0.0
-		
 	
 	for behavior in behaviors:
 		# Base weight is product of team strategy and player preference
@@ -459,6 +459,10 @@ func choose_behavior(skip = false):
 	# Choose behavior based on weights
 	var random_val = randf()
 	var cumulative_weight = 0.0
+	
+	if ball.linear_velocity.length() < 200 and ball.global_position.distance_squared_to(global_position) < ball.global_position.distance_squared_to(forward_partner.global_position):
+		if ball.last_touched_time > 600 - (attributes.reactions * 6):
+			combined_weights["rebound"] *= 2 #go after the ball if nobody else seems to be
 	
 	if forward_partner.current_behavior == "target_man": #favor shooting or rebounding
 		combined_weights["shooter"] *= 3
@@ -1185,7 +1189,7 @@ func perform_fencing():
 	move_and_slide()
 		
 func _should_break_fencing() -> bool:
-	return ball and global_position.distance_to(ball.global_position) < fencing_params["ball_proximity_threshold"] * (1.1 - attributes.reactions/100.0)
+	return ball and global_position.distance_to(ball.global_position) < fencing_params["ball_proximity_threshold"]
 
 func clamp_target_position():
 	if !is_in_correct_half(navigation_agent.target_position):
