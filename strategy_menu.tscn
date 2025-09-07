@@ -1,4 +1,4 @@
-[gd_scene load_steps=16 format=3 uid="uid://e818m1s2f5xp"]
+[gd_scene load_steps=17 format=3 uid="uid://e818m1s2f5xp"]
 
 [ext_resource type="Script" path="res://strategy_menu.gd" id="1_p0u7q"]
 [ext_resource type="Script" path="res://bench_section.gd" id="2_a8736"]
@@ -9,6 +9,7 @@
 [ext_resource type="Texture2D" uid="uid://5rccbxmqb76a" path="res://UI/PauseUI/Save-Exit_button_base.png" id="6_34w4l"]
 [ext_resource type="Texture2D" uid="uid://ciia045odxt0f" path="res://UI/StrategyUI/RosterHolder_grey.png" id="6_q584g"]
 [ext_resource type="Texture2D" uid="uid://cfb7djuq28a0g" path="res://UI/StrategyUI/Substitute_button_base.png" id="6_x5r2x"]
+[ext_resource type="Texture2D" uid="uid://b0ukk0gsuj5jp" path="res://UI/StrategyUI/pendingSubIcon.png" id="7_j5vfw"]
 [ext_resource type="Script" path="res://tactics_section.gd" id="12_emdlp"]
 [ext_resource type="Texture2D" uid="uid://cqfhq5hj3ofqv" path="res://UI/StrategyUI/PreviousButton_base.png" id="12_tr0tp"]
 [ext_resource type="Texture2D" uid="uid://gb8htff5kf03" path="res://UI/StrategyUI/NextButton_base.png" id="13_aqj5i"]
@@ -468,6 +469,16 @@ text = "OPEN ROSTER SPOT"
 horizontal_alignment = 1
 vertical_alignment = 1
 
+[node name="TextureRect" type="TextureRect" parent="SubstitutionSection/FieldGrid/LF_Button"]
+visible = false
+z_index = 1
+layout_mode = 0
+offset_left = 120.0
+offset_right = 1231.0
+offset_bottom = 1080.0
+scale = Vector2(0.3, 0.3)
+texture = ExtResource("7_j5vfw")
+
 [node name="P_Button" type="Button" parent="SubstitutionSection/FieldGrid"]
 layout_mode = 2
 focus_neighbor_left = NodePath("../LF_Button")
@@ -488,6 +499,16 @@ text = "OPEN ROSTER SPOT"
 horizontal_alignment = 1
 vertical_alignment = 1
 
+[node name="TextureRect" type="TextureRect" parent="SubstitutionSection/FieldGrid/P_Button"]
+visible = false
+z_index = 1
+layout_mode = 0
+offset_left = -1626.0
+offset_right = -515.0
+offset_bottom = 1080.0
+scale = Vector2(0.3, 0.3)
+texture = ExtResource("7_j5vfw")
+
 [node name="RF_Button" type="Button" parent="SubstitutionSection/FieldGrid"]
 layout_mode = 2
 focus_neighbor_left = NodePath("../P_Button")
@@ -507,6 +528,16 @@ theme_override_font_sizes/font_size = 71
 text = "OPEN ROSTER SPOT"
 horizontal_alignment = 1
 vertical_alignment = 1
+
+[node name="TextureRect" type="TextureRect" parent="SubstitutionSection/FieldGrid/RF_Button"]
+visible = false
+z_index = 1
+layout_mode = 0
+offset_left = -3372.0
+offset_right = -2261.0
+offset_bottom = 1080.0
+scale = Vector2(0.3, 0.3)
+texture = ExtResource("7_j5vfw")
 
 [node name="LG_Button" type="Button" parent="SubstitutionSection/FieldGrid"]
 layout_mode = 2
@@ -532,6 +563,17 @@ text = "OPEN ROSTER SPOT"
 horizontal_alignment = 1
 vertical_alignment = 1
 
+[node name="TextureRect" type="TextureRect" parent="SubstitutionSection/FieldGrid/LG_Button"]
+visible = false
+z_index = 1
+layout_mode = 0
+offset_left = 120.0
+offset_top = -335.0
+offset_right = 1231.0
+offset_bottom = 745.0
+scale = Vector2(0.3, 0.3)
+texture = ExtResource("7_j5vfw")
+
 [node name="K_Button" type="Button" parent="SubstitutionSection/FieldGrid"]
 layout_mode = 2
 focus_neighbor_left = NodePath("../LG_Button")
@@ -552,6 +594,17 @@ text = "OPEN ROSTER SPOT"
 horizontal_alignment = 1
 vertical_alignment = 1
 
+[node name="TextureRect" type="TextureRect" parent="SubstitutionSection/FieldGrid/K_Button"]
+visible = false
+z_index = 1
+layout_mode = 2
+offset_left = -1626.0
+offset_top = -335.001
+offset_right = -515.0
+offset_bottom = 744.999
+scale = Vector2(0.3, 0.3)
+texture = ExtResource("7_j5vfw")
+
 [node name="RG_Button" type="Button" parent="SubstitutionSection/FieldGrid"]
 layout_mode = 2
 focus_neighbor_left = NodePath("../K_Button")
@@ -571,6 +624,17 @@ theme_override_font_sizes/font_size = 71
 text = "OPEN ROSTER SPOT"
 horizontal_alignment = 1
 vertical_alignment = 1
+
+[node name="TextureRect" type="TextureRect" parent="SubstitutionSection/FieldGrid/RG_Button"]
+visible = false
+z_index = 1
+layout_mode = 2
+offset_left = -3372.0
+offset_top = -335.001
+offset_right = -2261.0
+offset_bottom = 744.999
+scale = Vector2(0.3, 0.3)
+texture = ExtResource("7_j5vfw")
 
 [node name="Background" type="TextureRect" parent="."]
 layout_mode = 0
