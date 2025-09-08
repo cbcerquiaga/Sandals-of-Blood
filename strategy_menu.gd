@@ -86,6 +86,7 @@ func _ready():
 	lg_button.pressed.connect(_on_LG_button_pressed)
 	rg_button.pressed.connect(_on_RG_button_pressed)
 	k_button.pressed.connect(_on_K_button_pressed)
+	set_pending_indicators(current_team)
 	
 	#hide()
 	
@@ -108,6 +109,40 @@ func _reset_all_button_styles():
 	k_button.set_button_icon(load("res://UI/StrategyUI/Roster_holder_base.png"))
 	discard_button.set_button_icon(load("res://UI/PauseUI/Discard-Exit_button_base.png"))
 	save_button.set_button_icon(load("res://UI/PauseUI/Save-Exit_button_base.png"))
+	
+func set_pending_indicators(team: Team):
+	if !team:
+		$SubstitutionSection/FieldGrid/LF_Button/TextureRect.hide()
+		$SubstitutionSection/FieldGrid/RF_Button/TextureRect.hide()
+		$SubstitutionSection/FieldGrid/LG_Button/TextureRect.hide()
+		$SubstitutionSection/FieldGrid/RG_Button/TextureRect.hide()
+		$SubstitutionSection/FieldGrid/P_Button/TextureRect.hide()
+		$SubstitutionSection/FieldGrid/K_Button/TextureRect.hide()
+		return
+	if lf.has_same_name(team.LF):
+		$SubstitutionSection/FieldGrid/LF_Button/TextureRect.hide()
+	else:
+		$SubstitutionSection/FieldGrid/LF_Button/TextureRect.show()
+	if rf.has_same_name(team.RF):
+		$SubstitutionSection/FieldGrid/RF_Button/TextureRect.hide()
+	else:
+		$SubstitutionSection/FieldGrid/RF_Button/TextureRect.show()
+	if lg.has_same_name(team.LG):
+		$SubstitutionSection/FieldGrid/LG_Button/TextureRect.hide()
+	else:
+		$SubstitutionSection/FieldGrid/LG_Button/TextureRect.show()
+	if rg.has_same_name(team.RG):
+		$SubstitutionSection/FieldGrid/RG_Button/TextureRect.hide()
+	else:
+		$SubstitutionSection/FieldGrid/RG_Button/TextureRect.show()
+	if p.has_same_name(team.P):
+		$SubstitutionSection/FieldGrid/P_Button/TextureRect.hide()
+	else:
+		$SubstitutionSection/FieldGrid/P_Button/TextureRect.show()
+	if k.has_same_name(team.K):
+		$SubstitutionSection/FieldGrid/K_Button/TextureRect.hide()
+	else:
+		$SubstitutionSection/FieldGrid/K_Button/TextureRect.show()
 
 func _on_lf_button_focus_entered():
 	lf_button.set_button_icon(load("res://UI/StrategyUI/Roster_holder_highlighted.png"))
@@ -346,6 +381,7 @@ func ui_update():
 	$SubstitutionSection/FieldGrid/LG_Button/Label.text = "LG: " + lg_player.bio.first_name + " " + lg_player.bio.last_name + "\n" + str(lg_overall) + " Rating " + str(lg_player.status.energy) + "% Energy"
 	$SubstitutionSection/FieldGrid/K_Button/Label.text = "K: " + k_player.bio.first_name + " "+ k_player.bio.last_name + "\n" + str(k_overall) + " Rating " + str(k_player.status.energy) + "% Energy"
 	$SubstitutionSection/FieldGrid/RG_Button/Label.text = "RG: " + rg_player.bio.first_name + " "+ rg_player.bio.last_name + "\n" + str(rg_overall) + " Rating " + str(rg_player.status.energy) + "% Energy"
+	set_pending_indicators(current_team)
 
 
 func position_labels_left():
