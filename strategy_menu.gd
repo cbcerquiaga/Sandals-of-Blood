@@ -382,6 +382,10 @@ func ui_update():
 	$SubstitutionSection/FieldGrid/K_Button/Label.text = "K: " + k_player.bio.first_name + " "+ k_player.bio.last_name + "\n" + str(k_overall) + " Rating " + str(k_player.status.energy) + "% Energy"
 	$SubstitutionSection/FieldGrid/RG_Button/Label.text = "RG: " + rg_player.bio.first_name + " "+ rg_player.bio.last_name + "\n" + str(rg_overall) + " Rating " + str(rg_player.status.energy) + "% Energy"
 	set_pending_indicators(current_team)
+	if pending_subs > 0:
+		$SubstitutionSection/SubsRemaining.text = "Substitutions Remaining: " + str(pending_subs)
+	else:
+		$SubstitutionSection/SubsRemaining.text = "All Substitutions Used"
 
 
 func position_labels_left():

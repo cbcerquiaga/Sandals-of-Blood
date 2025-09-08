@@ -434,8 +434,12 @@ offset_bottom = 1985.0
 
 [node name="SubsRemaining" type="Label" parent="SubstitutionSection"]
 layout_mode = 0
-offset_right = 40.0
-offset_bottom = 23.0
+offset_left = 330.0
+offset_top = 1900.0
+offset_right = 537.0
+offset_bottom = 1923.0
+scale = Vector2(6, 6)
+text = "Substitutions Remaining: 6"
 
 [node name="FieldGrid" type="GridContainer" parent="SubstitutionSection"]
 layout_mode = 0
