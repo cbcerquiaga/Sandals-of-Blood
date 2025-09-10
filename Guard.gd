@@ -325,7 +325,7 @@ func handle_help_defense():
 func cover_defense():
 	if !assigned_forward:
 		return
-	var default_position
+	var default_position = (assigned_forward.global_position + defending_goal_position) / 2
 	if assigned_forward.velocity== Vector2.ZERO and !assigned_forward.is_incapacitated:
 		var aggro = randf()
 		if aggro < attributes.aggression/100:
@@ -372,6 +372,7 @@ func cover_defense():
 					current_behavior = "pressing"
 				else:
 					switch_forward()
+		current_target = default_position
 		navigate_to(default_position)
 	pass
 	
