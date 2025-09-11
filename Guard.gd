@@ -88,6 +88,7 @@ func update_forward_tracking(delta):
 		_on_mark_incapacitated()
 
 func update_ai_movement(delta):
+	print("Guard behavior: ", current_behavior, " Target: ", navigation_agent.target_position, " Current: ", current_target)
 	if not assigned_forward:
 		return
 	
@@ -296,9 +297,18 @@ func perform_ai():
 			perform_midfield_shooting()
 
 func pressure_defense():
+	if !assigned_forward:
+		print("guard does not have a forward")
+		assigned_forward = buddy_guard.other_forward
+		if !assigned_forward:
+			print("guard forward assignment still failed")
+			return
 	if global_position.distance_to(assigned_forward.global_position) > attributes.aggression - 25:
-		navigation_agent.target_position = assigned_forward.global_position
+		navigation_agent.target_position = (assigned_forward.global_position * 2 + global_position) / 3
+		current_target = navigation_agent.target_position
 	else:
+		navigation_agent.target_position = assigned_forward.global_position
+		current_target = navigation_agent.target_position
 		attempt_attack(assigned_forward.global_position)
 	
 func handle_help_defense():
@@ -324,6 +334,8 @@ func handle_help_defense():
 #get between man and goal. Cheat to the middle a bit to push the forward away when it comes
 func cover_defense():
 	if !assigned_forward:
+		navigation_agent.target_position = global_position
+		current_target = navigation_agent.target_position
 		return
 	var default_position = (assigned_forward.global_position + defending_goal_position) / 2
 	if assigned_forward.velocity== Vector2.ZERO and !assigned_forward.is_incapacitated:
@@ -511,6 +523,10 @@ func handle_goalkeeping_movement():
 		return
 	var goal_center: Vector2 = (leftPost + rightPost) / 2
 	var goal_width: float = rightPost.distance_to(leftPost)
+	if goal_center == Vector2.ZERO: #something has gone wrong in team.enlighten
+		goal_center = Vector2(0, starting_position.y)
+	if goal_width == 0: #something has gone wrong
+		goal_width = starting_position.x/2
 		
 	#initial position: goal line, x as far as ball is across field
 	var ball_field_distance
