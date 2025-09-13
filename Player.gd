@@ -641,6 +641,8 @@ func attempt_attack(target_position: Vector2):
 	status.boost -= 1
 	var to_target = (target_position - global_position).normalized()
 	velocity = to_target * attributes.sprint_speed
+	if has_node("NavigationAgent2D"):
+		$NavigationAgent2D.target_position = target_position
 	
 	# Connect the area entered signal if not already connected
 	if not $AttackArea.body_entered.is_connected(_on_attack_area_body_entered):
