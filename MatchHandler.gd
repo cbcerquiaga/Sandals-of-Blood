@@ -35,6 +35,7 @@ var aTeam : Team
 #UI
 @onready var statusUI = $UI/MatchStatusUI
 @onready var pauseMenu = $UI/PauseMenu
+@onready var overMenu = $UI/Game_endSceeen
 
 signal emit_match_ended(winning_team)
 signal play_ended(reason)
@@ -380,6 +381,21 @@ func _process(delta: float) -> void:
 	elif !has_started:
 		reset_match(true) # Start with human team pitching
 		has_started = true
+	elif match_ended:
+		if Input.is_anything_pressed():
+			var result
+			if team_scores[0] > team_scores[1]:
+				result = "W"
+			elif team_scores[1] > team_scores[0]:
+				result = "L"
+			else:
+				result = "T"
+			overMenu.bringUp(result)
+		else:
+			#have the winning team play celebration animations
+			#have the losing team play loser animations
+			#wait a few seconds then bring up the overMenu
+			pass
 	else:
 		if pTeam.K.is_special_active() or aTeam.K.is_special_active():
 			if pTeam.K.is_maestro and !aTeam.K.is_maestro:
@@ -605,6 +621,7 @@ func score_goal(team: int):
 	check_match_end()
 	if !match_ended:
 		next_play()
+	
 
 func _on_play_timer_timeout():
 	# Play length expired - switch pitching team

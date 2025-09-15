@@ -14,19 +14,12 @@
 [ext_resource type="PackedScene" uid="uid://bkv78tqdrwbtv" path="res://pause_stats_menu.tscn" id="11_x3xu7"]
 [ext_resource type="PackedScene" uid="uid://70twyyxact8f" path="res://export_menu.tscn" id="13_q7qv6"]
 
-[node name="Game_endSceeen" type="Control"]
-layout_mode = 3
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_top = 491.0
-offset_bottom = 491.0
-grow_horizontal = 2
-grow_vertical = 2
+[node name="Game_endSceeen" type="CanvasLayer"]
+offset = Vector2(972, 200)
+transform = Transform2D(1, 0, 0, 1, 972, 200)
 script = ExtResource("1_5nhp2")
 
 [node name="ResultText" type="TextureRect" parent="."]
-layout_mode = 0
 offset_top = -200.0
 offset_right = 1080.0
 offset_bottom = 123.0
@@ -34,7 +27,6 @@ pivot_offset = Vector2(2561, 1111)
 texture = ExtResource("1_k5dj2")
 
 [node name="StarsButton" type="TextureButton" parent="."]
-layout_mode = 0
 offset_right = 40.0
 offset_bottom = 40.0
 texture_normal = ExtResource("2_bif40")
@@ -42,7 +34,6 @@ texture_hover = ExtResource("3_nm7d4")
 texture_focused = ExtResource("3_nm7d4")
 
 [node name="StatsButton" type="TextureButton" parent="."]
-layout_mode = 0
 offset_top = 300.0
 offset_right = 1080.0
 offset_bottom = 623.0
@@ -52,7 +43,6 @@ texture_hover = ExtResource("5_gj4fi")
 texture_focused = ExtResource("5_gj4fi")
 
 [node name="ExportButton" type="TextureButton" parent="."]
-layout_mode = 0
 offset_top = 600.0
 offset_right = 1080.0
 offset_bottom = 923.0
@@ -62,7 +52,6 @@ texture_hover = ExtResource("7_d88v3")
 texture_focused = ExtResource("7_d88v3")
 
 [node name="ExitButton" type="TextureButton" parent="."]
-layout_mode = 0
 offset_top = 900.0
 offset_right = 1080.0
 offset_bottom = 1223.0
@@ -71,6 +60,7 @@ texture_hover = ExtResource("9_iytbu")
 texture_focused = ExtResource("9_iytbu")
 
 [node name="Submenus" type="Control" parent="."]
+layout_mode = 3
 anchors_preset = 0
 offset_right = 40.0
 offset_bottom = 40.0
