@@ -6,7 +6,7 @@ enum FieldType { ROAD, CULDESAC, HORSESHOE }
 var regular_season: bool = true #determines the type of overtime. In regular season, games can end in ties, while in playoffs someone must win
 var field_type: FieldType = FieldType.ROAD #impacts a bunch of stuff. TODO: make more kinds of fields
 var recording: Array #array of images, used to make a replay of the game for export
-var log: Array #array of strings, used to create the game log for export
+var match_log: Array #array of strings, used to create the game log for export
 #display
 var brightness: float = 55 #screen brightness
 var game_speed: float = 0.35 #speed of gameplay
@@ -78,11 +78,11 @@ func transfer_settings(other_settings: Settings_Global):
 	poaching = other_settings.poaching
 	
 func clear_recordings():
-	log.clear()
+	match_log.clear()
 	recording.clear()
 
 func record_event(value: String):
-	log.append(value)
+	match_log.append(value)
 	
 func record_frame():
 	var img = get_viewport().get_texture().get_image()
@@ -94,7 +94,7 @@ func export_recording(name: String):
 	
 func export_game_log(name: String):
 	var full_text
-	for element in log:
+	for element in match_log:
 		full_text = full_text + element + "\n"
 	#TODO: export full_text into a .txt file with name name
 	print("If a file of name " + name + " already exists it will be overwritten")

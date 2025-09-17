@@ -37,6 +37,8 @@ func bringUp(state, match_handler: MatchHandler):
 	export_screen.hide()
 	three_stars_screen.hide()
 	starsButton.grab_focus()
+	three_stars_screen.set_teams(matchHandler.pTeam, matchHandler.aTeam)
+	three_stars_screen.set_score(matchHandler.pTeam.game_stats.goals, matchHandler.aTeam.game_stats.goals)
 
 func show_stats_menu():
 	if matchHandler:
@@ -69,3 +71,21 @@ func _unhandled_input(event):
 
 func _on_stats_button_pressed():
 	show_stats_menu()
+
+
+func _on_stars_button_pressed() -> void:
+	submenu = "stars"
+	three_stars_screen.bring_up()
+	hide()
+
+
+func _on_export_button_pressed() -> void:
+	submenu = "export"
+	export_screen.show()
+
+
+func _on_exit_button_pressed() -> void:
+	#TODO: return to the game hub menu
+	#if we are in a career match, go to the career hub page
+	#if we are in a quick match, go to the main menu page
+	pass # Replace with function body.

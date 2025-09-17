@@ -12,6 +12,12 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_3tku1")
 
+[node name="ColorRect" type="ColorRect" parent="."]
+layout_mode = 0
+offset_right = 1600.0
+offset_bottom = 1600.0
+color = Color(0.054902, 0.054902, 0.054902, 0.572549)
+
 [node name="P1" type="Control" parent="."]
 anchors_preset = 0
 offset_right = 40.0

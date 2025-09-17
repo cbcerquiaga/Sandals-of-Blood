@@ -341,7 +341,7 @@ func on_ball_pitched():
 	
 	
 func _process(delta: float) -> void:
-	if Input.is_action_just_pressed("pause"):
+	if Input.is_action_just_pressed("pause") and !match_ended:
 		get_tree().paused = true
 		pauseMenu.open_menu()
 		pauseMenu.matchHandler = self
@@ -364,8 +364,13 @@ func _process(delta: float) -> void:
 			next_play()
 	if Input.is_action_just_pressed("debug_reset"):
 		var tempScore = team_scores
+		pitches_remaining -= 1
+		var current_pitch = pitches_remaining
 		reset_match(true)
 		team_scores = tempScore
+		pitches_remaining = current_pitch
+		check_match_end()
+		return
 	if !ready_to_start:
 		if pTeam and aTeam and ball and field:
 			#print("everybody is here" + str(pTeam.has_readied) + "/"+str(aTeam.has_readied))
@@ -390,7 +395,7 @@ func _process(delta: float) -> void:
 				result = "L"
 			else:
 				result = "T"
-			overMenu.bringUp(result)
+			overMenu.bringUp(result, self)
 		else:
 			#have the winning team play celebration animations
 			#have the losing team play loser animations

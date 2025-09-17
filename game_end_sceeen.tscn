@@ -68,6 +68,8 @@ offset_bottom = 40.0
 [node name="3Stars_Screen" parent="Submenus" instance=ExtResource("11_pmbhh")]
 visible = false
 layout_mode = 1
+offset_right = 2984.0
+offset_bottom = 1924.0
 
 [node name="Pause_Statistics" parent="Submenus" instance=ExtResource("11_x3xu7")]
 visible = false
@@ -76,3 +78,8 @@ layout_mode = 1
 [node name="Export_Menu" parent="Submenus" instance=ExtResource("13_q7qv6")]
 visible = false
 layout_mode = 1
+
+[connection signal="pressed" from="StarsButton" to="." method="_on_stars_button_pressed"]
+[connection signal="pressed" from="StatsButton" to="." method="_on_stats_button_pressed"]
+[connection signal="pressed" from="ExportButton" to="." method="_on_export_button_pressed"]
+[connection signal="pressed" from="ExitButton" to="." method="_on_exit_button_pressed"]

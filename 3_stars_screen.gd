@@ -26,6 +26,16 @@ func set_score(score1: int, score2: int):
 	else:
 		winningTeam = null
 
+func bring_up():
+	show()
+	assign_three_stars()
+	position_Ps()
+
+func position_Ps():
+	P1.global_position = Vector2(0,0)
+	P2.global_position = Vector2(0,550)
+	P3.global_position = Vector2(0,1100)
+
 func assign_three_stars():
 	var allPlayers
 	for player in team1.roster:
@@ -117,7 +127,7 @@ func get_star_value(player: Player):
 
 func fill_star_info():
 	$P1/TextureRect.texture = load(first_star.portrait)
-	$P1/NameLabel.text = first_star.bio.first_name + " " + first_star.bio.loast_name
+	$P1/NameLabel.text = first_star.bio.first_name + " " + first_star.bio.last_name
 	if first_star.team == 1:
 		$P1/TeamLabel.text = team1.team_abbreviation
 	else:
@@ -157,8 +167,8 @@ func fill_star_info():
 	$P3/StatLabel3.text = stats3[1]
 	
 
-func get_interesting_stats(player: Player) -> Array[String]:
-	var stats = []
+func get_interesting_stats(player: Player) -> Array:
+	var stats = ["", ""]
 	var stat_candidates = []
 	if player.game_stats.pitches_f > 0 && player.game_stats.pitches_g > 0 && player.game_stats.pitches_p > 0 && player.game_stats.pitches_k > 0:
 		stat_candidates.append("Played Every Position")
