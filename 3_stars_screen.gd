@@ -31,12 +31,12 @@ func assign_three_stars():
 	for player in team1.roster:
 		var star_value = get_star_value(player)
 		if winningTeam == team1:
-			star_value = star_value + 5
+			star_value = star_value + 12
 		check_star_player(player,star_value)
 	for player in team2.roster:
 		var star_value = get_star_value(player)
 		if winningTeam == team2:
-			star_value = star_value + 5
+			star_value = star_value + 12
 		check_star_player(player,star_value)
 
 func check_star_player(player: Player, star_value: float):
@@ -57,29 +57,57 @@ func check_star_player(player: Player, star_value: float):
 		rating3 = star_value
 
 func get_star_value(player: Player):
-	var value = 0.0
-	value = value + 3 * player.game_stats.goals
-	value = value + 2.8 * player.game_stats.assists
-	value = value + 2.5 * player.game_stats.sacks
-	#"goals": 0, #scored goal
-	#"assists": 0, #passed to teammate who scored
-	#"sacks": 0, #stun opposing keeper- forward
-	#"hits": 0, #aggressor in a collision
-	#"sacks_allowed": 0,#mark gets a sack - guard
-	#"pitches_played": 0, #number of plays on field
-	#"pitches_thrown": 0,
-	#"aces": 0, #goals directly off pitch- pitcher
-	#"knockouts": 0, #knocked out opposing pitcher- pitcher
-	#"got_kod": 0, #knocked out by opposing pitcher- pitcher
-	#"goals_for":0, #team scored while on field
-	#"goals_against":0, #team scored against while on field
-	#"returns": 0,#opposing pitch doesn't score- keeper
-	#"aces_allowed": 0, #opposing pitch goes in- keeper
-	#"touches": 0, #times touching the ball, not including pitches
-	#"mark_points": 0, #points from assigned forward, guard only
-	#"partner_sacks": 0, #how many times a partner has sacked the keeper, forwards only
-	#"pitches_f": 0, #pitches played at forward position
-	#"pitches_g": 0, #pitches played at guard position
-	#"pitches_p": 0, #pitches played at pitcher position
-	#"pitches_k": 0 #pitches played at keeper position
+	var value = 0.1
+	value = value + 11 * player.game_stats.goals
+	if player.game_stats.goals >= 3:
+		value = value + 15 #hat trick bonus
+	if player.game_stats.goals >= GlobalSettings.target_score:
+		value = value + 25 #hero bonus
+	value = value + 10 * player.game_stats.assists
+	value = value + 8 * player.game_stats.sacks
+	value = value + 0.1 * player.game_stats.hits
+	value = value + 2* player.game_stats.goals_for
+	if player.game_stats.hits >= 7:
+		value = value + 10 #rocket league extermination bonus
+	if player.game_stats.pitches_g > 0:
+		if player.game_stats.sacks_allowed == 0:
+			value = value + player.game_stats.pitches_g/2
+		else:
+			value = value + player.game_stats.pitches_g/2 * ((player.game_stats.pitches_g - player.game_stats.sacks_allowed)/player.game_stats.pitches_g)
+		if player.game_stats.goals_against == 0:
+			value = value + player.game_stats.pitches_g
+		else:
+			value = value + player.game_stats.pitches_g/2 - player.game_stats.goals_against * 2
+		if player.game_stats.mark_points == 0:
+			if player.game_stats.pitches_g > GlobalSettings.pitch_limit * 0.75:
+				value = value + 11
+			else:
+				value = value + 6
+		else:
+			value = value - 4 * player.game_stats.mark_points
+	if player.game_stats.pitches_played >= GlobalSettings.pitch_limit:
+		value = value + 5#ironman bonus
+	value = value + (player.game_stats.knockouts - player.game_stats.got_kod) * 9
+	if player.game_stats.pitches_p > 0:
+		if player.game_stats.got_kod == 0:
+			value = value + player.game_stats.pitches_p
+	if player.game_stats.pitches_k > 0:
+		if player.game_stats.goals_against == 0:
+			if player.game_stats.pitches_k >= GlobalSettings.pitch_limit:
+				value = value + 25 #shutout bonus
+			else:
+				value = value + player.game_stats.pitches_k
+		else:
+			value = value - player.game_stats.goals_against * 3 + player.game_stats.goals_for * 2 #goals against are worse than goals for are good for keepers
+		value = value + 5 * player.game_stats.returns
+		value = value - 12 * player.game_stats.aces_allowed
+		value = value + 0.2 * player.game_stats.touches
+	if player.game_stats.pitches_f > 0:
+		value = value - player.game_stats.goals_against * 2 + player.game_stats.goals_for * 3 #goals for are better than goals against are bad for forwards
+		if player.game_stats.sacks + player.game_Stats.partner_sacks > player.game_stats.pitches_p:
+			value = value + player.game_stats.pitches_p #efficiency bonus
+		if player.game_stats.sacks + player.game_Stats.partner_sacks > GlobalSettings.pitch_limit/2:
+			value = value + 9 #volume pressure bonus
+		if player.game_stats.touches > 7:
+			value = value + 2 #involvement bonus
 	return value
