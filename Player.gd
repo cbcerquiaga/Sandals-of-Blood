@@ -4,7 +4,8 @@ class_name Player
 var playable_positions = ["LG", "RG", "LF", "RF", "K", "P"]#players can train to be more versatile and play more positions
 var preferred_position: String #affects player development
 var declared_pitcher = false #affects roster size rules
-var field_position: String
+var field_position: String #Lf, RF, LG, RG, K, P; denotes where the player is on the field right now
+var team_node: Team = null
 # Player Attributes
 @export var attributes := {
 	"speedRating" : 75, #what's shown on the attributes screen
@@ -36,6 +37,8 @@ var field_position: String
 	"max_boost": 100, #variable dependent on energy
 	"stability": 100, #fall chance, shoved chance
 	"groove": 100, #affected by confidence
+	"anger": 0, #affects chance to brawl
+	"baseline_anger": 0, #impacts minimum anger for a player
 	"starter": false #true if the player started the game
 }
 
@@ -338,6 +341,10 @@ func _physics_process(delta):
 	if not is_sprinting:
 		recover_resources()
 	
+	#if !is_in_brawl:
+		#status.anger = status.anger - 0.1
+	if status.anger < status.baseline_anger:
+		status.anger = status.baseline_anger
 	move_and_slide()
 	update_ui()
 
@@ -746,7 +753,9 @@ func scrum(body: Player):
 
 func stop_brawling():
 	match field_position:
-		"LF", "RF", "F":
+		"LF":
+			if team_node and team_node.strategy.has("tactics") and team_node.strategy.tactics.has("LF"):
+				forward_strategy = team_node.strategy.tactics.LF
 			var preferred_strat
 			var weight = -99
 			for strat in forward_strategy:
@@ -755,12 +764,23 @@ func stop_brawling():
 					weight = value
 					preferred_strat = strat
 			current_behavior = preferred_strat
-		"LG", "RG", "G":
-				var guard_instance = self as Guard
-				guard_instance.update_behavior()
-				current_behavior = guard_instance.current_behavior
-				guard_instance.queue_free()
-				
+		"RF":
+			if team_node and team_node.strategy.has("tactics") and team_node.strategy.tactics.has("RF"):
+				forward_strategy = team_node.strategy.tactics.RF
+			var preferred_strat
+			var weight = -99
+			for strat in forward_strategy:
+				var value = forward_strategy[strat]
+				if value > weight:
+					weight = value
+					preferred_strat = strat
+			current_behavior = preferred_strat
+		"LG", "RG":
+			if team_node and team_node.strategy.has("tactics") and team_node.strategy.tactics.has("D"):
+				defense_strategy = team_node.strategy.tactics.D
+			var guard_instance = self as Guard
+			guard_instance.update_behavior()
+			current_behavior = guard_instance.current_behavior
 		"K":
 			current_behavior = "defending"
 	brawl_opponents = []
@@ -787,6 +807,7 @@ func take_hit(attacker: Player, power: float):
 		units = 30
 	#print("power: " + str(power)+", knockback: " + str(knockback_power) + ", stability: " + str(status.stability), " my power: ", attributes.power, " units: ", units)
 	if knockback_power > status.stability * 2: #big hit!
+		status.anger = status.anger + 5
 		#print("big hit-", units, ", ", knockback_power * 2)
 		get_tossed(knockback_dir, units, 200)
 		attacker.game_stats.hits += 1
@@ -814,6 +835,8 @@ func take_hit(attacker: Player, power: float):
 			status.stability = 0
 			var stun_time = (445 - 4*attributes.toughness)/49 * 0.75 #3.35 for 50 toughness, 0.675 for 99 toughness
 			enter_stunned_state(stun_time)
+		else:
+			status.anger = status.anger + 5
 		get_tossed(knockback_dir, units, knockback_power * 2)
 	elif knockback_power > 0: #shove
 		#print("shove-", units, ", ", knockback_power * 2)
@@ -828,6 +851,8 @@ func take_hit(attacker: Player, power: float):
 					if attacker.forward_partner:
 						attacker.forward_partner.game_stats.partner_sacks += 1
 			status.stability = 0
+		else:
+			status.anger = status.anger + 5
 		get_tossed(knockback_dir, units, 100)
 	else: #just a step back
 		scrum(attacker)
@@ -876,7 +901,8 @@ func apply_opponent_stun(duration: float):
 
 func update_ui():
 	label.bbcode_enabled = true
-	label.set_text(position_type)
+	label.set_text(str(status.anger))
+	label.show()
 	#stamina_bar.value = energy
 	#boost_bar.value = boost
 	#
@@ -1382,6 +1408,13 @@ func find_keeper_style():
 		_:
 			playStyle = "Prospect Goalkeeper"
 			playStyle_texture = "res://UI/PlayerTypeSymbols/playerType_prospectKeeper.png"
+	brawl_preferences = {
+			"lurk": 0.2,
+			"join": 0.3,
+			"partner": 0.1,
+			"game": 10.0, #most likely outcome
+			"cower": 0.1
+		}
 	return
 
 func find_pitcher_style():

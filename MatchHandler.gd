@@ -161,6 +161,10 @@ func _on_ball_exited_field():
 func _on_player_goal():
 	if match_ended or not is_instance_valid(ball):
 		return
+	var anger_change = 3
+	if team_scores[0] - team_scores[1] > 3: #runaway game
+		anger_change = 10
+	aTeam.anger(anger_change)
 	aTeam.P.game_stats.goals_against += 1
 	aTeam.K.game_stats.goals_against += 1
 	aTeam.LG.game_stats.goals_against += 1
@@ -173,6 +177,7 @@ func _on_player_goal():
 	pTeam.RG.game_stats.goals_for += 1
 	pTeam.LF.game_stats.goals_for += 1
 	pTeam.RF.game_stats.goals_for += 1
+	pTeam.anger(0 - anger_change/2)
 	var was_ace = false
 	pTeam.K.deactivate_special()
 	var scorer = ball.last_hit_by
@@ -237,6 +242,10 @@ func _on_player_goal():
 func _on_cpu_goal():
 	if match_ended or not is_instance_valid(ball):
 		return
+	var anger_change = 3
+	if team_scores[1] - team_scores[0] > 3: #blowout
+		anger_change = 10
+	pTeam.anger(anger_change)
 	pTeam.P.game_stats.goals_against += 1
 	pTeam.K.game_stats.goals_against += 1
 	pTeam.LG.game_stats.goals_against += 1
@@ -249,6 +258,7 @@ func _on_cpu_goal():
 	aTeam.RG.game_stats.goals_for += 1
 	aTeam.LF.game_stats.goals_for += 1
 	aTeam.RF.game_stats.goals_for += 1
+	aTeam.anger(0 - anger_change/2)
 	var was_ace = false
 	aTeam.K.deactivate_special()
 	var scorer = ball.last_hit_by
@@ -943,6 +953,8 @@ func update_team_roster(team: Team):
 	pTeam.next_bench = team.next_bench
 	pTeam.next_onfield_players = team.next_onfield_players
 	pTeam.subs_remaining = team.subs_remaining
+	update_team_strategy(team)
+	pTeam.applyTactics()
 
 	# Only update immediately if conditions are safe
 	if !is_play_live && !is_ball_pitched && current_play_time == 0:

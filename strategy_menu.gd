@@ -261,6 +261,7 @@ func _on_save_pressed():
 		current_team.subs_remaining = pending_subs
 		current_team.pending_substitutions = pending_substitutions.duplicate()
 		match_handler.update_team_roster(current_team)
+		apply_strategy_changes()
 		emit_signal("new_sub")
 	else:
 		apply_next_roster()

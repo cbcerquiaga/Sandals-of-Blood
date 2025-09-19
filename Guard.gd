@@ -88,7 +88,7 @@ func update_forward_tracking(delta):
 		_on_mark_incapacitated()
 
 func update_ai_movement(delta):
-	print("Guard behavior: ", current_behavior, " Target: ", navigation_agent.target_position, " Current: ", current_target)
+	#print("Guard behavior: ", current_behavior, " Target: ", navigation_agent.target_position, " Current: ", current_target)
 	if not assigned_forward:
 		return
 	
@@ -99,6 +99,9 @@ func update_ai_movement(delta):
 	else:
 		perform_ai()
 		clamp_target_position()
+	
+	if navigation_agent.target_position == Vector2.ZERO:
+		update_behavior()
 	
 	var next_path_pos = navigation_agent.get_next_path_position()
 	var direction = global_position.direction_to(next_path_pos)
@@ -192,12 +195,15 @@ func brawl_lurk():
 func handle_zone_defense_behavior():
 	if should_play_escort():
 		current_behavior = "escorting"
+		perform_escorting()
 		#buddy_guard.current_behavior = "trapping" #shouldn't have to do this
 	elif should_trap():
 		if ball.global_position.distance_to(global_position) < attributes.aggression * defense_strategy.chasing:
 			current_behavior = "chasing"
+			chase_ball()
 		else:
 			current_behavior = "trapping"
+			handle_trapping()
 
 #regular defensive behavior. LG covers RF, RG covers LF, but they may help each other, switch, or go after the ball
 func handle_man_defense_behavior():
@@ -562,13 +568,15 @@ func handle_trapping():
 	var trap_position = Vector2.ZERO
 	
 	if assigned_forward.global_position.distance_to(global_position) < attributes.aggression / 3: #16-33
-		last_behavior = "trapping"
-		current_behavior = "fencing"
-		return
+		if status.anger + attributes.aggression >= 100:
+			last_behavior = "trapping"
+			current_behavior = "fencing"
+			return
 	elif other_forward.global_position.distance_to(global_position) < attributes.aggression / 3:
-		last_behavior = "trapping"
-		current_behavior = "fencing"
-		return
+		if status.anger + attributes.aggression >= 100:
+			last_behavior = "trapping"
+			current_behavior = "fencing"
+			return
 	
 	# Basic position based on defending goal side
 	if defending_goal_position.y < 0:
@@ -835,9 +843,10 @@ func perform_linking():
 	if Engine.get_frames_drawn() % 60 == 0:
 		calculate_linking_position()	
 	if assigned_forward && global_position.distance_to(assigned_forward.global_position) < 6:
-		current_behavior = "fencing"
-		perform_fencing()
-		return
+		if status.anger + attributes.aggression >= 100:
+			current_behavior = "fencing"
+			perform_fencing()
+			return
 	if global_position.distance_to(ball.global_position) < 20:
 		current_behavior = "chasing"
 		chase_ball()

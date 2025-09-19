@@ -330,9 +330,10 @@ func perform_avoiding():
 	
 	var threat = _calculate_forward_threat(closest_opponent)
 	if threat > 0.9 and randf() < attributes.aggression / 99.0:
-		current_behavior = "fencing"
-		current_opponent = closest_opponent
-		return
+		if status.anger + attributes.aggression >= 120: #120 instead of 100 because the keeper needs to focus on the goal
+			current_behavior = "fencing"
+			current_opponent = closest_opponent
+			return
 	
 	var avoidance_pos = _calculate_avoidance_position(threat, 0.0)
 	navigation_agent.target_position = avoidance_pos
@@ -763,6 +764,15 @@ func defending_behavior(delta: float):
 		return
 	var goal_center: Vector2 = (leftPost + rightPost) / 2
 	var goal_width: float = rightPost.distance_to(leftPost)
+	if global_position.distance_squared_to(goal_center) > 2025: #45 units away
+		navigation_agent.target_position = goal_center
+		var speed = attributes.speed
+		if status.boost > 0:
+			is_sprinting = true
+			speed = attributes.sprint_speed
+		velocity = global_position.direction_to(goal_center).normalized() * speed
+		return
+		
 	
 	# Check if ball changed direction significantly - freeze reaction
 	var current_ball_direction = ball_last_velocity.normalized()
@@ -798,7 +808,7 @@ func defending_behavior(delta: float):
 			var target_y = rightPost.y - sign(rightPost.y) * 5  # 5 units in front of goal line
 			navigation_agent.target_position = Vector2(rightPost.x - aggression_variance, target_y + positioning_variance)
 			
-	elif ball.global_position.distance_to(goal_center) < (attributes.reactions / 2):
+	elif ball.global_position.distance_to(goal_center) < (attributes.reactions / 2) + 10: #35 at 50, 59.5 at 99
 		# Very close ball - go directly for it
 		navigation_agent.target_position = ball.global_position
 		velocity = (navigation_agent.target_position - global_position).normalized() * attributes.sprint_speed

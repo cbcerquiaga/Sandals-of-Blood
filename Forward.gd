@@ -75,6 +75,7 @@ func restore_behaviors():
 	behaviors = ["bull_rush", "skill_rush", "target_man", "shooter", "rebound", "pick", "bully", "fencing", "cower", "returning", "defend"]
 
 func _physics_process(delta):
+	print("Forward behavior: " + current_behavior + ", team " + str(team) + ", strategy: " + str(forward_strategy))
 	super._physics_process(delta)
 	if !can_move:
 		velocity = Vector2.ZERO
@@ -431,10 +432,13 @@ func execute_cower():
 # --- Behavior Selection System ---
 
 func choose_behavior(skip = false):
-	if !skip:
+	if behaviors.size() == 0:
+		return
+	if !skip and opposing_keeper:
 		if ((opposing_keeper.current_behavior == "fencing" or opposing_keeper.current_behavior == "brawling") and randf() < attributes.aggression/100 - 0.5) or ((forward_partner.current_behavior == "brawling" or assigned_guard.current_behavior == "brawling") and randf() < attributes.aggression/100 - 0.4):
-			handle_brawl_behavior()
-			return
+			if attributes.aggression + status.anger >= 100:
+				handle_brawl_behavior()
+				return
 	
 	# Calculate situational modifiers
 	var situational_weights = calculate_situational_weights()
@@ -886,13 +890,14 @@ func handle_defensive_pressure():
 		decide_defensive_response(guard_distance, keeper_distance)
 
 func decide_defensive_response(guard_dist: float, keeper_dist: float):
-	var fencing_chance = 0.3 * (attributes.aggression / 100.0)
+	var fencing_chance = 0.03 * (attributes.aggression / 100.0)
 	if ball:
 		var ball_dist = global_position.distance_to(ball.global_position)
 		fencing_chance *= clamp(ball_dist / 300.0, 0.1, 1.0)
 	
 	if randf() < fencing_chance:
-		switch_to_fencing_mode()
+		if status.anger + attributes.aggression > 100:
+			switch_to_fencing_mode()
 	else:
 		if keeper_dist < guard_dist && randf() < 0.6:
 			attempt_attack(opposing_keeper.global_position)
@@ -988,8 +993,10 @@ func start_avoiding_guard():
 	is_avoiding_guard = true
 	
 	if randf() < 0.3:
-		switch_to_fencing_mode()
-		return
+		if status.anger + attributes.aggression >= 100:
+			switch_to_fencing_mode()
+			return
+		
 	
 	var away_from_guard = (global_position - assigned_guard.global_position).normalized()
 	var avoid_position = global_position + (away_from_guard * 200)

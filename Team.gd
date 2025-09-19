@@ -193,6 +193,7 @@ func reset_subs():
 func add_player(player: Player):
 	if not is_player_in_roster(player):
 		roster.append(player)
+		player.team_node = self
 		if not [K, LG, RG, LF, RF, P].has(player):
 			bench.append(player)
 		player.team = team_id
@@ -407,6 +408,7 @@ func nextPlayStatus():
 	P.reset_state()
 	P.human_ready = false
 	bench_rest()
+	applyTactics()
 	
 func update_field():
 	var saved_ball = K.ball# players MUST know ball
@@ -893,6 +895,10 @@ func applyTactics():
 	RG.defense_strategy = strategy.tactics.D
 	LF.forward_strategy = strategy.tactics.LF
 	RF.forward_strategy = strategy.tactics.RF
+	LG.update_behavior()
+	RG.update_behavior()
+	LF.choose_behavior()
+	RF.choose_behavior()
 
 func check_player_positions():
 	for player in [K, LG, RG, LF, RF]:
@@ -992,3 +998,11 @@ func get_brawlers():
 		if player.current_behavior == "brawling":
 			brawlers.append(player)
 	return brawlers
+
+func anger(value):
+	P.status.anger += value * (P.attributes.aggression/100)
+	K.status.anger += value * (K.attributes.aggression/100)
+	LG.status.anger += value* (LG.attributes.aggression/100)
+	RG.status.anger += value * (RG.attributes.aggression/100)
+	LF.status.anger += value* (LF.attributes.aggression/100)
+	RF.status.anger += value * (RF.attributes.aggression/100)
