@@ -556,6 +556,7 @@ func debug_default_roster():
 	"pounds": 255,
 	"years": 29
 }
+	P1.encode_player_type("EP")
 	var P0 = Player.new()
 	P0.position_type = "pitcher"
 	P0.declared_pitcher = true
@@ -597,7 +598,7 @@ func debug_default_roster():
 		"confidence": 71,
 		"composure": 75 
 	}
-	
+	P0.encode_player_type("FP")
 	var P2 = Player.new()
 	P2.position_type = "pitcher"
 	P2.declared_pitcher = true
@@ -639,7 +640,7 @@ func debug_default_roster():
 		"confidence": 71,
 		"composure": 75 
 	}
-	
+	P2.encode_player_type("WP")
 	var P3 = Player.new()
 	P3.position_type = "forward"
 	P3.playable_positions = ["LF", "RF"]
@@ -676,7 +677,7 @@ func debug_default_roster():
 		"confidence": 60,
 		"composure": 65 
 	}
-	
+	P3.encode_player_type("AF")
 	var P4 = Player.new()
 	P4.position_type = "guard"
 	P4.playable_positions = ["RG"]
@@ -712,6 +713,7 @@ func debug_default_roster():
 		"confidence": 60,
 		"composure": 80 
 	}
+	P4.encode_player_type("SF")
 	var G1 = Guard.new()
 	G1.position_type = "guard"
 	G1.preferred_position = "RG"
@@ -748,6 +750,7 @@ func debug_default_roster():
 		"confidence": 60,
 		"composure": 80 
 	}
+	G1.encode_player_type("BG")
 	var G2 = Guard.new()
 	G2.position_type = "guard"
 	G2.preferred_position = "LG"
@@ -784,7 +787,7 @@ func debug_default_roster():
 		"confidence": 60,
 		"composure": 80 
 	}
-	
+	G2.encode_player_type("DG")
 	var F1 = Forward.new()
 	F1.position_type = "forward"
 	F1.preferred_position = "LF"
@@ -821,6 +824,7 @@ func debug_default_roster():
 		"confidence": 60,
 		"composure": 80 
 	}
+	F1.encode_player_type("GF")
 	var F2 = Guard.new()
 	F2.position_type = "forward"
 	F2.preferred_position = "RF"
@@ -837,7 +841,7 @@ func debug_default_roster():
 	"pounds": 215,
 	"years": 26
 }
-	G2.attributes = {
+	F2.attributes = {
 		"speedRating": 60, 
 		"speed": 95.0, 
 		"sprint_speed": 120.0, 
@@ -857,7 +861,7 @@ func debug_default_roster():
 		"confidence": 60,
 		"composure": 80 
 	}
-	
+	F2.encode_player_type("CF")
 	# Add players
 	add_player(P1)
 	add_player(P2)
@@ -921,19 +925,10 @@ func restore_player_behavior(player: Player):
 		"keeper":
 			player.current_behavior = "defending"
 		"guard":
-			if strategy.tactics.D.zone == false:
-				player.current_behavior = "marking"
+			if player.defense_strategy.zone == false:
+				player.handle_man_defense_behavior()
 			else:
-				if player.plays_left_side:
-					if strategy.tactics.D.lg_trap:
-						player.current_behavior = "trapping"
-					else:
-						player.current_behavior = "escorting"
-				else:
-					if strategy.tactics.D.rg_trap:
-						player.current_behavior = "trapping"
-					else:
-						player.current_behavior = "escorting"
+				player.handle_zone_defense_behavior()
 		"forward":
 			player.make_strategy_decision()
 

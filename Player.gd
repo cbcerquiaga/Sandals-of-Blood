@@ -1262,6 +1262,9 @@ func set_all_properties(old_player: Player) -> void:
 	ball = old_player.ball
 
 func calculate_player_type():
+	if playStyle != "":
+		match_type_icon()
+		return
 	var bestOvr = 0
 	var bestPos
 	var currentOvr
@@ -1311,6 +1314,164 @@ func calculate_player_type():
 			find_keeper_style()
 		"pitcher":
 			find_pitcher_style()
+
+func encode_player_type(type: String):
+	match type:
+		"GF":
+			playStyle = "Goal Scorer"
+		"AF":
+			playStyle = "Anti-Keeper"
+		"SF":
+			playStyle = "Support Forward"
+		"CF":
+			playStyle = "Skull Cracker"
+		"HG":
+			playStyle = "Ball Hound"
+		"DG":
+			playStyle = "Defender"
+		"BG":
+			playStyle = "Bully"
+		"FP":
+			playStyle = "Fastball"
+		"CP":
+			playStyle = "Curveball"
+		"WP":
+			playStyle = "Workhorse"
+		"EP":
+			playStyle = "Enforcer"
+		"OK":
+			playStyle = "Maestro"
+		"SK":
+			playStyle = "Spin Doctor"
+		"MK":
+			playStyle = "Machine"
+		"PK":
+			playStyle = "Prospect Goalkeeper"
+	match_type_icon()
+			
+func match_type_icon():
+	match playStyle:
+		"Goal Scorer":
+			playStyle_texture = "res://UI/PlayerTypeSymbols/playerType_cannon.png"
+			brawl_preferences = {
+		"lurk": 0.5, #wait outside the brawl
+		"join": 0.5, #join the big brawl
+		"partner": 0.5, #fight a random uninvolved person
+		"game": 0.5, #find a ball-focused task
+		"cower": 0.5 #run away
+		}
+		"Anti-Keeper":
+			playStyle_texture = "res://UI/PlayerTypeSymbols/playerType_anti_keeper.png"
+			brawl_preferences = {
+		"lurk": 0.1, #wait outside the brawl
+		"join": 0.6, #join the big brawl
+		"partner": 0.6, #fight a random uninvolved person
+		"game": 0.8, #find a ball-focused task
+		"cower": 0.1 #run away
+		}
+		"Support Forward":
+			playStyle_texture = "res://UI/PlayerTypeSymbols/playerType_support.png"
+			brawl_preferences = {
+		"lurk": 0.5, #wait outside the brawl
+		"join": 0.8, #join the big brawl
+		"partner": 0.2, #fight a random uninvolved person
+		"game": 0.5, #find a ball-focused task
+		"cower": 0.1 #run away
+		}
+		"Skull Cracker":
+			playStyle_texture = "res://UI/PlayerTypeSymbols/playerType_skull.png"
+			brawl_preferences = {
+		"lurk": 0.1, #wait outside the brawl
+		"join": 0.8, #join the big brawl
+		"partner": 0.8, #fight a random uninvolved person
+		"game": 0.1, #find a ball-focused task
+		"cower": 0.001 #run away
+		}
+		"Ball Hound":
+			playStyle_texture = "res://UI/PlayerTypeSymbols/playerType_ballhound.png"
+			brawl_preferences = {
+		"lurk": 0.5, #wait outside the brawl
+		"join": 0.5, #join the big brawl
+		"partner": 0.5, #fight a random uninvolved person
+		"game": 0.5, #find a ball-focused task
+		"cower": 0.1 #run away
+		}
+		"Bully":
+			playStyle_texture = "res://UI/PlayerTypeSymbols/playerType_fist.png"
+			brawl_preferences = {
+		"lurk": 0.1, #wait outside the brawl
+		"join": 0.8, #join the big brawl
+		"partner": 0.8, #fight a random uninvolved person
+		"game": 0.1, #find a ball-focused task
+		"cower": 0.001 #run away
+		}
+		"Defender":
+			playStyle_texture = "res://UI/PlayerTypeSymbols/playerType_brickwall.png"
+			brawl_preferences = {
+		"lurk": 0.5, #wait outside the brawl
+		"join": 0.6, #join the big brawl
+		"partner": 0.4, #fight a random uninvolved person
+		"game": 0.5, #find a ball-focused task
+		"cower": 0.1 #run away
+		}
+		"Fastball":
+			playStyle_texture = "res://UI/PlayerTypeSymbols/playerType_dart.png"
+			brawl_preferences = {
+		"lurk": 0.0, #wait outside the brawl
+		"join": 0.2, #join the big brawl
+		"partner": 0.5, #fight a random uninvolved person
+		"game": 0.01, #find a ball-focused task
+		"cower": 0.5 #run away
+		}
+		"Curveball":
+			playStyle_texture = "res://UI/PlayerTypeSymbols/playerType_boomerang.png"
+			brawl_preferences = {
+		"lurk": 0.0, #wait outside the brawl
+		"join": 0.2, #join the big brawl
+		"partner": 0.5, #fight a random uninvolved person
+		"game": 0.01, #find a ball-focused task
+		"cower": 0.5 #run away
+		}
+		"Enforcer":
+			playStyle_texture = "res://UI/PlayerTypeSymbols/playerType_hammer.png"
+			brawl_preferences = {
+		"lurk": 0.0, #wait outside the brawl
+		"join": 0.2, #join the big brawl
+		"partner": 0.9, #fight a random uninvolved person
+		"game": 0.01, #find a ball-focused task
+		"cower": 0.01 #run away
+		}
+		"Workhorse":
+			playStyle_texture = "res://UI/PlayerTypeSymbols/playerType_horseShoe.png"
+			brawl_preferences = {
+		"lurk": 0.0, #wait outside the brawl
+		"join": 0.2, #join the big brawl
+		"partner": 0.5, #fight a random uninvolved person
+		"game": 0.01, #find a ball-focused task
+		"cower": 0.5 #run away
+		}
+		_:
+			match special_ability:
+				"maestro":
+					playStyle = "Meastro"
+					playStyle_texture = "res://UI/PlayerTypeSymbols/playerType_music.png"
+				"machine":
+					playStyle = "Machine"
+					playStyle_texture = "res://UI/PlayerTypeSymbols/playerType_machine.png"
+				"spin_doctor":
+					playStyle = "Spin Doctor"
+					playStyle_texture = "res://UI/PlayerTypeSymbols/playerType_spindoctor.png"
+				_:
+					playStyle = "Prospect Goalkeeper"
+					playStyle_texture = "res://UI/PlayerTypeSymbols/playerType_prospectKeeper.png"
+			brawl_preferences = { #universal for keepers
+					"lurk": 0.2,
+					"join": 0.3,
+					"partner": 0.1,
+					"game": 10.0, #most likely outcome
+					"cower": 0.1
+				}
+		
 
 func find_forward_style():
 	var shooter = (attributes.shooting + attributes.accuracy + attributes.speedRating + attributes.positioning + attributes.composure)/5

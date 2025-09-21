@@ -75,7 +75,7 @@ func restore_behaviors():
 	behaviors = ["bull_rush", "skill_rush", "target_man", "shooter", "rebound", "pick", "bully", "fencing", "cower", "returning", "defend"]
 
 func _physics_process(delta):
-	print("Forward behavior: " + current_behavior + ", team " + str(team) + ", strategy: " + str(forward_strategy))
+	#print("Forward behavior: " + current_behavior + ", team " + str(team) + ", fight level: " + str(attributes.aggression + status.anger))
 	super._physics_process(delta)
 	if !can_move:
 		velocity = Vector2.ZERO
@@ -429,8 +429,6 @@ func execute_cower():
 	
 	navigate_to(target_position)
 
-# --- Behavior Selection System ---
-
 func choose_behavior(skip = false):
 	if behaviors.size() == 0:
 		return
@@ -440,7 +438,6 @@ func choose_behavior(skip = false):
 				handle_brawl_behavior()
 				return
 	
-	# Calculate situational modifiers
 	var situational_weights = calculate_situational_weights()
 	var combined_weights = {}
 	var total_weight = 0.0
@@ -890,7 +887,7 @@ func handle_defensive_pressure():
 		decide_defensive_response(guard_distance, keeper_distance)
 
 func decide_defensive_response(guard_dist: float, keeper_dist: float):
-	var fencing_chance = 0.03 * (attributes.aggression / 100.0)
+	var fencing_chance = 0.3 * (attributes.aggression / 100.0) * (attributes.aggression / 100.0) #7.5% chance at 50, 29.4% chance at 99
 	if ball:
 		var ball_dist = global_position.distance_to(ball.global_position)
 		fencing_chance *= clamp(ball_dist / 300.0, 0.1, 1.0)
