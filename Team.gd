@@ -408,7 +408,7 @@ func nextPlayStatus():
 	P.reset_state()
 	P.human_ready = false
 	bench_rest()
-	applyTactics()
+	#applyTactics()
 	
 func update_field():
 	var saved_ball = K.ball# players MUST know ball
@@ -416,6 +416,7 @@ func update_field():
 	# Update from next roster
 	for i in range(onfield_players.size()):
 		onfield_players[i].set_all_properties(next_onfield_players[i])
+		print("onfield player: defense strategy: " +  str(onfield_players[i].defense_strategy))
 		onfield_players[i].ball = saved_ball
 	
 	bench = next_bench.duplicate(true)
@@ -438,7 +439,10 @@ func update_field():
 		player.reset_state()
 		player.can_move = false
 		player.velocity = Vector2.ZERO
+		player.defense_strategy = strategy.tactics.D
 		player.restore_behaviors()
+	LF.forward_strategy = strategy.tactics.LF
+	RF.forward_strategy = strategy.tactics.RF
 
 func print_sub_on():
 	var string
@@ -900,6 +904,7 @@ func applyTactics():
 	LF.forward_strategy = strategy.tactics.LF
 	RF.forward_strategy = strategy.tactics.RF
 	LG.update_behavior()
+	print("LG tactics updated. LG: " + LG.bio.last_name + " strategy: " + str(LG.defense_strategy))
 	RG.update_behavior()
 	LF.choose_behavior()
 	RF.choose_behavior()

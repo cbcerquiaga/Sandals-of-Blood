@@ -753,31 +753,11 @@ func scrum(body: Player):
 
 func stop_brawling():
 	match field_position:
-		"LF":
-			if team_node and team_node.strategy.has("tactics") and team_node.strategy.tactics.has("LF"):
-				forward_strategy = team_node.strategy.tactics.LF
-			var preferred_strat
-			var weight = -99
-			for strat in forward_strategy:
-				var value = forward_strategy[strat]
-				if value > weight:
-					weight = value
-					preferred_strat = strat
-			current_behavior = preferred_strat
-		"RF":
-			if team_node and team_node.strategy.has("tactics") and team_node.strategy.tactics.has("RF"):
-				forward_strategy = team_node.strategy.tactics.RF
-			var preferred_strat
-			var weight = -99
-			for strat in forward_strategy:
-				var value = forward_strategy[strat]
-				if value > weight:
-					weight = value
-					preferred_strat = strat
-			current_behavior = preferred_strat
-		"LG", "RG":
-			if team_node and team_node.strategy.has("tactics") and team_node.strategy.tactics.has("D"):
-				defense_strategy = team_node.strategy.tactics.D
+		"LF", "RF", "F":
+			var fwd_instance = self as Forward
+			fwd_instance.choose_behavior()
+			current_behavior = fwd_instance.current_behavior
+		"LG", "RG", "G":
 			var guard_instance = self as Guard
 			guard_instance.update_behavior()
 			current_behavior = guard_instance.current_behavior

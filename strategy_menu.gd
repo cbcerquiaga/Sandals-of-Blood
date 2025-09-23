@@ -260,8 +260,8 @@ func _on_save_pressed():
 			current_team.next_onfield_players.append(p)
 		current_team.subs_remaining = pending_subs
 		current_team.pending_substitutions = pending_substitutions.duplicate()
-		match_handler.update_team_roster(current_team)
 		apply_strategy_changes()
+		match_handler.update_team_roster(current_team)
 		emit_signal("new_sub")
 	else:
 		apply_next_roster()
@@ -285,9 +285,10 @@ func apply_strategy_changes():
 	current_team.strategy.tactics.LF_title = tacticsSection.LF_assignment.text
 	current_team.strategy.tactics.RF_title = tacticsSection.RF_assignment.text
 	current_team.strategy.tactics.D_title = tacticsSection.D_assignment.text
-	current_team.strategy.tactics.LF = tacticsSection.LF_directions
-	current_team.strategy.tactics.RF = tacticsSection.RF_directions
-	current_team.strategy.tactics.D = tacticsSection.D_strategy
+	current_team.strategy.tactics.LF = tacticsSection.LF_directions.duplicate(true)
+	current_team.strategy.tactics.RF = tacticsSection.RF_directions.duplicate(true)
+	current_team.strategy.tactics.D = tacticsSection.D_strategy.duplicate(true)
+	current_team.applyTactics()
 		
 func revert_changes():
 	pending_field = []

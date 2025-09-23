@@ -943,9 +943,7 @@ func fight_fall_over():
 	#injury chance for both
 	
 func update_team_strategy(team: Team):
-	pTeam.strategy.tactics.LF = team.strategy.tactics.LF
-	pTeam.strategy.tactics.D = team.strategy.tactics.D
-	pTeam.strategy.tactics.RF = team.strategy.tactics.RF
+	pTeam.strategy.tactics = team.strategy.tactics.duplicate(true)
 	pTeam.applyTactics()
 	pTeam.pending_substitutions = team.pending_substitutions
 	
@@ -954,7 +952,6 @@ func update_team_roster(team: Team):
 	pTeam.next_onfield_players = team.next_onfield_players
 	pTeam.subs_remaining = team.subs_remaining
 	update_team_strategy(team)
-	pTeam.applyTactics()
 
 	# Only update immediately if conditions are safe
 	if !is_play_live && !is_ball_pitched && current_play_time == 0:
