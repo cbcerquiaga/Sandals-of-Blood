@@ -116,7 +116,7 @@ func _physics_process(delta):
 	
 	
 	if not is_controlling_player and can_move:
-		print("current behavior: ", current_behavior)
+		#print("current behavior: ", current_behavior)
 		AI_behavior(delta)
 		#if !is_in_half():
 			#if !is_stunned:

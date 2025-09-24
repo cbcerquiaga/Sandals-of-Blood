@@ -88,7 +88,7 @@ func update_forward_tracking(delta):
 		_on_mark_incapacitated()
 
 func update_ai_movement(delta):
-	print("Guard behavior: ", current_behavior, " strategy: " + str(defense_strategy))
+	#print("Guard behavior: ", current_behavior, " strategy: " + str(defense_strategy))
 	if not assigned_forward:
 		return
 	

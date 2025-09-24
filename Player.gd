@@ -6,6 +6,13 @@ var preferred_position: String #affects player development
 var declared_pitcher = false #affects roster size rules
 var field_position: String #Lf, RF, LG, RG, K, P; denotes where the player is on the field right now
 var team_node: Team = null
+var movement_history: Array = []
+var previous_velocity: Vector2 = Vector2.ZERO
+var acceleration_timer: float = 0.0
+var turn_debuff_timer: float = 0.0
+var current_speed_multiplier: float = 1.0
+var sharp_turn_threshold: float
+
 # Player Attributes
 @export var attributes := {
 	"speedRating" : 75, #what's shown on the attributes screen
@@ -25,7 +32,7 @@ var team_node: Team = null
 	"shooting": 50,		# 1-100, affects shot and pass speed, punch power in fights
 	"toughness": 60,    # 1-100, fighting defense/skill
 	"confidence": 90,    # 1-100, affects special moves
-	"composure": 90 	#1-100, impacts player stats in overtime and elimination games
+	"agility": 90 	#1-100, impacts player acceleration after sharp turns
 }
 
 @export var status := {
@@ -275,6 +282,7 @@ func _ready():
 	status.stability = attributes.endurance
 	status.groove = 0#start the game with no groove
 	fencing_params.ball_proximity_threshold = attributes.reactions/2
+	sharp_turn_threshold = attributes.agility * 2 # 100 to 198
 	add_to_group("players")
 	update_ui()
 
@@ -293,18 +301,19 @@ func _physics_process(delta):
 		var direction = global_position.direction_to(assigned_half.global_position)
 		velocity = velocity + direction.normalized() * attributes.sprint_speed * 1.1
 		return
-		
-
 	if is_incapacitated:
 		velocity = Vector2.ZERO
 		move_and_slide()
 		return
-	
 	if is_stunned:
 		handle_stun_movement(delta)
 		move_and_slide()
 		status.stability = attributes.balance #re-set to 100% after being knocked over
 		return
+	else:
+		if !current_behavior == "chilling" and !current_behavior == "fighting" and !current_behavior == "brawling" and !is_machine:
+			update_movement_tracking(delta)
+			apply_agility_effects(delta)
 		
 	if status.stability <0:
 		status.stability = 0
@@ -347,6 +356,48 @@ func _physics_process(delta):
 		status.anger = status.baseline_anger
 	move_and_slide()
 	update_ui()
+	
+func update_movement_tracking(delta):
+	if movement_history.size() > 60:
+		movement_history.pop_front()
+	movement_history.append(velocity.normalized())
+	var total_turn_angle = calculate_total_turn_angle()
+	if total_turn_angle > sharp_turn_threshold:
+		turn_debuff_timer = 1.5/ (attributes.agility/100.0) #1.51 at 99, 3 at 50
+		var turn_stability_loss = 6 * (1.0 - attributes.balance / 100.0)
+		print("too much turn! " + bio.last_name + " turned " + str(total_turn_angle) + " and tripped " + str(turn_stability_loss))
+		lose_stability(turn_stability_loss)
+	if turn_debuff_timer > 0:
+		turn_debuff_timer -= delta
+	previous_velocity = velocity
+	
+func calculate_total_turn_angle() -> float:
+	var total_angle: float = 0.0
+	var valid_directions: int = 0
+	for i in range(1, movement_history.size()):
+		var prev_dir = movement_history[i-1]
+		var current_dir = movement_history[i]
+		print("prev dir: " + str(prev_dir) + "cur_dir: " + str(current_dir))
+		if prev_dir.length() > 0.1 and current_dir.length() > 0.1:
+			var angle_change = abs(prev_dir.angle_to(current_dir))
+			total_angle += rad_to_deg(angle_change)
+			valid_directions += 1
+	if valid_directions > 0:
+		print("turned " + str(total_angle))
+		return total_angle
+	return 0.0
+	
+func apply_agility_effects(delta):
+	var base_agility_factor = attributes.agility/100.0 #0.5 to 0.99
+	if turn_debuff_timer > 0:
+		current_speed_multiplier = base_agility_factor/2
+		if status.boost > 10:
+			var boost_effect = min(status.boost / 100.0, 0.5)
+			turn_debuff_timer -= delta * boost_effect
+			lose_boost(10.0 * delta)
+	else:
+		current_speed_multiplier = 1.0
+	velocity = velocity * current_speed_multiplier
 
 func handle_human_input(delta):
 	# Movement
@@ -1121,7 +1172,7 @@ func calculate_pitcher_overall():
 func calculate_forward_overall():
 	var att = attributes
 	var ratings = []
-	var shooter = (attributes.shooting * 3 + attributes.accuracy * 3 + attributes.positioning + attributes.speedRating + attributes.reactions + attributes.composure + attributes.endurance)/11
+	var shooter = (attributes.shooting * 3 + attributes.accuracy * 3 + attributes.positioning + attributes.speedRating + attributes.reactions + attributes.agility + attributes.endurance)/11
 	var antiKeeper = (attributes.power * 3 + attributes.speedRating * 3 + attributes.balance + attributes.endurance + attributes.durability)/9
 	var support = (attributes.power + attributes.accuracy + attributes.positioning + attributes.balance + attributes.reactions + attributes.durability)/6
 	var goon = (attributes.power + attributes.balance + attributes.durability + attributes.toughness*2 + attributes.shooting + attributes.aggression)/7
@@ -1454,7 +1505,7 @@ func match_type_icon():
 		
 
 func find_forward_style():
-	var shooter = (attributes.shooting + attributes.accuracy + attributes.speedRating + attributes.positioning + attributes.composure)/5
+	var shooter = (attributes.shooting + attributes.accuracy + attributes.speedRating + attributes.positioning + attributes.agility)/5
 	var antiKeeper = (attributes.power + attributes.speedRating + attributes.endurance + attributes.balance + attributes.aggression)/5
 	var support = (attributes.power + attributes.positioning + attributes.reactions + attributes.endurance + attributes.blocking)/5
 	var goon = (attributes.power + attributes.toughness*2 + attributes.durability + attributes.shooting)/5

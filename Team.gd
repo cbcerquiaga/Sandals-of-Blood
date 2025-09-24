@@ -416,7 +416,7 @@ func update_field():
 	# Update from next roster
 	for i in range(onfield_players.size()):
 		onfield_players[i].set_all_properties(next_onfield_players[i])
-		print("onfield player: defense strategy: " +  str(onfield_players[i].defense_strategy))
+		#print("onfield player: defense strategy: " +  str(onfield_players[i].defense_strategy))
 		onfield_players[i].ball = saved_ball
 	
 	bench = next_bench.duplicate(true)
@@ -498,7 +498,7 @@ func debug_default_roster():
 		"shooting": 70,    
 		"toughness": 70,
 		"confidence": 70 ,
-		"composure": 50
+		"agility": 50
 	}
 	#TODO: figure out why I have to set variables to the exact types instead of just passing them in directly
 	var pitches: Array[String] = ["chnageup", "moonball", "stop_go"]
@@ -540,7 +540,7 @@ func debug_default_roster():
 		"shooting": 90,    
 		"toughness": 90,
 		"confidence": 60 ,
-		"composure": 50
+		"agility": 50
 	}
 	#TODO: figure out why I have to set variables to the exact types instead of just passing them in directly
 	pitches  = ["flutter", "knuckler", "fake_curve"]
@@ -600,7 +600,7 @@ func debug_default_roster():
 		"shooting": 50,    
 		"toughness": 32,
 		"confidence": 71,
-		"composure": 75 
+		"agility": 75 
 	}
 	P0.encode_player_type("FP")
 	var P2 = Player.new()
@@ -642,7 +642,7 @@ func debug_default_roster():
 		"shooting": 50,    
 		"toughness": 52,
 		"confidence": 71,
-		"composure": 75 
+		"agility": 75 
 	}
 	P2.encode_player_type("WP")
 	var P3 = Player.new()
@@ -679,7 +679,7 @@ func debug_default_roster():
 		"shooting": 60,    
 		"toughness": 90,
 		"confidence": 60,
-		"composure": 65 
+		"agility": 65 
 	}
 	P3.encode_player_type("AF")
 	var P4 = Player.new()
@@ -715,7 +715,7 @@ func debug_default_roster():
 		"shooting": 65,    
 		"toughness": 80,
 		"confidence": 60,
-		"composure": 80 
+		"agility": 80 
 	}
 	P4.encode_player_type("SF")
 	var G1 = Guard.new()
@@ -752,7 +752,7 @@ func debug_default_roster():
 		"shooting": 85,    
 		"toughness": 70,
 		"confidence": 60,
-		"composure": 80 
+		"agility": 80 
 	}
 	G1.encode_player_type("BG")
 	var G2 = Guard.new()
@@ -789,7 +789,7 @@ func debug_default_roster():
 		"shooting": 55,    
 		"toughness": 70,
 		"confidence": 60,
-		"composure": 80 
+		"agility": 80 
 	}
 	G2.encode_player_type("DG")
 	var F1 = Forward.new()
@@ -826,7 +826,7 @@ func debug_default_roster():
 		"shooting": 65,    
 		"toughness": 70,
 		"confidence": 60,
-		"composure": 80 
+		"agility": 80 
 	}
 	F1.encode_player_type("GF")
 	var F2 = Guard.new()
@@ -863,7 +863,7 @@ func debug_default_roster():
 		"shooting": 55,    
 		"toughness": 70,
 		"confidence": 60,
-		"composure": 80 
+		"agility": 80 
 	}
 	F2.encode_player_type("CF")
 	# Add players
