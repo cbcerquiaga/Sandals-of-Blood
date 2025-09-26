@@ -649,7 +649,7 @@ func debug_default_roster():
 	P3.position_type = "forward"
 	P3.playable_positions = ["LF", "RF"]
 	P3.preferred_position = "RF"
-	P3.portrait = "res://Assets/Player Portraits/placeholder_portrait 3.png"
+	P3.portrait = "res://Assets/Player Portraits/placeholder portrait 3.png"
 	P3.bio = {
 	"first_name" :"Mike",
 	"last_name": "Lillard",
@@ -722,7 +722,7 @@ func debug_default_roster():
 	G1.position_type = "guard"
 	G1.preferred_position = "RG"
 	G1.playable_positions = ["RG, LG"]
-	G1.portrait = "res://Assets/Player Portraits/placeholder_portrait 3.png"
+	G1.portrait = "res://Assets/Player Portraits/placeholder portrait 3.png"
 	G1.bio = {
 	"first_name" :"Vince",
 	"last_name": "Thompson",
@@ -796,7 +796,7 @@ func debug_default_roster():
 	F1.position_type = "forward"
 	F1.preferred_position = "LF"
 	F1.playable_positions = ["LF, LG"]
-	F1.portrait = "res://Assets/Player Portraits/placeholder_portrait 2.png"
+	F1.portrait = "res://Assets/Player Portraits/placeholder portrait 2.png"
 	F1.bio = {
 	"first_name" :"Norm",
 	"last_name": "Gonzalez",
@@ -833,7 +833,7 @@ func debug_default_roster():
 	F2.position_type = "forward"
 	F2.preferred_position = "RF"
 	F2.playable_positions = ["LF, RF"]
-	F2.portrait = "res://Assets/Player Portraits/placeholder_portrait 1.png"
+	F2.portrait = "res://Assets/Player Portraits/placeholder portrait.png"
 	F2.bio = {
 	"first_name" :"Danton",
 	"last_name": "Le Corbusier",

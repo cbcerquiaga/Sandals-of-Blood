@@ -126,8 +126,14 @@ func get_star_value(player: Player):
 	return value
 
 func fill_star_info():
-	if first_star.portrait:
-		$P1/TextureRect.texture = load(first_star.portrait)
+	if first_star and first_star.portrait:
+		var portrait_texture = load(first_star.portrait)
+		if portrait_texture:
+			$P1/TextureRect.texture = portrait_texture
+		else:
+			$P1/TextureRect.texture = load("res://Assets/Player Portraits/placeholder portrait.png")
+	else:
+		$P1/TextureRect.texture = load("res://Assets/Player Portraits/placeholder portrait.png")
 	$P1/NameLabel.text = first_star.bio.first_name + " " + first_star.bio.last_name
 	if first_star.team == 1:
 		$P1/TeamLabel.text = team1.team_abbreviation
@@ -140,8 +146,14 @@ func fill_star_info():
 		$P1/StatLabel1.text = str(first_star.game_stats.goals) + " Goals"
 	$P1/StatLabel2.text = stats[0]
 	$P1/StatLabel3.text = stats[1]
-	if second_star.portrait:
-		$P2/TextureRect.texture = load(second_star.portrait)
+	if second_star and second_star.portrait:
+		var portrait_texture2 = load(second_star.portrait)
+		if portrait_texture2:
+			$P2/TextureRect.texture = portrait_texture2
+		else:
+			$P2/TextureRect.texture = load("res://Assets/Player Portraits/placeholder portrait.png")
+	else:
+		$P2/TextureRect.texture = load("res://Assets/Player Portraits/placeholder portrait.png")
 	$P2/NameLabel.text = second_star.bio.first_name + " " + second_star.bio.last_name
 	if second_star.team == 1:
 		$P2/TeamLabel.text = team1.team_abbreviation
@@ -154,8 +166,14 @@ func fill_star_info():
 		$P2/StatLabel1.text = str(second_star.game_stats.goals) + " Goals"
 	$P2/StatLabel2.text = stats2[0]
 	$P2/StatLabel3.text = stats2[1]
-	if third_star.portrait:
-		$P3/TextureRect.texture = load(third_star.portrait)
+	if third_star and third_star.portrait:
+		var portrait_texture3 = load(third_star.portrait)
+		if portrait_texture3:
+			$P3/TextureRect.texture = portrait_texture3
+		else:
+			$P3/TextureRect.texture = load("res://Assets/Player Portraits/placeholder portrait.png")
+	else:
+		$P3/TextureRect.texture = load("res://Assets/Player Portraits/placeholder portrait.png")
 	$P3/NameLabel.text = third_star.bio.first_name + " " + third_star.bio.last_name
 	if third_star.team == 1:
 		$P3/TeamLabel.text = team1.team_abbreviation

@@ -664,7 +664,7 @@ func print_player_attributes2(player: Player):
 	string = string + "Curve: " + str(player.attributes.focus) + "\n"
 	string = string + "Positioning: " + str(player.attributes.positioning) + "\n"
 	string = string + "Confidence: " + str(player.attributes.confidence) + "\n"
-	string = string + "Composure: " + str(player.attributes.composure)
+	string = string + "Agility: " + str(player.attributes.agility)
 	return string
 	
 func print_player_stats(player: Player):
