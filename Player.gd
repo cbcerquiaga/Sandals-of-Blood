@@ -365,7 +365,7 @@ func update_movement_tracking(delta):
 	if total_turn_angle > sharp_turn_threshold:
 		turn_debuff_timer = 1.5/ (attributes.agility/100.0) #1.51 at 99, 3 at 50
 		var turn_stability_loss = 6 * (1.0 - attributes.balance / 100.0)
-		print("too much turn! " + bio.last_name + " turned " + str(total_turn_angle) + " and tripped " + str(turn_stability_loss))
+		#print("too much turn! " + bio.last_name + " turned " + str(total_turn_angle) + " and tripped " + str(turn_stability_loss))
 		lose_stability(turn_stability_loss)
 	if turn_debuff_timer > 0:
 		turn_debuff_timer -= delta
@@ -377,13 +377,13 @@ func calculate_total_turn_angle() -> float:
 	for i in range(1, movement_history.size()):
 		var prev_dir = movement_history[i-1]
 		var current_dir = movement_history[i]
-		print("prev dir: " + str(prev_dir) + "cur_dir: " + str(current_dir))
+		#print("prev dir: " + str(prev_dir) + "cur_dir: " + str(current_dir))
 		if prev_dir.length() > 0.1 and current_dir.length() > 0.1:
 			var angle_change = abs(prev_dir.angle_to(current_dir))
 			total_angle += rad_to_deg(angle_change)
 			valid_directions += 1
 	if valid_directions > 0:
-		print("turned " + str(total_angle))
+		#print("turned " + str(total_angle))
 		return total_angle
 	return 0.0
 	
@@ -1057,7 +1057,7 @@ func set_default_groove():
 	
 func get_socked(impact: float):
 	if impact < 0:
-		print("you are pathetic")
+		#print("you are pathetic")
 		return
 	var impact_sqrt = sqrt(impact) 
 	var num_injury_rolls = int(impact_sqrt) #vaguely between 1 and 18

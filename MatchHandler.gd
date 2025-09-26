@@ -689,7 +689,7 @@ func check_match_end():
 
 func end_match(winning_team: int):
 	match_ended = true
-	emit_signal("match_ended", winning_team)
+	#emit_signal("match_ended", winning_team)
 	
 	# Show match end UI
 	#match winning_team:
