@@ -152,6 +152,16 @@ var defense_strategy = {
 	"ball_preference": 0.5 #0 for just protect keeper, 1 for just focus on blocking shots
 }
 
+@onready var celebration_preferences = {
+	"taunt": 0.5, #player harasses opposing keeper
+	"static": 0.3, #player stays still and waits for teammates to mob them
+	"wall": 0.8, #player runs to the wall to celebrate, then waits for their teammates to mob them
+	"avoid": 0.2, #player runs away from teammates to celebrate as long as possible
+	"flee": 0.1, #player fucks off
+}
+var celebration_animation: int #what the player appears to be doing when celebrating, 0 to 3
+var celebrations_star: Player #when in team celebration, the team follows the star player on a GWG
+
 #character appearance. paths to assets
 @onready var portrait: String = "res://Assets/Player Portraits/placeholder portrait.png"
 @onready var head: String
@@ -202,6 +212,7 @@ var starting_position: Vector2
 enum PlayerState {
 	IDLE,
 	GO_TO_POSITION,
+	LEAVING_MATCH,
 	SOLO_CELEBRATION,
 	TEAM_CELEBRATION,
 	IN_BRAWL,
@@ -287,6 +298,36 @@ func _ready():
 	update_ui()
 
 func _physics_process(delta):
+	if overall_state == PlayerState.CHILD_STATE:
+		standard_behavior(delta)
+	elif overall_state == PlayerState.SOLO_CELEBRATION:
+		if current_behavior != "taunt_celly" and current_behavior != "static_celly" and current_behavior != "wall_celly" and current_behavior != "flee_celly" and current_behavior != "avoid_celly":
+			pick_celebration()
+		else:
+			celly()
+	move_and_slide()
+	update_ui()
+
+func celly():
+	if !celebration_animation:
+		celebration_animation = randi_range(0,3)
+	
+
+func pick_celebration():
+	var max_weight = celebration_preferences.taunt + celebration_preferences.avoid + celebration_preferences.wall + celebration_preferences.flee + celebration_preferences.static
+	var rand = randf_range(0, max_weight)
+	if rand < celebration_preferences.taunt:
+		current_behavior = "taunt_celly"
+	elif rand < celebration_preferences.taunt + celebration_preferences.avoid:
+		current_behavior = "avoid_celly"
+	elif rand < celebration_preferences.taunt + celebration_preferences.avoid + celebration_preferences.wall:
+		current_behavior = "wall_celly"
+	elif rand < celebration_preferences.taunt + celebration_preferences.avoid + celebration_preferences.wall + celebration_preferences.flee:
+		current_behavior = "flee_celly"
+	else:
+		current_behavior = "mob_celly"
+
+func standard_behavior(delta):
 	if velocity.length() > 0:
 		status.momentum += 1
 		if status.momentum > 100 :
@@ -354,8 +395,6 @@ func _physics_process(delta):
 		#status.anger = status.anger - 0.1
 	if status.anger < status.baseline_anger:
 		status.anger = status.baseline_anger
-	move_and_slide()
-	update_ui()
 	
 func update_movement_tracking(delta):
 	if movement_history.size() > 60:
@@ -967,6 +1006,12 @@ func out_fight():
 		overall_state = PlayerState.OUT_BRAWL
 	else:
 		overall_state = PlayerState.AI_OUT_BRAWL
+		
+func solo_celebrate():
+	overall_state = PlayerState.SOLO_CELEBRATION
+
+func team_celebrate():
+	overall_state = PlayerState.TEAM_CELEBRATION
 		
 func is_in_half()->bool:
 	if !assigned_half:

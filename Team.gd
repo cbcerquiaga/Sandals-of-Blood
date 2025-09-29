@@ -1006,3 +1006,14 @@ func anger(value):
 	RG.status.anger += value * (RG.attributes.aggression/100)
 	LF.status.anger += value* (LF.attributes.aggression/100)
 	RF.status.anger += value * (RF.attributes.aggression/100)
+	
+func gwg_celebrate(scorer: Player):
+	for player in onfield_players:
+		if player.has_same_name(scorer):
+			player.solo_celebrate()
+		else:
+			player.team_celebrate()
+
+func win_celebrate():
+	for player in onfield_players:
+		player.team_celebrate()
