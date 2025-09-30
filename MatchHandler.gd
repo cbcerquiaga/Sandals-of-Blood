@@ -22,7 +22,7 @@ var out_of_bounds_frames: int = 0
 var too_much_out_of_bounds: int = 20
 var fighting_frame = 0
 var max_fighting_frame = 15 #TODO: update based on refresh rate
-
+var most_recent_scorer: Player
 # References
 @onready var ball= $Ball as Ball
 var pTeam : Team
@@ -184,6 +184,7 @@ func _on_player_goal():
 	var passer = ball.assist_by
 	if scorer.team == 1:
 		scorer.game_stats.goals += 1
+		most_recent_scorer = scorer
 		if scorer.status.starter:
 			pTeam.game_stats.starter_goals+= 1
 		else:
@@ -193,6 +194,7 @@ func _on_player_goal():
 				scorer.assigned_guard.game_stats.mark_points += 1
 	elif passer and passer.team == 2 and passer.team == 1:
 		passer.game_stats.goals += 1
+		most_recent_scorer = passer
 	if passer and passer.team == scorer.team and scorer.team == 1:
 		passer.game_stats.assists += 1
 		if passer is Forward:
@@ -264,6 +266,7 @@ func _on_cpu_goal():
 	var scorer = ball.last_hit_by
 	if scorer.team == 2:
 		scorer.game_stats.goals += 1
+		most_recent_scorer = scorer
 		if scorer.status.starter:
 			aTeam.game_stats.starter_goals+= 1
 		else:
@@ -273,6 +276,7 @@ func _on_cpu_goal():
 				scorer.assigned_guard.game_stats.mark_points += 1
 	elif ball.assist_by.team == 1 and ball.assist_by.team == 2:
 		ball.assist_by.game_stats.goals += 1
+		most_recent_scorer = ball.assist_by
 	var passer = ball.assist_by
 	if passer and passer.team == scorer.team and scorer.team == 2:
 		passer.game_stats.assists += 1
@@ -663,14 +667,22 @@ func check_match_end():
 	var team2_score: int = team_scores[1]
 	
 	if team1_score >= GlobalSettings.target_score and team1_score - team2_score >= 2:
+		if !most_recent_scorer:
+			most_recent_scorer = pTeam.K
+		pTeam.gwg_celebrate(most_recent_scorer)
 		end_match(1)#team 1 wins by score
 	elif team2_score >= GlobalSettings.target_score and team2_score - team1_score >= 2:
+		if !most_recent_scorer:
+			most_recent_scorer = aTeam.K
+		aTeam.gwg_celebrate(most_recent_scorer)
 		end_match(2)#team 2 wins by score
 	elif GlobalSettings.regular_season and team1_score == GlobalSettings.target_score and team2_score == GlobalSettings.target_score:
 		end_match(0)#tie by score
 	elif pitches_remaining <= 0 and team1_score - team2_score >= 2:
+		pTeam.win_celebrate()
 		end_match(1) #win by pitches
 	elif pitches_remaining <= 0 and team2_score - team1_score >= 2:
+		aTeam.win_celebrate()
 		end_match(2)#win by pitches
 	elif GlobalSettings.regular_season and pitches_remaining <= 0 and team1_score == team2_score:
 		print("that's a tie")
@@ -692,10 +704,14 @@ func end_match(winning_team: int):
 	#emit_signal("match_ended", winning_team)
 	
 	# Show match end UI
-	#match winning_team:
-		#0: match_ui.show_result("Tie Game!")
-		#1: match_ui.show_result("Team 1 Wins!")
-		#2: match_ui.show_result("Team 2 Wins!")
+	match winning_team:
+		0: #tie
+			pTeam.tie()
+			aTeam.tie()
+		1: #TODO: figure out if team 1 is player team; team 1 wins
+			aTeam.lose_anti_celebrate()
+		2:
+			pTeam.lose_anti_celebrate()
 
 func update_settings():
 	

@@ -155,10 +155,11 @@ var defense_strategy = {
 @onready var celebration_preferences = {
 	"taunt": 0.5, #player harasses opposing keeper
 	"static": 0.3, #player stays still and waits for teammates to mob them
-	"wall": 0.8, #player runs to the wall to celebrate, then waits for their teammates to mob them
+	"moving": 0.8, #player runs a short distance in a random direction, then waits for their teammates to mob them
 	"avoid": 0.2, #player runs away from teammates to celebrate as long as possible
 	"flee": 0.1, #player fucks off
 }
+var celebration_direction: Vector2 #used for moving celly
 var celebration_animation: int #what the player appears to be doing when celebrating, 0 to 3
 var celebrations_star: Player #when in team celebration, the team follows the star player on a GWG
 
@@ -215,6 +216,7 @@ enum PlayerState {
 	LEAVING_MATCH,
 	SOLO_CELEBRATION,
 	TEAM_CELEBRATION,
+	LOST, #lost the game, opposite of celebration
 	IN_BRAWL,
 	OUT_BRAWL,
 	AI_OUT_BRAWL,
@@ -282,7 +284,7 @@ signal brawl_ended(winner)
 
 func _ready():
 	collision_layer = 0b0100  # Layer 3 (players)
-	collision_mask = 0b0111  # Collide withplayers (3) obstacles (2) and balls (1)
+	collision_mask = 0b0111  # Collide with players (3) obstacles (2) and balls (1)
 	stun_timer.timeout.connect(_on_stun_timer_timeout)
 	$AttackArea.body_entered.connect(_on_attack_area_body_entered)
 	$AttackArea.collision_mask = 0b0100  # Detect other players (layer 3)
@@ -301,28 +303,80 @@ func _physics_process(delta):
 	if overall_state == PlayerState.CHILD_STATE:
 		standard_behavior(delta)
 	elif overall_state == PlayerState.SOLO_CELEBRATION:
-		if current_behavior != "taunt_celly" and current_behavior != "static_celly" and current_behavior != "wall_celly" and current_behavior != "flee_celly" and current_behavior != "avoid_celly":
+		if current_behavior != "taunt_celly" and current_behavior != "static_celly" and current_behavior != "moving_celly" and current_behavior != "flee_celly" and current_behavior != "avoid_celly":
 			pick_celebration()
 		else:
 			celly()
+	elif overall_state == PlayerState.TEAM_CELEBRATION:
+		current_behavior = "mob_celly"
+		celly()
 	move_and_slide()
 	update_ui()
 
 func celly():
 	if !celebration_animation:
 		celebration_animation = randi_range(0,3)
-	
+	match current_behavior:
+		"taunt_celly": #0 arms up, 1 shush, 2 thrusting, 3 knee slide
+			if !celebrations_star:
+				var f = self as Forward
+				var g = self as Guard
+				var k = self as Keeper
+				if f.opposing_keeper:
+					celebrations_star = f.opposing_keeper
+				elif g.opp_keeper:
+					celebrations_star = g.opp_keeper
+				elif k.oppKeeper:
+					celebrations_star = k.oppKeeper
+				else:
+					current_behavior = "static_celly"
+					velocity = Vector2.ZERO
+			else:
+				if global_position.distance_squared_to(celebrations_star.global_position) > 400: #farther than 20
+					velocity = global_position.direction_to(celebrations_star.global_position).normalized() * attributes.sprint_speed
+				elif global_position.distance_squared_to(celebrations_star.global_position) < 100: #closer than 10
+					velocity = celebrations_star.global_position.direction_to(global_position).normalized() * attributes.speed
+				else:
+					velocity = Vector2.ZERO
+			pass
+		"static_celly": #0 arms up, 1 pumping fists, 2 thrusting, 3 snow angel
+			velocity = Vector2.ZERO
+			pass #TODO: stand still, use animations
+		"moving_celly": #0 arms up, 1 shush, 2 knee slide, 3 dancing
+			if !celebration_direction:
+				celebration_direction = Vector2.RIGHT.rotated(randf_range(0, TAU))
+			velocity = celebration_direction.normalized() * attributes.speed/2
+			#TODO: stop at a random time
+			pass#TODO: run in a random direction, then stop
+		"flee_celly": #0 just run, 1 shush, 2 airplane, 3 dancing
+			velocity = global_position.direction_to(Vector2(300, 0)).normalized() * attributes.sprint_speed
+			pass
+		"avoid_celly": #0 pumping fists, 1 airplane, 2 shush, 3 just run
+			pass #TODO: run away from teammates
+		"mob_celly": #0 arms up, 1 pumping, 2 arms up, 3 dancing
+			if celebrations_star:
+				velocity = global_position.direction_to(celebrations_star.global_position).normalized() * attributes.speed
+			else:
+				velocity = global_position.direction_to(Vector2(0,0)).normalized() * attributes.speed
+			pass 
+
+func lose():
+	var speed = attributes.speed * (status.anger/100) + 10
+	var direction = global_position.direction_to(Vector2(300,0)).normalized()
+	status.stability = 0
+	status.boost = 0
+	velocity = speed * direction
 
 func pick_celebration():
-	var max_weight = celebration_preferences.taunt + celebration_preferences.avoid + celebration_preferences.wall + celebration_preferences.flee + celebration_preferences.static
+	var max_weight = celebration_preferences.taunt + celebration_preferences.avoid + celebration_preferences.moving + celebration_preferences.flee + celebration_preferences.static
 	var rand = randf_range(0, max_weight)
 	if rand < celebration_preferences.taunt:
 		current_behavior = "taunt_celly"
 	elif rand < celebration_preferences.taunt + celebration_preferences.avoid:
 		current_behavior = "avoid_celly"
-	elif rand < celebration_preferences.taunt + celebration_preferences.avoid + celebration_preferences.wall:
-		current_behavior = "wall_celly"
-	elif rand < celebration_preferences.taunt + celebration_preferences.avoid + celebration_preferences.wall + celebration_preferences.flee:
+	elif rand < celebration_preferences.taunt + celebration_preferences.avoid + celebration_preferences.moving:
+		current_behavior = "moving_celly"
+	elif rand < celebration_preferences.taunt + celebration_preferences.avoid + celebration_preferences.moving + celebration_preferences.flee:
 		current_behavior = "flee_celly"
 	else:
 		current_behavior = "mob_celly"
@@ -782,6 +836,8 @@ func _on_attack_area_body_entered(body: Node2D):
 					#TODO: determine severity of injury debuff based on attackpower
 					#TODO: apply health damage
 	elif  body != self and body is Player and body.team == team:
+		if current_behavior == "mob_celly":
+			celebrations_star = body
 		var combined_momentum = status.momentum + body.status.momentum
 		if combined_momentum < 25:
 			scrum(body)
