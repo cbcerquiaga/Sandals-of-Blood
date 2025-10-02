@@ -1028,4 +1028,4 @@ func lose_anti_celebrate():
 
 func tie():
 	for player in onfield_players:
-		player.tie()
+		player.lose()

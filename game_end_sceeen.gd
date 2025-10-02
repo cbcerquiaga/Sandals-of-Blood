@@ -15,7 +15,7 @@ var matchHandler: MatchHandler
 func _ready():
 	hide()
 	stats_screen.menu_closed.connect(_on_stats_menu_closed)
-	#stars_screen.menu_closed.connect(_on_stars_menu_closed)
+	three_stars_screen.menu_closed.connect(_on_stars_menu_closed)
 	#export_screen.menu_closed.connect(_on_export_menu_closed)
 
 func bringUp(state, match_handler: MatchHandler):
@@ -50,10 +50,6 @@ func show_stats_menu():
 			stats_screen.awayTeam = matchHandler.pTeam
 	submenu = "statistics"
 	stats_screen.open_menu()
-	starsButton.hide()
-	statsButton.hide()
-	exportButton.hide()
-	exitButton.hide()
 
 func _on_stats_menu_closed():
 	submenu = ""
@@ -62,6 +58,14 @@ func _on_stats_menu_closed():
 	exportButton.show()
 	exitButton.show()
 	statsButton.grab_focus()
+	
+func _on_stars_menu_closed():
+	submenu = ""
+	starsButton.show()
+	statsButton.show()
+	exportButton.show()
+	exitButton.show()
+	starsButton.grab_focus()
 
 func _unhandled_input(event):
 	if event.is_action_pressed("UI_exit"):
@@ -71,12 +75,21 @@ func _unhandled_input(event):
 
 func _on_stats_button_pressed():
 	show_stats_menu()
+	starsButton.hide()
+	statsButton.hide()
+	exportButton.hide()
+	exitButton.hide()
+	result.hide()
 
 
 func _on_stars_button_pressed() -> void:
 	submenu = "stars"
 	three_stars_screen.bring_up()
-	hide()
+	starsButton.hide()
+	statsButton.hide()
+	exportButton.hide()
+	exitButton.hide()
+	result.hide()
 
 
 func _on_export_button_pressed() -> void:

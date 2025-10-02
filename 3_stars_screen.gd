@@ -13,6 +13,8 @@ var rating1: float
 var rating2: float
 var rating3: float
 
+signal menu_closed
+
 
 func set_teams(home: Team, away: Team):
 	team1 = home
