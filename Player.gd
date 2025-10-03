@@ -322,11 +322,11 @@ func celly():
 				var f = self as Forward
 				var g = self as Guard
 				var k = self as Keeper
-				if f.opposing_keeper:
+				if f.opposing_keeper != null:
 					celebrations_star = f.opposing_keeper
-				elif g.opp_keeper:
+				elif g.opp_keeper != null:
 					celebrations_star = g.opp_keeper
-				elif k.oppKeeper:
+				elif k.oppKeeper != null:
 					celebrations_star = k.oppKeeper
 				else:
 					current_behavior = "static_celly"

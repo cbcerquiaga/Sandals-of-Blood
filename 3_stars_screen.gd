@@ -31,6 +31,7 @@ func set_score(score1: int, score2: int):
 func bring_up():
 	show()
 	assign_three_stars()
+	adjust_font_sizes()
 	position_Ps()
 
 func position_Ps():
@@ -272,3 +273,24 @@ func get_interesting_stats(player: Player) -> Array:
 		stats = ["", ""]
 	
 	return stats
+
+
+func adjust_font_sizes():
+	var large_font_size = 48
+	var medium_font_size = 36
+	var small_font_size = 28
+	$P1/NameLabel.add_theme_font_size_override("font_size", large_font_size)
+	$P1/TeamLabel.add_theme_font_size_override("font_size", medium_font_size)
+	$P1/StatLabel1.add_theme_font_size_override("font_size", small_font_size)
+	$P1/StatLabel2.add_theme_font_size_override("font_size", small_font_size)
+	$P1/StatLabel3.add_theme_font_size_override("font_size", small_font_size)
+	$P2/NameLabel.add_theme_font_size_override("font_size", large_font_size)
+	$P2/TeamLabel.add_theme_font_size_override("font_size", medium_font_size)
+	$P2/StatLabel1.add_theme_font_size_override("font_size", small_font_size)
+	$P2/StatLabel2.add_theme_font_size_override("font_size", small_font_size)
+	$P2/StatLabel3.add_theme_font_size_override("font_size", small_font_size)
+	$P3/NameLabel.add_theme_font_size_override("font_size", large_font_size)
+	$P3/TeamLabel.add_theme_font_size_override("font_size", medium_font_size)
+	$P3/StatLabel1.add_theme_font_size_override("font_size", small_font_size)
+	$P3/StatLabel2.add_theme_font_size_override("font_size", small_font_size)
+	$P3/StatLabel3.add_theme_font_size_override("font_size", small_font_size)
