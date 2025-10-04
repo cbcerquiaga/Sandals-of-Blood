@@ -918,6 +918,8 @@ func has_same_name(player: Player):
 		return false
 
 func take_hit(attacker: Player, power: float):
+	if overall_state == PlayerState.SOLO_CELEBRATION or overall_state == PlayerState.TEAM_CELEBRATION or overall_state == PlayerState.LEAVING_MATCH or overall_state == PlayerState.LOST:
+		return
 	if is_machine:
 		power = power/5
 		status.stability = 100
