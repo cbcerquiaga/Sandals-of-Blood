@@ -49,7 +49,6 @@ var buddyLG
 var buddyRG
 var oppLF
 var oppRF
-var oppKeeper
 var desperate: bool = false #activated depending on game state. Impacts decision making
 
 # defending the ball
@@ -129,7 +128,7 @@ func _physics_process(delta):
 				print(current_behavior)
 	elif GlobalSettings.semiAuto and is_controlling_player and can_move:
 		print("semi automatic control: " + current_behavior)
-		if current_behavior == "waiting" and oppKeeper.current_behavior != "waiting":
+		if current_behavior == "waiting" and opposing_keeper.current_behavior != "waiting":
 			current_behavior = "defending"
 		AI_behavior(delta)
 		human_aim()
@@ -520,7 +519,7 @@ func _find_secondary_target() -> Player:
 	return potential_targets[0]
 
 func _can_shoot_directly() -> bool:
-	if _path_clearness(global_position, opp_goal) > (0.7 - (0.3 * attributes.aggression/99.0)) or oppKeeper.global_position.distance_to(opp_goal) > 250:
+	if _path_clearness(global_position, opp_goal) > (0.7 - (0.3 * attributes.aggression/99.0)) or opposing_keeper.global_position.distance_to(opp_goal) > 250:
 		return true
 	else:
 		return false
@@ -589,7 +588,7 @@ func _path_clearness(from_pos: Vector2, to_pos: Vector2) -> float:
 	
 	for i in range(1, int(dist / 50)):
 		var check_pos = from_pos + dir * i * 50
-		for opponent in [oppKeeper, oppLF, oppRF]:
+		for opponent in [opposing_keeper, oppLF, oppRF]:
 			if opponent.global_position.distance_to(check_pos) < 60:
 				space -= 0.4
 				break

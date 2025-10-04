@@ -188,6 +188,7 @@ var human_ready: bool = false #AI pitcher won't throw until the player is ready
 #universal fields
 var current_behavior: String #used for state machine
 var needs_go_home: bool = false #overrides current behavior when stunned and out of bounds
+var opposing_keeper #everybody knows about the opposing keeper
 #in-match combat
 var attack_target: Player = null
 var current_opponent: Player = null
@@ -319,15 +320,8 @@ func celly():
 	match current_behavior:
 		"taunt_celly": #0 arms up, 1 shush, 2 thrusting, 3 knee slide
 			if !celebrations_star:
-				var f = self as Forward
-				var g = self as Guard
-				var k = self as Keeper
-				if f.opposing_keeper != null:
-					celebrations_star = f.opposing_keeper
-				elif g.opp_keeper != null:
-					celebrations_star = g.opp_keeper
-				elif k.oppKeeper != null:
-					celebrations_star = k.oppKeeper
+				if opposing_keeper != null:
+					celebrations_star = opposing_keeper
 				else:
 					current_behavior = "static_celly"
 					velocity = Vector2.ZERO
@@ -1028,9 +1022,9 @@ func apply_opponent_stun(duration: float):
 	pass
 
 func update_ui():
-	label.bbcode_enabled = true
-	label.set_text(str(status.anger))
-	label.show()
+	#label.bbcode_enabled = true
+	#label.set_text(str(status.anger))
+	#label.show()
 	#stamina_bar.value = energy
 	#boost_bar.value = boost
 	#

@@ -85,6 +85,8 @@ func _init():
 	next_roster_no_subs()
 	
 func _process(delta: float) -> void:
+	#if strategy.tactics.LF_title == "Goon":
+		#print("LF is a goon. Anger: " + str(LF.status.anger) + " Current behavior: " + str(LF.current_behavior))
 	if !has_readied:
 		if K.attributes.power != null && LF.attributes.power != null:
 			has_readied = true
@@ -273,7 +275,7 @@ func enlighten(aimTarget, ball, field, keeperWall, ownGoal, oppGoal, oppP, oppK,
 	K.leftPost = LPost
 	K.rightPost = RPost
 	K.back_wall = keeperWall
-	K.oppKeeper = oppK
+	K.opposing_keeper = oppK
 	K.oppLF = oppLF
 	K.oppRF = oppRF
 	K.buddyLF = LF
@@ -296,7 +298,7 @@ func enlighten(aimTarget, ball, field, keeperWall, ownGoal, oppGoal, oppP, oppK,
 	LG.assigned_forward = oppRF
 	LG.other_forward = oppLF
 	LG.buddy_keeper = K
-	LG.opp_keeper = oppK
+	LG.opposing_keeper = oppK
 	LG.aim_selection = lBanks
 	RG.defending_goal_position = ownGoal.global_position
 	RG.aim_target = aimTarget
@@ -306,7 +308,7 @@ func enlighten(aimTarget, ball, field, keeperWall, ownGoal, oppGoal, oppP, oppK,
 	RG.leftPost = LPost
 	RG.rightPost = RPost
 	RG.buddy_keeper = K
-	RG.opp_keeper = oppK
+	RG.opposing_keeper = oppK
 	RG.buddySSF = RF
 	RG.buddyWSF = LF
 	RG.ball = ball

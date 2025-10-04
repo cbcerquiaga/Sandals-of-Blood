@@ -32,7 +32,6 @@ const max_goal_offset: float = 29.5
 var last_behavior: String
 
 #aiming
-var opp_keeper: Keeper = null
 var aim_point: Vector2
 var aim_selection
 var oppGoal: Vector2
@@ -148,7 +147,7 @@ func handle_brawl_behavior():
 					current_behavior = "brawling"
 				else:
 					#find the next closest bastard, even if it's not in the defensive half
-					var possible_opponents = [buddy_keeper.oppKeeper, buddy_keeper.oppLF, buddy_keeper.oppRF] #TODO: maybe the pitcher?
+					var possible_opponents = [buddy_keeper.opposing_keeper, buddy_keeper.oppLF, buddy_keeper.oppRF] #TODO: maybe the pitcher?
 					var min_distance = INF
 					for player in possible_opponents:
 						if player.global_position.distance_squared_to(global_position) < min_distance:
@@ -505,10 +504,10 @@ func should_help():
 	return false
 
 func set_aim_point():
-	if opp_keeper.is_incapacitated:
+	if opposing_keeper.is_incapacitated:
 		aim_point= oppGoal
 		return
-	elif opp_keeper.global_position.distance_squared_to(oppGoal) > 130 - attributes.aggression: #31-80 units away
+	elif opposing_keeper.global_position.distance_squared_to(oppGoal) > 130 - attributes.aggression: #31-80 units away
 		aim_point = oppGoal
 	else:
 		var rand = randi_range(0, 5)
@@ -939,9 +938,9 @@ func perform_midfield_shooting():
 	make_counterattack_ball_choice()
 
 func is_goal_wide_open() -> bool:
-	if !opp_keeper:
+	if !opposing_keeper:
 		return false
-	return opp_keeper.global_position.distance_to(oppGoal) > max_goal_offset * 2 or opp_keeper.is_incapacitated
+	return opposing_keeper.global_position.distance_to(oppGoal) > max_goal_offset * 2 or opposing_keeper.is_incapacitated
 	
 func guard_shooting_aim():
 	var goal_offset = (max_goal_offset +  (max_goal_offset * attributes.aggression / 100))/2 #more aggressive players really try to put it at the post, less aggressive aim more to the middle
@@ -1069,7 +1068,7 @@ func _path_clearness(from_pos: Vector2, to_pos: Vector2) -> float:
 	
 	for i in range(1, int(dist / 50)):
 		var check_pos = from_pos + dir * i * 50
-		for opponent in [opp_keeper, assigned_forward, other_forward, oppLG, oppRG]:
+		for opponent in [opposing_keeper, assigned_forward, other_forward, oppLG, oppRG]:
 			if opponent.global_position.distance_to(check_pos) < 60:
 				space -= 0.4
 				break

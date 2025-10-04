@@ -7,7 +7,6 @@ class_name Forward
 
 var goal_position = Vector2(0,0)
 var assigned_guard: Guard = null
-var opposing_keeper: Keeper = null
 var forward_partner: Forward = null
 var other_guard: Guard = null
 var buddy_keeper: Keeper = null

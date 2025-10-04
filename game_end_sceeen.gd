@@ -4,10 +4,10 @@ extends CanvasLayer
 @onready var stats_screen = $Submenus/Pause_Statistics # same as in pause menu
 @onready var export_screen = $Submenus/Export_Menu # same as in pause menu
 @onready var three_stars_screen = $"Submenus/3Stars_Screen" # unique to this screen
-@onready var starsButton = $StarsButton
-@onready var statsButton = $StatsButton
-@onready var exportButton = $ExportButton
-@onready var exitButton = $ExitButton
+@onready var starsButton = $VBoxContainer/StarsButton
+@onready var statsButton = $VBoxContainer/StatsButton
+@onready var exportButton = $VBoxContainer/ExportButton
+@onready var exitButton = $VBoxContainer/ExitButton
 
 @onready var submenu: String = ""
 var matchHandler: MatchHandler
@@ -36,6 +36,14 @@ func bringUp(state, match_handler: MatchHandler):
 	stats_screen.hide()
 	export_screen.hide()
 	three_stars_screen.hide()
+	starsButton.set_focus_neighbor(SIDE_TOP, starsButton.get_path())
+	starsButton.set_focus_neighbor(SIDE_BOTTOM, statsButton.get_path())
+	statsButton.set_focus_neighbor(SIDE_TOP, starsButton.get_path())
+	statsButton.set_focus_neighbor(SIDE_BOTTOM, exportButton.get_path())
+	exportButton.set_focus_neighbor(SIDE_TOP, statsButton.get_path())
+	exportButton.set_focus_neighbor(SIDE_BOTTOM, exitButton.get_path())
+	exitButton.set_focus_neighbor(SIDE_TOP, exportButton.get_path())
+	exitButton.set_focus_neighbor(SIDE_BOTTOM, exitButton.get_path())
 	starsButton.grab_focus()
 	three_stars_screen.set_teams(matchHandler.pTeam, matchHandler.aTeam)
 	three_stars_screen.set_score(matchHandler.pTeam.game_stats.goals, matchHandler.aTeam.game_stats.goals)
