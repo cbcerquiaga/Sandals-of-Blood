@@ -264,6 +264,7 @@ func _on_cpu_goal():
 	var was_ace = false
 	aTeam.K.deactivate_special()
 	var scorer = ball.last_hit_by
+	var passer
 	if scorer.team == 2:
 		scorer.game_stats.goals += 1
 		most_recent_scorer = scorer
@@ -274,10 +275,13 @@ func _on_cpu_goal():
 		if scorer is Forward:
 			if scorer.assigned_guard:
 				scorer.assigned_guard.game_stats.mark_points += 1
-	elif ball.assist_by.team == 1 and ball.assist_by.team == 2:
-		ball.assist_by.game_stats.goals += 1
-		most_recent_scorer = ball.assist_by
-	var passer = ball.assist_by
+	else:
+		if ball.assist_by:
+			passer = ball.assist_by
+			if passer.team == 1 and passer.team == 2:
+				passer.game_stats.goals += 1
+				most_recent_scorer = passer
+			
 	if passer and passer.team == scorer.team and scorer.team == 2:
 		passer.game_stats.assists += 1
 		if passer is Forward:
