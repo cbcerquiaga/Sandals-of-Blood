@@ -557,6 +557,22 @@ func join_brawl_movement():
 	
 func jumped_brawl(opponent: Player):
 	velocity = Vector2.ZERO
+	if opponent.attributes.toughness > self.attributes.toughness + 10:#I'm just a little guy, come on
+		status.anger += attributes.aggression/5.0
+	else:
+		status.anger += attributes.aggression/8.0
+	var choice = brawl_preferences.game + brawl_preferences.cower + brawl_preferences.join + brawl_preferences.partner
+	var rand = randf_range(0, choice)
+	if rand < brawl_preferences.game + brawl_preferences.cower:#try to escape
+		if status.boost > (100 - attributes.endurance):
+			status.boost -= 100 - attributes.endurance
+			var escape = attributes.agility + attributes.power + attributes.reactions + status.stability
+			var grip = opponent.attributes.agility + opponent.attributes.power + opponent.attributes.reactions + opponent.status.stability
+			var randomness = randf_range(-5, 5)
+			if escape + randomness > grip:
+				var stun_time = (445 - 4*opponent.attributes.toughness)/49 * 0.75 #3.35 for 50 toughness, 0.675 for 99 toughness
+				opponent.enter_stunned_state(stun_time) #opponent gets stunned from trying and failing to fight
+				return
 	current_behavior = "brawling"
 	current_opponent = opponent
 	brawl_opponents.append(opponent)
@@ -801,6 +817,10 @@ func _on_attack_area_body_entered(body: Node2D):
 		if body.position_type == "pitcher" and position_type == "pitcher":
 			current_behavior = "fighting"
 			print("why I oughta")
+			return
+		elif (current_behavior == "fencing" or current_behavior == "brawling") and !(body.current_behavior == "fencing" or body.current_behavior == "brawling"):
+			body.jumped_brawl(self)
+			print("player got jumped into a brawl")
 			return
 		#print("collision detected")
 		# Calculate attack power (your force toward opponent)

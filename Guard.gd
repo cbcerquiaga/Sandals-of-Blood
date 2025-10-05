@@ -824,7 +824,11 @@ func perform_escorting():
 					return
 	navigation_agent.target_position = buddy_keeper.global_position + rel_position
 	var direction = global_position.direction_to(buddy_keeper.global_position + rel_position)
-	is_sprinting = buddy_keeper.is_sprinting and status.boost > 0.5
+	if global_position.distance_squared_to(navigation_agent.target_position) > (defense_strategy.escort_distance * 1.5 * defense_strategy.escort_distance):
+		if status.boost > 0.5:
+			is_sprinting = true
+	else:
+		is_sprinting = buddy_keeper.is_sprinting and status.boost > 0.5
 	velocity = direction * (attributes.sprint_speed if is_sprinting else attributes.speed)
 
 func is_countering()-> bool:

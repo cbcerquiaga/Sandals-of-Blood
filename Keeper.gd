@@ -328,8 +328,8 @@ func perform_avoiding():
 		return
 	
 	var threat = _calculate_forward_threat(closest_opponent)
-	if threat > 0.9 and randf() < attributes.aggression / 99.0:
-		if status.anger + attributes.aggression >= 120: #120 instead of 100 because the keeper needs to focus on the goal
+	if threat > 0.9 and randf() < attributes.aggression / 100.0:
+		if status.anger + attributes.aggression >= 150: #150 instead of 100 because the keeper needs to focus on the goal
 			current_behavior = "fencing"
 			current_opponent = closest_opponent
 			return
@@ -352,8 +352,8 @@ func perform_fencing():
 		current_opponent = null
 		return
 	if global_position.distance_squared_to(current_opponent.global_position) < 400: #dist less than 20, saving some compute
-		if current_opponent.current_behavior != "brawling":
-			current_opponent.jumped_brawl(self)
+		#if current_opponent.current_behavior != "brawling":
+			#current_opponent.jumped_brawl(self)
 		brawl_footwork(current_opponent)
 	else:
 		navigation_agent.target_position = current_opponent.global_position
