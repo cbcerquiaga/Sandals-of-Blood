@@ -90,3 +90,9 @@ pivot_offset = Vector2(2135, -265)
 texture_normal = ExtResource("3_roiwy")
 texture_hover = ExtResource("4_x58we")
 texture_focused = ExtResource("4_x58we")
+
+[connection signal="text_changed" from="ReplayLineEdit" to="." method="_on_replay_line_edit_text_changed"]
+[connection signal="pressed" from="ReplayExportButton" to="." method="_on_replay_export_button_pressed"]
+[connection signal="text_changed" from="LogLineEdit" to="." method="_on_log_line_edit_text_changed"]
+[connection signal="pressed" from="LogExportButton" to="." method="_on_log_export_button_pressed"]
+[connection signal="pressed" from="ExitButton" to="." method="_on_exit_button_pressed"]

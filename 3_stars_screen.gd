@@ -33,6 +33,7 @@ func bring_up():
 	assign_three_stars()
 	adjust_font_sizes()
 	position_Ps()
+	$TextureButton.grab_focus()
 
 func position_Ps():
 	P1.global_position = Vector2(0,0)
@@ -294,3 +295,8 @@ func adjust_font_sizes():
 	$P3/StatLabel1.add_theme_font_size_override("font_size", small_font_size)
 	$P3/StatLabel2.add_theme_font_size_override("font_size", small_font_size)
 	$P3/StatLabel3.add_theme_font_size_override("font_size", small_font_size)
+
+
+func _on_texture_button_pressed() -> void:
+	emit_signal("menu_closed")
+	hide()

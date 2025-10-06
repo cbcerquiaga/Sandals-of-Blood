@@ -1,7 +1,9 @@
-[gd_scene load_steps=3 format=3 uid="uid://chh0siq2nhw3n"]
+[gd_scene load_steps=5 format=3 uid="uid://chh0siq2nhw3n"]
 
 [ext_resource type="Texture2D" uid="uid://qarbf5mcboqa" path="res://Assets/Player Portraits/placeholder portrait 4.png" id="1_2vy1y"]
 [ext_resource type="Script" path="res://3_stars_screen.gd" id="1_3tku1"]
+[ext_resource type="Texture2D" uid="uid://msxwiftij82j" path="res://UI/PauseUI/Exit_button_base.png" id="3_wjrwh"]
+[ext_resource type="Texture2D" uid="uid://cdvco7npy88ah" path="res://UI/PauseUI/Exit_button_highlighted.png" id="4_taq1m"]
 
 [node name="Control" type="Control"]
 layout_mode = 3
@@ -184,3 +186,16 @@ offset_bottom = 349.0
 pivot_offset = Vector2(3154, 923)
 text = "Pitches Played
 20"
+
+[node name="TextureButton" type="TextureButton" parent="."]
+layout_mode = 0
+offset_left = 489.0
+offset_top = 1588.0
+offset_right = 1569.0
+offset_bottom = 1911.0
+scale = Vector2(0.5, 0.5)
+texture_normal = ExtResource("3_wjrwh")
+texture_hover = ExtResource("4_taq1m")
+texture_focused = ExtResource("4_taq1m")
+
+[connection signal="pressed" from="TextureButton" to="." method="_on_texture_button_pressed"]

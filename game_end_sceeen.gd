@@ -16,7 +16,7 @@ func _ready():
 	hide()
 	stats_screen.menu_closed.connect(_on_stats_menu_closed)
 	three_stars_screen.menu_closed.connect(_on_stars_menu_closed)
-	#export_screen.menu_closed.connect(_on_export_menu_closed)
+	export_screen.menu_closed.connect(_on_export_menu_closed)
 
 func bringUp(state, match_handler: MatchHandler):
 	matchHandler = match_handler
@@ -74,6 +74,14 @@ func _on_stars_menu_closed():
 	exportButton.show()
 	exitButton.show()
 	starsButton.grab_focus()
+	
+func _on_export_menu_closed():
+	submenu = ""
+	starsButton.show()
+	statsButton.show()
+	exportButton.show()
+	exitButton.show()
+	exportButton.grab_focus()
 
 func _unhandled_input(event):
 	if event.is_action_pressed("UI_exit"):
@@ -88,6 +96,8 @@ func _on_stats_button_pressed():
 	exportButton.hide()
 	exitButton.hide()
 	result.hide()
+	submenu = "stats"
+	stats_screen.show()
 
 
 func _on_stars_button_pressed() -> void:
@@ -102,6 +112,11 @@ func _on_stars_button_pressed() -> void:
 
 func _on_export_button_pressed() -> void:
 	submenu = "export"
+	starsButton.hide()
+	statsButton.hide()
+	exportButton.hide()
+	exitButton.hide()
+	result.hide()
 	export_screen.show()
 
 

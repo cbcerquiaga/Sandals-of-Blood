@@ -16,7 +16,7 @@ const input_cooldown: int = 3
 @onready var strategy_menu = $Submenus/Strategy_Menu
 @onready var stats_screen = $Submenus/Pause_Statistics
 @onready var options_menu = $Submenus/Pause_Options
-@onready var export_screen
+@onready var export_screen = $Submenus/Export_Menu
 @onready var quit_popup
 
 #
@@ -44,6 +44,8 @@ func open_menu(highlight: String = "resume"):
 			options.grab_focus()
 		"statistics":
 			statistics.grab_focus()
+		"export":
+			export.grab_focus()
 		
 	
 func resume_game():
@@ -125,3 +127,16 @@ func _on_statistics_pressed() -> void:
 	submenu = "statistics"
 	stats_screen.open_menu()
 	$ButtonContainer.hide()
+
+
+func _on_export_pressed() -> void:
+	submenu = "export"
+	export_screen.show()
+	$ButtonContainer.hide()
+	
+
+
+
+func _on_export_menu_menu_closed() -> void:
+	submenu = ""
+	open_menu("export")

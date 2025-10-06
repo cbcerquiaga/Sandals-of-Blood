@@ -36,6 +36,7 @@ var aTeam : Team
 @onready var statusUI = $UI/MatchStatusUI
 @onready var pauseMenu = $UI/PauseMenu
 @onready var overMenu = $UI/Game_endSceeen
+@onready var over_shown = false
 
 signal emit_match_ended(winning_team)
 signal play_ended(reason)
@@ -413,7 +414,9 @@ func _process(delta: float) -> void:
 				result = "L"
 			else:
 				result = "T"
-			overMenu.bringUp(result, self)
+			if !over_shown:
+				overMenu.bringUp(result, self)
+				over_shown = true
 		else:
 			#have the winning team play celebration animations
 			#have the losing team play loser animations
