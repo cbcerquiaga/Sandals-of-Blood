@@ -13,6 +13,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+scale = Vector2(2, 2)
 script = ExtResource("1_ir74w")
 
 [node name="ReplayLineEdit" type="LineEdit" parent="."]
@@ -81,10 +82,10 @@ texture_focused = ExtResource("2_cftso")
 
 [node name="ExitButton" type="TextureButton" parent="."]
 layout_mode = 0
-offset_left = -5.0
-offset_top = 360.0
-offset_right = 1075.0
-offset_bottom = 683.0
+offset_left = -1372.0
+offset_top = 334.5
+offset_right = -292.0
+offset_bottom = 657.5
 scale = Vector2(0.2, 0.2)
 pivot_offset = Vector2(2135, -265)
 texture_normal = ExtResource("3_roiwy")

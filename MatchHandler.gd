@@ -162,6 +162,7 @@ func _on_ball_exited_field():
 func _on_player_goal():
 	if match_ended or not is_instance_valid(ball):
 		return
+	GlobalSettings.record_event("Goal for " + pTeam.team_abbreviation + " in play: " + str(GlobalSettings.pitch_limit - pitches_remaining))
 	var anger_change = 3
 	if team_scores[0] - team_scores[1] > 3: #runaway game
 		anger_change = 10
@@ -245,6 +246,7 @@ func _on_player_goal():
 func _on_cpu_goal():
 	if match_ended or not is_instance_valid(ball):
 		return
+	GlobalSettings.record_event("Goal for " + aTeam.team_abbreviation + " in play: " + str(GlobalSettings.pitch_limit - pitches_remaining))
 	var anger_change = 3
 	if team_scores[1] - team_scores[0] > 3: #blowout
 		anger_change = 10
@@ -367,6 +369,7 @@ func _process(delta: float) -> void:
 	#if Input.is_action_just_pressed("switch_zone"):
 		#pTeam.switch_zone()
 	if is_play_live or is_ball_pitched:
+		GlobalSettings.record_frame()
 		current_play_time += delta / Engine.time_scale#adjust for time scale so it's always one second per second
 		if ball.global_position.distance_squared_to(field.cpuGoal.global_position) < ball.global_position.distance_squared_to(field.playerGoal.global_position):
 			aTeam.game_stats.ball_in_half += delta / Engine.time_scale
@@ -928,7 +931,7 @@ func players_fight(p1: Player, p2: Player):
 				#TODO: wrenching away animation
 	
 func human_team_wins_fight():
-	GlobalSettings.record_event(pTeam.P.bio.last_name + " knocked out " + aTeam.P.bio.last_name + " at " + str(current_play_time) + " in play " + str(pitches_remaining))
+	GlobalSettings.record_event(pTeam.P.bio.last_name + " knocked out " + aTeam.P.bio.last_name + " at " + str(current_play_time) + " in play " + str(GlobalSettings.pitch_limit - pitches_remaining))
 	print("Robot got KO'd")
 	var groove_gain = GlobalSettings.special_pitch_frequency * 20
 	pTeam.P.add_groove(groove_gain)

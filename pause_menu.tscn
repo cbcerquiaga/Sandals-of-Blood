@@ -110,6 +110,11 @@ layout_mode = 1
 [node name="Export_Menu" parent="Submenus" instance=ExtResource("17_w8rwx")]
 visible = false
 layout_mode = 1
+offset_left = 800.0
+offset_top = 300.0
+offset_right = 800.0
+offset_bottom = 300.0
+scale = Vector2(4, 4)
 
 [connection signal="pressed" from="ButtonContainer/Resume" to="." method="_on_resume_pressed"]
 [connection signal="pressed" from="ButtonContainer/Strategy" to="." method="_on_strategy_pressed"]

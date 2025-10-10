@@ -79,6 +79,9 @@ layout_mode = 1
 [node name="Export_Menu" parent="Submenus" instance=ExtResource("13_q7qv6")]
 visible = false
 layout_mode = 1
+offset_left = 100.0
+offset_right = 100.0
+scale = Vector2(4, 4)
 
 [connection signal="pressed" from="VBoxContainer/StarsButton" to="." method="_on_stars_button_pressed"]
 [connection signal="pressed" from="VBoxContainer/StatsButton" to="." method="_on_stats_button_pressed"]
