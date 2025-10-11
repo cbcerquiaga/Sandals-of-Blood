@@ -135,6 +135,7 @@ func _on_ball_crossed_midfield():
 
 func _on_ball_exited_field():
 	if (out_of_bounds_frames > too_much_out_of_bounds):
+		GlobalSettings.record_event(str(GlobalSettings.pitch_limit - pitches_remaining) + ", " + str(int(max_play_time - current_play_time)) + ", Ball Out of Play)")
 		print("and the ball goes out of bounds, we'll re-set")
 		# Determine who put the ball out of bounds and switch accordingly
 		if GlobalSettings.human_always_pitch:
@@ -162,7 +163,22 @@ func _on_ball_exited_field():
 func _on_player_goal():
 	if match_ended or not is_instance_valid(ball):
 		return
-	GlobalSettings.record_event("Goal for " + pTeam.team_abbreviation + " in play: " + str(GlobalSettings.pitch_limit - pitches_remaining))
+	var current_pitch = GlobalSettings.pitch_limit - pitches_remaining
+	var scorer = ball.last_hit_by
+	var passer = ball.assist_by
+	var event_text = ""
+	
+	if scorer == null or (scorer and scorer.team == 2 and passer and passer.team == 2):
+		event_text = "Goal scored by " + pTeam.team_abbreviation + " uncredited"
+	elif (scorer and scorer.team == 1 and (passer == null or passer.team == 2)) or (scorer and scorer.team == 2 and passer and passer.team == 1):
+		var goal_scorer = scorer if scorer.team == 1 else passer
+		event_text = "Goal scored by " + pTeam.team_abbreviation + " " + goal_scorer.bio.last_name + " unassisted"
+	elif scorer and passer and scorer.team == 1 and passer.team == 1:
+		event_text = "Goal scored by " + pTeam.team_abbreviation + " " + scorer.bio.last_name + " Assisted by " + passer.bio.last_name
+	else:
+		event_text = "Goal scored by " + pTeam.team_abbreviation + " uncredited"
+		
+	GlobalSettings.record_event(str(current_pitch) + ", " + str(int(max_play_time - current_play_time)) + ", " + event_text)
 	var anger_change = 3
 	if team_scores[0] - team_scores[1] > 3: #runaway game
 		anger_change = 10
@@ -182,8 +198,6 @@ func _on_player_goal():
 	pTeam.anger(0 - anger_change/2)
 	var was_ace = false
 	pTeam.K.deactivate_special()
-	var scorer = ball.last_hit_by
-	var passer = ball.assist_by
 	if scorer.team == 1:
 		scorer.game_stats.goals += 1
 		most_recent_scorer = scorer
@@ -246,7 +260,22 @@ func _on_player_goal():
 func _on_cpu_goal():
 	if match_ended or not is_instance_valid(ball):
 		return
-	GlobalSettings.record_event("Goal for " + aTeam.team_abbreviation + " in play: " + str(GlobalSettings.pitch_limit - pitches_remaining))
+	var current_pitch = GlobalSettings.pitch_limit - pitches_remaining
+	var scorer = ball.last_hit_by
+	var passer
+	var event_text = ""
+	
+	if scorer == null or (scorer and scorer.team == 1 and passer and passer.team == 1):
+		event_text = "Goal scored by " + aTeam.team_abbreviation + " uncredited"
+	elif (scorer and scorer.team == 2 and (passer == null or passer.team == 1)) or (scorer and scorer.team == 1 and passer and passer.team == 2):
+		var goal_scorer = scorer if scorer.team == 2 else passer
+		event_text = "Goal scored by " + aTeam.team_abbreviation + " " + goal_scorer.bio.last_name + " unassisted"
+	elif scorer and passer and scorer.team == 2 and passer.team == 2:
+		event_text = "Goal scored by " + aTeam.team_abbreviation + " " + scorer.bio.last_name + " Assisted by " + passer.bio.last_name
+	else:
+		event_text = "Goal scored by " + aTeam.team_abbreviation + " uncredited"
+		
+	GlobalSettings.record_event(str(current_pitch) + ", " + str(int(max_play_time - current_play_time)) + ", " + event_text)
 	var anger_change = 3
 	if team_scores[1] - team_scores[0] > 3: #blowout
 		anger_change = 10
@@ -266,8 +295,6 @@ func _on_cpu_goal():
 	aTeam.anger(0 - anger_change/2)
 	var was_ace = false
 	aTeam.K.deactivate_special()
-	var scorer = ball.last_hit_by
-	var passer
 	if scorer.team == 2:
 		scorer.game_stats.goals += 1
 		most_recent_scorer = scorer
@@ -350,6 +377,10 @@ func reset_match(p_offense):
 	
 func on_ball_pitched():
 	if !is_ball_pitched:
+		var current_pitch = GlobalSettings.pitch_limit - pitches_remaining
+		var team_abbr = pTeam.team_abbreviation if is_human_team_pitching else aTeam.team_abbreviation
+		var pitcher_name = pTeam.P.bio.last_name if is_human_team_pitching else aTeam.P.bio.last_name
+		GlobalSettings.record_event(str(current_pitch) + ", 0, Ball pitched by " + team_abbr + " " + pitcher_name)
 		pTeam.add_pitch_played()
 		aTeam.add_pitch_played()
 		if is_human_team_pitching:
@@ -385,6 +416,7 @@ func _process(delta: float) -> void:
 			aTeam.is_on_offense = !aTeam.is_on_offense
 			next_play()
 	if Input.is_action_just_pressed("debug_reset"):
+		GlobalSettings.record_event(str(GlobalSettings.pitch_limit - pitches_remaining) + ", Play Debug Skipped)")
 		var tempScore = team_scores
 		pitches_remaining -= 1
 		var current_pitch = pitches_remaining
@@ -654,6 +686,7 @@ func score_goal(team: int):
 
 func _on_play_timer_timeout():
 	# Play length expired - switch pitching team
+	GlobalSettings.record_event(str(GlobalSettings.pitch_limit - pitches_remaining) + ", Play Timed Out)")
 	print("Play timer expired - switching pitching team")
 	if GlobalSettings.human_always_pitch:
 		is_human_team_pitching = true
@@ -787,10 +820,10 @@ func fill_team_rosters():
 	#TODO: import player names, stats, and status from sheet
 	#TODO: import player sprites
 	#Debug only: color player polygons
-	var pGoalie = Color( 1, 1, 0, 1 )#yellow goalie jersey
-	var pUniform = Color( 0.93, 0.51, 0.93, 1 )#purple uniform
-	var aGoalie = Color( 1, 1, 0, 1 )#yellow goalie jersey
-	var aUniform = Color( 1, 0.71, 0.76, 1 )#pink jersey
+	var pGoalie = Color(1, 1, 0, 1)#yellow goalie jersey
+	var pUniform = Color(0.93, 0.51, 0.93, 1)#purple uniform
+	var aGoalie = Color(1, 1, 0, 1)#yellow goalie jersey
+	var aUniform = Color(1, 0.71, 0.76, 1)#pink jersey
 	if pTeam.K.has_node("PolyGon2D"):
 		print("I have a polygon")
 	pTeam.K.get_node("Polygon2D").color = pGoalie
@@ -931,7 +964,7 @@ func players_fight(p1: Player, p2: Player):
 				#TODO: wrenching away animation
 	
 func human_team_wins_fight():
-	GlobalSettings.record_event(pTeam.P.bio.last_name + " knocked out " + aTeam.P.bio.last_name + " at " + str(current_play_time) + " in play " + str(GlobalSettings.pitch_limit - pitches_remaining))
+	GlobalSettings.record_event(str(GlobalSettings.pitch_limit - pitches_remaining) + ", " + str(int(max_play_time - current_play_time)) + ", " + pTeam.P.bio.last_name + " Knocked Out " + aTeam.P.bio.last_name)
 	print("Robot got KO'd")
 	var groove_gain = GlobalSettings.special_pitch_frequency * 20
 	pTeam.P.add_groove(groove_gain)
@@ -946,7 +979,7 @@ func human_team_wins_fight():
 	pTeam.P.overall_state = Player.PlayerState.SOLO_CELEBRATION
 	
 func cpu_team_wins_fight():
-	GlobalSettings.record_event(aTeam.P.bio.last_name + " knocked out " + pTeam.P.bio.last_name + " at " + str(current_play_time) + " in play " + str(pitches_remaining))
+	GlobalSettings.record_event(str(GlobalSettings.pitch_limit - pitches_remaining) + ", " + str(int(max_play_time - current_play_time)) + ", " + aTeam.P.bio.last_name + " Knocked Out " + pTeam.P.bio.last_name)
 	print("Suck on this shiny metal fist")
 	var groove_gain = GlobalSettings.special_pitch_frequency * 20
 	aTeam.P.add_groove(groove_gain)
