@@ -1186,7 +1186,6 @@ func get_socked(impact: float):
 	var roll
 	for i in range(0, num_injury_rolls):
 		roll = randf()
-		if roll > attributes.durability/100.0: #not looking good
 		if roll > get_buffed_attribute("durability")/100.0: #not looking good
 			roll = randf()
 			if roll > get_buffed_attribute("durability")/100.0:
