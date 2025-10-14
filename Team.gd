@@ -209,9 +209,20 @@ func is_player_in_roster(player: Player) -> bool:
 
 func apply_team_buffs(player: Player):
 	for buff in buffs:
-		player.add_buff(buff["name"], buff["modifiers"])
+		var buff_attributes = []
+		var buff_values = []
+		for attribute in buff["modifiers"]:
+			buff_attributes.append(attribute)
+			buff_values.append(buff["modifiers"][attribute])
+		player.add_buff(buff["name"], buff_attributes, buff_values)
 
 func add_team_buff(buff_name: String, modifiers: Dictionary, duration: float = -1):
+	var buff_attributes = []
+	var buff_values = []
+	for attribute in modifiers:
+		buff_attributes.append(attribute)
+		buff_values.append(modifiers[attribute])
+	
 	var buff_data = {
 		"name": buff_name,
 		"modifiers": modifiers,
@@ -219,7 +230,7 @@ func add_team_buff(buff_name: String, modifiers: Dictionary, duration: float = -
 	}
 	buffs.append(buff_data)
 	for player in roster:
-		player.add_buff(buff_name, modifiers)
+		player.add_buff(buff_name, buff_attributes, buff_values)
 
 func remove_team_buff(buff_name: String):
 	for i in range(buffs.size() - 1, -1, -1):
@@ -243,7 +254,7 @@ func get_modified_aggression(base_aggression: float, position_type: String) -> f
 	var team_aggression = strategy.base_aggression
 	var aggression_mod = 1.0
 	for buff in buffs:
-		if buff.modifiers.has("aggression"):
+		if buff.has("modifiers") and buff.modifiers.has("aggression"):
 			aggression_mod += buff.modifiers.aggression / 100.0
 	return base_aggression * pos_aggression * team_aggression * aggression_mod
 
@@ -1031,3 +1042,18 @@ func lose_anti_celebrate():
 func tie():
 	for player in onfield_players:
 		player.lose()
+		
+func apply_settings_buff(isHuman: bool):
+	var buff_val
+	if isHuman:
+		buff_val = GlobalSettings.human_buff
+	else:
+		buff_val = GlobalSettings.cpu_buff
+	var buff_stats = ["speed", "sprint_speed", "blocking", "positioning", "reactions", "durability", "power", "throwing", "endurance", "accuracy", "balance", "focus", "shooting", "toughness", "confidence", "agility"] #everything but aggression because that's really a player's style more than ability
+	var buff_vals = [buff_val,buff_val,buff_val,buff_val,buff_val,buff_val,buff_val,buff_val,buff_val,buff_val,buff_val,buff_val,buff_val,buff_val,buff_val,buff_val]
+	LF.add_buff("settings", buff_stats, buff_vals)
+	RF.add_buff("settings", buff_stats, buff_vals)
+	P.add_buff("settings", buff_stats, buff_vals)
+	LG.add_buff("settings", buff_stats, buff_vals)
+	RG.add_buff("settings", buff_stats, buff_vals)
+	K.add_buff("settings", buff_stats, buff_vals)

@@ -207,7 +207,7 @@ var special_ability: String #determines which of the
 var is_machine: bool = false #halves impact against in collisions, infinite boost, super shot blocker
 var is_maestro: bool = false #slows down time
 var is_spin_doctor: bool = false #curving shots
-var active_buffs: Dictionary = {}
+var active_buffs: Dictionary = {} #buff structure: { "buff_name": { "attributes": ["speed", "power"], "values": [10, 5] } }
 var starting_position: Vector2
 
 
@@ -824,13 +824,14 @@ func _on_attack_area_body_entered(body: Node2D):
 			return
 		#print("collision detected")
 		# Calculate attack power (your force toward opponent)
+		# Calculate attack power (your force toward opponent) using buffed attributes
 		var attack_dir = (body.global_position - global_position).normalized()
 		var my_velocity_toward_opponent = velocity.project(attack_dir).length()
-		var attackPower = my_velocity_toward_opponent * (attributes.power / 100.0)
-		# Calculate opponent's attack power (their force toward you)
+		# Calculate opponent's attack power (their force toward you) using buffed attributes
+		var attackPower = my_velocity_toward_opponent * (get_buffed_attribute("power") / 100.0)
 		var opp_attack_dir = (global_position - body.global_position).normalized()
 		var opponent_velocity_toward_me = body.velocity.project(opp_attack_dir).length()
-		var oppAttackPower = opponent_velocity_toward_me * (body.attributes.power / 100.0)
+		var oppAttackPower = opponent_velocity_toward_me * (body.get_buffed_attribute("power") / 100.0)
 		#momentum mechanic
 		var combined_momentum = status.momentum + body.status.momentum
 		if combined_momentum < 25:
@@ -838,12 +839,12 @@ func _on_attack_area_body_entered(body: Node2D):
 			return
 		# Apply bounce impulse to opponent
 		body.take_hit(self, attackPower)
-		# If opponent was moving toward us, roll for durability
+		# If opponent was moving toward us, roll for durability using buffed attribute
 		if oppAttackPower > 0:
 			var rand = randi_range(0, 100)
-			if rand > attributes.durability: #roll failed
+			if rand > get_buffed_attribute("durability"): #roll failed
 				rand = randi_range(0, 100) #roll again
-				if rand > attributes.durability: #roll failed twice, bad luck
+				if rand > get_buffed_attribute("durability"): #roll failed twice, bad luck
 					#get hurt
 					print("ouchie!")
 					#TODO: implement injury debuffs
@@ -875,8 +876,10 @@ func scrum(body: Player):
 	#only movement towards the opponent really matters for this
 	var my_push = intended_velocity.project(scrumming_axis).length() * sign(intended_velocity.dot(scrumming_axis))
 	var opp_push = opp_intended_velocity.project(-scrumming_axis).length() * sign(opp_intended_velocity.dot(-scrumming_axis))
-	var my_power = (my_push * status.momentum * attributes.power) / 100.0
-	var opp_power = (opp_push * body.status.momentum * body.attributes.power) / 100.0
+	
+	# Use buffed attributes for power calculations
+	var my_power = (my_push * status.momentum * get_buffed_attribute("power")) / 100.0
+	var opp_power = (opp_push * body.status.momentum * body.get_buffed_attribute("power")) / 100.0
 	var power_diff = my_power - opp_power
 	
 	# someone who steps away gets tossed. Somebody who steps sideways or holds ground (push of 0) just gets pushed
@@ -939,12 +942,13 @@ func take_hit(attacker: Player, power: float):
 		status.stability = 100
 	#print("hit taken")
 	var knockback_dir = (global_position - attacker.global_position).normalized()
-	var knockback_power = abs(power * 2) - (status.stability + attributes.power)
+	# Use buffed attributes for calculations
+	var knockback_power = abs(power * 2) - (status.stability + get_buffed_attribute("power"))
 	#if attacker.is_sprinting:
 		#knockback_power *= 1.5
 	if velocity.length() == 0:
 		knockback_power *= 1.5
-	var units = power - (attributes.power/2)
+	var units = power - (get_buffed_attribute("power")/2)
 	if units > 30:
 		units = 30
 	#print("power: " + str(power)+", knockback: " + str(knockback_power) + ", stability: " + str(status.stability), " my power: ", attributes.power, " units: ", units)
@@ -954,14 +958,15 @@ func take_hit(attacker: Player, power: float):
 		get_tossed(knockback_dir, units, 200)
 		attacker.game_stats.hits += 1
 		status.stability = 0
-		var stun_time = (445 - 4*attributes.toughness)/49 * 0.75 #3.35 for 50 toughness, 0.675 for 99 toughness
+		var stun_time = (445 - 4 * get_buffed_attribute("toughness")) / 49 * 0.75 #3.35 for 50 toughness, 0.675 for 99 toughness
 		enter_stunned_state(stun_time)
+		
 		if field_position == "K":
-					attacker.game_stats.sacks +=1
-					if attacker.assigned_guard:
-						attacker.assigned_guard.game_stats.sacks_allowed += 1
-					if attacker.forward_partner:
-						attacker.forward_partner.game_stats.partner_sacks += 1
+			attacker.game_stats.sacks +=1
+			if attacker.assigned_guard:
+				attacker.assigned_guard.game_stats.sacks_allowed += 1
+			if attacker.forward_partner:
+				attacker.forward_partner.game_stats.partner_sacks += 1
 	elif knockback_power > status.stability: #hefty bump
 		#print("bump-", units, ", ", 150)
 		status.stability -= knockback_power/2
@@ -975,7 +980,7 @@ func take_hit(attacker: Player, power: float):
 					if attacker.forward_partner:
 						attacker.forward_partner.game_stats.partner_sacks += 1
 			status.stability = 0
-			var stun_time = (445 - 4*attributes.toughness)/49 * 0.75 #3.35 for 50 toughness, 0.675 for 99 toughness
+			var stun_time = (445 - 4 * get_buffed_attribute("toughness")) / 49 * 0.75
 			enter_stunned_state(stun_time)
 		else:
 			status.anger = status.anger + 5
@@ -1182,9 +1187,11 @@ func get_socked(impact: float):
 	for i in range(0, num_injury_rolls):
 		roll = randf()
 		if roll > attributes.durability/100.0: #not looking good
+		if roll > get_buffed_attribute("durability")/100.0: #not looking good
 			roll = randf()
-			if roll > attributes.durability/100.0:#taking some kind of injury here
-				print("injury acquired on roll ", i, " of ", num_injury_rolls)
+			if roll > get_buffed_attribute("durability")/100.0:
+				print("injury acquired on roll ", i, " of ", num_injury_rolls) #taking some kind of injury here
+				#TODO: decide injury and apply buff
 
 func export_to_dict() -> Dictionary:
 	return {
@@ -1222,31 +1229,55 @@ func import_from_dict(data: Dictionary):
 	skin_tone_secondary = data["skin_tone_secondary"]
 	complexion = data["complexion"]
 	
-func add_buff(buff_name, modifiers):
-	if active_buffs.has(buff_name):
-		active_buffs[buff_name] = modifiers# If buff already exists, refresh it instead of adding again
+func add_buff(buff_name: String, buff_attributes: Array, buff_values: Array):
+	if buff_attributes.size() != buff_values.size():
+		push_error("Buff attributes and values arrays must be the same length")
 		return
-	for attribute in modifiers:
+	if active_buffs.has(buff_name): #buff already exists, remove it first to avoid stacking
+		remove_buff(buff_name)
+	active_buffs[buff_name] = {
+		"attributes": buff_attributes.duplicate(),
+		"values": buff_values.duplicate()
+	}
+	for i in range(buff_attributes.size()):
+		var attribute = buff_attributes[i]
 		if attributes.has(attribute):
-			var original_value = attributes[attribute]
-			var modified_value = original_value + modifiers[attribute]
+			var modified_value = attributes[attribute] + buff_values[i]
 			modified_value = clamp(modified_value, 0, 101)
 			attributes[attribute] = modified_value
-	active_buffs[buff_name] = modifiers
 
 func remove_buff(buff_name: String):
 	if not active_buffs.has(buff_name):
 		return
-	var modifiers = active_buffs[buff_name]
-	for attribute in modifiers: # Reverse attribute modifications
+	var buff_data = active_buffs[buff_name]
+	var buff_attributes = buff_data["attributes"]
+	var buff_values = buff_data["values"]
+	for i in range(buff_attributes.size()):
+		var attribute = buff_attributes[i]
 		if attributes.has(attribute):
-			var original_value = attributes[attribute] - modifiers[attribute]
+			var original_value = attributes[attribute] - buff_values[i]
 			original_value = clamp(original_value, 0, 101)
 			attributes[attribute] = original_value
 	active_buffs.erase(buff_name)
 
 func has_buff(buff_name: String) -> bool:
 	return active_buffs.has(buff_name)
+	
+func get_buffed_attribute(attribute_name: String) -> float:
+	if not attributes.has(attribute_name):
+		push_error("Attribute '" + attribute_name + "' does not exist")
+		return 0.0
+	var total = attributes[attribute_name]
+	if active_buffs.size() == 0:
+		return total
+	for buff_name in active_buffs:
+		var buff_data = active_buffs[buff_name]
+		var buff_attributes = buff_data["attributes"]
+		var buff_values = buff_data["values"]
+		for i in range(buff_attributes.size()):
+			if buff_attributes[i] == attribute_name:
+				total += buff_values[i]
+	return clamp(total, 0, total)#can't go below 0
 	
 func get_position_class(position: String) -> GDScript:
 	match position:
