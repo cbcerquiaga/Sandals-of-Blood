@@ -531,7 +531,7 @@ func reset_players_for_next_play():
 		if player:
 			player.can_move = false
 			player.velocity = Vector2.ZERO
-			player.lose_energy((100 - player.attributes.endurance)/10) #0.1 for 99 endurance, 5 for 50
+			player.lose_energy((100 - player.get_buffed_attribute("endurance"))/10) #0.1 for 99 endurance, 5 for 50
 			player.reset_state()
 			player.starting_position = player.global_position
 	pTeam.bench_rest() #resting players regain energy
@@ -847,12 +847,12 @@ func import_team_rosters():
 	pass
 
 func pitchers_fight():
-	var tough_diff = pTeam.P.attributes.toughness - aTeam.P.attributes.toughness
+	var tough_diff = pTeam.P.get_buffed_attribute("toughness") - aTeam.P.get_buffed_attribute("toughness")
 	#punch power and survivability degrade as players get tired. Mostly based on fighting skill (toughness) but also other athletic traits
-	var p_punch_power = pTeam.P.attributes.toughness * 2 + pTeam.P.attributes.power + pTeam.P.attributes.shooting + pTeam.P.status.boost #between 200 and 495
-	var a_punch_power = aTeam.P.attributes.toughness * 2 + aTeam.P.attributes.power + aTeam.P.attributes.shooting + aTeam.P.status.boost
-	var p_chin = pTeam.P.attributes.toughness * 2 + pTeam.P.attributes.durability + pTeam.P.status.boost#between 150 and 396
-	var a_chin = aTeam.P.attributes.toughness * 2 + aTeam.P.attributes.durability + aTeam.P.status.boost
+	var p_punch_power = pTeam.P.get_buffed_attribute("toughness") * 2 + pTeam.P.get_buffed_attribute("power") + pTeam.P.get_buffed_attribute("shooting") + pTeam.P.status.boost #between 200 and 495
+	var a_punch_power = aTeam.P.get_buffed_attribute("toughness") * 2 + aTeam.P.get_buffed_attribute("power") + aTeam.P.get_buffed_attribute("shooting") + aTeam.P.status.boost
+	var p_chin = pTeam.P.get_buffed_attribute("toughness") * 2 + pTeam.P.get_buffed_attribute("durability") + pTeam.P.status.boost#between 150 and 396
+	var a_chin = aTeam.P.get_buffed_attribute("toughness") * 2 + aTeam.P.get_buffed_attribute("durability") + aTeam.P.status.boost
 	var p_hit_chance = 0.5 + (tough_diff * 0.48)/49.0
 	var a_hit_chance = 1 - p_hit_chance
 	var p_roll = randf()
@@ -873,12 +873,12 @@ func pitchers_fight():
 		pTeam.P.lose_stability(sqrt(a_punch_power)/5)
 	else:
 		#between 2 and 296
-		var rastle = pTeam.P.attributes.power + aTeam.P.attributes.power + pTeam.P.attributes.toughness + aTeam.P.attributes.toughness -pTeam.P.attributes.balance -aTeam.P.attributes.balance
+		var rastle = pTeam.P.get_buffed_attribute("power") + aTeam.P.get_buffed_attribute("power") + pTeam.P.get_buffed_attribute("toughness") + aTeam.P.get_buffed_attribute("toughness") -pTeam.P.get_buffed_attribute("balance") -aTeam.P.get_buffed_attribute("balance")
 		pTeam.P.lose_stability(sqrt(rastle))
 		aTeam.P.lose_stability(sqrt(rastle))
 	#always lose some boost
-	var p_loss = (100 - pTeam.P.attributes.endurance)/10 + 2 #between 2.1 and 7; between 7 and 47 punches before using up all boost if at max boost to start
-	var a_loss = (100 - aTeam.P.attributes.endurance)/10 + 2
+	var p_loss = (100 - pTeam.P.get_buffed_attribute("endurance"))/10 + 2 #between 2.1 and 7; between 7 and 47 punches before using up all boost if at max boost to start
+	var a_loss = (100 - aTeam.P.get_buffed_attribute("endurance"))/10 + 2
 	pTeam.P.lose_boost(p_loss)
 	aTeam.P.lose_boost(a_loss)
 	#check if anybody has fallen over
@@ -891,11 +891,11 @@ func pitchers_fight():
 		
 #brawling is mostly similar to pitcher fighting, but has potentially different outcomes. It also has to factor in that players need to worry about additional fighters and the ball
 func players_fight(p1: Player, p2: Player):
-	var tough_diff = p1.attributes.toughness - p2.attributes.toughness
-	var p1_punch_power = p1.attributes.toughness * 2 + p1.attributes.power + p1.attributes.shooting + p1.status.boost #between 200 and 495
-	var p2_punch_power = p2.attributes.toughness * 2 + p2.attributes.power + p2.attributes.shooting + p2.status.boost
-	var p1_chin = p1.attributes.toughness * 2 + p1.attributes.durability + p1.status.boost#between 150 and 396
-	var p2_chin = p2.attributes.toughness * 2 + p2.attributes.durability + p2.status.boost
+	var tough_diff = p1.get_buffed_attribute("toughness") - p2.get_buffed_attribute("toughness")
+	var p1_punch_power = p1.get_buffed_attribute("toughness") * 2 + p1.get_buffed_attribute("power") + p1.get_buffed_attribute("shooting") + p1.status.boost #between 200 and 495
+	var p2_punch_power = p2.get_buffed_attribute("toughness") * 2 + p2.get_buffed_attribute("power") + p2.get_buffed_attribute("shooting") + p2.status.boost
+	var p1_chin = p1.get_buffed_attribute("toughness") * 2 + p1.get_buffed_attribute("durability") + p1.status.boost#between 150 and 396
+	var p2_chin = p2.get_buffed_attribute("toughness") * 2 + p2.get_buffed_attribute("durability") + p2.status.boost
 	var p1_hit_chance = 0.5 + (tough_diff * 0.48)/49.0
 	var p2_hit_chance = 1 - p1_hit_chance
 	var p1_roll = randf()
@@ -926,8 +926,8 @@ func players_fight(p1: Player, p2: Player):
 		p1_aggMod += 8 #why bother fighting if you suck at it?
 		p2_aggMod += 8
 	#always lose some boost
-	var p1_loss = (100 - p1.attributes.endurance)/10 + 2 #between 2.1 and 7; between 7 and 47 punches before using up all boost if at max boost to start
-	var p2_loss = (100 - p2.attributes.endurance)/10 + 2
+	var p1_loss = (100 - p1.get_buffed_attribute("endurance"))/10 + 2 #between 2.1 and 7; between 7 and 47 punches before using up all boost if at max boost to start
+	var p2_loss = (100 - p2.get_buffed_attribute("endurance"))/10 + 2
 	p1.lose_boost(p1_loss)
 	p2.lose_boost(p2_loss)
 	#check if anybody has fallen over
@@ -940,8 +940,8 @@ func players_fight(p1: Player, p2: Player):
 	elif p2.status.stability <= 0:
 		p2.enter_stunned_state(10)
 	else:#check if anybody wants to stop
-		var desire_1 = p1.attributes.aggression - p1_aggMod
-		var desire_2 = p2.attributes.aggression - p2_aggMod
+		var desire_1 = p1.get_buffed_attribute("aggression") - p1_aggMod
+		var desire_2 = p2.get_buffed_attribute("aggression") - p2_aggMod
 		var rand1 = randi_range(0, 100)
 		var rand2 = randi_range(0,100)
 		if rand1 < desire_1 and rand2 < desire_2:
@@ -951,14 +951,14 @@ func players_fight(p1: Player, p2: Player):
 		elif rand1 < desire_1:
 			var diff1 = desire_1 - rand1
 			var diff2 = rand2 - desire_2
-			if p1.attributes.power + diff1 > p2.attributes.power + diff2:#check if they can escape. need strength and need to want it
+			if p1.get_buffed_attribute("power") + diff1 > p2.get_buffed_attribute("power") + diff2:#check if they can escape. need strength and need to want it
 				p1.stop_brawling()
 				p2.stop_brawling()
 				#TODO: wrenching away animation
 		elif rand2 < desire_2:
 			var diff1 = rand1 - desire_1
 			var diff2 = desire_2 - rand2
-			if p2.attributes.power + diff2 > p1.attributes.power + diff1:
+			if p2.get_buffed_attribute("power") + diff2 > p1.get_buffed_attribute("power") + diff1:
 				p1.stop_brawling()
 				p2.stop_brawling()
 				#TODO: wrenching away animation

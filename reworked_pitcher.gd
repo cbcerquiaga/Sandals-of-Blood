@@ -5,7 +5,7 @@ signal ball_pitched(power: float, spin: float, direction: Vector2, position: Vec
 signal special_pitched(direction: Vector2, power: float, curves: Array[float], frames: Array[int], pitch_type: String, power_curve: bool)
 
 # Pitching Controls
-var true_max_power = 5.204 * (attributes.power + attributes.throwing)  - 40.408 #maximum possible power at 100% energy, 990 at 99 throwing and power, 480 at 50 throwing and power
+var true_max_power = 5.204 * (get_buffed_attribute("power") + get_buffed_attribute("throwing"))  - 40.408 #maximum possible power at 100% energy, 990 at 99 throwing and power, 480 at 50 throwing and power
 @export var max_power: float = true_max_power * status.energy/100
 @export var min_power: float = 200
 @export var max_curve: float = 2.0 # radians/second
@@ -43,7 +43,7 @@ var is_aiming: bool = false
 var aim_direction: Vector2 = Vector2(0,1)
 var has_ball: bool = false
 var increasing := true
-var variance_factor = ((100 - attributes.accuracy)/100 + 1)/4 #between 25% and 50% maximum error
+var variance_factor = ((100 - get_buffed_attribute("accuracy"))/100 + 1)/4 #between 25% and 50% maximum error
 var current_variance = 0 #ranges from -100 to 100, then multiplied by variance factor
 var variance_increment = 3
 var hand_offset: float = 5.0 #how far to move the ball in the X to keep it from colliding
@@ -96,7 +96,7 @@ func _ready():
 	current_behavior = "waiting"
 	collision_mask = 0b0000  # Collide with nothing
 	position_type = "pitcher"
-	max_curve = 2.0 * (attributes.focus + attributes.throwing)/200
+	max_curve = 2.0 * (get_buffed_attribute("focus") + get_buffed_attribute("throwing"))/200
 	restore_behaviors()
 	powerbar.currentPower = current_power
 	powerbar.maxPower = true_max_power
@@ -189,7 +189,7 @@ func change_directions():
 	current_path_index = next_index
 	current_waypoint = running_positions[current_path_index].global_position
 	var direction_to_waypoint = global_position.direction_to(current_waypoint)
-	var speed = attributes.sprint_speed if status.boost > 0 else attributes.speed
+	var speed = get_buffed_attribute("sprint_speed") if status.boost > 0 else get_buffed_attribute("speed")
 	velocity = direction_to_waypoint * speed
 
 func increment_pitch_time():
@@ -274,7 +274,7 @@ func handle_ai_pitch_decision():
 	human_ready = false
 
 func ai_select_pitch_type() -> String:
-	var max_groove = attributes.confidence
+	var max_groove = get_buffed_attribute("confidence")
 	var current_groove = min(status.groove, max_groove)
 	
 	if randf() < favor_successful_chance and successful_pitches.size() > 0:
@@ -327,7 +327,7 @@ func ai_select_target(pitch_type: String) -> Vector2:
 	if successful_targets.size() > 0 and randf() < 0.6:
 		return successful_targets[randi() % successful_targets.size()]
 	
-	var aggression_factor = attributes.aggression / 100.0
+	var aggression_factor = get_buffed_attribute("aggression") / 100.0
 	
 	var x_coord: float
 	if randf() < aggression_factor:
@@ -353,17 +353,17 @@ func ai_execute_normal_pitch(target_pos: Vector2):
 	target = target_pos
 	aim_direction = global_position.direction_to(target).normalized()
 	
-	var aggression_factor = attributes.aggression / 100.0
+	var aggression_factor = get_buffed_attribute("aggression") / 100.0
 	var energy_factor = status.energy / 100.0
 	
 	if energy_factor > 0.5:
-		current_power = lerp((attributes.power* attributes.throwing/100) * 2, (attributes.power* attributes.throwing/100) * 4, aggression_factor) * 4
-		status.energy -= (100 - attributes.endurance) * 5
+		current_power = lerp((get_buffed_attribute("power")* get_buffed_attribute("throwing")/100) * 2, (get_buffed_attribute("power")* get_buffed_attribute("throwing")/100) * 4, aggression_factor) * 4
+		status.energy -= (100 - get_buffed_attribute("endurance")) * 5
 	else:
-		current_power = randf_range((attributes.power* attributes.throwing/100), (attributes.power* attributes.throwing/100) * 2) * 4
-		status.energy -= (100 - attributes.endurance) * 2
+		current_power = randf_range((get_buffed_attribute("power")* get_buffed_attribute("throwing")/100), (get_buffed_attribute("power")* get_buffed_attribute("throwing")/100) * 2) * 4
+		status.energy -= (100 - get_buffed_attribute("endurance")) * 2
 	
-	var focus_factor = attributes.focus / 100.0
+	var focus_factor = get_buffed_attribute("focus") / 100.0
 	var curve_intensity = lerp(max_curve / 4, max_curve, focus_factor)
 	
 	var curve_roll = randi_range(0, 10)
@@ -451,7 +451,7 @@ func perform_normal_pitch():
 	if target == Vector2.ZERO:
 		target = global_position + Vector2(0, 0 if field_type != "road" else 100)  # Default direction based on field
 		aim_direction = global_position.direction_to(target).normalized()
-	status.energy = status.energy - (10 - attributes.endurance/10)
+	status.energy = status.energy - (10 - get_buffed_attribute("endurance")/10)
 	var varied_direction = aim_direction.normalized()
 	varied_direction = varied_direction.rotated(current_variance * variance_factor)   
 	if field_type == "road" || field_type == "wide_road":
@@ -464,9 +464,9 @@ func perform_normal_pitch():
 #starts fast then slows down, mimicing a tricky throw that looks like it will come fast
 func perform_changeup_pitch():
 	aim_direction = global_position.direction_to(target).normalized()
-	status.energy = status.energy - (5 - attributes.endurance/20)#not an energy intensive pitch
+	status.energy = status.energy - (5 - get_buffed_attribute("endurance")/20)#not an energy intensive pitch
 	var toss_speed = current_power * 0.75
-	var change_speed = (149 - attributes.focus)/100.0 * toss_speed  #50% at 99 focus, 99% at 50 focus
+	var change_speed = (149 - get_buffed_attribute("focus"))/100.0 * toss_speed  #50% at 99 focus, 99% at 50 focus
 	if change_speed > toss_speed:
 		change_speed = toss_speed
 	print("toss speed: " + str(toss_speed) + "; change speed: " + str(change_speed))
@@ -479,9 +479,9 @@ func perform_changeup_pitch():
 #fake changeup
 func perform_stop_go_pitch():
 	aim_direction = global_position.direction_to(target).normalized()
-	status.energy = status.energy - (10 - attributes.endurance/10)
+	status.energy = status.energy - (10 - get_buffed_attribute("endurance")/10)
 	var toss_speed = current_power * 0.75
-	var change_speed = (149 - attributes.focus)/100.0 * toss_speed  #50% at 99 focus, 99% at 50 focus
+	var change_speed = (149 - get_buffed_attribute("focus"))/100.0 * toss_speed  #50% at 99 focus, 99% at 50 focus
 	if change_speed > toss_speed:
 		change_speed = toss_speed
 	var curves: Array[float] = [toss_speed, change_speed, toss_speed, toss_speed]
@@ -492,8 +492,8 @@ func perform_stop_go_pitch():
 #starts slow then speeds up, mimicing a ball that was thrown way up into the air
 func perform_moonball_pitch():
 	aim_direction = global_position.direction_to(target).normalized()
-	status.energy = status.energy - (5 - attributes.endurance/20)
-	var toss_speed = current_power * (attributes.focus/100.0) #99% at 99, 50% at 50
+	status.energy = status.energy - (5 - get_buffed_attribute("endurance")/20)
+	var toss_speed = current_power * (get_buffed_attribute("focus")/100.0) #99% at 99, 50% at 50
 	var change_speed = toss_speed * 0.75
 	if change_speed > toss_speed:
 		change_speed = toss_speed
@@ -506,9 +506,9 @@ func perform_moonball_pitch():
 #changes speed a lot
 func perform_flutter_pitch():
 	aim_direction = global_position.direction_to(target).normalized()
-	status.energy = status.energy - (10 - attributes.endurance/10)
+	status.energy = status.energy - (10 - get_buffed_attribute("endurance")/10)
 	var toss_speed = current_power * 0.75
-	var change_speed = (((149 - attributes.focus)/100.0 * toss_speed) + toss_speed)/2
+	var change_speed = (((149 - get_buffed_attribute("focus"))/100.0 * toss_speed) + toss_speed)/2
 	if change_speed > toss_speed:
 		change_speed = toss_speed
 	var curves: Array[float] = [toss_speed, change_speed, toss_speed, change_speed, toss_speed, change_speed]
@@ -520,7 +520,7 @@ func perform_flutter_pitch():
 #looks like it will curve and then straightens out
 func perform_fake_curve_pitch():
 	aim_direction = global_position.direction_to(target).normalized()
-	status.energy = status.energy - (10 - attributes.endurance/10)
+	status.energy = status.energy - (10 - get_buffed_attribute("endurance")/10)
 	var curves: Array[float] = [-2.4, 8, 0.0]
 	var frames: Array[int] = [40, 50, 60]
 	special_pitched.emit(aim_direction, current_power, curves, frames, "fake_curve")
@@ -530,7 +530,7 @@ func perform_fake_curve_pitch():
 #changes direction a bunch of times
 func perform_zig_zag_pitch():
 	aim_direction = global_position.direction_to(target).normalized()
-	status.energy = status.energy - (10 - attributes.endurance/10)
+	status.energy = status.energy - (10 - get_buffed_attribute("endurance")/10)
 	var curves: Array[float] = [0, 100, 0, -100, 0]
 	var frames: Array[int] = [20, 22, 42, 44, 200]
 	#current_power = 200
@@ -541,7 +541,7 @@ func perform_zig_zag_pitch():
 #loops around backwards towards a guard
 func perform_looper_pitch():
 	aim_direction = global_position.direction_to(target).normalized()
-	status.energy = status.energy - (10 - attributes.endurance/10)
+	status.energy = status.energy - (10 - get_buffed_attribute("endurance")/10)
 	var curves: Array[float] = [0, 40, 0]
 	var frames: Array[int] = [50, 75, 120]
 	current_power = 200
@@ -552,8 +552,8 @@ func perform_looper_pitch():
 #semi-random
 func perform_knuckler_pitch():
 	aim_direction = global_position.direction_to(target).normalized()
-	status.energy = status.energy - (5 - attributes.endurance/20)
-	var knuckle = attributes.focus/5 #10 for 50, 19.8 for 99
+	status.energy = status.energy - (5 - get_buffed_attribute("endurance")/20)
+	var knuckle = get_buffed_attribute("focus")/5 #10 for 50, 19.8 for 99
 	var curves: Array[float] = [0, 0, randf_range(-knuckle, knuckle),randf_range(-knuckle, knuckle), randf_range(-knuckle, knuckle), randf_range(-knuckle, knuckle)]
 	var frames: Array[int] = [10, 20, 30, 40, 50, 60]
 	special_pitched.emit(aim_direction, current_power, curves, frames, "knuckler")
@@ -569,7 +569,7 @@ func find_wall_normal(wall:StaticBody2D) -> Vector2:
 #makes a sudden change, mimicing like it bounced off the ground
 func perform_bouncer_pitch():
 	aim_direction = global_position.direction_to(target).normalized()
-	status.energy = status.energy - (10 - attributes.endurance/10)
+	status.energy = status.energy - (10 - get_buffed_attribute("endurance")/10)
 	var curves: Array[float] = [2.4, -100, 0.0]
 	var frames: Array[int] = [40, 42, 60]
 	current_power = 300
@@ -580,7 +580,7 @@ func perform_bouncer_pitch():
 #does a loop-the-loop
 func perform_corker_pitch():
 	aim_direction = global_position.direction_to(target).normalized()
-	status.energy = status.energy - (10 - attributes.endurance/10)
+	status.energy = status.energy - (10 - get_buffed_attribute("endurance")/10)
 	var curves: Array[float] = [0.5, -120, 120, 0.5]
 	var frames: Array[int] = [40, 46, 58, 90]
 	current_power = 200
@@ -591,7 +591,7 @@ func perform_corker_pitch():
 #loops back around onto the keeper
 func perform_yoyo_pitch():
 	aim_direction = global_position.direction_to(target).normalized()
-	status.energy = status.energy - (10 - attributes.endurance/10)
+	status.energy = status.energy - (10 - get_buffed_attribute("endurance")/10)
 	var curves: Array[float] = [0, -50, 0.0, -50, 0, -50, 0]
 	var frames: Array[int] = [50, 56, 58, 62, 74, 80]
 	current_power = 200
@@ -607,8 +607,8 @@ func update_special_pitch_availability():
 func _on_goal_aced():
 	game_stats.aces += 1
 	status.groove += 15
-	if status.groove > attributes.confidence:
-		status.groove = attributes.confidence
+	if status.groove > get_buffed_attribute("confidence"):
+		status.groove = get_buffed_attribute("confidence")
 	successful_pitches.append(most_recent_pitch)
 	pass
 
@@ -663,7 +663,7 @@ func chase():
 		# If we're closer than chase threshold, go directly after opponent
 		if global_position.distance_to(opp_pitcher.global_position) < chase_threshold:
 			var direction = global_position.direction_to(opp_pitcher.global_position).normalized()
-			var speed = attributes.sprint_speed if status.boost > 0 else attributes.speed
+			var speed = get_buffed_attribute("sprint_speed") if status.boost > 0 else get_buffed_attribute("speed")
 			velocity = direction * speed
 			move_and_slide()
 			return
@@ -675,7 +675,7 @@ func chase():
 				else:
 					# Move toward current waypoint but prepare for next
 					var direction = global_position.direction_to(current_waypoint).normalized()
-					var speed = attributes.sprint_speed if status.boost > 0 else attributes.speed
+					var speed = get_buffed_attribute("sprint_speed") if status.boost > 0 else get_buffed_attribute("speed")
 					velocity = direction * speed
 					move_and_slide()
 					return
@@ -722,13 +722,13 @@ func flee():
 	move_around(speed)
 	if current_waypoint != Vector2.ZERO && global_position.distance_to(current_waypoint) < 5.0:
 		direction_changes = 0  # Reset direction changes when reaching waypoint
-		if randf_range(0,100) < attributes.reactions:
+		if randf_range(0,100) < get_buffed_attribute("reactions"):
 			reconsider_flee_direction()
 		advance_waypoints()
 	last_reaction_check += get_process_delta_time()
 	if last_reaction_check >= REACTION_CHECK_INTERVAL && direction_changes < MAX_DIRECTION_CHANGES:
 		last_reaction_check = 0.0
-		if randf_range(0,100) < attributes.reactions:
+		if randf_range(0,100) < get_buffed_attribute("reactions"):
 			if opp_pitcher.current_behavior == "chilling":
 				current_behavior = "chilling"
 				print("bro relax")
@@ -755,11 +755,11 @@ func calculate_flee_speed() -> float:
 	
 	if normalized_distance < CLOSE_DISTANCE_THRESHOLD:
 		if status.boost > 0:
-			return attributes.sprint_speed
+			return get_buffed_attribute("sprint_speed")
 		else:
-			return attributes.speed
+			return get_buffed_attribute("speed")
 	else:
-		return attributes.speed * 0.5 #walk
+		return get_buffed_attribute("speed") * 0.5 #walk
 
 func reconsider_flee_direction():
 	if running_positions.size() < 2 || direction_changes >= MAX_DIRECTION_CHANGES:
@@ -800,7 +800,7 @@ func chill():
 	if !current_chill_target or global_position.distance_to(current_chill_target) < chill_target_reached_threshold:
 		current_chill_target = get_random_chill_target()
 	var move_direction = global_position.direction_to(current_chill_target)
-	velocity = move_direction * (attributes.speed * 0.1)
+	velocity = move_direction * (get_buffed_attribute("speed") * 0.1)
 	move_and_slide()
 	
 	last_reaction_check += get_process_delta_time()
@@ -817,7 +817,7 @@ func fight_footwork():
 		direction = global_position.direction_to(opp_pitcher.global_position)
 	else:
 		direction = Vector2(randf_range(-1,1), randf_range(-1,1))
-	velocity = direction * (attributes.speed * 0.1)
+	velocity = direction * (get_buffed_attribute("speed") * 0.1)
 	move_and_slide()
 	
 func fight_or_flight():
@@ -827,8 +827,8 @@ func fight_or_flight():
 	var base_track = scrapping["track"]
 	var attribute_modifier = 0.0
 	
-	var tough_diff = opp_pitcher.attributes.toughness - attributes.toughness
-	var speed_diff = opp_pitcher.attributes.speed - attributes.speed
+	var tough_diff = opp_pitcher.get_buffed_attribute("toughness") - get_buffed_attribute("toughness")
+	var speed_diff = opp_pitcher.get_buffed_attribute("speed") - get_buffed_attribute("speed")
 	
 	if tough_diff > 0:
 		attribute_modifier = tough_diff / 100.0
@@ -886,15 +886,15 @@ func move_around(input_speed: float = -1.0):
 	var speed
 	if input_speed == -1:
 		if status.boost > 0:
-			speed = attributes.sprint_speed
+			speed = get_buffed_attribute("sprint_speed")
 		else:
-			speed = attributes.speed
+			speed = get_buffed_attribute("speed")
 	else:
 		speed = input_speed
 	var base_direction = global_position.direction_to(current_waypoint)
 	velocity = base_direction * speed
 	move_and_slide()
-	if status.boost > 0 and speed == attributes.sprint_speed:
+	if status.boost > 0 and speed == get_buffed_attribute("sprint_speed"):
 		status.boost = max(0, status.boost - 0.25)
 
 func initialize_waypoints():
@@ -907,7 +907,7 @@ func initialize_waypoints():
 	print("waypoing position at init: ", current_waypoint)
 	# Force movement to the first waypoint to prevent corner cutting
 	var direction_to_waypoint = global_position.direction_to(current_waypoint)
-	velocity = direction_to_waypoint * attributes.speed
+	velocity = direction_to_waypoint * get_buffed_attribute("speed")
 
 func advance_waypoints():
 	#print("team: ", team," old index: ", current_path_index, " clockwise: ", moving_clockwise)
@@ -928,10 +928,10 @@ func advance_waypoints():
 func handle_going_away():
 	var speed
 	if status.boost > 0:
-		speed = attributes.sprint_speed
+		speed = get_buffed_attribute("sprint_speed")
 		status.boost = status.boost - 0.25
 	else:
-		speed = attributes.speed
+		speed = get_buffed_attribute("speed")
 	var move_direction: Vector2
 	move_direction = global_position.direction_to(rest_position)
 	velocity = move_direction * speed
@@ -979,7 +979,7 @@ func get_random_chill_target() -> Vector2:
 	)
 	
 func check_chill_state():
-	if randf() < 0.3 * attributes.reactions:
+	if randf() < 0.3 * get_buffed_attribute("reactions"):
 		var my_index = find_closest_position_index(global_position)
 		var opp_index = find_closest_position_index(opp_pitcher.global_position)
 		var current_distance = min(
@@ -987,16 +987,16 @@ func check_chill_state():
 			calculate_counter_distance(opp_index, my_index)
 		)
 		if current_distance < running_positions.size() * 0.1:
-			if randf() < 0.8 * attributes.toughness:
+			if randf() < 0.8 * get_buffed_attribute("toughness"):
 				flee()
 				
 func set_groove():
-	status.groove = attributes.confidence
+	status.groove = get_buffed_attribute("confidence")
 	
 func find_groove(effect: float):
 	status.groove = status.groove + effect
-	if status.groove > attributes.confidence:
-		status.groove = attributes.confidence
+	if status.groove > get_buffed_attribute("confidence"):
+		status.groove = get_buffed_attribute("confidence")
 	elif status.groove < 0:
 		status.groove = 0
 

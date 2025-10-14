@@ -327,9 +327,9 @@ func celly():
 					velocity = Vector2.ZERO
 			else:
 				if global_position.distance_squared_to(celebrations_star.global_position) > 400: #farther than 20
-					velocity = global_position.direction_to(celebrations_star.global_position).normalized() * attributes.sprint_speed
+					velocity = global_position.direction_to(celebrations_star.global_position).normalized() * get_buffed_attribute("sprint_speed")
 				elif global_position.distance_squared_to(celebrations_star.global_position) < 100: #closer than 10
-					velocity = celebrations_star.global_position.direction_to(global_position).normalized() * attributes.speed
+					velocity = celebrations_star.global_position.direction_to(global_position).normalized() * get_buffed_attribute("speed")
 				else:
 					velocity = Vector2.ZERO
 			pass
@@ -339,19 +339,19 @@ func celly():
 		"moving_celly": #0 arms up, 1 shush, 2 knee slide, 3 dancing
 			if !celebration_direction:
 				celebration_direction = Vector2.RIGHT.rotated(randf_range(0, TAU))
-			velocity = celebration_direction.normalized() * attributes.speed/2
+			velocity = celebration_direction.normalized() * get_buffed_attribute("speed")/2
 			#TODO: stop at a random time
 			pass#TODO: run in a random direction, then stop
 		"flee_celly": #0 just run, 1 shush, 2 airplane, 3 dancing
-			velocity = global_position.direction_to(Vector2(300, 0)).normalized() * attributes.sprint_speed
+			velocity = global_position.direction_to(Vector2(300, 0)).normalized() * get_buffed_attribute("sprint_speed")
 			pass
 		"avoid_celly": #0 pumping fists, 1 airplane, 2 shush, 3 just run
 			pass #TODO: run away from teammates
 		"mob_celly": #0 arms up, 1 pumping, 2 arms up, 3 dancing
 			if celebrations_star:
-				velocity = global_position.direction_to(celebrations_star.global_position).normalized() * attributes.speed
+				velocity = global_position.direction_to(celebrations_star.global_position).normalized() * get_buffed_attribute("speed")
 			else:
-				velocity = global_position.direction_to(Vector2(0,0)).normalized() * attributes.speed
+				velocity = global_position.direction_to(Vector2(0,0)).normalized() * get_buffed_attribute("speed")
 			pass 
 
 func lose():
@@ -388,7 +388,7 @@ func standard_behavior(delta):
 	elif needs_go_home and assigned_half:
 		print("ET Go HOOME")
 		var direction = global_position.direction_to(assigned_half.global_position)
-		velocity = velocity + direction.normalized() * attributes.sprint_speed * 1.1
+		velocity = velocity + direction.normalized() * get_buffed_attribute("sprint_speed") * 1.1
 		return
 	if is_incapacitated:
 		velocity = Vector2.ZERO
@@ -503,7 +503,7 @@ func handle_human_input(delta):
 	# Sprinting
 	if Input.is_action_pressed("sprint") and status.boost > 5 and not is_spinning:
 		is_sprinting = true
-		velocity = input_dir.normalized() * attributes.sprint_speed
+		velocity = input_dir.normalized() * get_buffed_attribute("sprint_speed")
 	elif Input.is_action_pressed("walk"):
 		is_sprinting = false
 		velocity = input_dir.normalized() * attributes.speed / 2
@@ -558,9 +558,9 @@ func join_brawl_movement():
 func jumped_brawl(opponent: Player):
 	velocity = Vector2.ZERO
 	if opponent.attributes.toughness > self.attributes.toughness + 10:#I'm just a little guy, come on
-		status.anger += attributes.aggression/5.0
+		status.anger += get_buffed_attribute("aggression")/5.0
 	else:
-		status.anger += attributes.aggression/8.0
+		status.anger += get_buffed_attribute("aggression")/8.0
 	var choice = brawl_preferences.game + brawl_preferences.cower + brawl_preferences.join + brawl_preferences.partner
 	var rand = randf_range(0, choice)
 	if rand < brawl_preferences.game + brawl_preferences.cower:#try to escape
@@ -665,7 +665,7 @@ func attempt_sprint(target_position: Vector2):
 	
 	# Add slight initial curve (left or right)
 	var curve_direction = 1 if randf() > 0.5 else -1
-	var initial_curve = curve_direction * (0.5 + randf() * 0.5) * (attributes.aggression / 100.0)
+	var initial_curve = curve_direction * (0.5 + randf() * 0.5) * (get_buffed_attribute("aggression") / 100.0)
 	
 	# Calculate variance based on confidence
 	var variance = 1.0 - (attributes.confidence / 100.0)
@@ -759,7 +759,7 @@ func execute_dodging():
 		# Juke has two phases
 		if dodge_phase == 0: # First phase (fake)
 			if current_dodge_frame < dodge_frames:
-				velocity = dodge_direction * attributes.sprint_speed
+				velocity = dodge_direction * get_buffed_attribute("sprint_speed")
 			else:
 				# Switch to second phase
 				dodge_phase = 1
@@ -768,7 +768,7 @@ func execute_dodging():
 				dodge_frames *= 2 # Longer movement for actual dodge
 		else: # Second phase (actual dodge)
 			if current_dodge_frame < dodge_frames:
-				velocity = Vector2(dodge_direction.x * attributes.sprint_speed * dodge_factor, velocity.y)
+				velocity = Vector2(dodge_direction.x * get_buffed_attribute("sprint_speed") * dodge_factor, velocity.y)
 			else:
 				# End dodge
 				is_dodging = false
@@ -786,7 +786,7 @@ func execute_dodging():
 				dodge_direction = dodge_direction.rotated(-PI/2).normalized()
 		
 		if dodge_phase < 4:
-			velocity = dodge_direction * attributes.sprint_speed * dodge_factor
+			velocity = dodge_direction * get_buffed_attribute("sprint_speed") * dodge_factor
 		else:
 			# End roll
 			is_dodging = false
@@ -801,7 +801,7 @@ func attempt_attack(target_position: Vector2):
 	is_sprinting = true
 	status.boost -= 1
 	var to_target = (target_position - global_position).normalized()
-	velocity = to_target * attributes.sprint_speed
+	velocity = to_target * get_buffed_attribute("sprint_speed")
 	if has_node("NavigationAgent2D"):
 		$NavigationAgent2D.target_position = target_position
 	
@@ -1033,10 +1033,10 @@ func _make_combat_decision(opponent_position: Vector2, current_dist: float):
 	
 	var attack_prob = randf()
 	
-	if attack_prob < attributes.aggression:
+	if attack_prob < get_buffed_attribute("aggression"):
 		attempt_attack(opponent_position)
 		fencing_timer = 0.0
-		velocity = (global_position - current_opponent.global_position).normalized() * attributes.sprint_speed
+		velocity = (global_position - current_opponent.global_position).normalized() * get_buffed_attribute("sprint_speed")
 		status.momentum += 10
 	else:
 		attempt_dodge()
@@ -1068,8 +1068,8 @@ func reset_state():
 	is_stunned = false
 	is_sprinting = false
 	is_incapacitated = false
-	status.stability = attributes.balance
-	status.max_boost = status.energy * attributes.endurance/100
+	status.stability = get_buffed_attribute("balance")
+	status.max_boost = status.energy * get_buffed_attribute("endurance")/100
 	status.boost = status.max_boost
 	
 func child_state():
@@ -1115,16 +1115,16 @@ func move_towards_half():
 	var target_y = clamp(global_position.y, half_rect.position.y, half_rect.end.y)
 	velocity = Vector2.ZERO
 	if global_position.x < half_rect.position.x:  # Too far left
-		velocity.x = attributes.speed
+		velocity.x = get_buffed_attribute("speed")
 	elif global_position.x > half_rect.end.x:     # Too far right
-		velocity.x = -attributes.speed
+		velocity.x = -get_buffed_attribute("speed")
 	if global_position.y < half_rect.position.y:  # Too far up
-		velocity.y = attributes.speed
+		velocity.y = get_buffed_attribute("speed")
 	elif global_position.y > half_rect.end.y:     # Too far down
-		velocity.y = -attributes.speed
+		velocity.y = -get_buffed_attribute("speed")
 	if velocity.x != 0 or velocity.y != 0:
 		current_behavior = "returning"
-		velocity = velocity.normalized() * attributes.speed
+		velocity = velocity.normalized() * get_buffed_attribute("speed")
 	if is_in_half():
 		$CollisionPolygon2D.disabled = false
 		$AttackArea/CollisionPolygon2D.disabled = false
@@ -1148,8 +1148,8 @@ func add_energy(amount: int):
 	
 func add_groove(amount: int):
 	status.groove += amount
-	if status.groove > attributes.confidence:
-		status.groove = attributes.confidence
+	if status.groove > get_buffed_attribute("confidence"):
+		status.groove = get_buffed_attribute("confidence")
 		
 func lose_groove(amount: int):
 	status.groove -= abs(amount) #in case I forget whether I want to pass positives or negatives. Doesn't matter now
@@ -1175,7 +1175,7 @@ func lose_boost(amount: float):
 		status.boost = 0
 
 func set_default_groove():
-	status.groove = attributes.confidence/4 * GlobalSettings.special_pitch_frequency
+	status.groove = get_buffed_attribute("confidence")/4 * GlobalSettings.special_pitch_frequency
 	
 func get_socked(impact: float):
 	if impact < 0:

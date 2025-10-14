@@ -60,7 +60,7 @@ func _ready():
 	current_behavior = "bull_rush"
 	super._ready()
 	position_type = "forward"
-	decision_frames = 100 - (attributes.reactions)/2 #between 50 and 75 frames
+	decision_frames = 100 - (get_buffed_attribute("reactions"))/2 #between 50 and 75 frames
 	navigation_agent.path_desired_distance = 10.0
 	navigation_agent.target_desired_distance = 10.0
 	$SwitchCooldown.wait_time = switch_cooldown
@@ -74,7 +74,7 @@ func restore_behaviors():
 	behaviors = ["bull_rush", "skill_rush", "target_man", "shooter", "rebound", "pick", "bully", "fencing", "cower", "returning", "defend"]
 
 func _physics_process(delta):
-	#print("Forward behavior: " + current_behavior + ", team " + str(team) + ", fight level: " + str(attributes.aggression + status.anger))
+	#print("Forward behavior: " + current_behavior + ", team " + str(team) + ", fight level: " + str(get_buffed_attribute("aggression") + status.anger))
 	super._physics_process(delta)
 	if !can_move:
 		velocity = Vector2.ZERO
@@ -173,7 +173,7 @@ func execute_bull_rush():
 				attempt_dodge()
 	navigation_agent.target_position = opposing_keeper.global_position
 	navigate_to(opposing_keeper.global_position)
-	if global_position.distance_to(opposing_keeper.global_position) < attributes.aggression:
+	if global_position.distance_to(opposing_keeper.global_position) < get_buffed_attribute("aggression"):
 		attempt_attack(opposing_keeper.global_position)
 	
 	rush_line.queue_free()
@@ -190,16 +190,16 @@ func execute_skill_rush():
 		var speed
 		if status.boost > 25:
 			is_sprinting = true
-			speed = attributes.sprint_speed
+			speed = get_buffed_attribute("sprint_speed")
 		else:
 			is_sprinting = false
-			speed = attributes.speed
+			speed = get_buffed_attribute("speed")
 		velocity = direction * speed
 		return
 	elif forward_partner.current_behavior == "pick" and !forward_partner.is_incapacitated and !assigned_guard.is_incapacitated:
 		var pick_target = forward_partner.global_position + (forward_partner.global_position - goal_position).normalized() * 10
 		var read = randi_range(0, 100)
-		if read < attributes.positioning: #not using the pick is a big brain move
+		if read < get_buffed_attribute("positioning"): #not using the pick is a big brain move
 			var behind = global_position + (forward_partner.global_position - global_position).normalized() * 15
 			if has_clear_path_to(goal_position, behind):
 				pick_target = behind
@@ -270,7 +270,7 @@ func execute_rebound():
 		return
 	
 	check_pass_opportunity()
-	rebound_projection_accuracy = 0.5 + (attributes.positioning / 200.0)
+	rebound_projection_accuracy = 0.5 + (get_buffed_attribute("positioning") / 200.0)
 	predict_ball_path_with_rebounds()
 	var intercept = find_intercept_point()
 	if intercept == null:
@@ -287,7 +287,7 @@ func execute_rebound():
 	else:
 		var direction = global_position.direction_to(intercept)
 		navigation_agent.target_position = intercept
-		velocity = attributes.speed * direction
+		velocity = get_buffed_attribute("speed") * direction
 		is_sprinting = false
 		move_and_slide()
 
@@ -298,12 +298,12 @@ func execute_pick():
 	if other_guard.is_stunned:
 		choose_post_pick_behavior()
 	var pick_target: Vector2
-	#if attributes.positioning > other_guard.attributes.positioning:
+	#if get_buffed_attribute("positioning") > other_guard.get_buffed_attribute("positioning"):
 		#pick_target = smart_pick_target()
 		#pass
 	pick_target = other_guard.global_position
 		
-	if global_position.distance_to(pick_target) <attributes.aggression - 25:
+	if global_position.distance_to(pick_target) <get_buffed_attribute("aggression") - 25:
 		attempt_attack(pick_target)
 		return
 	if status.boost > 0:
@@ -336,7 +336,7 @@ func choose_post_pick_behavior():
 		current_behavior = "defend"
 	elif rand < rush_weight + shoot_weight + defend_weight + bully_weight:
 		rand = randf()
-		if rand < attributes.aggression/100: #go after the assigned guard too! mad lad
+		if rand < get_buffed_attribute("aggression")/100: #go after the assigned guard too! mad lad
 			bullied_opponent = assigned_guard
 		else:
 			bullied_opponent = other_guard
@@ -363,7 +363,7 @@ func execute_bully():
 	
 	if !bullied_opponent.is_stunned:
 		navigate_to(bullied_opponent.global_position)
-		if global_position.distance_to(bullied_opponent.global_position) < attributes.aggression/2:
+		if global_position.distance_to(bullied_opponent.global_position) < get_buffed_attribute("aggression")/2:
 			attempt_attack(bullied_opponent.global_position)
 		return
 	
@@ -432,8 +432,8 @@ func choose_behavior(skip = false):
 	if behaviors.size() == 0:
 		return
 	if !skip and opposing_keeper:
-		if ((opposing_keeper.current_behavior == "fencing" or opposing_keeper.current_behavior == "brawling") and randf() < attributes.aggression/100 - 0.5) or ((forward_partner.current_behavior == "brawling" or assigned_guard.current_behavior == "brawling") and randf() < attributes.aggression/100 - 0.4):
-			if attributes.aggression + status.anger >= 100:
+		if ((opposing_keeper.current_behavior == "fencing" or opposing_keeper.current_behavior == "brawling") and randf() < get_buffed_attribute("aggression")/100 - 0.5) or ((forward_partner.current_behavior == "brawling" or assigned_guard.current_behavior == "brawling") and randf() < get_buffed_attribute("aggression")/100 - 0.4):
+			if get_buffed_attribute("aggression") + status.anger >= 100:
 				handle_brawl_behavior()
 				return
 	
@@ -461,7 +461,7 @@ func choose_behavior(skip = false):
 	var cumulative_weight = 0.0
 	
 	if ball.linear_velocity.length() < 200 and ball.global_position.distance_squared_to(global_position) < ball.global_position.distance_squared_to(forward_partner.global_position):
-		if ball.last_touched_time > 600 - (attributes.reactions * 6):
+		if ball.last_touched_time > 600 - (get_buffed_attribute("reactions") * 6):
 			combined_weights["rebound"] *= 2 #go after the ball if nobody else seems to be
 	
 	if forward_partner.current_behavior == "target_man": #favor shooting or rebounding
@@ -518,7 +518,7 @@ func is_guard_vulnerable() -> bool:
 
 func is_ball_reachable() -> bool:
 	return (ball and 
-			global_position.distance_to(ball.global_position) < attributes.speed/1.5 and 
+			global_position.distance_to(ball.global_position) < get_buffed_attribute("speed")/1.5 and 
 			has_clear_path_to(ball.global_position))
 			
 func handle_brawl_behavior():
@@ -528,7 +528,7 @@ func handle_brawl_behavior():
 			"lurking":
 				brawl_lurk()
 			"joining":
-				velocity = global_position.direction_to(forward_partner.global_position).normalized() * attributes.sprint_speed
+				velocity = global_position.direction_to(forward_partner.global_position).normalized() * get_buffed_attribute("sprint_speed")
 				move_and_slide()
 				current_behavior = "brawling"
 				brawl_opponents += forward_partner.brawl_opponents
@@ -661,7 +661,7 @@ func check_pass_opportunity():
 		should_pass = Input.is_action_pressed("pass")
 	else:
 		should_pass = (
-			randf() < pass_tendency * (attributes.confidence / 100.0) and
+			randf() < pass_tendency * (get_buffed_attribute("confidence") / 100.0) and
 			global_position.distance_to(forward_partner.global_position) < 600
 		)
 	
@@ -700,8 +700,8 @@ func calculate_dodge_success() -> float:
 	var base_chance = 0.5
 	var guard_attack_prob = predict_guard_attack()
 	
-	var confidence_bonus = attributes.confidence / 200.0
-	var speed_advantage = (attributes.speed - assigned_guard.attributes.speed) / 500.0
+	var confidence_bonus = get_buffed_attribute("confidence") / 200.0
+	var speed_advantage = (get_buffed_attribute("speed") - assigned_guard.get_buffed_attribute("speed")) / 500.0
 	var energy_advantage = (status.energy - assigned_guard.status.energy) / 200.0
 	var distance_factor = 1.0 - (global_position.distance_to(assigned_guard.global_position) / 300.0)
 	
@@ -723,7 +723,7 @@ func predict_guard_attack() -> float:
 	
 	var attack_prob = 0.0
 	
-	attack_prob += assigned_guard.attributes.aggression / 100.0 * 0.4
+	attack_prob += assigned_guard.get_buffed_attribute("aggression") / 100.0 * 0.4
 	
 	var guard_to_ball_dist = assigned_guard.global_position.distance_to(ball.global_position)
 	attack_prob += (1.0 - clamp(guard_to_ball_dist / 400.0, 0.0, 1.0)) * 0.3
@@ -787,9 +787,9 @@ func navigate_to(position: Vector2):
 		var stuck = 1
 		if is_incapacitated:
 			stuck = 0
-		var speed = attributes.speed
+		var speed = get_buffed_attribute("speed")
 		if is_sprinting:
-			speed = attributes.sprint_speed
+			speed = get_buffed_attribute("sprint_speed")
 		velocity = global_position.direction_to(next_path_pos) * speed * stuck
 
 
@@ -816,7 +816,7 @@ func calculate_slot_position():
 
 func predict_ball_reflection() -> Vector2:
 	var ball_to_keeper = (opposing_keeper.global_position - ball.global_position).normalized()
-	var positioning_error = 1.0 - (attributes.positioning / 100.0)
+	var positioning_error = 1.0 - (get_buffed_attribute("positioning") / 100.0)
 	var error_angle = randf_range(-PI/8, PI/8) * positioning_error
 	var keeper_facing = Vector2(0, 1) if team == 1 else Vector2(0, -1)
 	var reflected_dir = ball_to_keeper.bounce(keeper_facing).rotated(error_angle)
@@ -847,7 +847,7 @@ func evaluate_aim_point(point: Vector2) -> float:
 	return score
 
 func handle_shooter_positioning():
-	if global_position.distance_to(ball.global_position) < attributes.reactions/5 and ball.linear_velocity.length() < 50:
+	if global_position.distance_to(ball.global_position) < get_buffed_attribute("reactions")/5 and ball.linear_velocity.length() < 50:
 		navigate_to(ball.global_position)
 		return
 	if !is_in_slot:
@@ -886,13 +886,13 @@ func handle_defensive_pressure():
 		decide_defensive_response(guard_distance, keeper_distance)
 
 func decide_defensive_response(guard_dist: float, keeper_dist: float):
-	var fencing_chance = 0.3 * (attributes.aggression / 100.0) * (attributes.aggression / 100.0) #7.5% chance at 50, 29.4% chance at 99
+	var fencing_chance = 0.3 * (get_buffed_attribute("aggression") / 100.0) * (get_buffed_attribute("aggression") / 100.0) #7.5% chance at 50, 29.4% chance at 99
 	if ball:
 		var ball_dist = global_position.distance_to(ball.global_position)
 		fencing_chance *= clamp(ball_dist / 300.0, 0.1, 1.0)
 	
 	if randf() < fencing_chance:
-		if status.anger + attributes.aggression > 100:
+		if status.anger + get_buffed_attribute("aggression") > 100:
 			switch_to_fencing_mode()
 	else:
 		if keeper_dist < guard_dist && randf() < 0.6:
@@ -942,7 +942,7 @@ func calculate_target_man_position():
 	
 	# If still no intercept, choose a random position between 0 and waiting point
 	if !ideal_intercept:
-		var positioning_randomness = 1.0 - (attributes.positioning / 100.0)
+		var positioning_randomness = 1.0 - (get_buffed_attribute("positioning") / 100.0)
 		var random_x = randf_range(min_x, max_x) * positioning_randomness
 		ideal_intercept = Vector2(
 			random_x,
@@ -951,10 +951,10 @@ func calculate_target_man_position():
 	# If too close to assigned guard or opposing keeper, drift wide
 	if (assigned_guard and !assigned_guard.is_stunned and ideal_intercept.distance_to(assigned_guard.global_position) < 10) or (opposing_keeper and ideal_intercept.distance_to(opposing_keeper.global_position) < 10 and !opposing_keeper.is_stunned):
 		var drift_direction = sign(waiting_point.x) if waiting_point.x != 0 else (1 if randf() > 0.5 else -1)
-		var drift_amount = randf_range(50, 150) * (1.0 - (attributes.positioning / 100.0))
+		var drift_amount = randf_range(50, 150) * (1.0 - (get_buffed_attribute("positioning") / 100.0))
 		ideal_intercept.x += drift_direction * drift_amount
 	# Apply some randomness based on positioning skill
-	var positioning_variance = (100 - attributes.positioning) / 2.0
+	var positioning_variance = (100 - get_buffed_attribute("positioning")) / 2.0
 	target_man_position = Vector2(
 		ideal_intercept.x + randf_range(-positioning_variance, positioning_variance),
 		ideal_intercept.y + randf_range(-positioning_variance, positioning_variance)
@@ -989,7 +989,7 @@ func start_avoiding_guard():
 	is_avoiding_guard = true
 	
 	if randf() < 0.3:
-		if status.anger + attributes.aggression >= 100:
+		if status.anger + get_buffed_attribute("aggression") >= 100:
 			switch_to_fencing_mode()
 			return
 		
@@ -1078,7 +1078,7 @@ func find_intercept_point():
 		var point_time = point.time
 		
 		var distance_to_point = global_position.distance_to(point_pos)
-		var time_to_reach = distance_to_point / (attributes.speed * 10)
+		var time_to_reach = distance_to_point / (get_buffed_attribute("speed") * 10)
 		
 		if time_to_reach <= point_time * 1.1:
 			if point_time < best_time:
@@ -1104,7 +1104,7 @@ func handle_obstacles_to_intercept():
 		var obstacle = result.collider
 		var obstacle_pos = result.position
 		
-		var attack_chance = 0.5 + (attributes.aggression / 200.0)
+		var attack_chance = 0.5 + (get_buffed_attribute("aggression") / 200.0)
 		
 		if randf() < attack_chance:
 			attempt_attack(assigned_guard.global_position)
@@ -1188,7 +1188,7 @@ func perform_fencing():
 	if current_opponent.global_position.distance_squared_to(global_position) < 400:
 		current_behavior = "brawling"
 	navigation_agent.target_position = current_opponent.global_position
-	velocity = global_position.direction_to(navigation_agent.target_position).normalized() * attributes.speed
+	velocity = global_position.direction_to(navigation_agent.target_position).normalized() * get_buffed_attribute("speed")
 	move_and_slide()
 		
 func _should_break_fencing() -> bool:
@@ -1215,7 +1215,7 @@ func perform_defending():
 	var own_goal = Vector2(0, 0 - goal_position.y)
 	var read
 	read = randi_range(0,100)
-	if read < attributes.positioning: #if we make a good read, we get to know what the keeper is thinking
+	if read < get_buffed_attribute("positioning"): #if we make a good read, we get to know what the keeper is thinking
 		var opp_aim = opposing_keeper.aim
 		if aim.distance_to(assigned_guard.global_position) < 10: #passing to our guard
 			desired_position = (assigned_guard.global_position + opposing_keeper.global_position*2)/3
@@ -1226,7 +1226,7 @@ func perform_defending():
 			desired_position = Vector2((opp_aim.x+temp.x)/2, temp.y)
 	else:
 		desired_position = (own_goal + assigned_guard.global_position + opposing_keeper.global_position*2) / 4
-	if ball.global_position.distance_to(global_position) < (attributes.speedRating + attributes.reactions)/8: #12.5 to 24.75
+	if ball.global_position.distance_to(global_position) < (get_buffed_attribute("speed_rating") + get_buffed_attribute("reactions"))/8: #12.5 to 24.75
 		execute_rebound()
 		return
 	navigation_agent.target_position = desired_position

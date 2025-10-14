@@ -160,7 +160,7 @@ func handle_defender_collision(player: Player):
 	if (player.position_type == "guard" and player.aim_point == player.oppGoal) or (player.position_type == "keeper" and player.aim.distance_to(player.opp_goal) < 10):
 		emit = true
 	# Add randomness based on accuracy
-	var accuracy_offset = 1.0 - (player.attributes.accuracy / 100.0)	
+	var accuracy_offset = 1.0 - (player.get_buffed_attribute("accuracy") / 100.0)	
 	var pass_dir = (pass_target - global_position).normalized()
 	pass_dir = pass_dir.rotated(randf_range(-accuracy_offset * 0.1, accuracy_offset * 0.1))
 	if player.is_spin_doctor:
@@ -198,10 +198,10 @@ func apply_forward_hit(forward: Player, direction: Vector2, emit: bool = true):
 	var combined_power = (
 		forward_speed_toward_goal * 0.7 + 
 		ball_speed_component * 0.3
-	) * (1.0 + forward.attributes.shooting / 100.0)
+	) * (1.0 + forward.get_buffed_attribute("shooting") / 100.0)
 	
 	# Apply accuracy variance
-	var accuracy_offset = 1.0 - (forward.attributes.accuracy / 100.0)
+	var accuracy_offset = 1.0 - (forward.get_buffed_attribute("accuracy") / 100.0)
 	direction = direction.rotated(randf_range(-accuracy_offset * 0.2, accuracy_offset * 0.2))
 	
 	# Calculate final velocity
@@ -361,13 +361,13 @@ func save_value_for_keeper():
 
 func calculate_spin_doctor(keeper: Player):
 	if keeper.velocity.x >= 5:
-		current_spin = keeper.attributes.focus / 10
+		current_spin = keeper.get_buffed_attribute("focus") / 10
 	elif keeper.velocity.x <= 5:
-		current_spin = 0.0 -keeper.attributes.focus / 10
+		current_spin = 0.0 -keeper.get_buffed_attribute("focus") / 10
 	else: #basically standing still, choice is based on handedness
 		if keeper.bio.leftHanded:
-			current_spin =  keeper.attributes.focus / 10
+			current_spin =  keeper.get_buffed_attribute("focus") / 10
 		else:
-			current_spin = 0.0 - keeper.attributes.focus / 10
+			current_spin = 0.0 - keeper.get_buffed_attribute("focus") / 10
 	#current_spin = current_spin * 10 #debug. We'll see if this is actually doing anything
 	print("paging the spin doctor, code " + str(current_spin))
