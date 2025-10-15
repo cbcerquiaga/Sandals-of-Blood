@@ -1028,6 +1028,9 @@ func update_team_roster(team: Team):
 			position_player(pTeam.P, field.human_rhp_spawn, field.human_orientation)
 		ball.reset_ball(Vector2(pTeam.P.global_position.x + pTeam.P.hand_offset, pTeam.P.global_position.y))
 
+func update_team_buffs():
+	pTeam.apply_settings_buff(true)
+	aTeam.apply_settings_buff(false)
 
 func _on_pause_menu_new_sub() -> void:
 	if !is_play_live and !is_ball_pitched and current_play_time == 0:

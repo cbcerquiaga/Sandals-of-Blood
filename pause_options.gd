@@ -215,14 +215,14 @@ func _on_game_speed_value_changed(value: float) -> void:
 	Engine.time_scale = GlobalSettings.game_speed
 
 func _on_sp_frequency_value_changed(value: float) -> void:
-	pass # Replace with function body.
+	GlobalSettings.special_pitch_frequency = value
 
 
 func _on_buff_human_value_changed(value: float) -> void:
-	GlobalSettings.human_buff = value
+	GlobalSettings.human_buff = int(value)
 
 func _on_buff_ai_value_changed(value: float) -> void:
-	GlobalSettings.cpu_buff = value
+	GlobalSettings.cpu_buff = int(value)
 
 
 func _on_inj_frequency_value_changed(value: float) -> void:

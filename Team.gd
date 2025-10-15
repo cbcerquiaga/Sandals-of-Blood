@@ -1050,10 +1050,11 @@ func apply_settings_buff(isHuman: bool):
 	else:
 		buff_val = GlobalSettings.cpu_buff
 	var buff_stats = ["speed", "speed_rating", "sprint_speed", "blocking", "positioning", "reactions", "durability", "power", "throwing", "endurance", "accuracy", "balance", "focus", "shooting", "toughness", "confidence", "agility"] #everything but aggression because that's really a player's style more than ability
-	var buff_vals = [buff_val,buff_val, buff_val,buff_val,buff_val,buff_val,buff_val,buff_val,buff_val,buff_val,buff_val,buff_val,buff_val,buff_val,buff_val,buff_val,buff_val]
+	var buff_vals = [buff_val,buff_val, buff_val*2,buff_val,buff_val,buff_val,buff_val,buff_val,buff_val,buff_val,buff_val,buff_val,buff_val,buff_val,buff_val,buff_val,buff_val]
 	LF.add_buff("settings", buff_stats, buff_vals)
 	RF.add_buff("settings", buff_stats, buff_vals)
 	P.add_buff("settings", buff_stats, buff_vals)
 	LG.add_buff("settings", buff_stats, buff_vals)
 	RG.add_buff("settings", buff_stats, buff_vals)
 	K.add_buff("settings", buff_stats, buff_vals)
+	print("Got buffed: " + str(buff_val) + " Human team: " + str(isHuman))

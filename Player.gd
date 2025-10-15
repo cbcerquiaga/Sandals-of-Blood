@@ -1267,6 +1267,7 @@ func get_buffed_attribute(attribute_name: String) -> float:
 		push_error("Attribute '" + attribute_name + "' does not exist")
 		return 0.0
 	var total = attributes[attribute_name]
+	print("Value of " + attribute_name + " before buff: " + str(total))
 	if active_buffs.size() == 0:
 		return total
 	for buff_name in active_buffs:
@@ -1276,6 +1277,7 @@ func get_buffed_attribute(attribute_name: String) -> float:
 		for i in range(buff_attributes.size()):
 			if buff_attributes[i] == attribute_name:
 				total += buff_values[i]
+	print("Value of " + attribute_name + " after buff: " + str(total))
 	return clamp(total, 0, total)#can't go below 0
 	
 func get_position_class(position: String) -> GDScript:

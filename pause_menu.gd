@@ -110,6 +110,7 @@ func _on_options_pressed() -> void:
 	
 func _on_options_menu_closed():
 	submenu = ""
+	matchHandler.update_team_buffs()
 	open_menu("options")
 	
 func _on_stats_menu_closed():
