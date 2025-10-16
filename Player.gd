@@ -176,6 +176,15 @@ var celebrations_star: Player #when in team celebration, the team follows the st
 @onready var playStyle: String
 @onready var playStyle_texture: String
 
+#gear
+@onready var gear_helmet: Equipment
+@onready var gear_glove: Equipment
+@onready var gear_shoe: Equipment
+@onready var gear_accessory1: Equipment
+@onready var gear_accessory2: Equipment
+@onready var gear_accessory3: Equipment
+#keeper gear left off deliberately, included in team
+
 # Special Pitches- any player can pitch
 @onready var special_pitch_names: Array[String] = ["bouncer", "fake_curve", "looper"]
 @onready var special_pitch_groove: Array[float] = [0, 40, 20] #groove ratings needed to throw each pitch
