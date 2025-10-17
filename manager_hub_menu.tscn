@@ -1,0 +1,92 @@
+[gd_scene load_steps=12 format=3 uid="uid://cxtkbe8aypqef"]
+
+[ext_resource type="Script" path="res://manager_hub_menu.gd" id="1_anhhw"]
+[ext_resource type="Texture2D" uid="uid://crrgi3afo3d6k" path="res://UI/HubUI/TeamButton_base.png" id="2_chcud"]
+[ext_resource type="Texture2D" uid="uid://dxb3fcqfo3n7b" path="res://UI/HubUI/TeamButton_highlighted.png" id="3_ke4nv"]
+[ext_resource type="Texture2D" uid="uid://dp5histsanljc" path="res://UI/HubUI/ManagementButton_base.png" id="4_r50d0"]
+[ext_resource type="Texture2D" uid="uid://biepypwkr3nuq" path="res://UI/HubUI/ManagementButton_highlighted.png" id="5_2ip7o"]
+[ext_resource type="Texture2D" uid="uid://bcrmpi3avv0kh" path="res://UI/HubUI/LeagueButton_base.png" id="6_78bkh"]
+[ext_resource type="Texture2D" uid="uid://dw5i56kf07fa4" path="res://UI/HubUI/LeagueButton_highlighted.png" id="7_8dm1t"]
+[ext_resource type="Texture2D" uid="uid://cgb1srj4huf7w" path="res://UI/HubUI/CareerButton_base.png" id="8_573tc"]
+[ext_resource type="Texture2D" uid="uid://cmxgqd7n4nguh" path="res://UI/HubUI/CareerButton_highlighted.png" id="9_g1s1d"]
+[ext_resource type="Texture2D" uid="uid://b4k5ome43njiu" path="res://UI/HubUI/SystemButton_base.png" id="10_asca1"]
+[ext_resource type="Texture2D" uid="uid://b22uwdkvl3v08" path="res://UI/HubUI/SystemButton_highlighted.png" id="11_pvpj8"]
+
+[node name="ManagerHubMenu" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+scale = Vector2(0.5, 0.5)
+script = ExtResource("1_anhhw")
+
+[node name="HBoxContainer" type="HBoxContainer" parent="."]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="Travel-GameContainer" type="VBoxContainer" parent="HBoxContainer"]
+layout_mode = 2
+
+[node name="TextureButton" type="TextureButton" parent="HBoxContainer/Travel-GameContainer"]
+layout_mode = 2
+
+[node name="TeamContainer" type="VBoxContainer" parent="HBoxContainer"]
+layout_mode = 2
+
+[node name="TextureButton" type="TextureButton" parent="HBoxContainer/TeamContainer"]
+layout_mode = 2
+texture_normal = ExtResource("2_chcud")
+texture_hover = ExtResource("3_ke4nv")
+texture_focused = ExtResource("3_ke4nv")
+
+[node name="ManagementContainer" type="VBoxContainer" parent="HBoxContainer"]
+layout_mode = 2
+
+[node name="TextureButton" type="TextureButton" parent="HBoxContainer/ManagementContainer"]
+layout_mode = 2
+texture_normal = ExtResource("4_r50d0")
+texture_hover = ExtResource("5_2ip7o")
+texture_focused = ExtResource("5_2ip7o")
+
+[node name="LeagueContainer" type="VBoxContainer" parent="HBoxContainer"]
+layout_mode = 2
+
+[node name="TextureButton" type="TextureButton" parent="HBoxContainer/LeagueContainer"]
+layout_mode = 2
+texture_normal = ExtResource("6_78bkh")
+texture_hover = ExtResource("7_8dm1t")
+texture_focused = ExtResource("7_8dm1t")
+
+[node name="CareerContainer" type="VBoxContainer" parent="HBoxContainer"]
+layout_mode = 2
+
+[node name="TextureButton" type="TextureButton" parent="HBoxContainer/CareerContainer"]
+layout_mode = 2
+texture_normal = ExtResource("8_573tc")
+texture_hover = ExtResource("9_g1s1d")
+texture_focused = ExtResource("9_g1s1d")
+
+[node name="SystemContainer" type="VBoxContainer" parent="HBoxContainer"]
+layout_mode = 2
+
+[node name="TextureButton" type="TextureButton" parent="HBoxContainer/SystemContainer"]
+layout_mode = 2
+texture_normal = ExtResource("10_asca1")
+texture_hover = ExtResource("11_pvpj8")
+texture_focused = ExtResource("11_pvpj8")
+
+[connection signal="focus_entered" from="HBoxContainer/Travel-GameContainer/TextureButton" to="." method="_on_today_focus"]
+[connection signal="mouse_entered" from="HBoxContainer/Travel-GameContainer/TextureButton" to="." method="_on_today_focus"]
+[connection signal="focus_entered" from="HBoxContainer/TeamContainer/TextureButton" to="." method="_on_team_focused"]
+[connection signal="mouse_entered" from="HBoxContainer/TeamContainer/TextureButton" to="." method="_on_team_focused"]
+[connection signal="focus_entered" from="HBoxContainer/ManagementContainer/TextureButton" to="." method="_on_management_focus"]
+[connection signal="mouse_entered" from="HBoxContainer/ManagementContainer/TextureButton" to="." method="_on_management_focus"]
+[connection signal="focus_entered" from="HBoxContainer/LeagueContainer/TextureButton" to="." method="_on_league_focus"]
+[connection signal="mouse_entered" from="HBoxContainer/LeagueContainer/TextureButton" to="." method="_on_league_focus"]
+[connection signal="focus_entered" from="HBoxContainer/CareerContainer/TextureButton" to="." method="_on_career_focus"]
+[connection signal="mouse_entered" from="HBoxContainer/CareerContainer/TextureButton" to="." method="_on_career_focus"]
+[connection signal="focus_entered" from="HBoxContainer/SystemContainer/TextureButton" to="." method="_on_system_focus"]
+[connection signal="mouse_entered" from="HBoxContainer/SystemContainer/TextureButton" to="." method="_on_system_focus"]
