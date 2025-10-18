@@ -3,6 +3,14 @@ extends Control
 @onready var game_today: bool = true
 @onready var today_button: TextureButton = $"HBoxContainer/Travel-GameContainer/TextureButton"
 
+func _ready():
+	bringUp()
+	
+func bringUp():
+	show()
+	gameDay()
+	today_button.grab_focus()
+
 func travelDay():
 	game_today = false
 	today_button.texture_normal = load("res://UI/HubUI/TravelDay_button_base.png")
