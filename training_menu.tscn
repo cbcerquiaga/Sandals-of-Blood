@@ -1,0 +1,642 @@
+[gd_scene load_steps=15 format=3 uid="uid://b32fw4t1tmreo"]
+
+[ext_resource type="Texture2D" uid="uid://d1e7iphbhtu6f" path="res://UI/TrainingUI/MinusButton_base.png" id="1_pa72q"]
+[ext_resource type="Texture2D" uid="uid://1hg4fnog65vx" path="res://UI/TrainingUI/training_button_base.png" id="1_t4ica"]
+[ext_resource type="Texture2D" uid="uid://bm6coxaymolwc" path="res://UI/TrainingUI/training_button_highlighted.png" id="2_4ahbh"]
+[ext_resource type="Texture2D" uid="uid://ba4bcd1hffj1" path="res://UI/TrainingUI/MinusButton_highlighted.png" id="2_4u4f4"]
+[ext_resource type="Texture2D" uid="uid://cuuraf88nww2j" path="res://UI/TrainingUI/report_button_base.png" id="3_asjtc"]
+[ext_resource type="Texture2D" uid="uid://em7kk56sjlol" path="res://UI/TrainingUI/PlusButton_base.png" id="3_ja8vf"]
+[ext_resource type="Texture2D" uid="uid://0c1cdry7pgan" path="res://UI/TrainingUI/report_button_highlighted.png" id="4_0ub22"]
+[ext_resource type="Texture2D" uid="uid://c3xcqxyingh1w" path="res://UI/TrainingUI/PlusButton_highlighted.png" id="4_bvgxa"]
+[ext_resource type="Texture2D" uid="uid://dfytcc3yk4bab" path="res://UI/TrainingUI/change_button_base.png" id="5_pr80x"]
+[ext_resource type="Texture2D" uid="uid://bmr4huy77wfo0" path="res://UI/TrainingUI/change_button_highlighted.png" id="6_k5p10"]
+[ext_resource type="Texture2D" uid="uid://5rccbxmqb76a" path="res://UI/PauseUI/Save-Exit_button_base.png" id="7_nkebf"]
+[ext_resource type="Texture2D" uid="uid://c4l1kmbq8kka5" path="res://UI/PauseUI/Save-Exit_button_highlighted.png" id="8_4ee2l"]
+[ext_resource type="Texture2D" uid="uid://307owu6k2n6i" path="res://UI/PauseUI/Discard-Exit_button_base.png" id="9_260lx"]
+[ext_resource type="Texture2D" uid="uid://c0khwyynjo032" path="res://UI/PauseUI/Discard-Exit_button_highlighted.png" id="10_ofl8q"]
+
+[node name="Training_Menu" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="."]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="TeamSection" type="VBoxContainer" parent="HBoxContainer"]
+layout_mode = 2
+
+[node name="MainLabel" type="Label" parent="HBoxContainer/TeamSection"]
+layout_mode = 2
+
+[node name="TypeLabel" type="Label" parent="HBoxContainer/TeamSection"]
+layout_mode = 2
+
+[node name="HoursLabel" type="Label" parent="HBoxContainer/TeamSection"]
+layout_mode = 2
+
+[node name="Tactical" type="HBoxContainer" parent="HBoxContainer/TeamSection"]
+layout_mode = 2
+
+[node name="Less" type="TextureButton" parent="HBoxContainer/TeamSection/Tactical"]
+layout_mode = 2
+texture_normal = ExtResource("1_pa72q")
+texture_hover = ExtResource("2_4u4f4")
+texture_focused = ExtResource("2_4u4f4")
+
+[node name="ColorRect" type="ColorRect" parent="HBoxContainer/TeamSection/Tactical"]
+layout_mode = 2
+color = Color(0, 0, 0, 1)
+
+[node name="Label" type="Label" parent="HBoxContainer/TeamSection/Tactical/ColorRect"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0
+text = "Tactical"
+
+[node name="More" type="TextureButton" parent="HBoxContainer/TeamSection/Tactical"]
+layout_mode = 2
+texture_normal = ExtResource("3_ja8vf")
+texture_hover = ExtResource("4_bvgxa")
+texture_focused = ExtResource("4_bvgxa")
+
+[node name="Skill" type="HBoxContainer" parent="HBoxContainer/TeamSection"]
+layout_mode = 2
+
+[node name="Less" type="TextureButton" parent="HBoxContainer/TeamSection/Skill"]
+layout_mode = 2
+texture_normal = ExtResource("1_pa72q")
+texture_hover = ExtResource("2_4u4f4")
+texture_focused = ExtResource("2_4u4f4")
+
+[node name="ColorRect" type="ColorRect" parent="HBoxContainer/TeamSection/Skill"]
+layout_mode = 2
+color = Color(0, 0, 0, 1)
+
+[node name="Label" type="Label" parent="HBoxContainer/TeamSection/Skill/ColorRect"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0
+text = "Tactical"
+
+[node name="More" type="TextureButton" parent="HBoxContainer/TeamSection/Skill"]
+layout_mode = 2
+texture_normal = ExtResource("3_ja8vf")
+texture_hover = ExtResource("4_bvgxa")
+texture_focused = ExtResource("4_bvgxa")
+
+[node name="Physical" type="HBoxContainer" parent="HBoxContainer/TeamSection"]
+layout_mode = 2
+
+[node name="Less" type="TextureButton" parent="HBoxContainer/TeamSection/Physical"]
+layout_mode = 2
+texture_normal = ExtResource("1_pa72q")
+texture_hover = ExtResource("2_4u4f4")
+texture_focused = ExtResource("2_4u4f4")
+
+[node name="ColorRect" type="ColorRect" parent="HBoxContainer/TeamSection/Physical"]
+layout_mode = 2
+color = Color(0, 0, 0, 1)
+
+[node name="Label" type="Label" parent="HBoxContainer/TeamSection/Physical/ColorRect"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0
+text = "Tactical"
+
+[node name="More" type="TextureButton" parent="HBoxContainer/TeamSection/Physical"]
+layout_mode = 2
+texture_normal = ExtResource("3_ja8vf")
+texture_hover = ExtResource("4_bvgxa")
+texture_focused = ExtResource("4_bvgxa")
+
+[node name="Outreach" type="HBoxContainer" parent="HBoxContainer/TeamSection"]
+layout_mode = 2
+
+[node name="Less" type="TextureButton" parent="HBoxContainer/TeamSection/Outreach"]
+layout_mode = 2
+texture_normal = ExtResource("1_pa72q")
+texture_hover = ExtResource("2_4u4f4")
+texture_focused = ExtResource("2_4u4f4")
+
+[node name="ColorRect" type="ColorRect" parent="HBoxContainer/TeamSection/Outreach"]
+layout_mode = 2
+color = Color(0, 0, 0, 1)
+
+[node name="Label" type="Label" parent="HBoxContainer/TeamSection/Outreach/ColorRect"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0
+text = "Tactical"
+
+[node name="More" type="TextureButton" parent="HBoxContainer/TeamSection/Outreach"]
+layout_mode = 2
+texture_normal = ExtResource("3_ja8vf")
+texture_hover = ExtResource("4_bvgxa")
+texture_focused = ExtResource("4_bvgxa")
+
+[node name="Project" type="HBoxContainer" parent="HBoxContainer/TeamSection"]
+layout_mode = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="HBoxContainer/TeamSection/Project"]
+layout_mode = 2
+
+[node name="Top" type="Label" parent="HBoxContainer/TeamSection/Project/VBoxContainer"]
+layout_mode = 2
+text = "Outreach Project:"
+
+[node name="Current" type="Label" parent="HBoxContainer/TeamSection/Project/VBoxContainer"]
+layout_mode = 2
+text = "Dig a well"
+
+[node name="Progress" type="Label" parent="HBoxContainer/TeamSection/Project/VBoxContainer"]
+layout_mode = 2
+text = "Progress: 72%"
+
+[node name="ChangeButton" type="TextureButton" parent="HBoxContainer/TeamSection/Project"]
+layout_mode = 2
+texture_normal = ExtResource("5_pr80x")
+texture_hover = ExtResource("6_k5p10")
+texture_focused = ExtResource("6_k5p10")
+
+[node name="ExitSection" type="HBoxContainer" parent="HBoxContainer/TeamSection"]
+layout_mode = 2
+
+[node name="SaveButton" type="TextureButton" parent="HBoxContainer/TeamSection/ExitSection"]
+layout_mode = 2
+texture_normal = ExtResource("7_nkebf")
+texture_hover = ExtResource("8_4ee2l")
+texture_focused = ExtResource("8_4ee2l")
+
+[node name="DiscardButton" type="TextureButton" parent="HBoxContainer/TeamSection/ExitSection"]
+layout_mode = 2
+texture_normal = ExtResource("9_260lx")
+texture_hover = ExtResource("10_ofl8q")
+texture_focused = ExtResource("10_ofl8q")
+
+[node name="IndividualSection" type="HBoxContainer" parent="HBoxContainer"]
+layout_mode = 2
+
+[node name="Column1" type="VBoxContainer" parent="HBoxContainer/IndividualSection"]
+layout_mode = 2
+
+[node name="Player1" type="VBoxContainer" parent="HBoxContainer/IndividualSection/Column1"]
+layout_mode = 2
+
+[node name="LastName" type="Label" parent="HBoxContainer/IndividualSection/Column1/Player1"]
+layout_mode = 2
+text = "Player Last Name"
+
+[node name="ColorRect" type="ColorRect" parent="HBoxContainer/IndividualSection/Column1/Player1"]
+layout_mode = 2
+color = Color(0, 0, 0, 1)
+
+[node name="Label" type="Label" parent="HBoxContainer/IndividualSection/Column1/Player1"]
+layout_mode = 2
+text = "Remembering how to breathe"
+
+[node name="HBoxContainer" type="HBoxContainer" parent="HBoxContainer/IndividualSection/Column1/Player1"]
+layout_mode = 2
+
+[node name="ReportButton" type="TextureButton" parent="HBoxContainer/IndividualSection/Column1/Player1/HBoxContainer"]
+layout_mode = 2
+texture_normal = ExtResource("3_asjtc")
+texture_hover = ExtResource("4_0ub22")
+texture_focused = ExtResource("4_0ub22")
+
+[node name="TrainingButton" type="TextureButton" parent="HBoxContainer/IndividualSection/Column1/Player1/HBoxContainer"]
+layout_mode = 2
+texture_normal = ExtResource("1_t4ica")
+texture_hover = ExtResource("2_4ahbh")
+texture_focused = ExtResource("2_4ahbh")
+
+[node name="Player2" type="VBoxContainer" parent="HBoxContainer/IndividualSection/Column1"]
+layout_mode = 2
+
+[node name="LastName" type="Label" parent="HBoxContainer/IndividualSection/Column1/Player2"]
+layout_mode = 2
+text = "Player Last Name"
+
+[node name="ColorRect" type="ColorRect" parent="HBoxContainer/IndividualSection/Column1/Player2"]
+layout_mode = 2
+color = Color(0, 0, 0, 1)
+
+[node name="Label" type="Label" parent="HBoxContainer/IndividualSection/Column1/Player2"]
+layout_mode = 2
+text = "Remembering how to breathe"
+
+[node name="HBoxContainer" type="HBoxContainer" parent="HBoxContainer/IndividualSection/Column1/Player2"]
+layout_mode = 2
+
+[node name="ReportButton" type="TextureButton" parent="HBoxContainer/IndividualSection/Column1/Player2/HBoxContainer"]
+layout_mode = 2
+texture_normal = ExtResource("3_asjtc")
+texture_hover = ExtResource("4_0ub22")
+texture_focused = ExtResource("4_0ub22")
+
+[node name="TrainingButton" type="TextureButton" parent="HBoxContainer/IndividualSection/Column1/Player2/HBoxContainer"]
+layout_mode = 2
+texture_normal = ExtResource("1_t4ica")
+texture_hover = ExtResource("2_4ahbh")
+texture_focused = ExtResource("2_4ahbh")
+
+[node name="Player3" type="VBoxContainer" parent="HBoxContainer/IndividualSection/Column1"]
+layout_mode = 2
+
+[node name="LastName" type="Label" parent="HBoxContainer/IndividualSection/Column1/Player3"]
+layout_mode = 2
+text = "Player Last Name"
+
+[node name="ColorRect" type="ColorRect" parent="HBoxContainer/IndividualSection/Column1/Player3"]
+layout_mode = 2
+color = Color(0, 0, 0, 1)
+
+[node name="Label" type="Label" parent="HBoxContainer/IndividualSection/Column1/Player3"]
+layout_mode = 2
+text = "Remembering how to breathe"
+
+[node name="HBoxContainer" type="HBoxContainer" parent="HBoxContainer/IndividualSection/Column1/Player3"]
+layout_mode = 2
+
+[node name="ReportButton" type="TextureButton" parent="HBoxContainer/IndividualSection/Column1/Player3/HBoxContainer"]
+layout_mode = 2
+texture_normal = ExtResource("3_asjtc")
+texture_hover = ExtResource("4_0ub22")
+texture_focused = ExtResource("4_0ub22")
+
+[node name="TrainingButton" type="TextureButton" parent="HBoxContainer/IndividualSection/Column1/Player3/HBoxContainer"]
+layout_mode = 2
+texture_normal = ExtResource("1_t4ica")
+texture_hover = ExtResource("2_4ahbh")
+texture_focused = ExtResource("2_4ahbh")
+
+[node name="Player4" type="VBoxContainer" parent="HBoxContainer/IndividualSection/Column1"]
+layout_mode = 2
+
+[node name="LastName" type="Label" parent="HBoxContainer/IndividualSection/Column1/Player4"]
+layout_mode = 2
+text = "Player Last Name"
+
+[node name="ColorRect" type="ColorRect" parent="HBoxContainer/IndividualSection/Column1/Player4"]
+layout_mode = 2
+color = Color(0, 0, 0, 1)
+
+[node name="Label" type="Label" parent="HBoxContainer/IndividualSection/Column1/Player4"]
+layout_mode = 2
+text = "Remembering how to breathe"
+
+[node name="HBoxContainer" type="HBoxContainer" parent="HBoxContainer/IndividualSection/Column1/Player4"]
+layout_mode = 2
+
+[node name="ReportButton" type="TextureButton" parent="HBoxContainer/IndividualSection/Column1/Player4/HBoxContainer"]
+layout_mode = 2
+texture_normal = ExtResource("3_asjtc")
+texture_hover = ExtResource("4_0ub22")
+texture_focused = ExtResource("4_0ub22")
+
+[node name="TrainingButton" type="TextureButton" parent="HBoxContainer/IndividualSection/Column1/Player4/HBoxContainer"]
+layout_mode = 2
+texture_normal = ExtResource("1_t4ica")
+texture_hover = ExtResource("2_4ahbh")
+texture_focused = ExtResource("2_4ahbh")
+
+[node name="Player5" type="VBoxContainer" parent="HBoxContainer/IndividualSection/Column1"]
+layout_mode = 2
+
+[node name="LastName" type="Label" parent="HBoxContainer/IndividualSection/Column1/Player5"]
+layout_mode = 2
+text = "Player Last Name"
+
+[node name="ColorRect" type="ColorRect" parent="HBoxContainer/IndividualSection/Column1/Player5"]
+layout_mode = 2
+color = Color(0, 0, 0, 1)
+
+[node name="Label" type="Label" parent="HBoxContainer/IndividualSection/Column1/Player5"]
+layout_mode = 2
+text = "Remembering how to breathe"
+
+[node name="HBoxContainer" type="HBoxContainer" parent="HBoxContainer/IndividualSection/Column1/Player5"]
+layout_mode = 2
+
+[node name="ReportButton" type="TextureButton" parent="HBoxContainer/IndividualSection/Column1/Player5/HBoxContainer"]
+layout_mode = 2
+texture_normal = ExtResource("3_asjtc")
+texture_hover = ExtResource("4_0ub22")
+texture_focused = ExtResource("4_0ub22")
+
+[node name="TrainingButton" type="TextureButton" parent="HBoxContainer/IndividualSection/Column1/Player5/HBoxContainer"]
+layout_mode = 2
+texture_normal = ExtResource("1_t4ica")
+texture_hover = ExtResource("2_4ahbh")
+texture_focused = ExtResource("2_4ahbh")
+
+[node name="Column2" type="VBoxContainer" parent="HBoxContainer/IndividualSection"]
+layout_mode = 2
+
+[node name="Player1" type="VBoxContainer" parent="HBoxContainer/IndividualSection/Column2"]
+layout_mode = 2
+
+[node name="LastName" type="Label" parent="HBoxContainer/IndividualSection/Column2/Player1"]
+layout_mode = 2
+text = "Player Last Name"
+
+[node name="ColorRect" type="ColorRect" parent="HBoxContainer/IndividualSection/Column2/Player1"]
+layout_mode = 2
+color = Color(0, 0, 0, 1)
+
+[node name="Label" type="Label" parent="HBoxContainer/IndividualSection/Column2/Player1"]
+layout_mode = 2
+text = "Remembering how to breathe"
+
+[node name="HBoxContainer" type="HBoxContainer" parent="HBoxContainer/IndividualSection/Column2/Player1"]
+layout_mode = 2
+
+[node name="ReportButton" type="TextureButton" parent="HBoxContainer/IndividualSection/Column2/Player1/HBoxContainer"]
+layout_mode = 2
+texture_normal = ExtResource("3_asjtc")
+texture_hover = ExtResource("4_0ub22")
+texture_focused = ExtResource("4_0ub22")
+
+[node name="TrainingButton" type="TextureButton" parent="HBoxContainer/IndividualSection/Column2/Player1/HBoxContainer"]
+layout_mode = 2
+texture_normal = ExtResource("1_t4ica")
+texture_hover = ExtResource("2_4ahbh")
+texture_focused = ExtResource("2_4ahbh")
+
+[node name="Player2" type="VBoxContainer" parent="HBoxContainer/IndividualSection/Column2"]
+layout_mode = 2
+
+[node name="LastName" type="Label" parent="HBoxContainer/IndividualSection/Column2/Player2"]
+layout_mode = 2
+text = "Player Last Name"
+
+[node name="ColorRect" type="ColorRect" parent="HBoxContainer/IndividualSection/Column2/Player2"]
+layout_mode = 2
+color = Color(0, 0, 0, 1)
+
+[node name="Label" type="Label" parent="HBoxContainer/IndividualSection/Column2/Player2"]
+layout_mode = 2
+text = "Remembering how to breathe"
+
+[node name="HBoxContainer" type="HBoxContainer" parent="HBoxContainer/IndividualSection/Column2/Player2"]
+layout_mode = 2
+
+[node name="ReportButton" type="TextureButton" parent="HBoxContainer/IndividualSection/Column2/Player2/HBoxContainer"]
+layout_mode = 2
+texture_normal = ExtResource("3_asjtc")
+texture_hover = ExtResource("4_0ub22")
+texture_focused = ExtResource("4_0ub22")
+
+[node name="TrainingButton" type="TextureButton" parent="HBoxContainer/IndividualSection/Column2/Player2/HBoxContainer"]
+layout_mode = 2
+texture_normal = ExtResource("1_t4ica")
+texture_hover = ExtResource("2_4ahbh")
+texture_focused = ExtResource("2_4ahbh")
+
+[node name="Player3" type="VBoxContainer" parent="HBoxContainer/IndividualSection/Column2"]
+layout_mode = 2
+
+[node name="LastName" type="Label" parent="HBoxContainer/IndividualSection/Column2/Player3"]
+layout_mode = 2
+text = "Player Last Name"
+
+[node name="ColorRect" type="ColorRect" parent="HBoxContainer/IndividualSection/Column2/Player3"]
+layout_mode = 2
+color = Color(0, 0, 0, 1)
+
+[node name="Label" type="Label" parent="HBoxContainer/IndividualSection/Column2/Player3"]
+layout_mode = 2
+text = "Remembering how to breathe"
+
+[node name="HBoxContainer" type="HBoxContainer" parent="HBoxContainer/IndividualSection/Column2/Player3"]
+layout_mode = 2
+
+[node name="ReportButton" type="TextureButton" parent="HBoxContainer/IndividualSection/Column2/Player3/HBoxContainer"]
+layout_mode = 2
+texture_normal = ExtResource("3_asjtc")
+texture_hover = ExtResource("4_0ub22")
+texture_focused = ExtResource("4_0ub22")
+
+[node name="TrainingButton" type="TextureButton" parent="HBoxContainer/IndividualSection/Column2/Player3/HBoxContainer"]
+layout_mode = 2
+texture_normal = ExtResource("1_t4ica")
+texture_hover = ExtResource("2_4ahbh")
+texture_focused = ExtResource("2_4ahbh")
+
+[node name="Player4" type="VBoxContainer" parent="HBoxContainer/IndividualSection/Column2"]
+layout_mode = 2
+
+[node name="LastName" type="Label" parent="HBoxContainer/IndividualSection/Column2/Player4"]
+layout_mode = 2
+text = "Player Last Name"
+
+[node name="ColorRect" type="ColorRect" parent="HBoxContainer/IndividualSection/Column2/Player4"]
+layout_mode = 2
+color = Color(0, 0, 0, 1)
+
+[node name="Label" type="Label" parent="HBoxContainer/IndividualSection/Column2/Player4"]
+layout_mode = 2
+text = "Remembering how to breathe"
+
+[node name="HBoxContainer" type="HBoxContainer" parent="HBoxContainer/IndividualSection/Column2/Player4"]
+layout_mode = 2
+
+[node name="ReportButton" type="TextureButton" parent="HBoxContainer/IndividualSection/Column2/Player4/HBoxContainer"]
+layout_mode = 2
+texture_normal = ExtResource("3_asjtc")
+texture_hover = ExtResource("4_0ub22")
+texture_focused = ExtResource("4_0ub22")
+
+[node name="TrainingButton" type="TextureButton" parent="HBoxContainer/IndividualSection/Column2/Player4/HBoxContainer"]
+layout_mode = 2
+texture_normal = ExtResource("1_t4ica")
+texture_hover = ExtResource("2_4ahbh")
+texture_focused = ExtResource("2_4ahbh")
+
+[node name="Player5" type="VBoxContainer" parent="HBoxContainer/IndividualSection/Column2"]
+layout_mode = 2
+
+[node name="LastName" type="Label" parent="HBoxContainer/IndividualSection/Column2/Player5"]
+layout_mode = 2
+text = "Player Last Name"
+
+[node name="ColorRect" type="ColorRect" parent="HBoxContainer/IndividualSection/Column2/Player5"]
+layout_mode = 2
+color = Color(0, 0, 0, 1)
+
+[node name="Label" type="Label" parent="HBoxContainer/IndividualSection/Column2/Player5"]
+layout_mode = 2
+text = "Remembering how to breathe"
+
+[node name="HBoxContainer" type="HBoxContainer" parent="HBoxContainer/IndividualSection/Column2/Player5"]
+layout_mode = 2
+
+[node name="ReportButton" type="TextureButton" parent="HBoxContainer/IndividualSection/Column2/Player5/HBoxContainer"]
+layout_mode = 2
+texture_normal = ExtResource("3_asjtc")
+texture_hover = ExtResource("4_0ub22")
+texture_focused = ExtResource("4_0ub22")
+
+[node name="TrainingButton" type="TextureButton" parent="HBoxContainer/IndividualSection/Column2/Player5/HBoxContainer"]
+layout_mode = 2
+texture_normal = ExtResource("1_t4ica")
+texture_hover = ExtResource("2_4ahbh")
+texture_focused = ExtResource("2_4ahbh")
+
+[node name="Column3" type="VBoxContainer" parent="HBoxContainer/IndividualSection"]
+layout_mode = 2
+
+[node name="Player1" type="VBoxContainer" parent="HBoxContainer/IndividualSection/Column3"]
+layout_mode = 2
+
+[node name="LastName" type="Label" parent="HBoxContainer/IndividualSection/Column3/Player1"]
+layout_mode = 2
+text = "Player Last Name"
+
+[node name="ColorRect" type="ColorRect" parent="HBoxContainer/IndividualSection/Column3/Player1"]
+layout_mode = 2
+color = Color(0, 0, 0, 1)
+
+[node name="Label" type="Label" parent="HBoxContainer/IndividualSection/Column3/Player1"]
+layout_mode = 2
+text = "Remembering how to breathe"
+
+[node name="HBoxContainer" type="HBoxContainer" parent="HBoxContainer/IndividualSection/Column3/Player1"]
+layout_mode = 2
+
+[node name="ReportButton" type="TextureButton" parent="HBoxContainer/IndividualSection/Column3/Player1/HBoxContainer"]
+layout_mode = 2
+texture_normal = ExtResource("3_asjtc")
+texture_hover = ExtResource("4_0ub22")
+texture_focused = ExtResource("4_0ub22")
+
+[node name="TrainingButton" type="TextureButton" parent="HBoxContainer/IndividualSection/Column3/Player1/HBoxContainer"]
+layout_mode = 2
+texture_normal = ExtResource("1_t4ica")
+texture_hover = ExtResource("2_4ahbh")
+texture_focused = ExtResource("2_4ahbh")
+
+[node name="Player2" type="VBoxContainer" parent="HBoxContainer/IndividualSection/Column3"]
+layout_mode = 2
+
+[node name="LastName" type="Label" parent="HBoxContainer/IndividualSection/Column3/Player2"]
+layout_mode = 2
+text = "Player Last Name"
+
+[node name="ColorRect" type="ColorRect" parent="HBoxContainer/IndividualSection/Column3/Player2"]
+layout_mode = 2
+color = Color(0, 0, 0, 1)
+
+[node name="Label" type="Label" parent="HBoxContainer/IndividualSection/Column3/Player2"]
+layout_mode = 2
+text = "Remembering how to breathe"
+
+[node name="HBoxContainer" type="HBoxContainer" parent="HBoxContainer/IndividualSection/Column3/Player2"]
+layout_mode = 2
+
+[node name="ReportButton" type="TextureButton" parent="HBoxContainer/IndividualSection/Column3/Player2/HBoxContainer"]
+layout_mode = 2
+texture_normal = ExtResource("3_asjtc")
+texture_hover = ExtResource("4_0ub22")
+texture_focused = ExtResource("4_0ub22")
+
+[node name="TrainingButton" type="TextureButton" parent="HBoxContainer/IndividualSection/Column3/Player2/HBoxContainer"]
+layout_mode = 2
+texture_normal = ExtResource("1_t4ica")
+texture_hover = ExtResource("2_4ahbh")
+texture_focused = ExtResource("2_4ahbh")
+
+[node name="Player3" type="VBoxContainer" parent="HBoxContainer/IndividualSection/Column3"]
+layout_mode = 2
+
+[node name="LastName" type="Label" parent="HBoxContainer/IndividualSection/Column3/Player3"]
+layout_mode = 2
+text = "Player Last Name"
+
+[node name="ColorRect" type="ColorRect" parent="HBoxContainer/IndividualSection/Column3/Player3"]
+layout_mode = 2
+color = Color(0, 0, 0, 1)
+
+[node name="Label" type="Label" parent="HBoxContainer/IndividualSection/Column3/Player3"]
+layout_mode = 2
+text = "Remembering how to breathe"
+
+[node name="HBoxContainer" type="HBoxContainer" parent="HBoxContainer/IndividualSection/Column3/Player3"]
+layout_mode = 2
+
+[node name="ReportButton" type="TextureButton" parent="HBoxContainer/IndividualSection/Column3/Player3/HBoxContainer"]
+layout_mode = 2
+texture_normal = ExtResource("3_asjtc")
+texture_hover = ExtResource("4_0ub22")
+texture_focused = ExtResource("4_0ub22")
+
+[node name="TrainingButton" type="TextureButton" parent="HBoxContainer/IndividualSection/Column3/Player3/HBoxContainer"]
+layout_mode = 2
+texture_normal = ExtResource("1_t4ica")
+texture_hover = ExtResource("2_4ahbh")
+texture_focused = ExtResource("2_4ahbh")
+
+[node name="Player4" type="VBoxContainer" parent="HBoxContainer/IndividualSection/Column3"]
+layout_mode = 2
+
+[node name="LastName" type="Label" parent="HBoxContainer/IndividualSection/Column3/Player4"]
+layout_mode = 2
+text = "Player Last Name"
+
+[node name="ColorRect" type="ColorRect" parent="HBoxContainer/IndividualSection/Column3/Player4"]
+layout_mode = 2
+color = Color(0, 0, 0, 1)
+
+[node name="Label" type="Label" parent="HBoxContainer/IndividualSection/Column3/Player4"]
+layout_mode = 2
+text = "Remembering how to breathe"
+
+[node name="HBoxContainer" type="HBoxContainer" parent="HBoxContainer/IndividualSection/Column3/Player4"]
+layout_mode = 2
+
+[node name="ReportButton" type="TextureButton" parent="HBoxContainer/IndividualSection/Column3/Player4/HBoxContainer"]
+layout_mode = 2
+texture_normal = ExtResource("3_asjtc")
+texture_hover = ExtResource("4_0ub22")
+texture_focused = ExtResource("4_0ub22")
+
+[node name="TrainingButton" type="TextureButton" parent="HBoxContainer/IndividualSection/Column3/Player4/HBoxContainer"]
+layout_mode = 2
+texture_normal = ExtResource("1_t4ica")
+texture_hover = ExtResource("2_4ahbh")
+texture_focused = ExtResource("2_4ahbh")
+
+[node name="Player5" type="VBoxContainer" parent="HBoxContainer/IndividualSection/Column3"]
+layout_mode = 2
+
+[node name="LastName" type="Label" parent="HBoxContainer/IndividualSection/Column3/Player5"]
+layout_mode = 2
+text = "Player Last Name"
+
+[node name="ColorRect" type="ColorRect" parent="HBoxContainer/IndividualSection/Column3/Player5"]
+layout_mode = 2
+color = Color(0, 0, 0, 1)
+
+[node name="Label" type="Label" parent="HBoxContainer/IndividualSection/Column3/Player5"]
+layout_mode = 2
+text = "Remembering how to breathe"
+
+[node name="HBoxContainer" type="HBoxContainer" parent="HBoxContainer/IndividualSection/Column3/Player5"]
+layout_mode = 2
+
+[node name="ReportButton" type="TextureButton" parent="HBoxContainer/IndividualSection/Column3/Player5/HBoxContainer"]
+layout_mode = 2
+texture_normal = ExtResource("3_asjtc")
+texture_hover = ExtResource("4_0ub22")
+texture_focused = ExtResource("4_0ub22")
+
+[node name="TrainingButton" type="TextureButton" parent="HBoxContainer/IndividualSection/Column3/Player5/HBoxContainer"]
+layout_mode = 2
+texture_normal = ExtResource("1_t4ica")
+texture_hover = ExtResource("2_4ahbh")
+texture_focused = ExtResource("2_4ahbh")
