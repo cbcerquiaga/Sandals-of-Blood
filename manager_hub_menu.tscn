@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3 uid="uid://cxtkbe8aypqef"]
+[gd_scene load_steps=14 format=3 uid="uid://cxtkbe8aypqef"]
 
 [ext_resource type="Script" path="res://manager_hub_menu.gd" id="1_anhhw"]
 [ext_resource type="Texture2D" uid="uid://crrgi3afo3d6k" path="res://UI/HubUI/TeamButton_base.png" id="2_chcud"]
@@ -11,6 +11,8 @@
 [ext_resource type="Texture2D" uid="uid://cmxgqd7n4nguh" path="res://UI/HubUI/CareerButton_highlighted.png" id="9_g1s1d"]
 [ext_resource type="Texture2D" uid="uid://b4k5ome43njiu" path="res://UI/HubUI/SystemButton_base.png" id="10_asca1"]
 [ext_resource type="Texture2D" uid="uid://b22uwdkvl3v08" path="res://UI/HubUI/SystemButton_highlighted.png" id="11_pvpj8"]
+[ext_resource type="PackedScene" uid="uid://b2a1xy1kwt5nn" path="res://pause_options.tscn" id="12_j6mwd"]
+[ext_resource type="PackedScene" uid="uid://e818m1s2f5xp" path="res://strategy_menu.tscn" id="13_b33aa"]
 
 [node name="ManagerHubMenu" type="Control"]
 layout_mode = 3
@@ -103,18 +105,32 @@ layout_mode = 2
 [node name="Button5" type="Button" parent="PopupPanel/VBoxContainer"]
 layout_mode = 2
 
+[node name="Node" type="Node" parent="."]
+
+[node name="Pause_Options" parent="Node" instance=ExtResource("12_j6mwd")]
+visible = false
+
+[node name="Strategy_Menu" parent="Node" instance=ExtResource("13_b33aa")]
+visible = false
+
 [connection signal="focus_entered" from="HBoxContainer/Travel_GameContainer/TextureButton" to="." method="_on_today_focus"]
 [connection signal="mouse_entered" from="HBoxContainer/Travel_GameContainer/TextureButton" to="." method="_on_today_focus"]
+[connection signal="pressed" from="HBoxContainer/Travel_GameContainer/TextureButton" to="." method="_on_main_button_pressed"]
 [connection signal="focus_entered" from="HBoxContainer/TeamContainer/TextureButton" to="." method="_on_team_focused"]
 [connection signal="mouse_entered" from="HBoxContainer/TeamContainer/TextureButton" to="." method="_on_team_focused"]
+[connection signal="pressed" from="HBoxContainer/TeamContainer/TextureButton" to="." method="_on_main_button_pressed"]
 [connection signal="focus_entered" from="HBoxContainer/ManagementContainer/TextureButton" to="." method="_on_management_focus"]
 [connection signal="mouse_entered" from="HBoxContainer/ManagementContainer/TextureButton" to="." method="_on_management_focus"]
+[connection signal="pressed" from="HBoxContainer/ManagementContainer/TextureButton" to="." method="_on_main_button_pressed"]
 [connection signal="focus_entered" from="HBoxContainer/LeagueContainer/TextureButton" to="." method="_on_league_focus"]
 [connection signal="mouse_entered" from="HBoxContainer/LeagueContainer/TextureButton" to="." method="_on_league_focus"]
+[connection signal="pressed" from="HBoxContainer/LeagueContainer/TextureButton" to="." method="_on_main_button_pressed"]
 [connection signal="focus_entered" from="HBoxContainer/CareerContainer/TextureButton" to="." method="_on_career_focus"]
 [connection signal="mouse_entered" from="HBoxContainer/CareerContainer/TextureButton" to="." method="_on_career_focus"]
+[connection signal="pressed" from="HBoxContainer/CareerContainer/TextureButton" to="." method="_on_main_button_pressed"]
 [connection signal="focus_entered" from="HBoxContainer/SystemContainer/TextureButton" to="." method="_on_system_focus"]
 [connection signal="mouse_entered" from="HBoxContainer/SystemContainer/TextureButton" to="." method="_on_system_focus"]
+[connection signal="pressed" from="HBoxContainer/SystemContainer/TextureButton" to="." method="_on_main_button_pressed"]
 [connection signal="pressed" from="PopupPanel/VBoxContainer/Button1" to="." method="_on_button_1_pressed"]
 [connection signal="pressed" from="PopupPanel/VBoxContainer/Button2" to="." method="_on_button_2_pressed"]
 [connection signal="pressed" from="PopupPanel/VBoxContainer/Button3" to="." method="_on_button_3_pressed"]

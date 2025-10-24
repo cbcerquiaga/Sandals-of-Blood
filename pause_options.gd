@@ -168,6 +168,7 @@ func open_game_menu():
 	av_container.position.x = gap
 	game_container.position.x = gap * 2 + container_width
 	career_container.position.x = gap * 3 + container_width * 2
+	show()
 	
 func set_discard_settings():
 	original_settings = GlobalSettings.duplicate()

@@ -11,9 +11,14 @@ extends Control
 
 var current_section: String = ""
 
+@onready var options = $Node/Pause_Options
+@onready var strategy = $Node/Strategy_Menu
+
 func _ready():
 	bringUp()
 	popup.hide()
+	options.hide()
+	strategy.hide()
 	setup_button_fonts()
 	
 func setup_button_fonts():
@@ -169,6 +174,9 @@ func _on_today_focus() -> void:
 
 func _on_button_1_pressed() -> void:
 	match current_section:
+		"team":
+			strategy.show()
+			popup.hide()
 		"travel":
 			pass
 		"game":
@@ -176,7 +184,8 @@ func _on_button_1_pressed() -> void:
 		"league":
 			pass
 		"system":
-			pass
+			options.open_game_menu()
+			popup.hide()
 		"career":
 			pass
 		"management":
@@ -184,6 +193,8 @@ func _on_button_1_pressed() -> void:
 
 func _on_button_2_pressed() -> void:
 	match current_section:
+		"team":
+			pass
 		"travel":
 			pass
 		"game":
@@ -199,6 +210,8 @@ func _on_button_2_pressed() -> void:
 
 func _on_button_3_pressed() -> void:
 	match current_section:
+		"team":
+			pass
 		"travel":
 			pass
 		"game":
@@ -241,3 +254,6 @@ func _on_button_5_pressed() -> void:
 			pass
 		"management":
 			pass
+
+func _on_main_button_pressed() -> void:
+	popup_button1.grab_focus()
