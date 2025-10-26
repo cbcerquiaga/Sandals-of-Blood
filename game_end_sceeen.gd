@@ -121,7 +121,9 @@ func _on_export_button_pressed() -> void:
 
 
 func _on_exit_button_pressed() -> void:
-	#TODO: return to the game hub menu
+	get_tree().paused = false
+	get_tree().change_scene_to_file("res://manager_hub_menu.tscn")
+	#TODO:
 	#if we are in a career match, go to the career hub page
 	#if we are in a quick match, go to the main menu page
 	pass # Replace with function body.

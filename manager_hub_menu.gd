@@ -2,7 +2,7 @@ extends Control
 
 @onready var game_today: bool = true
 @onready var today_button: TextureButton = $"HBoxContainer/Travel_GameContainer/TextureButton"
-@onready var popup: PopupPanel = $PopupPanel
+@onready var popup: PopupMenu = $PopupPanel #TODO: populate with the buttons as items
 @onready var popup_button1: Button = $PopupPanel/VBoxContainer/Button1
 @onready var popup_button2: Button = $PopupPanel/VBoxContainer/Button2
 @onready var popup_button3: Button = $PopupPanel/VBoxContainer/Button3

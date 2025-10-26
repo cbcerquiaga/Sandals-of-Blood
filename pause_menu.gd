@@ -17,7 +17,7 @@ const input_cooldown: int = 3
 @onready var stats_screen = $Submenus/Pause_Statistics
 @onready var options_menu = $Submenus/Pause_Options
 @onready var export_screen = $Submenus/Export_Menu
-@onready var quit_popup
+@onready var quit_popup: PopupMenu = $ExitMenu
 
 #
 var team: Team
@@ -29,11 +29,14 @@ func _ready():
 	strategy_menu.menu_closed.connect(_on_strategy_menu_closed)
 	options_menu.menu_closed.connect(_on_options_menu_closed)
 	stats_screen.menu_closed.connect(_on_stats_menu_closed)
+	quit_popup.id_focused.connect(_on_quit_popup_id_focused)
+	quit_popup.index_pressed.connect(_on_quit_popup_index_pressed)
 	resume.grab_focus()
 	hide()
 	
 func open_menu(highlight: String = "resume"):
 	show()
+	options_menu.hide()
 	$ButtonContainer.show()
 	match highlight:
 		"resume":
@@ -100,6 +103,11 @@ func _unhandled_input(event):
 			stats_screen._on_exit_button_pressed()
 		elif submenu == "options":
 			options_menu._on_discard_button_pressed()
+		elif submenu == "quit":
+			quit_popup.hide()
+			$ButtonContainer.show()
+			exit.grab_focus()
+			submenu = ""
 
 
 func _on_options_pressed() -> void:
@@ -141,3 +149,65 @@ func _on_export_pressed() -> void:
 func _on_export_menu_menu_closed() -> void:
 	submenu = ""
 	open_menu("export")
+
+
+func _on_exit_pressed() -> void:
+	submenu = "quit"
+	quit_popup.show()
+	$ButtonContainer.hide()
+	quit_popup.set_focused_item(0)
+	_on_quit_popup_id_focused(0)
+
+func _on_quit_popup_id_focused(id: int):
+	quit_popup.set_item_icon(0, preload("res://UI/PauseUI/cancel_button_base.png"))
+	quit_popup.set_item_icon(1, preload("res://UI/PauseUI/sim_button_base.png"))
+	quit_popup.set_item_icon(2, preload("res://UI/PauseUI/ff_button_base.png"))
+	quit_popup.set_item_icon(3, preload("res://UI/PauseUI/Quit_button_base.png"))
+	
+	match id:
+		0:
+			quit_popup.set_item_icon(0, preload("res://UI/PauseUI/cancel_button_highlighted.png"))
+			_update_quit_tooltip("Returns to the pause menu")
+		1:
+			quit_popup.set_item_icon(1, preload("res://UI/PauseUI/sim_button_highlighted.png"))
+			_update_quit_tooltip("Continues the match without user input")
+		2:
+			quit_popup.set_item_icon(2, preload("res://UI/PauseUI/ff_button_highlighted.png"))
+			_update_quit_tooltip("Concedes defeat at this point in the match")
+		3:
+			quit_popup.set_item_icon(3, preload("res://UI/PauseUI/Quit_button_highlighted.png"))
+			_update_quit_tooltip("Quits as though the game never started")
+
+func _update_quit_tooltip(text: String):
+	$ExitMenu/Label.text = text
+	$ExitMenu/Label.add_theme_font_size_override("font_size", 24)
+
+func _on_quit_popup_index_pressed(index: int):
+	match index:
+		0:
+			quit_popup.hide()
+			$ButtonContainer.show()
+			exit.grab_focus()
+			submenu = ""
+		1:
+			sim_to_end()
+		2:
+			forfeit()
+		3:
+			quit()
+	
+func quit():
+	get_tree().paused = false
+	get_tree().change_scene_to_file("res://manager_hub_menu.tscn")
+	
+func forfeit():
+	#TODO: forfeit the game
+	get_tree().paused = false
+	get_tree().change_scene_to_file("res://manager_hub_menu.tscn")
+	pass
+	
+func sim_to_end():
+	#TODO: simulate the game
+	get_tree().paused = false
+	get_tree().change_scene_to_file("res://manager_hub_menu.tscn")
+	pass

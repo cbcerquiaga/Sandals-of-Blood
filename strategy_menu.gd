@@ -73,6 +73,7 @@ func _ready():
 	discard_button.focus_exited.connect(_on_discard_button_focus_exited)
 	save_button.focus_entered.connect(_on_save_button_focus_entered)
 	save_button.focus_exited.connect(_on_save_button_focus_exited)
+	benchPopup.id_focused.connect(_on_bench_popup_id_focused)
 	var focusable_buttons = [
 		lf_button, rf_button, p_button, lg_button, rg_button, k_button,
 		discard_button, save_button
@@ -243,6 +244,8 @@ func bench_player_chosen(chosenPlayer: Player):
 	shuffle_from_bench = true
 	shuffle_player = chosenPlayer
 	benchPopup.show()
+	benchPopup.set_focused_item(0)
+	_on_bench_popup_id_focused(0)
 	maintain_focus()
 
 	
@@ -476,6 +479,14 @@ func _on_player_popup_id_focused(id: int) -> void:
 			pass
 	pass
 
+func _on_bench_popup_id_focused(id: int):
+	benchPopup.set_item_icon(0, preload("res://UI/StrategyUI/Substitute_button_base.png"))
+	benchPopup.set_item_icon(1, preload("res://UI/StrategyUI/PlayerInfo_button_base.png"))
+	match id:
+		0:
+			benchPopup.set_item_icon(0, preload("res://UI/StrategyUI/Substitute_button_highlighted.png"))
+		1:
+			benchPopup.set_item_icon(1, preload("res://UI/StrategyUI/PlayerInfo_button_highlighted.png"))
 
 func highlight_0_player_popup() -> void:
 	playerPopup.set_focused_item(0)

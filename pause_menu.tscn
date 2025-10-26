@@ -1,4 +1,4 @@
-[gd_scene load_steps=18 format=3 uid="uid://csyirpbcdrnoo"]
+[gd_scene load_steps=22 format=3 uid="uid://csyirpbcdrnoo"]
 
 [ext_resource type="Script" path="res://pause_menu.gd" id="1_2e70y"]
 [ext_resource type="Texture2D" uid="uid://3mobcbc75wt5" path="res://UI/PauseUI/Resume_button_base.png" id="1_l1b0n"]
@@ -17,6 +17,10 @@
 [ext_resource type="PackedScene" uid="uid://b2a1xy1kwt5nn" path="res://pause_options.tscn" id="15_vkq6c"]
 [ext_resource type="PackedScene" uid="uid://bkv78tqdrwbtv" path="res://pause_stats_menu.tscn" id="16_kjeac"]
 [ext_resource type="PackedScene" uid="uid://70twyyxact8f" path="res://export_menu.tscn" id="17_w8rwx"]
+[ext_resource type="Texture2D" uid="uid://c4vbfdsvhu8xr" path="res://UI/PauseUI/cancel_button_base.png" id="18_jy0jc"]
+[ext_resource type="Texture2D" uid="uid://dmm4amb0y2f7v" path="res://UI/PauseUI/sim_button_base.png" id="19_axhf2"]
+[ext_resource type="Texture2D" uid="uid://bk055878wgykr" path="res://UI/PauseUI/ff_button_base.png" id="20_ve0p6"]
+[ext_resource type="Texture2D" uid="uid://bsjb68a1y6pw8" path="res://UI/PauseUI/Quit_button_base.png" id="21_ptlqf"]
 
 [node name="PauseMenu" type="CanvasLayer"]
 process_mode = 2
@@ -116,10 +120,27 @@ offset_right = 800.0
 offset_bottom = 300.0
 scale = Vector2(4, 4)
 
+[node name="ExitMenu" type="PopupMenu" parent="."]
+position = Vector2i(972, 0)
+size = Vector2i(1100, 1016)
+item_count = 4
+item_0/icon = ExtResource("18_jy0jc")
+item_1/icon = ExtResource("19_axhf2")
+item_1/id = 1
+item_2/icon = ExtResource("20_ve0p6")
+item_2/id = 2
+item_3/icon = ExtResource("21_ptlqf")
+item_3/id = 3
+
+[node name="Label" type="Label" parent="ExitMenu"]
+offset_right = 40.0
+offset_bottom = 23.0
+
 [connection signal="pressed" from="ButtonContainer/Resume" to="." method="_on_resume_pressed"]
 [connection signal="pressed" from="ButtonContainer/Strategy" to="." method="_on_strategy_pressed"]
 [connection signal="pressed" from="ButtonContainer/Statistics" to="." method="_on_statistics_pressed"]
 [connection signal="pressed" from="ButtonContainer/Options" to="." method="_on_options_pressed"]
 [connection signal="pressed" from="ButtonContainer/Export" to="." method="_on_export_pressed"]
+[connection signal="pressed" from="ButtonContainer/Exit" to="." method="_on_exit_pressed"]
 [connection signal="new_sub" from="Submenus/Strategy_Menu" to="." method="_on_strategy_menu_new_sub"]
 [connection signal="menu_closed" from="Submenus/Export_Menu" to="." method="_on_export_menu_menu_closed"]
