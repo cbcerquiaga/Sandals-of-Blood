@@ -9,15 +9,16 @@ extends Control
 var current_section: String = ""
 var current_main_button: Control
 var popup_is_open: bool = false
+var current_popup_index: int = 0
 
 var menu_items = {
-	"system": ["Options", "Music", "Save", "Load", "Exit"],
-	"career": ["Growth", "Job Openings", "Overview", "Retire"],
-	"league": ["News", "Leaders", "Stats", "Tables", "History"],
-	"management": ["Manage Team", "Inventory", "Relationships", "Ownership"],
-	"team": ["Strategy", "Training", "Improve Team"],
 	"game": ["Play!", "Simulate", "Uniforms", "Scouting Report"],
-	"travel": ["Travel!", "Trip Planning", "Convoy", "Map"]
+	"travel": ["Travel!", "Trip Planning", "Convoy", "Map"],
+	"team": ["Strategy", "Training", "Improve Team"],
+	"management": ["Manage Team", "Inventory", "Relationships", "Ownership"],
+	"league": ["News", "Leaders", "Stats", "Tables", "History"],
+	"career": ["Growth", "Job Openings", "Overview", "Retire"],
+	"system": ["Options", "Music", "Save", "Load", "Exit"]
 }
 
 func _ready():
@@ -177,13 +178,22 @@ func show_popup(section: String, target_container: Control):
 	update_popup_items(section)
 	popup.popup()
 	popup_is_open = true
+	current_popup_index = 0
 	
 	await reposition_popup(target_container)
 	
 	if popup.get_item_count() > 0:
 		await get_tree().process_frame
-		current_main_button.grab_focus()
-		popup.grab_focus()
+		popup.set_focused_item(0)
+
+func _navigate_popup_items(direction: int):
+	var item_count = popup.get_item_count()
+	if item_count == 0:
+		return
+	
+	current_popup_index = (current_popup_index + direction + item_count) % item_count
+	popup.set_focused_item(current_popup_index)
+	print("Navigating to popup item: ", current_popup_index)
 
 func _on_system_focus() -> void:
 	show_popup("system", $HBoxContainer/SystemContainer)
@@ -317,3 +327,8 @@ func _navigate_popup(direction: int):
 	var new_button = new_container.get_node("TextureButton")
 	new_button.grab_focus()
 	_show_popup_for_container(new_container)
+	
+	# Highlight the first item in the new popup
+	await get_tree().process_frame
+	if popup.get_item_count() > 0:
+		popup.set_focused_item(0)
