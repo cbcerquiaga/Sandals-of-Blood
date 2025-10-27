@@ -29,9 +29,11 @@ layout_mode = 1
 anchors_preset = 2
 anchor_top = 1.0
 anchor_bottom = 1.0
-offset_top = -323.0
+offset_top = 1436.0
 offset_right = 5420.0
+offset_bottom = 1759.0
 grow_vertical = 0
+metadata/_edit_use_anchors_ = true
 
 [node name="Travel_GameContainer" type="VBoxContainer" parent="HBoxContainer"]
 layout_mode = 2

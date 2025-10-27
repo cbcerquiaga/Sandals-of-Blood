@@ -23,7 +23,6 @@ var menu_items = {
 
 func _ready():
 	bringUp()
-	popup.hide()
 	options.hide()
 	strategy.hide()
 	set_process(true)
@@ -32,6 +31,7 @@ func _ready():
 	setup_popup_theme()
 	await get_tree().process_frame
 	_connect_button_signals()
+	popup.show()
 
 func _process(delta):
 	if popup_is_open and popup.visible:
