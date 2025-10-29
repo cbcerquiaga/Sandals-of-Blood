@@ -1,7 +1,8 @@
-[gd_scene load_steps=15 format=3 uid="uid://b32fw4t1tmreo"]
+[gd_scene load_steps=16 format=3 uid="uid://b32fw4t1tmreo"]
 
 [ext_resource type="Texture2D" uid="uid://d1e7iphbhtu6f" path="res://UI/TrainingUI/MinusButton_base.png" id="1_pa72q"]
 [ext_resource type="Texture2D" uid="uid://1hg4fnog65vx" path="res://UI/TrainingUI/training_button_base.png" id="1_t4ica"]
+[ext_resource type="Script" path="res://training_menu.gd" id="1_wfrnb"]
 [ext_resource type="Texture2D" uid="uid://bm6coxaymolwc" path="res://UI/TrainingUI/training_button_highlighted.png" id="2_4ahbh"]
 [ext_resource type="Texture2D" uid="uid://ba4bcd1hffj1" path="res://UI/TrainingUI/MinusButton_highlighted.png" id="2_4u4f4"]
 [ext_resource type="Texture2D" uid="uid://cuuraf88nww2j" path="res://UI/TrainingUI/report_button_base.png" id="3_asjtc"]
@@ -22,6 +23,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+script = ExtResource("1_wfrnb")
 
 [node name="HBoxContainer" type="HBoxContainer" parent="."]
 layout_mode = 0
@@ -640,3 +642,12 @@ layout_mode = 2
 texture_normal = ExtResource("1_t4ica")
 texture_hover = ExtResource("2_4ahbh")
 texture_focused = ExtResource("2_4ahbh")
+
+[connection signal="pressed" from="HBoxContainer/TeamSection/Tactical/Less" to="." method="_on_tactical_less_pressed"]
+[connection signal="pressed" from="HBoxContainer/TeamSection/Tactical/More" to="." method="_on_tactical_more_pressed"]
+[connection signal="pressed" from="HBoxContainer/TeamSection/Skill/Less" to="." method="_on_technical_less_pressed"]
+[connection signal="pressed" from="HBoxContainer/TeamSection/Skill/More" to="." method="_on_technical_more_pressed"]
+[connection signal="pressed" from="HBoxContainer/TeamSection/Physical/Less" to="." method="_on_physical_less_pressed"]
+[connection signal="pressed" from="HBoxContainer/TeamSection/Physical/More" to="." method="_on_physical_more_pressed"]
+[connection signal="pressed" from="HBoxContainer/TeamSection/Outreach/Less" to="." method="_on_commiunal_less_pressed"]
+[connection signal="pressed" from="HBoxContainer/TeamSection/Outreach/More" to="." method="_on_communal_more_pressed"]

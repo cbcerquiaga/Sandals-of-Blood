@@ -3,6 +3,16 @@ extends Node
 
 var team_name: String
 var team_city: String
+var team_logo: String #path to the logo
+var team_uniform_type: int #corresponds to type of uniform
+var uni_color_1
+var uni_color_2
+var uni_color_3
+var uni_color_4
+var gk_color_1
+var gk_color_2
+var gk_color_3
+var gk_color_4
 var team_abbreviation: String
 var team_name_inverted: bool = false #"town mascots" if false, "mascots of town" if true
 var team_logo_path: String
