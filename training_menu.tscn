@@ -656,3 +656,5 @@ texture_focused = ExtResource("2_4ahbh")
 [connection signal="pressed" from="HBoxContainer/TeamSection/Physical/More" to="." method="_on_physical_more_pressed"]
 [connection signal="pressed" from="HBoxContainer/TeamSection/Outreach/Less" to="." method="_on_communal_less_pressed"]
 [connection signal="pressed" from="HBoxContainer/TeamSection/Outreach/More" to="." method="_on_communal_more_pressed"]
+[connection signal="pressed" from="HBoxContainer/TeamSection/ExitSection/SaveButton" to="." method="_on_save_button_pressed"]
+[connection signal="pressed" from="HBoxContainer/TeamSection/ExitSection/DiscardButton" to="." method="_on_discard_button_pressed"]

@@ -23,15 +23,19 @@ var menu_items = {
 
 func _ready():
 	bringUp()
-	options.hide()
-	strategy.hide()
-	set_process(true)
-	popup.id_pressed.connect(_on_popup_item_selected)
-	popup.popup_hide.connect(_on_popup_hide)
-	setup_popup_theme()
-	await get_tree().process_frame
-	_connect_button_signals()
-	popup.show()
+	gameDay()
+	
+	if is_inside_tree():
+		set_process(true)
+		popup.id_pressed.connect(_on_popup_item_selected)
+		popup.popup_hide.connect(_on_popup_hide)
+		setup_popup_theme()
+		
+		await get_tree().process_frame
+		
+		if is_inside_tree():
+			_connect_button_signals()
+			today_button.grab_focus()
 
 func _process(delta):
 	if popup_is_open and popup.visible:
@@ -126,6 +130,8 @@ func setup_popup_theme():
 func bringUp():
 	show()
 	gameDay()
+	options.hide()
+	strategy.hide()
 	today_button.grab_focus()
 
 func travelDay():
@@ -149,14 +155,30 @@ func update_popup_items(section: String):
 			popup.add_item(items[i], i)
 
 func reposition_popup(target_container: Control):
-	await get_tree().process_frame
-	await get_tree().process_frame
+	if not is_inside_tree() or target_container == null:
+		return
+		
 	var button = target_container.get_node("TextureButton")
+	if button == null:
+		return
+		
+	if is_inside_tree():
+		await get_tree().process_frame
+		
+	if not is_inside_tree() or popup == null:
+		return
+		
 	var button_global_rect = button.get_global_rect()
 	var button_global_pos = button_global_rect.position
 	var button_size = button_global_rect.size
 	popup.reset_size()
-	await get_tree().process_frame
+	
+	if is_inside_tree():
+		await get_tree().process_frame
+		
+	if not is_inside_tree() or popup == null:
+		return
+		
 	var popup_size = popup.size
 	var viewport_size = get_viewport().get_visible_rect().size
 	var popup_x = button_global_pos.x + (button_size.x / 2) - (popup_size.x / 2)
@@ -172,6 +194,9 @@ func reposition_popup(target_container: Control):
 	print("Final popup pos: ", popup.position)
 
 func show_popup(section: String, target_container: Control):
+	if not is_inside_tree():
+		return
+		
 	current_section = section
 	current_main_button = target_container.get_node("TextureButton")
 	
@@ -182,8 +207,14 @@ func show_popup(section: String, target_container: Control):
 	
 	await reposition_popup(target_container)
 	
+	if not is_inside_tree() or popup == null:
+		return
+		
 	if popup.get_item_count() > 0:
-		await get_tree().process_frame
+		call_deferred("_set_popup_focus")
+
+func _set_popup_focus():
+	if is_inside_tree() and popup and popup.get_item_count() > 0:
 		popup.set_focused_item(0)
 
 func _navigate_popup_items(direction: int):
@@ -229,8 +260,9 @@ func _on_popup_item_selected(id: int) -> void:
 				0:  #Strategy
 					strategy.show()
 					popup.hide()
+					
 				1:  #Training
-					pass
+					get_tree().change_scene_to_file("res://training_menu.tscn")
 				2:  #Improve Team
 					pass
 		"travel":
@@ -305,6 +337,9 @@ func _on_popup_hide() -> void:
 		current_main_button.grab_focus()
 
 func _navigate_popup(direction: int):
+	if not is_inside_tree() or popup == null:
+		return
+		
 	var containers = [
 		$HBoxContainer/SystemContainer,
 		$HBoxContainer/CareerContainer,
@@ -328,7 +363,7 @@ func _navigate_popup(direction: int):
 	new_button.grab_focus()
 	_show_popup_for_container(new_container)
 	
-	# Highlight the first item in the new popup
-	await get_tree().process_frame
+	if is_inside_tree():
+		await get_tree().process_frame
 	if popup.get_item_count() > 0:
 		popup.set_focused_item(0)

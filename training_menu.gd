@@ -11,7 +11,7 @@ var hours_physical: int = 0
 var hours_communal: int = 0
 
 func _ready():
-	franchise = Franchise.new()
+	franchise = Franchise.new() #TODO: import from singleton
 	format_labels()
 	format_team_buttons()
 	if franchise != null:
@@ -31,6 +31,10 @@ func _ready():
 	$HBoxContainer/TeamSection/Project/VBoxContainer/Current.text = "Placeholder Project"
 	$HBoxContainer/TeamSection/Project/VBoxContainer/Progress.text = "Progress: 56%"
 	format_individual_buttons()
+	$HBoxContainer/TeamSection/Tactical/ColorRect/Label.text = "Tactical: " + str(hours_tactical)
+	$HBoxContainer/TeamSection/Skill/ColorRect/Label.text = "Technical: " + str(hours_technical)
+	$HBoxContainer/TeamSection/Physical/ColorRect/Label.text = "Physical: " + str(hours_physical)
+	$HBoxContainer/TeamSection/Outreach/ColorRect/Label.text = "Outreach: " + str(hours_communal)
 
 
 func _on_tactical_less_pressed() -> void:
@@ -108,7 +112,6 @@ func get_hours_available(type: String):
 			return 28
 
 func format_individual_buttons():
-	# Loop through columns 1-3 and players 1-5
 	for col in range(1, 4):
 		for player in range(1, 6):
 			var player_path = "HBoxContainer/IndividualSection/Column" + str(col) + "/Player" + str(player)
@@ -123,14 +126,12 @@ func format_individual_buttons():
 func format_team_buttons():
 	var sections = ["Tactical", "Skill", "Physical", "Outreach"]
 	
-	# Scale Less/More buttons for each training section
 	for section in sections:
 		for button_type in ["Less", "More"]:
 			var button = get_node("HBoxContainer/TeamSection/" + section + "/" + button_type)
 			if button and button is TextureButton:
 				scale_texture_button(button, change_size)
 		
-		# Scale the labels between the buttons and add margins
 		var color_rect = get_node_or_null("HBoxContainer/TeamSection/" + section + "/ColorRect")
 		if color_rect:
 			color_rect.custom_minimum_size = Vector2(400, 100)
@@ -142,12 +143,10 @@ func format_team_buttons():
 				label.add_theme_constant_override("margin_top", 25)
 				label.add_theme_constant_override("margin_bottom", 25)
 	
-	# Scale Project ChangeButton
 	var change_button = $HBoxContainer/TeamSection/Project/ChangeButton
 	if change_button and change_button is TextureButton:
 		scale_texture_button(change_button, button_size)
 	
-	# Scale Exit buttons
 	var exit_buttons = ["SaveButton", "DiscardButton"]
 	for button_name in exit_buttons:
 		var button = get_node("HBoxContainer/TeamSection/ExitSection/" + button_name)
@@ -155,7 +154,6 @@ func format_team_buttons():
 			scale_texture_button(button, button_size)
 
 func scale_texture_button(button: TextureButton, new_size: Vector2):
-	# Scale all texture types the button might have
 	var texture_properties = ["texture_normal", "texture_pressed", "texture_hover", "texture_disabled", "texture_focused"]
 	
 	for prop in texture_properties:
@@ -179,7 +177,6 @@ func format_labels():
 			label.add_theme_font_size_override("font_size", 60)
 			label.custom_minimum_size = Vector2(400, 100)
 	
-	# Loop through all player labels
 	for col in range(1, 4):
 		for player in range(1, 6):
 			var player_path = "HBoxContainer/IndividualSection/Column" + str(col) + "/Player" + str(player)
@@ -191,3 +188,19 @@ func format_labels():
 			var other_label = get_node_or_null(player_path + "/Label")
 			if other_label:
 				other_label.add_theme_font_size_override("font_size", 25)
+
+
+
+func _on_save_button_pressed() -> void:
+	franchise.hours_communal = hours_communal
+	franchise.hours_physical = hours_physical
+	franchise.hours_tactical = hours_tactical
+	franchise.hours_technical = hours_technical
+	franchise.is_training_set = true
+	call_deferred("_change_to_hub")
+
+func _change_to_hub():
+	get_tree().change_scene_to_file("res://manager_hub_menu.tscn")
+
+func _on_discard_button_pressed() -> void:
+	call_deferred("_change_to_hub")
