@@ -1,0 +1,63 @@
+[gd_scene load_steps=12 format=3 uid="uid://c2ft3v5ldar6t"]
+
+[ext_resource type="Script" path="res://main_menu.gd" id="1_71h2l"]
+[ext_resource type="Texture2D" uid="uid://chkf1gyncmm8t" path="res://UI/MainMenuUI/career_button_base.png" id="1_syqmp"]
+[ext_resource type="Texture2D" uid="uid://jkgycmay5lll" path="res://UI/MainMenuUI/career_button_highlighted.png" id="2_f04dy"]
+[ext_resource type="Texture2D" uid="uid://e40bbu8kp2bc" path="res://UI/MainMenuUI/singleMatch_base.png" id="3_6fbhl"]
+[ext_resource type="Texture2D" uid="uid://824tboycmfy7" path="res://UI/MainMenuUI/singleMatch_highlighted.png" id="4_ilmu3"]
+[ext_resource type="Texture2D" uid="uid://g5h6f7ydxqle" path="res://UI/MainMenuUI/creationButton_base.png" id="5_3hv28"]
+[ext_resource type="Texture2D" uid="uid://v522fnqoxm2u" path="res://UI/MainMenuUI/creationButton_highlighted.png" id="6_xfodx"]
+[ext_resource type="Texture2D" uid="uid://d5xkjtgqnhjt" path="res://UI/PauseUI/Options_button_base.png" id="7_3k242"]
+[ext_resource type="Texture2D" uid="uid://bb04dx5wj6itb" path="res://UI/PauseUI/Options_button_highlighted.png" id="8_xrdhi"]
+[ext_resource type="Texture2D" uid="uid://bsjb68a1y6pw8" path="res://UI/PauseUI/Quit_button_base.png" id="9_t241i"]
+[ext_resource type="Texture2D" uid="uid://bwlyeguixfx1g" path="res://UI/PauseUI/Quit_button_highlighted.png" id="10_gwsq1"]
+
+[node name="Main_Menu" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_71h2l")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="CareerButton" type="TextureButton" parent="VBoxContainer"]
+layout_mode = 2
+texture_normal = ExtResource("1_syqmp")
+texture_hover = ExtResource("2_f04dy")
+texture_focused = ExtResource("2_f04dy")
+
+[node name="SingleButton" type="TextureButton" parent="VBoxContainer"]
+layout_mode = 2
+texture_normal = ExtResource("3_6fbhl")
+texture_hover = ExtResource("4_ilmu3")
+texture_focused = ExtResource("4_ilmu3")
+
+[node name="CreationButton" type="TextureButton" parent="VBoxContainer"]
+layout_mode = 2
+texture_normal = ExtResource("5_3hv28")
+texture_hover = ExtResource("6_xfodx")
+texture_focused = ExtResource("6_xfodx")
+
+[node name="OptionsButton" type="TextureButton" parent="VBoxContainer"]
+layout_mode = 2
+texture_normal = ExtResource("7_3k242")
+texture_hover = ExtResource("8_xrdhi")
+texture_focused = ExtResource("8_xrdhi")
+
+[node name="QuitButton" type="TextureButton" parent="VBoxContainer"]
+layout_mode = 2
+texture_normal = ExtResource("9_t241i")
+texture_hover = ExtResource("10_gwsq1")
+texture_focused = ExtResource("10_gwsq1")
+
+[connection signal="pressed" from="VBoxContainer/CareerButton" to="." method="_on_career_button_pressed"]
+[connection signal="pressed" from="VBoxContainer/SingleButton" to="." method="_on_single_button_pressed"]
+[connection signal="pressed" from="VBoxContainer/CreationButton" to="." method="_on_creation_button_pressed"]
+[connection signal="pressed" from="VBoxContainer/OptionsButton" to="." method="_on_options_button_pressed"]
+[connection signal="pressed" from="VBoxContainer/QuitButton" to="." method="_on_quit_button_pressed"]

@@ -54,6 +54,12 @@ var ties
 var goal_diff #tiebreaker if teams have equalt points percentage and equal wins
 var last_season_position #tiebreaker if teams have equal goal differential. Tie goes to team which had lower position last season
 
+func _ready():
+	default_team() #TODO: load from save
+
+func default_team():
+	team = Team.new()
+	team._init()
 
 func print_record():
 	return str(wins)+"-"+str(losses)+"-"+str(ties)

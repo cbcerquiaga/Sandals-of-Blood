@@ -258,7 +258,8 @@ func _on_popup_item_selected(id: int) -> void:
 		"team":
 			match id:
 				0:  #Strategy
-					strategy.show()
+					$HBoxContainer.hide()
+					strategy.open_menu(CareerFranchise.team, null, false)
 					popup.hide()
 					
 				1:  #Training

@@ -195,7 +195,8 @@ func _on_save_button_focus_exited():
 
 func open_menu(team: Team, handler: MatchHandler, in_match: bool):
 	current_team = team
-	match_handler = handler
+	if handler:
+		match_handler = handler
 	is_in_match = in_match
 	original_strategy = team.strategy.duplicate(true)
 	original_subs = team.subs_remaining
