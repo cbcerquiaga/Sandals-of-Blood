@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3 uid="uid://c2ft3v5ldar6t"]
+[gd_scene load_steps=28 format=3 uid="uid://c2ft3v5ldar6t"]
 
 [ext_resource type="Script" path="res://main_menu.gd" id="1_71h2l"]
 [ext_resource type="Texture2D" uid="uid://chkf1gyncmm8t" path="res://UI/MainMenuUI/career_button_base.png" id="1_syqmp"]
@@ -11,6 +11,22 @@
 [ext_resource type="Texture2D" uid="uid://bb04dx5wj6itb" path="res://UI/PauseUI/Options_button_highlighted.png" id="8_xrdhi"]
 [ext_resource type="Texture2D" uid="uid://bsjb68a1y6pw8" path="res://UI/PauseUI/Quit_button_base.png" id="9_t241i"]
 [ext_resource type="Texture2D" uid="uid://bwlyeguixfx1g" path="res://UI/PauseUI/Quit_button_highlighted.png" id="10_gwsq1"]
+[ext_resource type="Texture2D" uid="uid://dbccpe7cekxce" path="res://UI/MainMenuUI/CreationZone/managers_button_base.png" id="12_ynjt6"]
+[ext_resource type="Texture2D" uid="uid://cwvkvvsvs3ue0" path="res://UI/MainMenuUI/CreationZone/managers_button_highlighted.png" id="13_dih33"]
+[ext_resource type="Texture2D" uid="uid://masjrnrng6qj" path="res://UI/MainMenuUI/CreationZone/teams_button_base.png" id="14_hehq5"]
+[ext_resource type="Texture2D" uid="uid://bgmg61hf7tyt2" path="res://UI/MainMenuUI/CreationZone/teams_button_highlighted.png" id="15_tjj0e"]
+[ext_resource type="Texture2D" uid="uid://kr8wfegvl3jw" path="res://UI/MainMenuUI/CreationZone/character_button_base.png" id="16_ye1jn"]
+[ext_resource type="Texture2D" uid="uid://c0gr7rmpkiwju" path="res://UI/MainMenuUI/CreationZone/character_button_highlighted.png" id="17_wvb8n"]
+[ext_resource type="Texture2D" uid="uid://coyg2ilnexf5t" path="res://UI/MainMenuUI/CreationZone/playsets_button_base.png" id="18_gds3e"]
+[ext_resource type="Texture2D" uid="uid://b688e5tovbdgh" path="res://UI/MainMenuUI/CreationZone/playsets_button_highlighted.png" id="19_k3dg2"]
+[ext_resource type="Texture2D" uid="uid://d32o3oqn0mdvy" path="res://UI/MenuUI/new_button_highlighted-2.png" id="20_42kbd"]
+[ext_resource type="Texture2D" uid="uid://bnwp1x0jrgt3e" path="res://UI/MenuUI/new_button_highlighted.png" id="21_badvt"]
+[ext_resource type="Texture2D" uid="uid://c6wmtp4be6cs" path="res://UI/MenuUI/edit_button_base.png" id="22_54yrp"]
+[ext_resource type="Texture2D" uid="uid://d31y0eg0f3w52" path="res://UI/MenuUI/edit_button_highlighted.png" id="23_q2agx"]
+[ext_resource type="Texture2D" uid="uid://dwq5ifuwav50s" path="res://UI/MenuUI/delete_button_base.png" id="24_oejl4"]
+[ext_resource type="Texture2D" uid="uid://dl2wbcxsvy5y3" path="res://UI/MenuUI/delete_button_highlighted.png" id="25_bk582"]
+[ext_resource type="Texture2D" uid="uid://ct6vtfmxy8eoo" path="res://UI/MenuUI/back_button_base.png" id="26_qgxyb"]
+[ext_resource type="Texture2D" uid="uid://cl6f7cs2xrbn7" path="res://UI/MenuUI/back_button_highlighted.png" id="27_o6eo0"]
 
 [node name="Main_Menu" type="Control"]
 layout_mode = 3
@@ -21,43 +37,107 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_71h2l")
 
-[node name="VBoxContainer" type="VBoxContainer" parent="."]
+[node name="Main" type="VBoxContainer" parent="."]
 layout_mode = 0
 offset_right = 40.0
 offset_bottom = 40.0
 
-[node name="CareerButton" type="TextureButton" parent="VBoxContainer"]
+[node name="CareerButton" type="TextureButton" parent="Main"]
 layout_mode = 2
 texture_normal = ExtResource("1_syqmp")
 texture_hover = ExtResource("2_f04dy")
 texture_focused = ExtResource("2_f04dy")
 
-[node name="SingleButton" type="TextureButton" parent="VBoxContainer"]
+[node name="SingleButton" type="TextureButton" parent="Main"]
 layout_mode = 2
 texture_normal = ExtResource("3_6fbhl")
 texture_hover = ExtResource("4_ilmu3")
 texture_focused = ExtResource("4_ilmu3")
 
-[node name="CreationButton" type="TextureButton" parent="VBoxContainer"]
+[node name="CreationButton" type="TextureButton" parent="Main"]
 layout_mode = 2
 texture_normal = ExtResource("5_3hv28")
 texture_hover = ExtResource("6_xfodx")
 texture_focused = ExtResource("6_xfodx")
 
-[node name="OptionsButton" type="TextureButton" parent="VBoxContainer"]
+[node name="OptionsButton" type="TextureButton" parent="Main"]
 layout_mode = 2
 texture_normal = ExtResource("7_3k242")
 texture_hover = ExtResource("8_xrdhi")
 texture_focused = ExtResource("8_xrdhi")
 
-[node name="QuitButton" type="TextureButton" parent="VBoxContainer"]
+[node name="QuitButton" type="TextureButton" parent="Main"]
 layout_mode = 2
 texture_normal = ExtResource("9_t241i")
 texture_hover = ExtResource("10_gwsq1")
 texture_focused = ExtResource("10_gwsq1")
 
-[connection signal="pressed" from="VBoxContainer/CareerButton" to="." method="_on_career_button_pressed"]
-[connection signal="pressed" from="VBoxContainer/SingleButton" to="." method="_on_single_button_pressed"]
-[connection signal="pressed" from="VBoxContainer/CreationButton" to="." method="_on_creation_button_pressed"]
-[connection signal="pressed" from="VBoxContainer/OptionsButton" to="." method="_on_options_button_pressed"]
-[connection signal="pressed" from="VBoxContainer/QuitButton" to="." method="_on_quit_button_pressed"]
+[node name="CreationZone" type="VBoxContainer" parent="."]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="HBoxContainer" type="HBoxContainer" parent="CreationZone"]
+layout_mode = 2
+
+[node name="Managers" type="TextureButton" parent="CreationZone/HBoxContainer"]
+layout_mode = 2
+texture_normal = ExtResource("12_ynjt6")
+texture_hover = ExtResource("13_dih33")
+texture_focused = ExtResource("13_dih33")
+
+[node name="Teams" type="TextureButton" parent="CreationZone/HBoxContainer"]
+layout_mode = 2
+texture_normal = ExtResource("14_hehq5")
+texture_hover = ExtResource("15_tjj0e")
+texture_focused = ExtResource("15_tjj0e")
+
+[node name="Characters" type="TextureButton" parent="CreationZone/HBoxContainer"]
+layout_mode = 2
+texture_normal = ExtResource("16_ye1jn")
+texture_hover = ExtResource("17_wvb8n")
+texture_focused = ExtResource("17_wvb8n")
+
+[node name="Playsets" type="TextureButton" parent="CreationZone/HBoxContainer"]
+layout_mode = 2
+texture_normal = ExtResource("18_gds3e")
+texture_hover = ExtResource("19_k3dg2")
+texture_focused = ExtResource("19_k3dg2")
+
+[node name="CZ_New" type="TextureButton" parent="CreationZone"]
+layout_mode = 2
+texture_normal = ExtResource("20_42kbd")
+texture_hover = ExtResource("21_badvt")
+texture_focused = ExtResource("21_badvt")
+
+[node name="CZ_Edit" type="TextureButton" parent="CreationZone"]
+layout_mode = 2
+texture_normal = ExtResource("22_54yrp")
+texture_hover = ExtResource("23_q2agx")
+texture_focused = ExtResource("23_q2agx")
+
+[node name="CZ_Delete" type="TextureButton" parent="CreationZone"]
+layout_mode = 2
+texture_normal = ExtResource("24_oejl4")
+texture_hover = ExtResource("25_bk582")
+texture_focused = ExtResource("25_bk582")
+
+[node name="CZ_Back" type="TextureButton" parent="CreationZone"]
+layout_mode = 2
+texture_normal = ExtResource("26_qgxyb")
+texture_hover = ExtResource("27_o6eo0")
+texture_focused = ExtResource("27_o6eo0")
+
+[connection signal="pressed" from="Main/CareerButton" to="." method="_on_career_button_pressed"]
+[connection signal="pressed" from="Main/SingleButton" to="." method="_on_single_button_pressed"]
+[connection signal="pressed" from="Main/CreationButton" to="." method="_on_creation_button_pressed"]
+[connection signal="pressed" from="Main/OptionsButton" to="." method="_on_options_button_pressed"]
+[connection signal="pressed" from="Main/QuitButton" to="." method="_on_quit_button_pressed"]
+[connection signal="pressed" from="CreationZone/HBoxContainer/Managers" to="." method="_on_managers_pressed"]
+[connection signal="pressed" from="CreationZone/HBoxContainer/Teams" to="." method="_on_teams_pressed"]
+[connection signal="pressed" from="CreationZone/HBoxContainer/Characters" to="." method="_on_characters_pressed"]
+[connection signal="pressed" from="CreationZone/HBoxContainer/Playsets" to="." method="_on_playsets_pressed"]
+[connection signal="pressed" from="CreationZone/CZ_New" to="." method="_on_cz_new_pressed"]
+[connection signal="pressed" from="CreationZone/CZ_Edit" to="." method="_on_cz_edit_pressed"]
+[connection signal="pressed" from="CreationZone/CZ_Delete" to="." method="_on_cz_delete_pressed"]
+[connection signal="pressed" from="CreationZone/CZ_Back" to="." method="_on_cz_back_pressed"]
