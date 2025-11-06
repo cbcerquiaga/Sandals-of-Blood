@@ -1,4 +1,4 @@
-[gd_scene load_steps=28 format=3 uid="uid://c2ft3v5ldar6t"]
+[gd_scene load_steps=30 format=3 uid="uid://c2ft3v5ldar6t"]
 
 [ext_resource type="Script" path="res://main_menu.gd" id="1_71h2l"]
 [ext_resource type="Texture2D" uid="uid://chkf1gyncmm8t" path="res://UI/MainMenuUI/career_button_base.png" id="1_syqmp"]
@@ -27,6 +27,8 @@
 [ext_resource type="Texture2D" uid="uid://dl2wbcxsvy5y3" path="res://UI/MenuUI/delete_button_highlighted.png" id="25_bk582"]
 [ext_resource type="Texture2D" uid="uid://ct6vtfmxy8eoo" path="res://UI/MenuUI/back_button_base.png" id="26_qgxyb"]
 [ext_resource type="Texture2D" uid="uid://cl6f7cs2xrbn7" path="res://UI/MenuUI/back_button_highlighted.png" id="27_o6eo0"]
+[ext_resource type="Texture2D" uid="uid://dhrv0mf3ur3v8" path="res://UI/MenuUI/load_button_base.png" id="28_1dg4g"]
+[ext_resource type="Texture2D" uid="uid://cpeqagsaxabsm" path="res://UI/MenuUI/load_button_highlighted.png" id="29_mke8t"]
 
 [node name="Main_Menu" type="Control"]
 layout_mode = 3
@@ -128,6 +130,51 @@ texture_normal = ExtResource("26_qgxyb")
 texture_hover = ExtResource("27_o6eo0")
 texture_focused = ExtResource("27_o6eo0")
 
+[node name="SingleGame" type="VBoxContainer" parent="."]
+layout_mode = 2
+offset_top = 1962.0
+offset_right = 1080.0
+offset_bottom = 1962.0
+
+[node name="S_Exhibition" type="TextureButton" parent="SingleGame"]
+layout_mode = 2
+
+[node name="S_Multiplayer" type="TextureButton" parent="SingleGame"]
+layout_mode = 2
+
+[node name="S_Back" type="TextureButton" parent="SingleGame"]
+layout_mode = 2
+
+[node name="Career" type="VBoxContainer" parent="."]
+layout_mode = 0
+offset_top = 654.0
+offset_right = 40.0
+offset_bottom = 694.0
+
+[node name="C_New" type="TextureButton" parent="Career"]
+layout_mode = 2
+texture_normal = ExtResource("20_42kbd")
+texture_hover = ExtResource("21_badvt")
+texture_focused = ExtResource("21_badvt")
+
+[node name="C_Load" type="TextureButton" parent="Career"]
+layout_mode = 2
+texture_normal = ExtResource("28_1dg4g")
+texture_hover = ExtResource("29_mke8t")
+texture_focused = ExtResource("29_mke8t")
+
+[node name="C_Delete" type="TextureButton" parent="Career"]
+layout_mode = 2
+texture_normal = ExtResource("24_oejl4")
+texture_hover = ExtResource("25_bk582")
+texture_focused = ExtResource("25_bk582")
+
+[node name="C_Back" type="TextureButton" parent="Career"]
+layout_mode = 2
+texture_normal = ExtResource("26_qgxyb")
+texture_hover = ExtResource("27_o6eo0")
+texture_focused = ExtResource("27_o6eo0")
+
 [connection signal="pressed" from="Main/CareerButton" to="." method="_on_career_button_pressed"]
 [connection signal="pressed" from="Main/SingleButton" to="." method="_on_single_button_pressed"]
 [connection signal="pressed" from="Main/CreationButton" to="." method="_on_creation_button_pressed"]
@@ -141,3 +188,7 @@ texture_focused = ExtResource("27_o6eo0")
 [connection signal="pressed" from="CreationZone/CZ_Edit" to="." method="_on_cz_edit_pressed"]
 [connection signal="pressed" from="CreationZone/CZ_Delete" to="." method="_on_cz_delete_pressed"]
 [connection signal="pressed" from="CreationZone/CZ_Back" to="." method="_on_cz_back_pressed"]
+[connection signal="pressed" from="Career/C_New" to="." method="_on_c_new_pressed"]
+[connection signal="pressed" from="Career/C_Load" to="." method="_on_c_load_pressed"]
+[connection signal="pressed" from="Career/C_Delete" to="." method="_on_c_delete_pressed"]
+[connection signal="pressed" from="Career/C_Back" to="." method="_on_c_back_pressed"]
