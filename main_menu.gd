@@ -13,6 +13,10 @@ func bring_up():
 	$CreationZone.hide()
 	$Main.show()
 	$Career.hide()
+	$Multiplayer.hide()
+	$Exhibition.hide()
+	$Guide.hide()
+	$SingleGame.hide()
 	$Main/CareerButton.grab_focus()
 	check_save_files()
 
@@ -22,8 +26,9 @@ func _on_career_button_pressed() -> void:
 	$Career/C_New.grab_focus()
 
 func _on_single_button_pressed() -> void:
-	#TODO: single match menu
-	pass # Replace with function body.
+	$Main.hide()
+	$SingleGame.show()
+	$SingleGame/S_Exhibition.grab_focus()
 
 func _on_creation_button_pressed() -> void:
 	$CreationZone.show()
@@ -78,7 +83,6 @@ func _on_cz_back_pressed() -> void:
 func check_save_files():
 	has_career_saves = true #TODO: check save files
 
-
 func _on_c_new_pressed() -> void:
 	pass # Replace with function body.
 
@@ -92,3 +96,53 @@ func _on_c_back_pressed() -> void:
 	$Main.show()
 	$Career.hide()
 	$Main/CareerButton.grab_focus()
+
+func _on_s_exhibition_pressed() -> void:
+	pass # Replace with function body.
+
+func _on_s_multiplayer_pressed() -> void:
+	$SingleGame.hide()
+	$Multiplayer.show()
+	$Multiplayer/M_Browse.grab_focus()
+
+func _on_s_back_pressed() -> void:
+	$SingleGame.hide()
+	$Main.show()
+	$Main/SingleButton.grab_focus()
+
+
+func _on_guide_button_pressed() -> void:
+	
+	pass # Replace with function body.
+
+
+func _on_e_solo_pressed() -> void:
+	pass # Replace with function body.
+
+
+func _on_e_coop_pressed() -> void:
+	pass # Replace with function body.
+
+
+func _on_e_vs_pressed() -> void:
+	pass # Replace with function body.
+
+
+func _on_e_back_pressed() -> void:
+	$Exhibition.hide()
+	$SingleGame.show()
+	$SingleGame/S_Exhibition.grab_focus()
+
+
+func _on_m_back_pressed() -> void:
+	$Multiplayer.hide()
+	$SingleGame.show()
+	$SingleGame/S_Multiplayer.grab_focus()
+
+
+func _on_m_browse_pressed() -> void:
+	pass # Replace with function body.
+
+
+func _on_m_host_pressed() -> void:
+	pass # Replace with function body.

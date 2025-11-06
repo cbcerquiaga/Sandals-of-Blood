@@ -1,14 +1,14 @@
-[gd_scene load_steps=30 format=3 uid="uid://c2ft3v5ldar6t"]
+[gd_scene load_steps=40 format=3 uid="uid://c2ft3v5ldar6t"]
 
 [ext_resource type="Script" path="res://main_menu.gd" id="1_71h2l"]
 [ext_resource type="Texture2D" uid="uid://chkf1gyncmm8t" path="res://UI/MainMenuUI/career_button_base.png" id="1_syqmp"]
 [ext_resource type="Texture2D" uid="uid://jkgycmay5lll" path="res://UI/MainMenuUI/career_button_highlighted.png" id="2_f04dy"]
-[ext_resource type="Texture2D" uid="uid://e40bbu8kp2bc" path="res://UI/MainMenuUI/singleMatch_base.png" id="3_6fbhl"]
-[ext_resource type="Texture2D" uid="uid://824tboycmfy7" path="res://UI/MainMenuUI/singleMatch_highlighted.png" id="4_ilmu3"]
 [ext_resource type="Texture2D" uid="uid://g5h6f7ydxqle" path="res://UI/MainMenuUI/creationButton_base.png" id="5_3hv28"]
 [ext_resource type="Texture2D" uid="uid://v522fnqoxm2u" path="res://UI/MainMenuUI/creationButton_highlighted.png" id="6_xfodx"]
 [ext_resource type="Texture2D" uid="uid://d5xkjtgqnhjt" path="res://UI/PauseUI/Options_button_base.png" id="7_3k242"]
+[ext_resource type="Texture2D" uid="uid://b8d07k53do4tw" path="res://UI/MainMenuUI/Guide/guide_button_base.png" id="8_5a8av"]
 [ext_resource type="Texture2D" uid="uid://bb04dx5wj6itb" path="res://UI/PauseUI/Options_button_highlighted.png" id="8_xrdhi"]
+[ext_resource type="Texture2D" uid="uid://d30qiyqaw34lh" path="res://UI/MainMenuUI/Guide/guide_button_highlighted.png" id="9_odv0s"]
 [ext_resource type="Texture2D" uid="uid://bsjb68a1y6pw8" path="res://UI/PauseUI/Quit_button_base.png" id="9_t241i"]
 [ext_resource type="Texture2D" uid="uid://bwlyeguixfx1g" path="res://UI/PauseUI/Quit_button_highlighted.png" id="10_gwsq1"]
 [ext_resource type="Texture2D" uid="uid://dbccpe7cekxce" path="res://UI/MainMenuUI/CreationZone/managers_button_base.png" id="12_ynjt6"]
@@ -28,7 +28,17 @@
 [ext_resource type="Texture2D" uid="uid://ct6vtfmxy8eoo" path="res://UI/MenuUI/back_button_base.png" id="26_qgxyb"]
 [ext_resource type="Texture2D" uid="uid://cl6f7cs2xrbn7" path="res://UI/MenuUI/back_button_highlighted.png" id="27_o6eo0"]
 [ext_resource type="Texture2D" uid="uid://dhrv0mf3ur3v8" path="res://UI/MenuUI/load_button_base.png" id="28_1dg4g"]
+[ext_resource type="Texture2D" uid="uid://docg2lrpo37l1" path="res://UI/MainMenuUI/SingleMatch/exhibition_button_base.png" id="28_ng5is"]
+[ext_resource type="Texture2D" uid="uid://cnhk22y71jmg0" path="res://UI/MainMenuUI/SingleMatch/exhibition_button_highlighted.png" id="29_g2six"]
 [ext_resource type="Texture2D" uid="uid://cpeqagsaxabsm" path="res://UI/MenuUI/load_button_highlighted.png" id="29_mke8t"]
+[ext_resource type="Texture2D" uid="uid://r57fg6jka2qk" path="res://UI/MainMenuUI/SingleMatch/local_button_base.png" id="30_735e0"]
+[ext_resource type="Texture2D" uid="uid://d18nvngibh6kj" path="res://UI/MainMenuUI/SingleMatch/online_button_base.png" id="30_jq7gi"]
+[ext_resource type="Texture2D" uid="uid://dfx0gf6jsuhkv" path="res://UI/MainMenuUI/SingleMatch/local_button_highlighted.png" id="31_jb5x8"]
+[ext_resource type="Texture2D" uid="uid://c3acokxwkcg71" path="res://UI/MainMenuUI/SingleMatch/online_button_highlighted.png" id="31_t50k7"]
+[ext_resource type="Texture2D" uid="uid://be52xittyalxe" path="res://UI/MainMenuUI/SingleMatch/host_button_base.png" id="36_himrr"]
+[ext_resource type="Texture2D" uid="uid://c50by38t7xnlj" path="res://UI/MainMenuUI/SingleMatch/host_button_highlighted.png" id="37_y7rat"]
+[ext_resource type="Texture2D" uid="uid://b0n2v7jpaawj2" path="res://UI/MainMenuUI/SingleMatch/browse_button_base.png" id="38_y7gr4"]
+[ext_resource type="Texture2D" uid="uid://b4nedpfoggp0w" path="res://UI/MainMenuUI/SingleMatch/browse_button_highlighted.png" id="39_7ynpc"]
 
 [node name="Main_Menu" type="Control"]
 layout_mode = 3
@@ -52,15 +62,21 @@ texture_focused = ExtResource("2_f04dy")
 
 [node name="SingleButton" type="TextureButton" parent="Main"]
 layout_mode = 2
-texture_normal = ExtResource("3_6fbhl")
-texture_hover = ExtResource("4_ilmu3")
-texture_focused = ExtResource("4_ilmu3")
+texture_normal = ExtResource("28_ng5is")
+texture_hover = ExtResource("29_g2six")
+texture_focused = ExtResource("29_g2six")
 
 [node name="CreationButton" type="TextureButton" parent="Main"]
 layout_mode = 2
 texture_normal = ExtResource("5_3hv28")
 texture_hover = ExtResource("6_xfodx")
 texture_focused = ExtResource("6_xfodx")
+
+[node name="GuideButton" type="TextureButton" parent="Main"]
+layout_mode = 2
+texture_normal = ExtResource("8_5a8av")
+texture_hover = ExtResource("9_odv0s")
+texture_focused = ExtResource("9_odv0s")
 
 [node name="OptionsButton" type="TextureButton" parent="Main"]
 layout_mode = 2
@@ -138,12 +154,21 @@ offset_bottom = 1962.0
 
 [node name="S_Exhibition" type="TextureButton" parent="SingleGame"]
 layout_mode = 2
+texture_normal = ExtResource("30_735e0")
+texture_hover = ExtResource("31_jb5x8")
+texture_focused = ExtResource("31_jb5x8")
 
 [node name="S_Multiplayer" type="TextureButton" parent="SingleGame"]
 layout_mode = 2
+texture_normal = ExtResource("30_jq7gi")
+texture_hover = ExtResource("31_t50k7")
+texture_focused = ExtResource("31_t50k7")
 
 [node name="S_Back" type="TextureButton" parent="SingleGame"]
 layout_mode = 2
+texture_normal = ExtResource("26_qgxyb")
+texture_hover = ExtResource("27_o6eo0")
+texture_focused = ExtResource("27_o6eo0")
 
 [node name="Career" type="VBoxContainer" parent="."]
 layout_mode = 0
@@ -175,9 +200,51 @@ texture_normal = ExtResource("26_qgxyb")
 texture_hover = ExtResource("27_o6eo0")
 texture_focused = ExtResource("27_o6eo0")
 
+[node name="Exhibition" type="VBoxContainer" parent="."]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="E_Solo" type="TextureButton" parent="Exhibition"]
+layout_mode = 2
+
+[node name="E_Coop" type="TextureButton" parent="Exhibition"]
+layout_mode = 2
+
+[node name="E_Vs" type="TextureButton" parent="Exhibition"]
+layout_mode = 2
+
+[node name="E_Back" type="TextureButton" parent="Exhibition"]
+layout_mode = 2
+
+[node name="Multiplayer" type="VBoxContainer" parent="."]
+layout_mode = 2
+offset_right = 40.0
+
+[node name="M_Browse" type="TextureButton" parent="Multiplayer"]
+layout_mode = 2
+texture_normal = ExtResource("38_y7gr4")
+texture_hover = ExtResource("39_7ynpc")
+texture_focused = ExtResource("39_7ynpc")
+
+[node name="M_Host" type="TextureButton" parent="Multiplayer"]
+layout_mode = 2
+texture_normal = ExtResource("36_himrr")
+texture_hover = ExtResource("37_y7rat")
+texture_focused = ExtResource("37_y7rat")
+
+[node name="M_Back" type="TextureButton" parent="Multiplayer"]
+layout_mode = 2
+
+[node name="Guide" type="VBoxContainer" parent="."]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
 [connection signal="pressed" from="Main/CareerButton" to="." method="_on_career_button_pressed"]
 [connection signal="pressed" from="Main/SingleButton" to="." method="_on_single_button_pressed"]
 [connection signal="pressed" from="Main/CreationButton" to="." method="_on_creation_button_pressed"]
+[connection signal="pressed" from="Main/GuideButton" to="." method="_on_guide_button_pressed"]
 [connection signal="pressed" from="Main/OptionsButton" to="." method="_on_options_button_pressed"]
 [connection signal="pressed" from="Main/QuitButton" to="." method="_on_quit_button_pressed"]
 [connection signal="pressed" from="CreationZone/HBoxContainer/Managers" to="." method="_on_managers_pressed"]
@@ -188,7 +255,17 @@ texture_focused = ExtResource("27_o6eo0")
 [connection signal="pressed" from="CreationZone/CZ_Edit" to="." method="_on_cz_edit_pressed"]
 [connection signal="pressed" from="CreationZone/CZ_Delete" to="." method="_on_cz_delete_pressed"]
 [connection signal="pressed" from="CreationZone/CZ_Back" to="." method="_on_cz_back_pressed"]
+[connection signal="pressed" from="SingleGame/S_Exhibition" to="." method="_on_s_exhibition_pressed"]
+[connection signal="pressed" from="SingleGame/S_Multiplayer" to="." method="_on_s_multiplayer_pressed"]
+[connection signal="pressed" from="SingleGame/S_Back" to="." method="_on_s_back_pressed"]
 [connection signal="pressed" from="Career/C_New" to="." method="_on_c_new_pressed"]
 [connection signal="pressed" from="Career/C_Load" to="." method="_on_c_load_pressed"]
 [connection signal="pressed" from="Career/C_Delete" to="." method="_on_c_delete_pressed"]
 [connection signal="pressed" from="Career/C_Back" to="." method="_on_c_back_pressed"]
+[connection signal="pressed" from="Exhibition/E_Solo" to="." method="_on_e_solo_pressed"]
+[connection signal="pressed" from="Exhibition/E_Coop" to="." method="_on_e_coop_pressed"]
+[connection signal="pressed" from="Exhibition/E_Vs" to="." method="_on_e_vs_pressed"]
+[connection signal="pressed" from="Exhibition/E_Back" to="." method="_on_e_back_pressed"]
+[connection signal="pressed" from="Multiplayer/M_Browse" to="." method="_on_m_browse_pressed"]
+[connection signal="pressed" from="Multiplayer/M_Host" to="." method="_on_m_host_pressed"]
+[connection signal="pressed" from="Multiplayer/M_Back" to="." method="_on_m_back_pressed"]
