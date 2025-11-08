@@ -115,10 +115,8 @@ func _on_guide_button_pressed() -> void:
 	
 	pass # Replace with function body.
 
-
 func _on_e_solo_pressed() -> void:
 	pass # Replace with function body.
-
 
 func _on_e_coop_pressed() -> void:
 	pass # Replace with function body.

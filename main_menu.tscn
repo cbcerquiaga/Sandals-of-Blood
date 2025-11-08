@@ -1,4 +1,4 @@
-[gd_scene load_steps=40 format=3 uid="uid://c2ft3v5ldar6t"]
+[gd_scene load_steps=46 format=3 uid="uid://c2ft3v5ldar6t"]
 
 [ext_resource type="Script" path="res://main_menu.gd" id="1_71h2l"]
 [ext_resource type="Texture2D" uid="uid://chkf1gyncmm8t" path="res://UI/MainMenuUI/career_button_base.png" id="1_syqmp"]
@@ -36,9 +36,15 @@
 [ext_resource type="Texture2D" uid="uid://dfx0gf6jsuhkv" path="res://UI/MainMenuUI/SingleMatch/local_button_highlighted.png" id="31_jb5x8"]
 [ext_resource type="Texture2D" uid="uid://c3acokxwkcg71" path="res://UI/MainMenuUI/SingleMatch/online_button_highlighted.png" id="31_t50k7"]
 [ext_resource type="Texture2D" uid="uid://be52xittyalxe" path="res://UI/MainMenuUI/SingleMatch/host_button_base.png" id="36_himrr"]
+[ext_resource type="Texture2D" uid="uid://b2mol8g21jxhs" path="res://UI/MainMenuUI/SingleMatch/solo_button_base.png" id="36_ve0h3"]
+[ext_resource type="Texture2D" uid="uid://blco2jk6s2v5g" path="res://UI/MainMenuUI/SingleMatch/solo_button_highlighted.png" id="37_eu0ip"]
 [ext_resource type="Texture2D" uid="uid://c50by38t7xnlj" path="res://UI/MainMenuUI/SingleMatch/host_button_highlighted.png" id="37_y7rat"]
+[ext_resource type="Texture2D" uid="uid://dgij8iko85ee4" path="res://UI/MainMenuUI/SingleMatch/coop_button_base.png" id="38_fstoy"]
 [ext_resource type="Texture2D" uid="uid://b0n2v7jpaawj2" path="res://UI/MainMenuUI/SingleMatch/browse_button_base.png" id="38_y7gr4"]
 [ext_resource type="Texture2D" uid="uid://b4nedpfoggp0w" path="res://UI/MainMenuUI/SingleMatch/browse_button_highlighted.png" id="39_7ynpc"]
+[ext_resource type="Texture2D" uid="uid://b3gyn4ibpfwv7" path="res://UI/MainMenuUI/SingleMatch/coop_button_highlighted.png" id="39_jfav5"]
+[ext_resource type="Texture2D" uid="uid://ddw42pfx7wim" path="res://UI/MainMenuUI/SingleMatch/vs_button_base.png" id="40_e6sc7"]
+[ext_resource type="Texture2D" uid="uid://30gojxkvomqg" path="res://UI/MainMenuUI/SingleMatch/vs_button_highlighted.png" id="41_nlgqd"]
 
 [node name="Main_Menu" type="Control"]
 layout_mode = 3
@@ -207,15 +213,27 @@ offset_bottom = 40.0
 
 [node name="E_Solo" type="TextureButton" parent="Exhibition"]
 layout_mode = 2
+texture_normal = ExtResource("36_ve0h3")
+texture_hover = ExtResource("37_eu0ip")
+texture_focused = ExtResource("37_eu0ip")
 
 [node name="E_Coop" type="TextureButton" parent="Exhibition"]
 layout_mode = 2
+texture_normal = ExtResource("38_fstoy")
+texture_hover = ExtResource("39_jfav5")
+texture_focused = ExtResource("39_jfav5")
 
 [node name="E_Vs" type="TextureButton" parent="Exhibition"]
 layout_mode = 2
+texture_normal = ExtResource("40_e6sc7")
+texture_hover = ExtResource("41_nlgqd")
+texture_focused = ExtResource("41_nlgqd")
 
 [node name="E_Back" type="TextureButton" parent="Exhibition"]
 layout_mode = 2
+texture_normal = ExtResource("26_qgxyb")
+texture_hover = ExtResource("27_o6eo0")
+texture_focused = ExtResource("27_o6eo0")
 
 [node name="Multiplayer" type="VBoxContainer" parent="."]
 layout_mode = 2
