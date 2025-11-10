@@ -98,7 +98,9 @@ func _on_c_back_pressed() -> void:
 	$Main/CareerButton.grab_focus()
 
 func _on_s_exhibition_pressed() -> void:
-	pass # Replace with function body.
+	$SingleGame.hide()
+	$Exhibition.show()
+	$Exhibition/E_Solo.grab_focus()
 
 func _on_s_multiplayer_pressed() -> void:
 	$SingleGame.hide()

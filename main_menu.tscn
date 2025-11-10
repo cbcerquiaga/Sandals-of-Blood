@@ -153,10 +153,18 @@ texture_hover = ExtResource("27_o6eo0")
 texture_focused = ExtResource("27_o6eo0")
 
 [node name="SingleGame" type="VBoxContainer" parent="."]
-layout_mode = 2
-offset_top = 1962.0
-offset_right = 1080.0
-offset_bottom = 1962.0
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -540.0
+offset_top = -488.5
+offset_right = 540.0
+offset_bottom = 488.5
+grow_horizontal = 2
+grow_vertical = 2
 
 [node name="S_Exhibition" type="TextureButton" parent="SingleGame"]
 layout_mode = 2
@@ -177,10 +185,18 @@ texture_hover = ExtResource("27_o6eo0")
 texture_focused = ExtResource("27_o6eo0")
 
 [node name="Career" type="VBoxContainer" parent="."]
-layout_mode = 0
-offset_top = 654.0
-offset_right = 40.0
-offset_bottom = 694.0
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -540.0
+offset_top = -652.0
+offset_right = 540.0
+offset_bottom = 652.0
+grow_horizontal = 2
+grow_vertical = 2
 
 [node name="C_New" type="TextureButton" parent="Career"]
 layout_mode = 2
@@ -253,6 +269,9 @@ texture_focused = ExtResource("37_y7rat")
 
 [node name="M_Back" type="TextureButton" parent="Multiplayer"]
 layout_mode = 2
+texture_normal = ExtResource("26_qgxyb")
+texture_hover = ExtResource("27_o6eo0")
+texture_focused = ExtResource("27_o6eo0")
 
 [node name="Guide" type="VBoxContainer" parent="."]
 layout_mode = 0
