@@ -310,6 +310,8 @@ func _on_popup_item_selected(id: int) -> void:
 				3:  #Load
 					pass
 				4:  #Exit
+					#TODO: add a popup to ask if you're sure
+					get_tree().change_scene_to_file("res://main_menu.tscn")
 					pass
 		"career":
 			match id:

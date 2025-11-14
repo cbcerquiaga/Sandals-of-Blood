@@ -1,8 +1,5 @@
 extends Control
 
-#TODO: decide whether to use standard case or all caps buttons. Can't keep mixing them
-#TODO: scale everything down
-
 var has_career_saves: bool
 
 func _ready():
@@ -17,8 +14,16 @@ func bring_up():
 	$Exhibition.hide()
 	$Guide.hide()
 	$SingleGame.hide()
+	$Options.hide()
+	$QuitMenu.hide()
 	$Main/CareerButton.grab_focus()
 	check_save_files()
+	
+func format_creation_zone():
+	#TODO: shrink $CreationZone/HBoxContainer/Managers, $CreationZone/HBoxContainer/Teams, $CreationZone/HBoxContainer/Characters, $CreationZone/HBoxContainer/Playsets
+	#TODO: shrink $CreationZone/CZ_New, $CreationZone/CZ_Edit, $CreationZone/CZ_Delete, $CreationZone/CZ_Back
+	#TODO: add a central popup menu which lists all existing files
+	pass
 
 func _on_career_button_pressed() -> void:
 	$Main.hide()
@@ -38,13 +43,15 @@ func _on_creation_button_pressed() -> void:
 
 
 func _on_options_button_pressed() -> void:
-	#TODO: global options menu
-	pass # Replace with function body.
+	$Options.show()
+	$Main.hide()
+	$Options/O_Game.grab_focus()
 
 
 func _on_quit_button_pressed() -> void:
-	#TODO: quit the program
-	pass # Replace with function body.
+	$Main.hide()
+	$QuitMenu.show()
+	$QuitMenu/Q_Yes.grab_focus()
 
 
 func _on_managers_pressed() -> void:
@@ -114,10 +121,12 @@ func _on_s_back_pressed() -> void:
 
 
 func _on_guide_button_pressed() -> void:
-	
+	$Main.hide()
+	$Guide.show()
 	pass # Replace with function body.
 
 func _on_e_solo_pressed() -> void:
+	get_tree().change_scene_to_file("res://test_match_scene.tscn")
 	pass # Replace with function body.
 
 func _on_e_coop_pressed() -> void:
@@ -146,3 +155,40 @@ func _on_m_browse_pressed() -> void:
 
 func _on_m_host_pressed() -> void:
 	pass # Replace with function body.
+
+
+func _on_o_game_pressed() -> void:
+	pass # Replace with function body.
+
+
+func _on_o_back_pressed() -> void:
+	$Options.hide()
+	$Main.show()
+	$Main/OptionsButton.grab_focus()
+
+func _on_o_tracks_pressed() -> void:
+	pass # Replace with function body.
+
+
+func _on_g_career_pressed() -> void:
+	#TODO: guide for career mode
+	pass # Replace with function body.
+
+
+func _on_g_advanced_pressed() -> void:
+	#TODO: advanced gameplay guide
+	pass # Replace with function body.
+
+func _on_g_basic_pressed() -> void:
+	#TODO: basic gameplay guide
+	pass # Replace with function body.
+
+
+func _on_q_yes_pressed() -> void:
+	get_tree().quit()
+
+
+func _on_q_no_pressed() -> void:
+	$QuitMenu.hide()
+	$Main.show()
+	$Main/QuitButton.grab_focus()

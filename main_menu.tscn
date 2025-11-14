@@ -1,4 +1,4 @@
-[gd_scene load_steps=46 format=3 uid="uid://c2ft3v5ldar6t"]
+[gd_scene load_steps=50 format=3 uid="uid://c2ft3v5ldar6t"]
 
 [ext_resource type="Script" path="res://main_menu.gd" id="1_71h2l"]
 [ext_resource type="Texture2D" uid="uid://chkf1gyncmm8t" path="res://UI/MainMenuUI/career_button_base.png" id="1_syqmp"]
@@ -45,6 +45,10 @@
 [ext_resource type="Texture2D" uid="uid://b3gyn4ibpfwv7" path="res://UI/MainMenuUI/SingleMatch/coop_button_highlighted.png" id="39_jfav5"]
 [ext_resource type="Texture2D" uid="uid://ddw42pfx7wim" path="res://UI/MainMenuUI/SingleMatch/vs_button_base.png" id="40_e6sc7"]
 [ext_resource type="Texture2D" uid="uid://30gojxkvomqg" path="res://UI/MainMenuUI/SingleMatch/vs_button_highlighted.png" id="41_nlgqd"]
+[ext_resource type="Texture2D" uid="uid://b05j4r4jhiv7q" path="res://UI/MenuUI/yes_button_base.png" id="46_oqdtl"]
+[ext_resource type="Texture2D" uid="uid://nakg72brimgt" path="res://UI/MenuUI/yes_button_highlighted.png" id="47_p0c7k"]
+[ext_resource type="Texture2D" uid="uid://btfbrqqge5hes" path="res://UI/MenuUI/no_button_base.png" id="48_vtb2i"]
+[ext_resource type="Texture2D" uid="uid://c5otuvg4kupsh" path="res://UI/MenuUI/no_button_highlighted.png" id="49_nvqxs"]
 
 [node name="Main_Menu" type="Control"]
 layout_mode = 3
@@ -273,10 +277,69 @@ texture_normal = ExtResource("26_qgxyb")
 texture_hover = ExtResource("27_o6eo0")
 texture_focused = ExtResource("27_o6eo0")
 
+[node name="Options" type="VBoxContainer" parent="."]
+layout_mode = 2
+offset_right = 40.0
+
+[node name="O_Game" type="TextureButton" parent="Options"]
+layout_mode = 2
+
+[node name="O_Tracks" type="TextureButton" parent="Options"]
+layout_mode = 2
+
+[node name="O_Back" type="TextureButton" parent="Options"]
+layout_mode = 2
+texture_normal = ExtResource("26_qgxyb")
+texture_hover = ExtResource("27_o6eo0")
+texture_focused = ExtResource("27_o6eo0")
+
 [node name="Guide" type="VBoxContainer" parent="."]
 layout_mode = 0
 offset_right = 40.0
 offset_bottom = 40.0
+
+[node name="G_Basic" type="TextureButton" parent="Guide"]
+layout_mode = 2
+
+[node name="G_Advanced" type="TextureButton" parent="Guide"]
+layout_mode = 2
+
+[node name="G_Career" type="TextureButton" parent="Guide"]
+layout_mode = 2
+texture_normal = ExtResource("1_syqmp")
+texture_hover = ExtResource("2_f04dy")
+texture_focused = ExtResource("2_f04dy")
+
+[node name="QuitMenu" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -540.0
+offset_top = -325.0
+offset_right = 540.0
+offset_bottom = 325.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Label" type="Label" parent="QuitMenu"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 100
+text = "Quit to desktop?"
+
+[node name="Q_Yes" type="TextureButton" parent="QuitMenu"]
+layout_mode = 2
+texture_normal = ExtResource("46_oqdtl")
+texture_hover = ExtResource("47_p0c7k")
+texture_focused = ExtResource("47_p0c7k")
+
+[node name="Q_No" type="TextureButton" parent="QuitMenu"]
+layout_mode = 2
+texture_normal = ExtResource("48_vtb2i")
+texture_hover = ExtResource("49_nvqxs")
+texture_focused = ExtResource("49_nvqxs")
 
 [connection signal="pressed" from="Main/CareerButton" to="." method="_on_career_button_pressed"]
 [connection signal="pressed" from="Main/SingleButton" to="." method="_on_single_button_pressed"]
@@ -306,3 +369,11 @@ offset_bottom = 40.0
 [connection signal="pressed" from="Multiplayer/M_Browse" to="." method="_on_m_browse_pressed"]
 [connection signal="pressed" from="Multiplayer/M_Host" to="." method="_on_m_host_pressed"]
 [connection signal="pressed" from="Multiplayer/M_Back" to="." method="_on_m_back_pressed"]
+[connection signal="pressed" from="Options/O_Game" to="." method="_on_o_game_pressed"]
+[connection signal="pressed" from="Options/O_Tracks" to="." method="_on_o_tracks_pressed"]
+[connection signal="pressed" from="Options/O_Back" to="." method="_on_o_back_pressed"]
+[connection signal="pressed" from="Guide/G_Basic" to="." method="_on_g_basic_pressed"]
+[connection signal="pressed" from="Guide/G_Advanced" to="." method="_on_g_advanced_pressed"]
+[connection signal="pressed" from="Guide/G_Career" to="." method="_on_g_career_pressed"]
+[connection signal="pressed" from="QuitMenu/Q_Yes" to="." method="_on_q_yes_pressed"]
+[connection signal="pressed" from="QuitMenu/Q_No" to="." method="_on_q_no_pressed"]
