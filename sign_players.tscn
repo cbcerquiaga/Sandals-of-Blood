@@ -1,0 +1,43 @@
+[gd_scene format=3 uid="uid://dkxpvx0n1a0o7"]
+
+[node name="Control" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="main" type="VBoxContainer" parent="."]
+layout_mode = 2
+offset_bottom = 40.0
+
+[node name="Filter" type="HBoxContainer" parent="main"]
+layout_mode = 2
+
+[node name="FilterPosition" type="TextureButton" parent="main/Filter"]
+layout_mode = 2
+
+[node name="FilterStyle" type="TextureButton" parent="main/Filter"]
+layout_mode = 2
+
+[node name="Sort" type="TextureButton" parent="main/Filter"]
+layout_mode = 2
+
+[node name="ScrollContainer" type="ScrollContainer" parent="main"]
+layout_mode = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="main/ScrollContainer"]
+layout_mode = 2
+
+[node name="Actions" type="HBoxContainer" parent="main"]
+layout_mode = 2
+
+[node name="Back" type="TextureButton" parent="main/Actions"]
+layout_mode = 2
+
+[node name="Comparables" type="TextureButton" parent="main/Actions"]
+layout_mode = 2
+
+[node name="Sign" type="TextureButton" parent="main/Actions"]
+layout_mode = 2
