@@ -18,7 +18,10 @@ var menu_items = {
 	"management": ["Manage Team", "Inventory", "Relationships", "Ownership"],
 	"league": ["News", "Leaders", "Stats", "Tables", "History"],
 	"career": ["Growth", "Job Openings", "Overview", "Retire"],
-	"system": ["Options", "Music", "Save", "Load", "Exit"]
+	"system": ["Options", "Music", "Save", "Load", "Exit"],
+	"improve_add": ["Free Agents", "Offer Sheets", "Scouting", "Tryouts"],
+	"improve_trade": ["Edit Trade Block", "View Trade Blocks", "Propose Trade"],
+	"improve_remove": ["Release Players", "Request Offers", "Loan Players"]
 }
 
 func _ready():
@@ -35,14 +38,21 @@ func _ready():
 		
 		if is_inside_tree():
 			_connect_button_signals()
+			_connect_improve_button_signals()
 			today_button.grab_focus()
 
 func _process(delta):
 	if popup_is_open and popup.visible:
 		if Input.is_action_just_pressed("move_left"):
-			_navigate_popup(1)
+			if $ImproveContainer.visible:
+				_navigate_improve_popup(1)
+			else:
+				_navigate_popup(1)
 		elif Input.is_action_just_pressed("move_right"):
-			_navigate_popup(-1)
+			if $ImproveContainer.visible:
+				_navigate_improve_popup(-1)
+			else:
+				_navigate_popup(-1)
 
 func _connect_button_signals():
 	var containers = [
@@ -74,6 +84,28 @@ func _connect_button_signals():
 		var right_idx = (i + 1) % buttons.size()
 		button.focus_neighbor_right = button.get_path_to(buttons[right_idx])
 		print("Set focus neighbors for button ", i)
+
+func _connect_improve_button_signals():
+	var improve_buttons = [
+		$ImproveContainer/AddButton,
+		$ImproveContainer/TradeButton,
+		$ImproveContainer/RemoveButton,
+		$ImproveContainer/BackButton
+	]
+	
+	for i in range(improve_buttons.size()):
+		var button = improve_buttons[i]
+		if button:
+			if not button.focus_entered.is_connected(_on_improve_button_focused):
+				button.focus_entered.connect(_on_improve_button_focused.bind(button))
+			if not button.pressed.is_connected(_on_improve_button_pressed):
+				button.pressed.connect(_on_improve_button_pressed.bind(button))
+			
+			# Set up focus neighbors for circular navigation
+			var left_idx = (i - 1 + improve_buttons.size()) % improve_buttons.size()
+			button.focus_neighbor_left = button.get_path_to(improve_buttons[left_idx])
+			var right_idx = (i + 1) % improve_buttons.size()
+			button.focus_neighbor_right = button.get_path_to(improve_buttons[right_idx])
 
 func _on_any_button_focused(button: Control, container: Control):
 	print("Button focused in container: ", container.name, " popup_is_open: ", popup_is_open)
@@ -132,6 +164,8 @@ func bringUp():
 	gameDay()
 	options.hide()
 	strategy.hide()
+	$ImproveContainer.hide()
+	$ManageContainer.hide()
 	today_button.grab_focus()
 
 func travelDay():
@@ -265,7 +299,10 @@ func _on_popup_item_selected(id: int) -> void:
 				1:  #Training
 					get_tree().change_scene_to_file("res://training_menu.tscn")
 				2:  #Improve Team
-					pass
+					$ImproveContainer.show()
+					$HBoxContainer.hide()
+					popup.hide()
+					$ImproveContainer/AddButton.grab_focus()
 		"travel":
 			match id:
 				0:  #Travel!
@@ -333,6 +370,32 @@ func _on_popup_item_selected(id: int) -> void:
 					pass
 				3:  #Ownership
 					pass
+		"improve_add":
+			match id:
+				0:  #Free Agents
+					pass
+				1:  #Offer Sheets
+					pass
+				2:  #Scouting
+					pass
+				3:  #Tryouts
+					pass
+		"improve_trade":
+			match id:
+				0:  #Edit Trade Block
+					pass
+				1:  #View Trade Blocks
+					pass
+				2:  #Propose Trade
+					pass
+		"improve_remove":
+			match id:
+				0:  #Release Players
+					pass
+				1:  #Request Offers
+					pass
+				2:  #Loan Players
+					pass
 
 func _on_popup_hide() -> void:
 	popup_is_open = false
@@ -365,6 +428,155 @@ func _navigate_popup(direction: int):
 	var new_button = new_container.get_node("TextureButton")
 	new_button.grab_focus()
 	_show_popup_for_container(new_container)
+	
+	if is_inside_tree():
+		await get_tree().process_frame
+	if popup.get_item_count() > 0:
+		popup.set_focused_item(0)
+
+
+func _on_improve_add_button_focus_entered() -> void:
+	_show_improve_popup("improve_add", $ImproveContainer/AddButton)
+
+func _on_improve_add_button_pressed() -> void:
+	if popup_is_open and current_main_button == $ImproveContainer/AddButton:
+		popup.hide()
+	else:
+		_show_improve_popup("improve_add", $ImproveContainer/AddButton)
+
+func _on_improve_trade_button_focus_entered() -> void:
+	_show_improve_popup("improve_trade", $ImproveContainer/TradeButton)
+
+func _on_improve_trade_button_pressed() -> void:
+	if popup_is_open and current_main_button == $ImproveContainer/TradeButton:
+		popup.hide()
+	else:
+		_show_improve_popup("improve_trade", $ImproveContainer/TradeButton)
+
+func _on_improve_remove_button_focus_entered() -> void:
+	_show_improve_popup("improve_remove", $ImproveContainer/RemoveButton)
+
+func _on_improve_remove_button_pressed() -> void:
+	if popup_is_open and current_main_button == $ImproveContainer/RemoveButton:
+		popup.hide()
+	else:
+		_show_improve_popup("improve_remove", $ImproveContainer/RemoveButton)
+
+func _on_improve_back_button_focus_entered() -> void:
+	if popup_is_open:
+		popup.hide()
+
+func _on_improve_back_button_pressed() -> void:
+	$ImproveContainer.hide()
+	$HBoxContainer.show()
+	popup.hide()
+	today_button.grab_focus()
+
+func _on_improve_button_focused(button: Control):
+	print("Improve button focused: ", button.name, " popup_is_open: ", popup_is_open)
+	_show_improve_popup_for_button(button)
+
+func _on_improve_button_pressed(button: Control):
+	if popup_is_open and current_main_button == button:
+		popup.hide()
+	else:
+		_show_improve_popup_for_button(button)
+
+func _show_improve_popup_for_button(button: Control):
+	var section = ""
+	match button.name:
+		"AddButton":
+			section = "improve_add"
+		"TradeButton":
+			section = "improve_trade"
+		"RemoveButton":
+			section = "improve_remove"
+		"BackButton":
+			popup.hide()
+			return
+	
+	if section:
+		_show_improve_popup(section, button)
+
+func _show_improve_popup(section: String, button: Control):
+	if not is_inside_tree():
+		return
+	
+	current_section = section
+	current_main_button = button
+	
+	update_popup_items(section)
+	popup.popup()
+	popup_is_open = true
+	current_popup_index = 0
+	
+	await reposition_improve_popup(button)
+	
+	if not is_inside_tree() or popup == null:
+		return
+	
+	if popup.get_item_count() > 0:
+		call_deferred("_set_popup_focus")
+
+func reposition_improve_popup(button: Control):
+	if not is_inside_tree() or button == null:
+		return
+	
+	if is_inside_tree():
+		await get_tree().process_frame
+	
+	if not is_inside_tree() or popup == null:
+		return
+	
+	var button_global_rect = button.get_global_rect()
+	var button_global_pos = button_global_rect.position
+	var button_size = button_global_rect.size
+	popup.reset_size()
+	
+	if is_inside_tree():
+		await get_tree().process_frame
+	
+	if not is_inside_tree() or popup == null:
+		return
+	
+	var popup_size = popup.size
+	var viewport_size = get_viewport().get_visible_rect().size
+	var popup_x = button_global_pos.x + (button_size.x / 2) - (popup_size.x / 2)
+	var popup_y = button_global_pos.y - popup_size.y - 10
+	if popup_x < 10:
+		popup_x = 10
+	elif popup_x + popup_size.x > viewport_size.x - 10:
+		popup_x = viewport_size.x - popup_size.x - 10
+	if popup_y < 10:
+		popup_y = button_global_pos.y + button_size.y + 10
+	
+	popup.position = Vector2(popup_x, popup_y)
+	print("Final improve popup pos: ", popup.position)
+
+func _navigate_improve_popup(direction: int):
+	if not is_inside_tree() or popup == null:
+		return
+		
+	var improve_buttons = [
+		$ImproveContainer/AddButton,
+		$ImproveContainer/TradeButton,
+		$ImproveContainer/RemoveButton,
+		$ImproveContainer/BackButton
+	]
+	
+	var current_idx = -1
+	for i in range(improve_buttons.size()):
+		if improve_buttons[i] == current_main_button:
+			current_idx = i
+			break
+	
+	if current_idx == -1:
+		return
+		
+	var new_idx = (current_idx + direction + improve_buttons.size()) % improve_buttons.size()
+	var new_button = improve_buttons[new_idx]
+	new_button.grab_focus()
+	_show_improve_popup_for_button(new_button)
 	
 	if is_inside_tree():
 		await get_tree().process_frame

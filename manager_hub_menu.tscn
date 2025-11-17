@@ -130,8 +130,9 @@ visible = false
 [node name="ImproveContainer" type="HBoxContainer" parent="."]
 visible = false
 layout_mode = 0
-offset_right = 40.0
-offset_bottom = 40.0
+offset_top = 3400.0
+offset_right = 4332.0
+offset_bottom = 3723.0
 
 [node name="AddButton" type="TextureButton" parent="ImproveContainer"]
 layout_mode = 2
@@ -204,3 +205,11 @@ texture_focused = ExtResource("21_m5lb2")
 [connection signal="pressed" from="PopupPanel/VBoxContainer/Button3" to="." method="_on_button_3_pressed"]
 [connection signal="pressed" from="PopupPanel/VBoxContainer/Button4" to="." method="_on_button_4_pressed"]
 [connection signal="pressed" from="PopupPanel/VBoxContainer/Button5" to="." method="_on_button_5_pressed"]
+[connection signal="focus_entered" from="ImproveContainer/AddButton" to="." method="_on_improve_add_button_focus_entered"]
+[connection signal="pressed" from="ImproveContainer/AddButton" to="." method="_on_improve_add_button_pressed"]
+[connection signal="focus_entered" from="ImproveContainer/TradeButton" to="." method="_on_improve_trade_button_focus_entered"]
+[connection signal="pressed" from="ImproveContainer/TradeButton" to="." method="_on_improve_trade_button_pressed"]
+[connection signal="focus_entered" from="ImproveContainer/RemoveButton" to="." method="_on_improve_remove_button_focus_entered"]
+[connection signal="pressed" from="ImproveContainer/RemoveButton" to="." method="_on_improve_remove_button_pressed"]
+[connection signal="focus_entered" from="ImproveContainer/BackButton" to="." method="_on_improve_back_button_focus_entered"]
+[connection signal="pressed" from="ImproveContainer/BackButton" to="." method="_on_improve_back_button_pressed"]
