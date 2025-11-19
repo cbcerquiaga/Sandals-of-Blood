@@ -1,4 +1,4 @@
-[gd_scene load_steps=22 format=3 uid="uid://cxtkbe8aypqef"]
+[gd_scene load_steps=28 format=3 uid="uid://cxtkbe8aypqef"]
 
 [ext_resource type="Script" path="res://manager_hub_menu.gd" id="1_anhhw"]
 [ext_resource type="Texture2D" uid="uid://crrgi3afo3d6k" path="res://UI/HubUI/TeamButton_base.png" id="2_chcud"]
@@ -21,6 +21,12 @@
 [ext_resource type="Texture2D" uid="uid://fcm63k3t1ooo" path="res://UI/ManagementUI/remove_button_highlighted.png" id="19_3tony"]
 [ext_resource type="Texture2D" uid="uid://ct6vtfmxy8eoo" path="res://UI/MenuUI/back_button_base.png" id="20_glte1"]
 [ext_resource type="Texture2D" uid="uid://cl6f7cs2xrbn7" path="res://UI/MenuUI/back_button_highlighted.png" id="21_m5lb2"]
+[ext_resource type="Texture2D" uid="uid://cgrsosdj62s6i" path="res://UI/ManagementUI/a_button_base.png" id="22_osnk5"]
+[ext_resource type="Texture2D" uid="uid://ck65k2pmpr6xv" path="res://UI/ManagementUI/a_button_highlighted.png" id="23_gdhtg"]
+[ext_resource type="Texture2D" uid="uid://cdasu3iwcgk75" path="res://UI/ManagementUI/b_button_base.png" id="24_iewc4"]
+[ext_resource type="Texture2D" uid="uid://djmnrvav2tvmn" path="res://UI/ManagementUI/b_button_highlighted.png" id="25_0qgtm"]
+[ext_resource type="Texture2D" uid="uid://bxp8id45n577f" path="res://UI/ManagementUI/c_button_base.png" id="26_ygyiu"]
+[ext_resource type="Texture2D" uid="uid://c0rimiuksboub" path="res://UI/ManagementUI/c_button_highlighted.png" id="27_ae56d"]
 
 [node name="ManagerHubMenu" type="Control"]
 layout_mode = 3
@@ -182,6 +188,59 @@ texture_normal = ExtResource("20_glte1")
 texture_hover = ExtResource("21_m5lb2")
 texture_focused = ExtResource("21_m5lb2")
 
+[node name="EventPopup" type="Popup" parent="."]
+size = Vector2i(3731, 1000)
+
+[node name="ColorRect" type="ColorRect" parent="EventPopup"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.596078)
+
+[node name="VBoxContainer" type="VBoxContainer" parent="EventPopup"]
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="Header" type="Label" parent="EventPopup/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 200
+text = "Event!"
+
+[node name="Text" type="Label" parent="EventPopup/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 100
+text = "Your star player forgot there was a game today and he went to Cabo instead. "
+
+[node name="Options" type="Label" parent="EventPopup/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 60
+text = "A: Wish him well
+B: Fine him
+C: Cut him from the team"
+
+[node name="HBoxContainer" type="HBoxContainer" parent="EventPopup/VBoxContainer"]
+layout_mode = 2
+
+[node name="AButton" type="TextureButton" parent="EventPopup/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+texture_normal = ExtResource("22_osnk5")
+texture_hover = ExtResource("23_gdhtg")
+texture_focused = ExtResource("23_gdhtg")
+
+[node name="BButton" type="TextureButton" parent="EventPopup/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+texture_normal = ExtResource("24_iewc4")
+texture_hover = ExtResource("25_0qgtm")
+texture_focused = ExtResource("25_0qgtm")
+
+[node name="CButton" type="TextureButton" parent="EventPopup/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+texture_normal = ExtResource("26_ygyiu")
+texture_hover = ExtResource("27_ae56d")
+texture_focused = ExtResource("27_ae56d")
+
 [connection signal="focus_entered" from="HBoxContainer/Travel_GameContainer/TextureButton" to="." method="_on_today_focus"]
 [connection signal="mouse_entered" from="HBoxContainer/Travel_GameContainer/TextureButton" to="." method="_on_today_focus"]
 [connection signal="pressed" from="HBoxContainer/Travel_GameContainer/TextureButton" to="." method="_on_main_button_pressed"]
@@ -213,3 +272,6 @@ texture_focused = ExtResource("21_m5lb2")
 [connection signal="pressed" from="ImproveContainer/RemoveButton" to="." method="_on_improve_remove_button_pressed"]
 [connection signal="focus_entered" from="ImproveContainer/BackButton" to="." method="_on_improve_back_button_focus_entered"]
 [connection signal="pressed" from="ImproveContainer/BackButton" to="." method="_on_improve_back_button_pressed"]
+[connection signal="pressed" from="EventPopup/VBoxContainer/HBoxContainer/AButton" to="." method="_on_a_button_pressed"]
+[connection signal="pressed" from="EventPopup/VBoxContainer/HBoxContainer/BButton" to="." method="_on_b_button_pressed"]
+[connection signal="pressed" from="EventPopup/VBoxContainer/HBoxContainer/CButton" to="." method="_on_c_button_pressed"]

@@ -411,3 +411,15 @@ func _on_popup_item_selected(id: int):
 					pass
 				2:  #Loan Players
 					pass
+
+
+func _on_a_button_pressed() -> void:
+	pass # Replace with function body.
+
+
+func _on_b_button_pressed() -> void:
+	pass # Replace with function body.
+
+
+func _on_c_button_pressed() -> void:
+	pass # Replace with function body.
