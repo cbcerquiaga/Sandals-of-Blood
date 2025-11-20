@@ -1,0 +1,413 @@
+[gd_scene load_steps=12 format=3 uid="uid://cestynfkf251p"]
+
+[ext_resource type="Texture2D" uid="uid://d1e7iphbhtu6f" path="res://UI/TrainingUI/MinusButton_base.png" id="1_30d7p"]
+[ext_resource type="Script" path="res://negotiate_contract.gd" id="1_d2nct"]
+[ext_resource type="Texture2D" uid="uid://ba4bcd1hffj1" path="res://UI/TrainingUI/MinusButton_highlighted.png" id="2_6bx0p"]
+[ext_resource type="Texture2D" uid="uid://em7kk56sjlol" path="res://UI/TrainingUI/PlusButton_base.png" id="3_gg1ts"]
+[ext_resource type="Texture2D" uid="uid://c3xcqxyingh1w" path="res://UI/TrainingUI/PlusButton_highlighted.png" id="4_f4ujv"]
+[ext_resource type="Texture2D" uid="uid://ifag0xbw0ltk" path="res://UI/FreeAgencyUI/change_button_base.png" id="5_33xh0"]
+[ext_resource type="Texture2D" uid="uid://bqypn4ae36iq" path="res://UI/FreeAgencyUI/change_button_highlighted.png" id="6_ky1r2"]
+[ext_resource type="Texture2D" uid="uid://ctwsw2gem6pam" path="res://UI/FreeAgencyUI/offer_button_base.png" id="7_ch1wq"]
+[ext_resource type="Texture2D" uid="uid://cidhjnh6kv8tr" path="res://UI/FreeAgencyUI/offer_button_highlighted.png" id="8_j2mns"]
+[ext_resource type="Texture2D" uid="uid://c4vbfdsvhu8xr" path="res://UI/PauseUI/cancel_button_base.png" id="9_4ngva"]
+[ext_resource type="Texture2D" uid="uid://bjqn6vv5mdrcv" path="res://UI/PauseUI/cancel_button_highlighted.png" id="10_auraa"]
+
+[node name="Control" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_d2nct")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="Top" type="HBoxContainer" parent="VBoxContainer"]
+layout_mode = 2
+
+[node name="PlayerColorRect" type="ColorRect" parent="VBoxContainer/Top"]
+layout_mode = 2
+
+[node name="ColorRect" type="ColorRect" parent="VBoxContainer/Top/PlayerColorRect"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="Portrait" type="TextureRect" parent="VBoxContainer/Top/PlayerColorRect"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="Label" type="Label" parent="VBoxContainer/Top/PlayerColorRect"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0
+
+[node name="Notes" type="VBoxContainer" parent="VBoxContainer/Top"]
+layout_mode = 2
+
+[node name="CompsRect" type="ColorRect" parent="VBoxContainer/Top/Notes"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="VBoxContainer/Top/Notes/CompsRect"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0
+
+[node name="Comps" type="Label" parent="VBoxContainer/Top/Notes"]
+layout_mode = 2
+
+[node name="LeverageRect" type="ColorRect" parent="VBoxContainer/Top/Notes"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="VBoxContainer/Top/Notes/LeverageRect"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0
+
+[node name="Leverage" type="Label" parent="VBoxContainer/Top/Notes"]
+layout_mode = 2
+
+[node name="InterestRect" type="ColorRect" parent="VBoxContainer/Top/Notes"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="VBoxContainer/Top/Notes/InterestRect"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0
+
+[node name="Interest" type="Label" parent="VBoxContainer/Top/Notes"]
+layout_mode = 2
+
+[node name="GridContainer" type="GridContainer" parent="VBoxContainer/Top"]
+layout_mode = 2
+
+[node name="Bottom" type="HBoxContainer" parent="VBoxContainer"]
+layout_mode = 2
+
+[node name="ContractDetails" type="VBoxContainer" parent="VBoxContainer/Bottom"]
+layout_mode = 2
+
+[node name="Seasons" type="HBoxContainer" parent="VBoxContainer/Bottom/ContractDetails"]
+layout_mode = 2
+
+[node name="ColorRect" type="ColorRect" parent="VBoxContainer/Bottom/ContractDetails/Seasons"]
+layout_mode = 2
+color = Color(0.905882, 0.380392, 0.0196078, 1)
+
+[node name="Label" type="Label" parent="VBoxContainer/Bottom/ContractDetails/Seasons/ColorRect"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0
+text = "Seasons"
+
+[node name="LeftButton" type="TextureButton" parent="VBoxContainer/Bottom/ContractDetails/Seasons"]
+layout_mode = 2
+texture_normal = ExtResource("1_30d7p")
+texture_hover = ExtResource("2_6bx0p")
+texture_focused = ExtResource("2_6bx0p")
+
+[node name="Label" type="Label" parent="VBoxContainer/Bottom/ContractDetails/Seasons"]
+layout_mode = 2
+
+[node name="RightButton" type="TextureButton" parent="VBoxContainer/Bottom/ContractDetails/Seasons"]
+layout_mode = 2
+texture_normal = ExtResource("3_gg1ts")
+texture_hover = ExtResource("4_f4ujv")
+texture_focused = ExtResource("4_f4ujv")
+
+[node name="Salary" type="HBoxContainer" parent="VBoxContainer/Bottom/ContractDetails"]
+layout_mode = 2
+
+[node name="ColorRect" type="ColorRect" parent="VBoxContainer/Bottom/ContractDetails/Salary"]
+layout_mode = 2
+color = Color(0.905882, 0.380392, 0.0196078, 1)
+
+[node name="Label" type="Label" parent="VBoxContainer/Bottom/ContractDetails/Salary/ColorRect"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0
+text = "Salary per Week"
+
+[node name="LeftButton" type="TextureButton" parent="VBoxContainer/Bottom/ContractDetails/Salary"]
+layout_mode = 2
+texture_normal = ExtResource("1_30d7p")
+texture_hover = ExtResource("2_6bx0p")
+texture_focused = ExtResource("2_6bx0p")
+
+[node name="Label" type="Label" parent="VBoxContainer/Bottom/ContractDetails/Salary"]
+layout_mode = 2
+
+[node name="RightButton" type="TextureButton" parent="VBoxContainer/Bottom/ContractDetails/Salary"]
+layout_mode = 2
+texture_normal = ExtResource("3_gg1ts")
+texture_hover = ExtResource("4_f4ujv")
+texture_focused = ExtResource("4_f4ujv")
+
+[node name="Share" type="HBoxContainer" parent="VBoxContainer/Bottom/ContractDetails"]
+layout_mode = 2
+
+[node name="ColorRect" type="ColorRect" parent="VBoxContainer/Bottom/ContractDetails/Share"]
+layout_mode = 2
+color = Color(0.905882, 0.380392, 0.0196078, 1)
+
+[node name="Label" type="Label" parent="VBoxContainer/Bottom/ContractDetails/Share/ColorRect"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0
+text = "Share of Winnings"
+
+[node name="LeftButton" type="TextureButton" parent="VBoxContainer/Bottom/ContractDetails/Share"]
+layout_mode = 2
+texture_normal = ExtResource("1_30d7p")
+texture_hover = ExtResource("2_6bx0p")
+texture_focused = ExtResource("2_6bx0p")
+
+[node name="Label" type="Label" parent="VBoxContainer/Bottom/ContractDetails/Share"]
+layout_mode = 2
+
+[node name="RightButton" type="TextureButton" parent="VBoxContainer/Bottom/ContractDetails/Share"]
+layout_mode = 2
+texture_normal = ExtResource("3_gg1ts")
+texture_hover = ExtResource("4_f4ujv")
+texture_focused = ExtResource("4_f4ujv")
+
+[node name="Water" type="HBoxContainer" parent="VBoxContainer/Bottom/ContractDetails"]
+layout_mode = 2
+
+[node name="ColorRect" type="ColorRect" parent="VBoxContainer/Bottom/ContractDetails/Water"]
+layout_mode = 2
+color = Color(0.905882, 0.380392, 0.0196078, 1)
+
+[node name="Label" type="Label" parent="VBoxContainer/Bottom/ContractDetails/Water/ColorRect"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0
+text = "Liters water per week"
+
+[node name="LeftButton" type="TextureButton" parent="VBoxContainer/Bottom/ContractDetails/Water"]
+layout_mode = 2
+texture_normal = ExtResource("1_30d7p")
+texture_hover = ExtResource("2_6bx0p")
+texture_focused = ExtResource("2_6bx0p")
+
+[node name="Label" type="Label" parent="VBoxContainer/Bottom/ContractDetails/Water"]
+layout_mode = 2
+
+[node name="RightButton" type="TextureButton" parent="VBoxContainer/Bottom/ContractDetails/Water"]
+layout_mode = 2
+texture_normal = ExtResource("3_gg1ts")
+texture_hover = ExtResource("4_f4ujv")
+texture_focused = ExtResource("4_f4ujv")
+
+[node name="Meals" type="HBoxContainer" parent="VBoxContainer/Bottom/ContractDetails"]
+layout_mode = 2
+
+[node name="ColorRect" type="ColorRect" parent="VBoxContainer/Bottom/ContractDetails/Meals"]
+layout_mode = 2
+color = Color(0.905882, 0.380392, 0.0196078, 1)
+
+[node name="Label" type="Label" parent="VBoxContainer/Bottom/ContractDetails/Meals/ColorRect"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0
+text = "Meals per week"
+
+[node name="LeftButton" type="TextureButton" parent="VBoxContainer/Bottom/ContractDetails/Meals"]
+layout_mode = 2
+texture_normal = ExtResource("1_30d7p")
+texture_hover = ExtResource("2_6bx0p")
+texture_focused = ExtResource("2_6bx0p")
+
+[node name="Label" type="Label" parent="VBoxContainer/Bottom/ContractDetails/Meals"]
+layout_mode = 2
+
+[node name="RightButton" type="TextureButton" parent="VBoxContainer/Bottom/ContractDetails/Meals"]
+layout_mode = 2
+texture_normal = ExtResource("3_gg1ts")
+texture_hover = ExtResource("4_f4ujv")
+texture_focused = ExtResource("4_f4ujv")
+
+[node name="Right" type="VBoxContainer" parent="VBoxContainer/Bottom"]
+layout_mode = 2
+
+[node name="PlayerReaction" type="Label" parent="VBoxContainer/Bottom/Right"]
+layout_mode = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer/Bottom/Right"]
+layout_mode = 2
+
+[node name="PerkDetails" type="VBoxContainer" parent="VBoxContainer/Bottom/Right/HBoxContainer"]
+layout_mode = 2
+
+[node name="ContractType" type="HBoxContainer" parent="VBoxContainer/Bottom/Right/HBoxContainer/PerkDetails"]
+layout_mode = 2
+
+[node name="ColorRect" type="ColorRect" parent="VBoxContainer/Bottom/Right/HBoxContainer/PerkDetails/ContractType"]
+layout_mode = 2
+color = Color(0.905882, 0.380392, 0.0196078, 1)
+
+[node name="Label" type="Label" parent="VBoxContainer/Bottom/Right/HBoxContainer/PerkDetails/ContractType/ColorRect"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0
+
+[node name="Label" type="Label" parent="VBoxContainer/Bottom/Right/HBoxContainer/PerkDetails/ContractType"]
+layout_mode = 2
+
+[node name="ChangeButton" type="TextureButton" parent="VBoxContainer/Bottom/Right/HBoxContainer/PerkDetails/ContractType"]
+layout_mode = 2
+texture_normal = ExtResource("5_33xh0")
+texture_hover = ExtResource("6_ky1r2")
+texture_focused = ExtResource("6_ky1r2")
+
+[node name="Housing" type="HBoxContainer" parent="VBoxContainer/Bottom/Right/HBoxContainer/PerkDetails"]
+layout_mode = 2
+
+[node name="ColorRect" type="ColorRect" parent="VBoxContainer/Bottom/Right/HBoxContainer/PerkDetails/Housing"]
+layout_mode = 2
+color = Color(0.905882, 0.380392, 0.0196078, 1)
+
+[node name="Label" type="Label" parent="VBoxContainer/Bottom/Right/HBoxContainer/PerkDetails/Housing/ColorRect"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0
+
+[node name="Label" type="Label" parent="VBoxContainer/Bottom/Right/HBoxContainer/PerkDetails/Housing"]
+layout_mode = 2
+
+[node name="ChangeButton" type="TextureButton" parent="VBoxContainer/Bottom/Right/HBoxContainer/PerkDetails/Housing"]
+layout_mode = 2
+texture_normal = ExtResource("5_33xh0")
+texture_hover = ExtResource("6_ky1r2")
+texture_focused = ExtResource("6_ky1r2")
+
+[node name="Pitch" type="HBoxContainer" parent="VBoxContainer/Bottom/Right/HBoxContainer/PerkDetails"]
+layout_mode = 2
+
+[node name="ColorRect" type="ColorRect" parent="VBoxContainer/Bottom/Right/HBoxContainer/PerkDetails/Pitch"]
+layout_mode = 2
+color = Color(0.905882, 0.380392, 0.0196078, 1)
+
+[node name="Label" type="Label" parent="VBoxContainer/Bottom/Right/HBoxContainer/PerkDetails/Pitch/ColorRect"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0
+
+[node name="Label" type="Label" parent="VBoxContainer/Bottom/Right/HBoxContainer/PerkDetails/Pitch"]
+layout_mode = 2
+
+[node name="ChangeButton" type="TextureButton" parent="VBoxContainer/Bottom/Right/HBoxContainer/PerkDetails/Pitch"]
+layout_mode = 2
+texture_normal = ExtResource("5_33xh0")
+texture_hover = ExtResource("6_ky1r2")
+texture_focused = ExtResource("6_ky1r2")
+
+[node name="Promise" type="HBoxContainer" parent="VBoxContainer/Bottom/Right/HBoxContainer/PerkDetails"]
+layout_mode = 2
+
+[node name="ColorRect" type="ColorRect" parent="VBoxContainer/Bottom/Right/HBoxContainer/PerkDetails/Promise"]
+layout_mode = 2
+color = Color(0.905882, 0.380392, 0.0196078, 1)
+
+[node name="Label" type="Label" parent="VBoxContainer/Bottom/Right/HBoxContainer/PerkDetails/Promise/ColorRect"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0
+
+[node name="Label" type="Label" parent="VBoxContainer/Bottom/Right/HBoxContainer/PerkDetails/Promise"]
+layout_mode = 2
+
+[node name="ChangeButton" type="TextureButton" parent="VBoxContainer/Bottom/Right/HBoxContainer/PerkDetails/Promise"]
+layout_mode = 2
+texture_normal = ExtResource("5_33xh0")
+texture_hover = ExtResource("6_ky1r2")
+texture_focused = ExtResource("6_ky1r2")
+
+[node name="BonusDetails" type="VBoxContainer" parent="VBoxContainer/Bottom/Right/HBoxContainer"]
+layout_mode = 2
+
+[node name="BonusClause" type="HBoxContainer" parent="VBoxContainer/Bottom/Right/HBoxContainer/BonusDetails"]
+layout_mode = 2
+
+[node name="ColorRect" type="ColorRect" parent="VBoxContainer/Bottom/Right/HBoxContainer/BonusDetails/BonusClause"]
+layout_mode = 2
+color = Color(0.905882, 0.380392, 0.0196078, 1)
+
+[node name="Label" type="Label" parent="VBoxContainer/Bottom/Right/HBoxContainer/BonusDetails/BonusClause/ColorRect"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0
+
+[node name="Label" type="Label" parent="VBoxContainer/Bottom/Right/HBoxContainer/BonusDetails/BonusClause"]
+layout_mode = 2
+
+[node name="ChangeButton" type="TextureButton" parent="VBoxContainer/Bottom/Right/HBoxContainer/BonusDetails/BonusClause"]
+layout_mode = 2
+texture_normal = ExtResource("5_33xh0")
+texture_hover = ExtResource("6_ky1r2")
+texture_focused = ExtResource("6_ky1r2")
+
+[node name="BonusPrize" type="HBoxContainer" parent="VBoxContainer/Bottom/Right/HBoxContainer/BonusDetails"]
+layout_mode = 2
+
+[node name="ColorRect" type="ColorRect" parent="VBoxContainer/Bottom/Right/HBoxContainer/BonusDetails/BonusPrize"]
+layout_mode = 2
+color = Color(0.905882, 0.380392, 0.0196078, 1)
+
+[node name="Label" type="Label" parent="VBoxContainer/Bottom/Right/HBoxContainer/BonusDetails/BonusPrize/ColorRect"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0
+
+[node name="Label" type="Label" parent="VBoxContainer/Bottom/Right/HBoxContainer/BonusDetails/BonusPrize"]
+layout_mode = 2
+
+[node name="ChangeButton" type="TextureButton" parent="VBoxContainer/Bottom/Right/HBoxContainer/BonusDetails/BonusPrize"]
+layout_mode = 2
+texture_normal = ExtResource("5_33xh0")
+texture_hover = ExtResource("6_ky1r2")
+texture_focused = ExtResource("6_ky1r2")
+
+[node name="BonusValue" type="HBoxContainer" parent="VBoxContainer/Bottom/Right/HBoxContainer/BonusDetails"]
+layout_mode = 2
+
+[node name="ColorRect" type="ColorRect" parent="VBoxContainer/Bottom/Right/HBoxContainer/BonusDetails/BonusValue"]
+layout_mode = 2
+color = Color(0.905882, 0.380392, 0.0196078, 1)
+
+[node name="Label" type="Label" parent="VBoxContainer/Bottom/Right/HBoxContainer/BonusDetails/BonusValue/ColorRect"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0
+
+[node name="Label" type="Label" parent="VBoxContainer/Bottom/Right/HBoxContainer/BonusDetails/BonusValue"]
+layout_mode = 2
+
+[node name="ChangeButton" type="TextureButton" parent="VBoxContainer/Bottom/Right/HBoxContainer/BonusDetails/BonusValue"]
+layout_mode = 2
+texture_normal = ExtResource("5_33xh0")
+texture_hover = ExtResource("6_ky1r2")
+texture_focused = ExtResource("6_ky1r2")
+
+[node name="Decisions" type="HBoxContainer" parent="VBoxContainer/Bottom/Right/HBoxContainer/BonusDetails"]
+layout_mode = 2
+
+[node name="OfferButton" type="TextureButton" parent="VBoxContainer/Bottom/Right/HBoxContainer/BonusDetails/Decisions"]
+layout_mode = 2
+texture_normal = ExtResource("7_ch1wq")
+texture_hover = ExtResource("8_j2mns")
+texture_focused = ExtResource("8_j2mns")
+
+[node name="CancelButton" type="TextureButton" parent="VBoxContainer/Bottom/Right/HBoxContainer/BonusDetails/Decisions"]
+layout_mode = 2
+texture_normal = ExtResource("9_4ngva")
+texture_hover = ExtResource("10_auraa")
+texture_focused = ExtResource("10_auraa")
+
+[connection signal="pressed" from="VBoxContainer/Bottom/Right/HBoxContainer/BonusDetails/Decisions/OfferButton" to="." method="_on_offer_button_pressed"]
+[connection signal="pressed" from="VBoxContainer/Bottom/Right/HBoxContainer/BonusDetails/Decisions/CancelButton" to="." method="_on_cancel_button_pressed"]
