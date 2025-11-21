@@ -113,6 +113,7 @@ texture_focused = ExtResource("2_6bx0p")
 
 [node name="Label" type="Label" parent="VBoxContainer/Bottom/ContractDetails/Seasons"]
 layout_mode = 2
+text = "2 Years"
 
 [node name="RightButton" type="TextureButton" parent="VBoxContainer/Bottom/ContractDetails/Seasons"]
 layout_mode = 2
@@ -141,6 +142,7 @@ texture_focused = ExtResource("2_6bx0p")
 
 [node name="Label" type="Label" parent="VBoxContainer/Bottom/ContractDetails/Salary"]
 layout_mode = 2
+text = "40¢ per Week"
 
 [node name="RightButton" type="TextureButton" parent="VBoxContainer/Bottom/ContractDetails/Salary"]
 layout_mode = 2
@@ -159,7 +161,7 @@ color = Color(0.905882, 0.380392, 0.0196078, 1)
 layout_mode = 0
 offset_right = 40.0
 offset_bottom = 23.0
-text = "Share of Winnings"
+text = "Share"
 
 [node name="LeftButton" type="TextureButton" parent="VBoxContainer/Bottom/ContractDetails/Share"]
 layout_mode = 2
@@ -169,6 +171,7 @@ texture_focused = ExtResource("2_6bx0p")
 
 [node name="Label" type="Label" parent="VBoxContainer/Bottom/ContractDetails/Share"]
 layout_mode = 2
+text = "2%"
 
 [node name="RightButton" type="TextureButton" parent="VBoxContainer/Bottom/ContractDetails/Share"]
 layout_mode = 2
@@ -187,7 +190,7 @@ color = Color(0.905882, 0.380392, 0.0196078, 1)
 layout_mode = 0
 offset_right = 40.0
 offset_bottom = 23.0
-text = "Liters water per week"
+text = "Water"
 
 [node name="LeftButton" type="TextureButton" parent="VBoxContainer/Bottom/ContractDetails/Water"]
 layout_mode = 2
@@ -197,6 +200,7 @@ texture_focused = ExtResource("2_6bx0p")
 
 [node name="Label" type="Label" parent="VBoxContainer/Bottom/ContractDetails/Water"]
 layout_mode = 2
+text = "21L per Week"
 
 [node name="RightButton" type="TextureButton" parent="VBoxContainer/Bottom/ContractDetails/Water"]
 layout_mode = 2
@@ -215,7 +219,7 @@ color = Color(0.905882, 0.380392, 0.0196078, 1)
 layout_mode = 0
 offset_right = 40.0
 offset_bottom = 23.0
-text = "Meals per week"
+text = "Meals"
 
 [node name="LeftButton" type="TextureButton" parent="VBoxContainer/Bottom/ContractDetails/Meals"]
 layout_mode = 2
@@ -225,6 +229,7 @@ texture_focused = ExtResource("2_6bx0p")
 
 [node name="Label" type="Label" parent="VBoxContainer/Bottom/ContractDetails/Meals"]
 layout_mode = 2
+text = "13 per Week"
 
 [node name="RightButton" type="TextureButton" parent="VBoxContainer/Bottom/ContractDetails/Meals"]
 layout_mode = 2
@@ -255,9 +260,12 @@ color = Color(0.905882, 0.380392, 0.0196078, 1)
 layout_mode = 0
 offset_right = 40.0
 offset_bottom = 23.0
+theme_override_font_sizes/font_size = 0
+text = "Contract Type"
 
 [node name="Label" type="Label" parent="VBoxContainer/Bottom/Right/HBoxContainer/PerkDetails/ContractType"]
 layout_mode = 2
+text = "Standard"
 
 [node name="ChangeButton" type="TextureButton" parent="VBoxContainer/Bottom/Right/HBoxContainer/PerkDetails/ContractType"]
 layout_mode = 2
@@ -276,9 +284,11 @@ color = Color(0.905882, 0.380392, 0.0196078, 1)
 layout_mode = 0
 offset_right = 40.0
 offset_bottom = 23.0
+text = "Housing"
 
 [node name="Label" type="Label" parent="VBoxContainer/Bottom/Right/HBoxContainer/PerkDetails/Housing"]
 layout_mode = 2
+text = "None"
 
 [node name="ChangeButton" type="TextureButton" parent="VBoxContainer/Bottom/Right/HBoxContainer/PerkDetails/Housing"]
 layout_mode = 2
@@ -297,9 +307,11 @@ color = Color(0.905882, 0.380392, 0.0196078, 1)
 layout_mode = 0
 offset_right = 40.0
 offset_bottom = 23.0
+text = "Pitch"
 
 [node name="Label" type="Label" parent="VBoxContainer/Bottom/Right/HBoxContainer/PerkDetails/Pitch"]
 layout_mode = 2
+text = "Close to Home"
 
 [node name="ChangeButton" type="TextureButton" parent="VBoxContainer/Bottom/Right/HBoxContainer/PerkDetails/Pitch"]
 layout_mode = 2
@@ -318,9 +330,11 @@ color = Color(0.905882, 0.380392, 0.0196078, 1)
 layout_mode = 0
 offset_right = 40.0
 offset_bottom = 23.0
+text = "Promise"
 
 [node name="Label" type="Label" parent="VBoxContainer/Bottom/Right/HBoxContainer/PerkDetails/Promise"]
 layout_mode = 2
+text = "Earn Promotion"
 
 [node name="ChangeButton" type="TextureButton" parent="VBoxContainer/Bottom/Right/HBoxContainer/PerkDetails/Promise"]
 layout_mode = 2
@@ -342,9 +356,12 @@ color = Color(0.905882, 0.380392, 0.0196078, 1)
 layout_mode = 0
 offset_right = 40.0
 offset_bottom = 23.0
+theme_override_font_sizes/font_size = 0
+text = "Bonus Clause"
 
 [node name="Label" type="Label" parent="VBoxContainer/Bottom/Right/HBoxContainer/BonusDetails/BonusClause"]
 layout_mode = 2
+text = "20 Goal Season"
 
 [node name="ChangeButton" type="TextureButton" parent="VBoxContainer/Bottom/Right/HBoxContainer/BonusDetails/BonusClause"]
 layout_mode = 2
@@ -363,9 +380,11 @@ color = Color(0.905882, 0.380392, 0.0196078, 1)
 layout_mode = 0
 offset_right = 40.0
 offset_bottom = 23.0
+text = "Bonus Prize"
 
 [node name="Label" type="Label" parent="VBoxContainer/Bottom/Right/HBoxContainer/BonusDetails/BonusPrize"]
 layout_mode = 2
+text = "Share in Team"
 
 [node name="ChangeButton" type="TextureButton" parent="VBoxContainer/Bottom/Right/HBoxContainer/BonusDetails/BonusPrize"]
 layout_mode = 2
@@ -384,9 +403,11 @@ color = Color(0.905882, 0.380392, 0.0196078, 1)
 layout_mode = 0
 offset_right = 40.0
 offset_bottom = 23.0
+text = "Bonus Value"
 
 [node name="Label" type="Label" parent="VBoxContainer/Bottom/Right/HBoxContainer/BonusDetails/BonusValue"]
 layout_mode = 2
+text = "+2%"
 
 [node name="ChangeButton" type="TextureButton" parent="VBoxContainer/Bottom/Right/HBoxContainer/BonusDetails/BonusValue"]
 layout_mode = 2
