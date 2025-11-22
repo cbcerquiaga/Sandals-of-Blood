@@ -19,11 +19,22 @@ var player_contract_types = ["tryout", "standard", "tradeable", "franchise"]
 var staff_contract_types = ["coach", "security", "surgeon", "medic", "promoter", "grounds", "equipment", "cook", "accountant", "entourage"]
 var housing_types = ["none", "spot", "tent", "car", "shack", "trailer", "room", "cabin", "mansion"]
 var focus_types = ["value", "stability", "flexibility", "satiety", "hydration", "hometown", "housing", "training", "gameday", "travel", "medical", "party", "win_now", "win_later", "loyalty", "opportunity", "community", "development", "safety", "education", "trade", "farming", "day_lif", "night_life", "welfare"]
+var bonus_types = ["gp", "goal", "assist", "point", "sack", "partner_sack", "team_sack", "KO", "5hits", "5returns", "5fow", "gf", "clean_sheet"]
 
-# Updated button size variables
-var increment_size: Vector2 = Vector2(100, 100)  # For left section buttons
-var change_size: Vector2 = Vector2(200, 100)     # For right section buttons (wider than left but smaller than action)
-var action_size: Vector2 = Vector2(360, 120)     # For action buttons
+
+var increment_size: Vector2 = Vector2(100, 100) #increment contract details
+var change_size: Vector2 = Vector2(300, 100) #size of the literal "change" buttons
+var action_size: Vector2 = Vector2(360, 120) #size of the "offer" and "cancel" buttons
+var menu_rect_size: Vector2 = Vector2(350, 80) #labels for incrementing and changing
+
+var current_contract_type: String = "standard"
+var current_seasons: int = 1
+var current_tryout = 1
+var current_salary = 0
+var current_share = 0
+var current_water = 0
+var current_food = 0
+var current_
 
 func _ready():
 	arrange()
@@ -34,21 +45,82 @@ func open_with_player(object: Player):
 	show()
 
 func arrange():
+	arrange_portrait_section()
+	arrange_top_sections()
 	arrange_left_sections()
 	arrange_right_sections()
+
+func arrange_portrait_section():
+	var backRect = $VBoxContainer/Top/PlayerColorRect
+	var frontRect = $VBoxContainer/Top/PlayerColorRect/ColorRect
+	var portrait = $VBoxContainer/Top/PlayerColorRect/ColorRect/VBoxContainer/Portrait
+	var label = $VBoxContainer/Top/PlayerColorRect/ColorRect/VBoxContainer/Label
+	var vbox = $VBoxContainer/Top/PlayerColorRect/ColorRect/VBoxContainer
 	
+	backRect.color = Color.BLACK
+	backRect.custom_minimum_size = Vector2(200, 250)
+	backRect.size = Vector2(200, 250)
+	
+	frontRect.color = Color("#585858")
+	frontRect.custom_minimum_size = Vector2(180, 230)
+	frontRect.size = Vector2(180, 230)
+	
+	vbox.custom_minimum_size = Vector2(180, 230)
+	vbox.size = Vector2(180, 230)
+	
+	if portrait is TextureRect:
+		portrait.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+		portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	portrait.custom_minimum_size = Vector2(160, 115)
+	portrait.size = Vector2(160, 115)
+	
+	label.add_theme_font_size_override("font_size", 20)
+	label.custom_minimum_size = Vector2(160, 115)
+	label.size = Vector2(160, 115)
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	
+	# Force position of the entire portrait section
+	backRect.position = Vector2(400, backRect.position.y)
+
+func arrange_top_sections():
+	var labelRectangles = [$VBoxContainer/Top/Notes/CompsRect, $VBoxContainer/Top/Notes/LeverageRect, $VBoxContainer/Top/Notes/InterestRect]
+	var notes = [$VBoxContainer/Top/Notes/Comps, $VBoxContainer/Top/Notes/Leverage, $VBoxContainer/Top/Notes/Interest]
+	
+	for rect in labelRectangles:
+		rect.color = Color("#31b563")
+		rect.custom_minimum_size = Vector2(300, 80)
+		rect.size = Vector2(300, 80)
+		
+		var child_label = rect.get_node_or_null("Label")
+		if child_label:
+			child_label.add_theme_font_size_override("font_size", 40)
+			child_label.custom_minimum_size = Vector2(300, 80)
+			child_label.size = Vector2(300, 80)
+			child_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+			child_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	
+	for note in notes:
+		note.add_theme_font_size_override("font_size", 30)
+		note.custom_minimum_size = Vector2(300, 60)
+		note.size = Vector2(300, 60)
+		note.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+		note.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+
 func arrange_left_sections():
 	var left_sections = [$VBoxContainer/Bottom/ContractDetails/Seasons, $VBoxContainer/Bottom/ContractDetails/Salary, $VBoxContainer/Bottom/ContractDetails/Share, $VBoxContainer/Bottom/ContractDetails/Water, $VBoxContainer/Bottom/ContractDetails/Meals]
 	
 	for section in left_sections:
 		var color_rect = section.get_node_or_null("ColorRect")
 		if color_rect:
-			color_rect.custom_minimum_size = Vector2(400, 100)
+			color_rect.custom_minimum_size = menu_rect_size
+			color_rect.size = menu_rect_size
 			
 			var label = color_rect.get_node_or_null("Label")
 			if label:
 				label.add_theme_font_size_override("font_size", 50)
-				label.custom_minimum_size = Vector2(400, 100)
+				label.custom_minimum_size = menu_rect_size
+				label.size = menu_rect_size
 				label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 				label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		
@@ -63,28 +135,32 @@ func arrange_left_sections():
 		var section_label = section.get_node_or_null("Label")
 		if section_label:
 			section_label.add_theme_font_size_override("font_size", 40)
-			section_label.custom_minimum_size = Vector2(400, 40)
+			section_label.custom_minimum_size = menu_rect_size
+			section_label.size = menu_rect_size
 			section_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	
+
 func arrange_right_sections():
 	var right_sections = [$VBoxContainer/Bottom/Right/HBoxContainer/PerkDetails/ContractType, $VBoxContainer/Bottom/Right/HBoxContainer/PerkDetails/Housing, $VBoxContainer/Bottom/Right/HBoxContainer/PerkDetails/Pitch, $VBoxContainer/Bottom/Right/HBoxContainer/PerkDetails/Promise, $VBoxContainer/Bottom/Right/HBoxContainer/BonusDetails/BonusClause, $VBoxContainer/Bottom/Right/HBoxContainer/BonusDetails/BonusPrize, $VBoxContainer/Bottom/Right/HBoxContainer/BonusDetails/BonusValue]
 	
 	for section in right_sections:
 		var color_rect = section.get_node_or_null("ColorRect")
 		if color_rect:
-			color_rect.custom_minimum_size = Vector2(500, 100)
+			color_rect.custom_minimum_size = menu_rect_size
+			color_rect.size = menu_rect_size
 			
 			var label = color_rect.get_node_or_null("Label")
 			if label:
 				label.add_theme_font_size_override("font_size", 50)
-				label.custom_minimum_size = Vector2(500, 100)
+				label.custom_minimum_size = menu_rect_size
+				label.size = menu_rect_size
 				label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 				label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		
 		var section_label = section.get_node_or_null("Label")
 		if section_label:
 			section_label.add_theme_font_size_override("font_size", 40)
-			section_label.custom_minimum_size = Vector2(500, 40)
+			section_label.custom_minimum_size = menu_rect_size
+			section_label.size = menu_rect_size
 			section_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		
 		var change_button = section.get_node_or_null("ChangeButton")
@@ -99,7 +175,6 @@ func arrange_right_sections():
 	if cancel_button and cancel_button is TextureButton:
 		scale_texture_button(cancel_button, action_size)
 
-# Add the same scale_texture_button function from training_menu
 func scale_texture_button(button: TextureButton, new_size: Vector2):
 	var texture_properties = ["texture_normal", "texture_pressed", "texture_hover", "texture_disabled", "texture_focused"]
 	
@@ -117,7 +192,75 @@ func debug_default_player():
 	pass
 
 func _on_offer_button_pressed() -> void:
-	pass # Replace with function body.
+	pass
 
 func _on_cancel_button_pressed() -> void:
+	pass
+
+
+func less_duration_pressed() -> void:
+	pass # Replace with function body.
+
+
+func more_duration_pressed() -> void:
+	pass # Replace with function body.
+
+
+func less_salary_pressed() -> void:
+	pass # Replace with function body.
+
+
+func more_salary_pressed() -> void:
+	pass # Replace with function body.
+
+
+func less_share_pressed() -> void:
+	pass # Replace with function body.
+
+
+func more_share_pressed() -> void:
+	pass # Replace with function body.
+
+
+func less_water_pressed() -> void:
+	pass # Replace with function body.
+
+
+func more_water_pressed() -> void:
+	pass # Replace with function body.
+
+
+func less_meals_pressed() -> void:
+	pass # Replace with function body.
+
+
+func more_meals_pressed() -> void:
+	pass # Replace with function body.
+
+
+func change_contract_type() -> void:
+	pass # Replace with function body.
+
+
+func change_housing_type() -> void:
+	pass # Replace with function body.
+
+
+func change_pitch_offered() -> void:
+	pass # Replace with function body.
+
+
+func change_promise_offered() -> void:
+	pass # Replace with function body.
+
+
+func change_bonus_clause() -> void:
+	pass # Replace with function body.
+
+
+func change_bonus_prize() -> void:
+	pass # Replace with function body.
+
+
+func change_bonus_value() -> void:
 	pass # Replace with function body.

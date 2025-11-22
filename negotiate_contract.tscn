@@ -1,8 +1,9 @@
-[gd_scene load_steps=12 format=3 uid="uid://cestynfkf251p"]
+[gd_scene load_steps=13 format=3 uid="uid://cestynfkf251p"]
 
 [ext_resource type="Texture2D" uid="uid://d1e7iphbhtu6f" path="res://UI/TrainingUI/MinusButton_base.png" id="1_30d7p"]
 [ext_resource type="Script" path="res://negotiate_contract.gd" id="1_d2nct"]
 [ext_resource type="Texture2D" uid="uid://ba4bcd1hffj1" path="res://UI/TrainingUI/MinusButton_highlighted.png" id="2_6bx0p"]
+[ext_resource type="Texture2D" uid="uid://8ibbky73wxkn" path="res://Assets/Player Portraits/placeholder portrait.png" id="2_picmc"]
 [ext_resource type="Texture2D" uid="uid://em7kk56sjlol" path="res://UI/TrainingUI/PlusButton_base.png" id="3_gg1ts"]
 [ext_resource type="Texture2D" uid="uid://c3xcqxyingh1w" path="res://UI/TrainingUI/PlusButton_highlighted.png" id="4_f4ujv"]
 [ext_resource type="Texture2D" uid="uid://ifag0xbw0ltk" path="res://UI/FreeAgencyUI/change_button_base.png" id="5_33xh0"]
@@ -31,35 +32,43 @@ layout_mode = 2
 
 [node name="PlayerColorRect" type="ColorRect" parent="VBoxContainer/Top"]
 layout_mode = 2
+color = Color(0, 0, 0, 1)
 
 [node name="ColorRect" type="ColorRect" parent="VBoxContainer/Top/PlayerColorRect"]
 layout_mode = 0
 offset_right = 40.0
 offset_bottom = 40.0
+color = Color(0.345946, 0.345946, 0.345946, 1)
 
-[node name="Portrait" type="TextureRect" parent="VBoxContainer/Top/PlayerColorRect"]
+[node name="VBoxContainer" type="VBoxContainer" parent="VBoxContainer/Top/PlayerColorRect/ColorRect"]
 layout_mode = 0
-offset_right = 40.0
-offset_bottom = 40.0
+offset_right = 1080.0
+offset_bottom = 1377.0
 
-[node name="Label" type="Label" parent="VBoxContainer/Top/PlayerColorRect"]
-layout_mode = 0
-offset_right = 40.0
-offset_bottom = 23.0
+[node name="Portrait" type="TextureRect" parent="VBoxContainer/Top/PlayerColorRect/ColorRect/VBoxContainer"]
+layout_mode = 2
+texture = ExtResource("2_picmc")
+
+[node name="Label" type="Label" parent="VBoxContainer/Top/PlayerColorRect/ColorRect/VBoxContainer"]
+layout_mode = 2
 
 [node name="Notes" type="VBoxContainer" parent="VBoxContainer/Top"]
 layout_mode = 2
 
 [node name="CompsRect" type="ColorRect" parent="VBoxContainer/Top/Notes"]
 layout_mode = 2
+color = Color(0.191456, 0.709857, 0.388838, 1)
 
 [node name="Label" type="Label" parent="VBoxContainer/Top/Notes/CompsRect"]
 layout_mode = 0
 offset_right = 40.0
 offset_bottom = 23.0
+text = "Comparables"
 
 [node name="Comps" type="Label" parent="VBoxContainer/Top/Notes"]
 layout_mode = 2
+text = "Guy 1 (K/LG): 2 Years, 38c/w
+Guy 2 (RG/RF): 2% share, 15 meals"
 
 [node name="LeverageRect" type="ColorRect" parent="VBoxContainer/Top/Notes"]
 layout_mode = 2
@@ -68,9 +77,11 @@ layout_mode = 2
 layout_mode = 0
 offset_right = 40.0
 offset_bottom = 23.0
+text = "Leverage"
 
 [node name="Leverage" type="Label" parent="VBoxContainer/Top/Notes"]
 layout_mode = 2
+text = "+Has a Day Job"
 
 [node name="InterestRect" type="ColorRect" parent="VBoxContainer/Top/Notes"]
 layout_mode = 2
@@ -79,9 +90,12 @@ layout_mode = 2
 layout_mode = 0
 offset_right = 40.0
 offset_bottom = 23.0
+text = "Interest"
 
 [node name="Interest" type="Label" parent="VBoxContainer/Top/Notes"]
 layout_mode = 2
+text = "+Thinks the pool is sweet
+-Thinks the uniforms are ugly"
 
 [node name="GridContainer" type="GridContainer" parent="VBoxContainer/Top"]
 layout_mode = 2
@@ -132,7 +146,7 @@ color = Color(0.905882, 0.380392, 0.0196078, 1)
 layout_mode = 0
 offset_right = 40.0
 offset_bottom = 23.0
-text = "Salary per Week"
+text = "Salary"
 
 [node name="LeftButton" type="TextureButton" parent="VBoxContainer/Bottom/ContractDetails/Salary"]
 layout_mode = 2
@@ -242,6 +256,9 @@ layout_mode = 2
 
 [node name="PlayerReaction" type="Label" parent="VBoxContainer/Bottom/Right"]
 layout_mode = 2
+theme_override_constants/line_spacing = 25
+theme_override_font_sizes/font_size = 50
+text = "\"This contract is no good. I demand shrimp cocktails. Also, who are you again?\""
 
 [node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer/Bottom/Right"]
 layout_mode = 2
@@ -269,6 +286,7 @@ text = "Standard"
 
 [node name="ChangeButton" type="TextureButton" parent="VBoxContainer/Bottom/Right/HBoxContainer/PerkDetails/ContractType"]
 layout_mode = 2
+focus_neighbor_right = NodePath("../../../BonusDetails/BonusClause/ChangeButton")
 texture_normal = ExtResource("5_33xh0")
 texture_hover = ExtResource("6_ky1r2")
 texture_focused = ExtResource("6_ky1r2")
@@ -292,6 +310,8 @@ text = "None"
 
 [node name="ChangeButton" type="TextureButton" parent="VBoxContainer/Bottom/Right/HBoxContainer/PerkDetails/Housing"]
 layout_mode = 2
+focus_neighbor_left = NodePath("../../../../../ContractDetails/Salary/RightButton")
+focus_neighbor_right = NodePath("../../../BonusDetails/BonusPrize/ChangeButton")
 texture_normal = ExtResource("5_33xh0")
 texture_hover = ExtResource("6_ky1r2")
 texture_focused = ExtResource("6_ky1r2")
@@ -315,6 +335,7 @@ text = "Close to Home"
 
 [node name="ChangeButton" type="TextureButton" parent="VBoxContainer/Bottom/Right/HBoxContainer/PerkDetails/Pitch"]
 layout_mode = 2
+focus_neighbor_right = NodePath("../../../BonusDetails/BonusValue/ChangeButton")
 texture_normal = ExtResource("5_33xh0")
 texture_hover = ExtResource("6_ky1r2")
 texture_focused = ExtResource("6_ky1r2")
@@ -338,6 +359,7 @@ text = "Earn Promotion"
 
 [node name="ChangeButton" type="TextureButton" parent="VBoxContainer/Bottom/Right/HBoxContainer/PerkDetails/Promise"]
 layout_mode = 2
+focus_neighbor_right = NodePath("../../../BonusDetails/Decisions/OfferButton")
 texture_normal = ExtResource("5_33xh0")
 texture_hover = ExtResource("6_ky1r2")
 texture_focused = ExtResource("6_ky1r2")
@@ -361,10 +383,11 @@ text = "Bonus Clause"
 
 [node name="Label" type="Label" parent="VBoxContainer/Bottom/Right/HBoxContainer/BonusDetails/BonusClause"]
 layout_mode = 2
-text = "20 Goal Season"
+text = "Per Goal"
 
 [node name="ChangeButton" type="TextureButton" parent="VBoxContainer/Bottom/Right/HBoxContainer/BonusDetails/BonusClause"]
 layout_mode = 2
+focus_neighbor_left = NodePath("../../../PerkDetails/ContractType/ChangeButton")
 texture_normal = ExtResource("5_33xh0")
 texture_hover = ExtResource("6_ky1r2")
 texture_focused = ExtResource("6_ky1r2")
@@ -384,10 +407,11 @@ text = "Bonus Prize"
 
 [node name="Label" type="Label" parent="VBoxContainer/Bottom/Right/HBoxContainer/BonusDetails/BonusPrize"]
 layout_mode = 2
-text = "Share in Team"
+text = "Salary Raise"
 
 [node name="ChangeButton" type="TextureButton" parent="VBoxContainer/Bottom/Right/HBoxContainer/BonusDetails/BonusPrize"]
 layout_mode = 2
+focus_neighbor_left = NodePath("../../../PerkDetails/Housing/ChangeButton")
 texture_normal = ExtResource("5_33xh0")
 texture_hover = ExtResource("6_ky1r2")
 texture_focused = ExtResource("6_ky1r2")
@@ -411,6 +435,8 @@ text = "+2%"
 
 [node name="ChangeButton" type="TextureButton" parent="VBoxContainer/Bottom/Right/HBoxContainer/BonusDetails/BonusValue"]
 layout_mode = 2
+focus_neighbor_left = NodePath("../../../PerkDetails/Pitch/ChangeButton")
+focus_neighbor_bottom = NodePath("../../Decisions/CancelButton")
 texture_normal = ExtResource("5_33xh0")
 texture_hover = ExtResource("6_ky1r2")
 texture_focused = ExtResource("6_ky1r2")
@@ -420,6 +446,8 @@ layout_mode = 2
 
 [node name="OfferButton" type="TextureButton" parent="VBoxContainer/Bottom/Right/HBoxContainer/BonusDetails/Decisions"]
 layout_mode = 2
+focus_neighbor_left = NodePath("../../../PerkDetails/Promise/ChangeButton")
+focus_neighbor_top = NodePath("../../BonusValue/ChangeButton")
 texture_normal = ExtResource("7_ch1wq")
 texture_hover = ExtResource("8_j2mns")
 texture_focused = ExtResource("8_j2mns")
@@ -430,5 +458,22 @@ texture_normal = ExtResource("9_4ngva")
 texture_hover = ExtResource("10_auraa")
 texture_focused = ExtResource("10_auraa")
 
+[connection signal="pressed" from="VBoxContainer/Bottom/ContractDetails/Seasons/LeftButton" to="." method="less_duration_pressed"]
+[connection signal="pressed" from="VBoxContainer/Bottom/ContractDetails/Seasons/RightButton" to="." method="more_duration_pressed"]
+[connection signal="pressed" from="VBoxContainer/Bottom/ContractDetails/Salary/LeftButton" to="." method="less_salary_pressed"]
+[connection signal="pressed" from="VBoxContainer/Bottom/ContractDetails/Salary/RightButton" to="." method="more_salary_pressed"]
+[connection signal="pressed" from="VBoxContainer/Bottom/ContractDetails/Share/LeftButton" to="." method="less_share_pressed"]
+[connection signal="pressed" from="VBoxContainer/Bottom/ContractDetails/Share/RightButton" to="." method="more_share_pressed"]
+[connection signal="pressed" from="VBoxContainer/Bottom/ContractDetails/Water/LeftButton" to="." method="less_water_pressed"]
+[connection signal="pressed" from="VBoxContainer/Bottom/ContractDetails/Water/RightButton" to="." method="more_water_pressed"]
+[connection signal="pressed" from="VBoxContainer/Bottom/ContractDetails/Meals/LeftButton" to="." method="less_meals_pressed"]
+[connection signal="pressed" from="VBoxContainer/Bottom/ContractDetails/Meals/RightButton" to="." method="more_meals_pressed"]
+[connection signal="pressed" from="VBoxContainer/Bottom/Right/HBoxContainer/PerkDetails/ContractType/ChangeButton" to="." method="change_contract_type"]
+[connection signal="pressed" from="VBoxContainer/Bottom/Right/HBoxContainer/PerkDetails/Housing/ChangeButton" to="." method="change_housing_type"]
+[connection signal="pressed" from="VBoxContainer/Bottom/Right/HBoxContainer/PerkDetails/Pitch/ChangeButton" to="." method="change_pitch_offered"]
+[connection signal="pressed" from="VBoxContainer/Bottom/Right/HBoxContainer/PerkDetails/Promise/ChangeButton" to="." method="change_promise_offered"]
+[connection signal="pressed" from="VBoxContainer/Bottom/Right/HBoxContainer/BonusDetails/BonusClause/ChangeButton" to="." method="change_bonus_clause"]
+[connection signal="pressed" from="VBoxContainer/Bottom/Right/HBoxContainer/BonusDetails/BonusPrize/ChangeButton" to="." method="change_bonus_prize"]
+[connection signal="pressed" from="VBoxContainer/Bottom/Right/HBoxContainer/BonusDetails/BonusValue/ChangeButton" to="." method="change_bonus_value"]
 [connection signal="pressed" from="VBoxContainer/Bottom/Right/HBoxContainer/BonusDetails/Decisions/OfferButton" to="." method="_on_offer_button_pressed"]
 [connection signal="pressed" from="VBoxContainer/Bottom/Right/HBoxContainer/BonusDetails/Decisions/CancelButton" to="." method="_on_cancel_button_pressed"]
