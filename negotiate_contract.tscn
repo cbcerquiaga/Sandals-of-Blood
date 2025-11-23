@@ -117,7 +117,7 @@ color = Color(0.905882, 0.380392, 0.0196078, 1)
 layout_mode = 0
 offset_right = 40.0
 offset_bottom = 23.0
-text = "Seasons"
+text = "Length"
 
 [node name="LeftButton" type="TextureButton" parent="VBoxContainer/Bottom/ContractDetails/Seasons"]
 layout_mode = 2

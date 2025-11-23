@@ -3,10 +3,8 @@ extends Control
 var player: Player
 
 var is_tryout_contract: bool
-const min_seasons: int = 1 #1 season contract
-const max_seasons: int = 4 #4 season contract
-const min_tryout: int = 1 #1 game tryout
-const max_tryout: int = 3 #3 game tryout
+const min_length: int = 1 #1 season contract or 1 game tryout
+const max_length: int = 4 #4 season contract or 4 game tryout
 const min_salary: int = 0
 const max_salary: int = 100000
 const min_share: int = 0
@@ -14,13 +12,20 @@ const max_share: int = 100 #full team ownership
 const min_water: int = 0
 const max_water: int = 250 #average modern usa water consumption
 const min_food: int = 0
-const max_food: int = 210 #3 meals a day for a family of 5 and double rations
+const max_food: int = 42 #3 meals a day and double rations
 var player_contract_types = ["tryout", "standard", "tradeable", "franchise"]
 var staff_contract_types = ["coach", "security", "surgeon", "medic", "promoter", "grounds", "equipment", "cook", "accountant", "entourage"]
 var housing_types = ["none", "spot", "tent", "car", "shack", "trailer", "room", "cabin", "mansion"]
 var focus_types = ["value", "stability", "flexibility", "satiety", "hydration", "hometown", "housing", "training", "gameday", "travel", "medical", "party", "win_now", "win_later", "loyalty", "opportunity", "community", "development", "safety", "education", "trade", "farming", "day_lif", "night_life", "welfare"]
-var bonus_types = ["gp", "goal", "assist", "point", "sack", "partner_sack", "team_sack", "KO", "5hits", "5returns", "5fow", "gf", "clean_sheet"]
-
+var bonus_types = ["gp", "win", "goal", "assist", "point", "sack", "partner_sack", "team_sack", "KO", "5hits", "5returns", "5fow", "gf", "clean_sheet"]
+var bonus_prizes = ["salary_raise", "cash_payment", "feast"] #permanent raise in salary, one time cash payment, one time food payment
+var bonus_values_raise = [1, 2, 3, 4, 5]
+var bonus_values_cash = [1, 5, 10, 25, 100] #coin denominations
+var bonus_values_feast = [1, 2, 3, 4, 5] #5 meals in one sitting would be pretty crazy
+var promise_types = ["none", "make_captain", "championship", "promotion", "no_relegate", "improve_front", "improve_back", "improve_training", "improve_amenity", "improve_party"]
+#no promise, make the player captain, win the league or win a special tournament, move up to the next league (top 2), not get sent down to the lower league, sign or trade for LF/P/RF, sign or trade for LG/K/RG, improve the team's training facilities or coaching staff, improve team's housing or game day, improve team's party situation
+var player_family: int = 2 #how many mouths the player has to feed
+var true_max_food: int #adjusts max food for family size
 
 var increment_size: Vector2 = Vector2(100, 100) #increment contract details
 var change_size: Vector2 = Vector2(300, 100) #size of the literal "change" buttons
@@ -37,7 +42,39 @@ var current_food = 0
 var current_
 
 func _ready():
+	true_max_food = max_food * (1 + player_family)
+	base_offer()
 	arrange()
+	
+func base_offer():
+	#TODO: tailor to player
+	#TODO: tailor to team's finances and resources
+	#TODO: tailor to scouting knowledge
+	current_salary = 45
+	current_water = 24
+	current_food = 10
+	current_share = 1
+	current_seasons = 3
+	current_contract_type = "franchise"
+	base_offer_ui()
+	
+func base_offer_ui():
+	$VBoxContainer/Bottom/ContractDetails/Water/Label.text = str(current_water) + "L / Week"
+	$VBoxContainer/Bottom/ContractDetails/Meals/Label.text = str(current_food) + " Meals / Week"
+	$VBoxContainer/Bottom/ContractDetails/Salary/Label.text = str(current_salary) + "¢ / Week"
+	var string = str(current_seasons)
+	if current_contract_type == "tryout":
+		if current_seasons == 1:
+			string = string + " Game"
+		else:
+			string = string + " Games"
+	else:
+		if current_seasons == 1:
+			string = string + " Year"
+		else:
+			string = string + " Years"
+	$VBoxContainer/Bottom/ContractDetails/Seasons/Label.text = string
+	$VBoxContainer/Bottom/ContractDetails/Share/Label.text = str(current_share) + "%"
 
 func open_with_player(object: Player):
 	player = object
@@ -199,58 +236,101 @@ func _on_cancel_button_pressed() -> void:
 
 
 func less_duration_pressed() -> void:
-	pass # Replace with function body.
+	if current_seasons > min_length:
+		current_seasons -= 1
+	var string = str(current_seasons)
+	if current_contract_type == "tryout":
+		if current_seasons == 1:
+			string = string + " Game"
+		else:
+			string = string + " Games"
+	else:
+		if current_seasons == 1:
+			string = string + " Year"
+		else:
+			string = string + " Years"
+	$VBoxContainer/Bottom/ContractDetails/Seasons/Label.text = string
 
 
 func more_duration_pressed() -> void:
-	pass # Replace with function body.
+	if current_seasons < max_length:
+		current_seasons += 1
+	var string = str(current_seasons)
+	if current_contract_type == "tryout":
+		string = string + " Games"
+	else:
+		string = string + " Years"
+	$VBoxContainer/Bottom/ContractDetails/Seasons/Label.text = string
 
 
 func less_salary_pressed() -> void:
-	pass # Replace with function body.
-
+	if current_salary > 0:
+		current_salary -= 5
+	$VBoxContainer/Bottom/ContractDetails/Salary/Label.text = str(current_salary) + "¢ / Week"
 
 func more_salary_pressed() -> void:
-	pass # Replace with function body.
+	if current_salary < max_salary:
+		current_salary += 5
+	$VBoxContainer/Bottom/ContractDetails/Salary/Label.text = str(current_salary) + "¢ / Week"
 
 
 func less_share_pressed() -> void:
-	pass # Replace with function body.
+	if current_share > 0:
+		current_share -= 1
+	$VBoxContainer/Bottom/ContractDetails/Share/Label.text = str(current_share) + "%"
 
 
 func more_share_pressed() -> void:
-	pass # Replace with function body.
+	if current_share < max_share:
+		current_share += 1
+	$VBoxContainer/Bottom/ContractDetails/Share/Label.text = str(current_share) + "%"
 
 
 func less_water_pressed() -> void:
-	pass # Replace with function body.
+	if current_water > 0:
+		current_water -= 2
+	$VBoxContainer/Bottom/ContractDetails/Water/Label.text = str(current_water) + "L / Week"
 
 
 func more_water_pressed() -> void:
-	pass # Replace with function body.
+	if current_water < max_water:
+		current_water += 2
+	$VBoxContainer/Bottom/ContractDetails/Water/Label.text = str(current_water) + "L / Week"
 
 
 func less_meals_pressed() -> void:
-	pass # Replace with function body.
+	if current_food > 0:
+		current_food -= 1 * (1 + player_family)
+	if current_food < 0:
+		current_food = 0
+	$VBoxContainer/Bottom/ContractDetails/Meals/Label.text = str(current_food) + " Meals / Week"
 
 
 func more_meals_pressed() -> void:
-	pass # Replace with function body.
+	if current_food < (true_max_food):
+		current_food += 1 * (1 + player_family)
+	if current_food > (true_max_food):
+		current_food = 0
+	$VBoxContainer/Bottom/ContractDetails/Meals/Label.text = str(current_food) + " Meals / Week"
 
 
 func change_contract_type() -> void:
+	#TODO: popup with options
 	pass # Replace with function body.
 
 
 func change_housing_type() -> void:
+	#TODO: popup with options
 	pass # Replace with function body.
 
 
 func change_pitch_offered() -> void:
+	#TODO: popup with options
 	pass # Replace with function body.
 
 
 func change_promise_offered() -> void:
+	#TODO: popup with options
 	pass # Replace with function body.
 
 
