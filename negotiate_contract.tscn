@@ -458,6 +458,8 @@ texture_normal = ExtResource("9_4ngva")
 texture_hover = ExtResource("10_auraa")
 texture_focused = ExtResource("10_auraa")
 
+[node name="PopupMenu" type="PopupMenu" parent="."]
+
 [connection signal="pressed" from="VBoxContainer/Bottom/ContractDetails/Seasons/LeftButton" to="." method="less_duration_pressed"]
 [connection signal="pressed" from="VBoxContainer/Bottom/ContractDetails/Seasons/RightButton" to="." method="more_duration_pressed"]
 [connection signal="pressed" from="VBoxContainer/Bottom/ContractDetails/Salary/LeftButton" to="." method="less_salary_pressed"]

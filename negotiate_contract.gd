@@ -1,6 +1,7 @@
 extends Control
 
 var player: Player
+@onready var popup: PopupMenu = $PopupMenu
 
 var is_tryout_contract: bool
 const min_length: int = 1 #1 season contract or 1 game tryout
@@ -39,12 +40,19 @@ var current_salary = 0
 var current_share = 0
 var current_water = 0
 var current_food = 0
-var current_
+var current_housing: String = "none"
+var current_focus: String = "value"
+var current_promise: String = "none"
+var current_bonus_type: String = "gp"
+var current_bonus_prize: String = "salary_raise"
+var current_bonus_value: int = 1
 
 func _ready():
 	true_max_food = max_food * (1 + player_family)
 	base_offer()
 	arrange()
+	setup_popup_theme()
+	$VBoxContainer/Bottom/Right/HBoxContainer/BonusDetails/Decisions/OfferButton.grab_focus()
 	
 func base_offer():
 	#TODO: tailor to player
@@ -80,6 +88,27 @@ func open_with_player(object: Player):
 	player = object
 	fill_info()
 	show()
+	
+func setup_popup_theme():
+	var theme = Theme.new()
+	theme.set_font_size("font_size", "PopupMenu", 46)
+	var stylebox = StyleBoxFlat.new()
+	stylebox.bg_color = Color(0.2, 0.2, 0.2)
+	stylebox.border_width_bottom = 4
+	stylebox.border_width_left = 4
+	stylebox.border_width_right = 4
+	stylebox.border_width_top = 4
+	stylebox.border_color = Color(0.8, 0.8, 0.8)
+	stylebox.corner_radius_top_left = 10
+	stylebox.corner_radius_top_right = 10
+	stylebox.corner_radius_bottom_right = 10
+	stylebox.corner_radius_bottom_left = 10
+	stylebox.content_margin_left = 20
+	stylebox.content_margin_right = 20
+	stylebox.content_margin_top = 15
+	stylebox.content_margin_bottom = 15
+	theme.set_stylebox("panel", "PopupMenu", stylebox)
+	popup.theme = theme
 
 func arrange():
 	arrange_portrait_section()
@@ -116,8 +145,6 @@ func arrange_portrait_section():
 	label.size = Vector2(160, 115)
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	
-	# Force position of the entire portrait section
 	backRect.position = Vector2(400, backRect.position.y)
 
 func arrange_top_sections():
@@ -234,7 +261,6 @@ func _on_offer_button_pressed() -> void:
 func _on_cancel_button_pressed() -> void:
 	pass
 
-
 func less_duration_pressed() -> void:
 	if current_seasons > min_length:
 		current_seasons -= 1
@@ -251,7 +277,6 @@ func less_duration_pressed() -> void:
 			string = string + " Years"
 	$VBoxContainer/Bottom/ContractDetails/Seasons/Label.text = string
 
-
 func more_duration_pressed() -> void:
 	if current_seasons < max_length:
 		current_seasons += 1
@@ -261,7 +286,6 @@ func more_duration_pressed() -> void:
 	else:
 		string = string + " Years"
 	$VBoxContainer/Bottom/ContractDetails/Seasons/Label.text = string
-
 
 func less_salary_pressed() -> void:
 	if current_salary > 0:
@@ -273,30 +297,25 @@ func more_salary_pressed() -> void:
 		current_salary += 5
 	$VBoxContainer/Bottom/ContractDetails/Salary/Label.text = str(current_salary) + "¢ / Week"
 
-
 func less_share_pressed() -> void:
 	if current_share > 0:
 		current_share -= 1
 	$VBoxContainer/Bottom/ContractDetails/Share/Label.text = str(current_share) + "%"
-
 
 func more_share_pressed() -> void:
 	if current_share < max_share:
 		current_share += 1
 	$VBoxContainer/Bottom/ContractDetails/Share/Label.text = str(current_share) + "%"
 
-
 func less_water_pressed() -> void:
 	if current_water > 0:
 		current_water -= 2
 	$VBoxContainer/Bottom/ContractDetails/Water/Label.text = str(current_water) + "L / Week"
 
-
 func more_water_pressed() -> void:
 	if current_water < max_water:
 		current_water += 2
 	$VBoxContainer/Bottom/ContractDetails/Water/Label.text = str(current_water) + "L / Week"
-
 
 func less_meals_pressed() -> void:
 	if current_food > 0:
@@ -305,7 +324,6 @@ func less_meals_pressed() -> void:
 		current_food = 0
 	$VBoxContainer/Bottom/ContractDetails/Meals/Label.text = str(current_food) + " Meals / Week"
 
-
 func more_meals_pressed() -> void:
 	if current_food < (true_max_food):
 		current_food += 1 * (1 + player_family)
@@ -313,34 +331,406 @@ func more_meals_pressed() -> void:
 		current_food = 0
 	$VBoxContainer/Bottom/ContractDetails/Meals/Label.text = str(current_food) + " Meals / Week"
 
+func show_popup_menu(items: Array, placement: Vector2, callback: Callable, readable_names: Dictionary = {}, button_node: Control = null) -> void:
+	popup.clear()
+	
+	for i in range(items.size()):
+		var item = items[i]
+		var display_name = readable_names.get(item, item.capitalize().replace("_", " "))
+		popup.add_item(display_name, i)
+	
+	if button_node:
+		var button_rect = button_node.get_global_rect()
+		var popup_position = Vector2(placement.x, placement.y + 200)
+		popup.position = popup_position
+	else:
+		popup.position = get_viewport().get_visible_rect().size / 2 - popup.custom_minimum_size / 2
+	
+	if popup.id_pressed.is_connected(callback):
+		popup.id_pressed.disconnect(callback)
+	popup.id_pressed.connect(callback)
+	
+	popup.popup()
 
 func change_contract_type() -> void:
-	#TODO: popup with options
-	pass # Replace with function body.
+	var types = player_contract_types if not is_tryout_contract else staff_contract_types
+	var readable = {
+		"tryout": "Tryout",
+		"standard": "Standard",
+		"tradeable": "Tradeable",
+		"franchise": "Franchise",
+		"coach": "Assistant Coach",
+		"security": "Head of Security",
+		"surgeon": "Surgeon",
+		"medic": "Medic",
+		"promoter": "Promoter",
+		"grounds": "Groundskeeper",
+		"equipment": "Equipment Manager",
+		"cook": "Head Cook",
+		"accountant": "Accountant",
+		"entourage": "Partier"
+	}
+	
+	var button = $VBoxContainer/Bottom/Right/HBoxContainer/PerkDetails/ContractType/ChangeButton
+	show_popup_menu(types, button.position, _on_contract_type_selected, readable, button)
 
+func _on_contract_type_selected(id: int) -> void:
+	var types = player_contract_types if not is_tryout_contract else staff_contract_types
+	if id >= 0 and id < types.size():
+		current_contract_type = types[id]
+		update_contract_type_label()
+
+func update_contract_type_label() -> void:
+	var string
+	var label = $VBoxContainer/Bottom/Right/HBoxContainer/PerkDetails/ContractType/Label
+	match current_contract_type:
+		"tryout":
+			label.text = "Tryout"
+		"standard":
+			label.text = "Standard"
+		"tradeable":
+			label.text = "Tradeable"
+		"franchise":
+			label.text = "Franchise"
+		"coach":
+			label.text = "Assistant Coach"
+		"security":
+			label.text = "Head of Security"
+		"surgeon":
+			label.text = "Surgeon"
+		"medic":
+			label.text = "Medic"
+		"promoter":
+			label.text = "Promoter"
+		"grounds":
+			label.text = "Groundskeeper"
+		"equipment":
+			label.text = "Equipment Manager"
+		"cook":
+			label.text = "Head Cook"
+		"accountant":
+			label.text = "Accountant"
+		"entourage":
+			label.text = "Partier"
 
 func change_housing_type() -> void:
-	#TODO: popup with options
-	pass # Replace with function body.
+	var readable = {
+		"none": "No Housing",
+		"spot": "Sleeping Spot",
+		"tent": "Tent",
+		"car": "Car",
+		"shack": "Shack",
+		"trailer": "Trailer",
+		"room": "Private Room",
+		"cabin": "Cabin",
+		"mansion": "Mansion"
+	}
+	
+	var button = $VBoxContainer/Bottom/Right/HBoxContainer/PerkDetails/Housing/ChangeButton
+	show_popup_menu(housing_types, button.position, _on_housing_type_selected, readable, button)
 
+func _on_housing_type_selected(id: int) -> void:
+	if id >= 0 and id < housing_types.size():
+		current_housing = housing_types[id]
+		update_housing_type_label()
+
+func update_housing_type_label() -> void:
+	var label = $VBoxContainer/Bottom/Right/HBoxContainer/PerkDetails/Housing/Label
+	match current_housing:
+		"none":
+			label.text = "No Housing"
+		"spot":
+			label.text = "Sleeping Spot"
+		"tent":
+			label.text = "Tent"
+		"car":
+			label.text = "Car"
+		"shack":
+			label.text = "Shack"
+		"trailer":
+			label.text = "Trailer"
+		"room":
+			label.text = "Private Room"
+		"cabin":
+			label.text = "Cabin"
+		"mansion":
+			label.text = "Mansion"
 
 func change_pitch_offered() -> void:
-	#TODO: popup with options
-	pass # Replace with function body.
+	var readable = {
+		"value": "Good Value",
+		"stability": "Job Stability",
+		"flexibility": "Flexibility",
+		"satiety": "Food Security",
+		"hydration": "Water Access",
+		"hometown": "Hometown Team",
+		"housing": "Quality Housing",
+		"training": "Training Facilities",
+		"gameday": "Game Day Experience",
+		"travel": "Travel",
+		"medical": "Medical Care",
+		"party": "Party Life",
+		"win_now": "Win Now",
+		"win_later": "Future Success",
+		"loyalty": "Team Loyalty",
+		"opportunity": "Career Opportunity",
+		"community": "Community",
+		"development": "Player Development",
+		"safety": "Safety",
+		"education": "Education",
+		"trade": "Trade Market",
+		"farming": "Farming Access",
+		"day_lif": "Day Life",
+		"night_life": "Night Life",
+		"welfare": "Welfare Benefits"
+	}
+	
+	var button = $VBoxContainer/Bottom/Right/HBoxContainer/PerkDetails/Pitch/ChangeButton
+	show_popup_menu(focus_types, button.position, _on_pitch_selected, readable, button)
 
+func _on_pitch_selected(id: int) -> void:
+	if id >= 0 and id < focus_types.size():
+		current_focus = focus_types[id]
+		update_pitch_label()
+
+func update_pitch_label() -> void:
+	var label = $VBoxContainer/Bottom/Right/HBoxContainer/PerkDetails/Pitch/Label
+	match current_focus:
+		"value":
+			label.text = "Good Value"
+		"stability":
+			label.text = "Job Stability"
+		"flexibility":
+			label.text = "Flexibility"
+		"satiety":
+			label.text = "Food Security"
+		"hydration":
+			label.text = "Water Access"
+		"hometown":
+			label.text = "Hometown Team"
+		"housing":
+			label.text = "Quality Housing"
+		"training":
+			label.text = "Training Facilities"
+		"gameday":
+			label.text = "Game Day Experience"
+		"travel":
+			label.text = "Travel"
+		"medical":
+			label.text = "Medical Care"
+		"party":
+			label.text = "Party Life"
+		"win_now":
+			label.text = "Win Now"
+		"win_later":
+			label.text = "Future Success"
+		"loyalty":
+			label.text = "Team Loyalty"
+		"opportunity":
+			label.text = "Playing Time"
+		"community":
+			label.text = "Community"
+		"development":
+			label.text = "Player Development"
+		"safety":
+			label.text = "Safety"
+		"education":
+			label.text = "Education"
+		"trade":
+			label.text = "Trade Market"
+		"farming":
+			label.text = "Farming Access"
+		"day_lif":
+			label.text = "Day Life"
+		"night_life":
+			label.text = "Night Life"
+		"welfare":
+			label.text = "Welfare Benefits"
 
 func change_promise_offered() -> void:
-	#TODO: popup with options
-	pass # Replace with function body.
+	var readable = {
+		"none": "No Promise",
+		"make_captain": "Make Captain",
+		"championship": "Win Championship",
+		"promotion": "League Promotion",
+		"no_relegate": "Avoid Relegation",
+		"improve_front": "Improve Frontcourt",
+		"improve_back": "Improve Backcourt",
+		"improve_training": "Improve Training",
+		"improve_amenity": "Improve Amenities",
+		"improve_party": "Improve Party Scene"
+	}
+	
+	var button = $VBoxContainer/Bottom/Right/HBoxContainer/PerkDetails/Promise/ChangeButton
+	show_popup_menu(promise_types, button.position, _on_promise_selected, readable, button)
 
+func _on_promise_selected(id: int) -> void:
+	if id >= 0 and id < promise_types.size():
+		current_promise = promise_types[id]
+		update_promise_label()
+
+func update_promise_label() -> void:
+	var label = $VBoxContainer/Bottom/Right/HBoxContainer/PerkDetails/Promise/Label
+	match current_promise:
+		"none":
+			label.text = "No Promise"
+		"make_captain":
+			label.text = "Make Captain"
+		"championship":
+			label.text = "Win Championship"
+		"promotion":
+			label.text = "League Promotion"
+		"no_relegate":
+			label.text = "Avoid Relegation"
+		"improve_front":
+			label.text = "Improve Frontcourt"
+		"improve_back":
+			label.text = "Improve Backcourt"
+		"improve_training":
+			label.text = "Improve Training"
+		"improve_amenity":
+			label.text = "Improve Amenities"
+		"improve_party":
+			label.text = "Improve Party Scene"
 
 func change_bonus_clause() -> void:
-	pass # Replace with function body.
+	var readable = {
+		"gp": "Games Played",
+		"win": "Wins",
+		"goal": "Goals",
+		"assist": "Assists",
+		"point": "Points",
+		"sack": "Sacks",
+		"partner_sack": "Partner Sacks",
+		"team_sack": "Team Sacks",
+		"KO": "Knockouts",
+		"5hits": "5+ Hits",
+		"5returns": "5+ Returns",
+		"5fow": "5+ Face-off Wins",
+		"gf": "Goals For",
+		"clean_sheet": "Clean Sheets"
+	}
+	
+	var button = $VBoxContainer/Bottom/Right/HBoxContainer/BonusDetails/BonusClause/ChangeButton
+	show_popup_menu(bonus_types, button.position, _on_bonus_clause_selected, readable, button)
 
+func _on_bonus_clause_selected(id: int) -> void:
+	if id >= 0 and id < bonus_types.size():
+		current_bonus_type = bonus_types[id]
+		update_bonus_clause_label()
+
+func update_bonus_clause_label() -> void:
+	var label = $VBoxContainer/Bottom/Right/HBoxContainer/BonusDetails/BonusClause/Label
+	match current_bonus_type:
+		"gp":
+			label.text = "Games Played"
+		"win":
+			label.text = "Wins"
+		"goal":
+			label.text = "Goals"
+		"assist":
+			label.text = "Assists"
+		"point":
+			label.text = "Points"
+		"sack":
+			label.text = "Sacks"
+		"partner_sack":
+			label.text = "Partner Sacks"
+		"team_sack":
+			label.text = "Team Sacks"
+		"KO":
+			label.text = "Knockouts"
+		"5hits":
+			label.text = "5+ Hits"
+		"5returns":
+			label.text = "5+ Returns"
+		"5fow":
+			label.text = "5+ Face-off Wins"
+		"gf":
+			label.text = "Goals For"
+		"clean_sheet":
+			label.text = "Clean Sheets"
 
 func change_bonus_prize() -> void:
-	pass # Replace with function body.
+	var readable = {
+		"salary_raise": "Salary Raise",
+		"cash_payment": "Cash Payment",
+		"feast": "Feast"
+	}
+	
+	var button = $VBoxContainer/Bottom/Right/HBoxContainer/BonusDetails/BonusPrize/ChangeButton
+	show_popup_menu(bonus_prizes, button.position, _on_bonus_prize_selected, readable, button)
 
+func _on_bonus_prize_selected(id: int) -> void:
+	if id >= 0 and id < bonus_prizes.size():
+		current_bonus_prize = bonus_prizes[id]
+		match current_bonus_prize:
+			"salary_raise":
+				current_bonus_value = bonus_values_raise[0]
+			"cash_payment":
+				current_bonus_value = bonus_values_cash[0]
+			"feast":
+				current_bonus_value = bonus_values_feast[0]
+		update_bonus_prize_label()
+		update_bonus_value_label()
+
+func update_bonus_prize_label() -> void:
+	var label = $VBoxContainer/Bottom/Right/HBoxContainer/BonusDetails/BonusPrize/Label
+	match current_bonus_prize:
+		"salary_raise":
+			label.text = "Salary Raise"
+		"cash_payment":
+			label.text = "Cash Payment"
+		"feast":
+			label.text = "Feast"
 
 func change_bonus_value() -> void:
-	pass # Replace with function body.
+	var values: Array
+	var readable = {}
+	
+	match current_bonus_prize:
+		"salary_raise":
+			values = bonus_values_raise
+			for val in values:
+				readable[str(val)] = "+%d¢/Week" % val
+		"cash_payment":
+			values = bonus_values_cash
+			for val in values:
+				readable[str(val)] = "%d¢ Payment" % val
+		"feast":
+			values = bonus_values_feast
+			for val in values:
+				var meal_text = "Meal" if val == 1 else "Meals"
+				readable[str(val)] = "%d %s" % [val, meal_text]
+	
+	var string_values: Array = []
+	for val in values:
+		string_values.append(str(val))
+	
+	var button = $VBoxContainer/Bottom/Right/HBoxContainer/BonusDetails/BonusValue/ChangeButton
+	show_popup_menu(string_values, button.position, _on_bonus_value_selected, readable, button)
+
+func _on_bonus_value_selected(id: int) -> void:
+	var values: Array
+	match current_bonus_prize:
+		"salary_raise":
+			values = bonus_values_raise
+		"cash_payment":
+			values = bonus_values_cash
+		"feast":
+			values = bonus_values_feast
+	
+	if id >= 0 and id < values.size():
+		current_bonus_value = values[id]
+		update_bonus_value_label()
+
+func update_bonus_value_label() -> void:
+	var label = $VBoxContainer/Bottom/Right/HBoxContainer/BonusDetails/BonusValue/Label
+	match current_bonus_prize:
+		"salary_raise":
+			label.text = "+%d¢/Week" % current_bonus_value
+		"cash_payment":
+			label.text = "%d¢ Payment" % current_bonus_value
+		"feast":
+			var meal_text = "Meal" if current_bonus_value == 1 else "Meals"
+			label.text = "%d %s" % [current_bonus_value, meal_text]
