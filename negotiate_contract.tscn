@@ -52,50 +52,97 @@ texture = ExtResource("2_picmc")
 [node name="Label" type="Label" parent="VBoxContainer/Top/PlayerColorRect/ColorRect/VBoxContainer"]
 layout_mode = 2
 
-[node name="Notes" type="VBoxContainer" parent="VBoxContainer/Top"]
+[node name="Notes1" type="VBoxContainer" parent="VBoxContainer/Top"]
 layout_mode = 2
 
-[node name="CompsRect" type="ColorRect" parent="VBoxContainer/Top/Notes"]
+[node name="CompsRect" type="ColorRect" parent="VBoxContainer/Top/Notes1"]
 layout_mode = 2
 color = Color(0.191456, 0.709857, 0.388838, 1)
 
-[node name="Label" type="Label" parent="VBoxContainer/Top/Notes/CompsRect"]
+[node name="Label" type="Label" parent="VBoxContainer/Top/Notes1/CompsRect"]
 layout_mode = 0
 offset_right = 40.0
 offset_bottom = 23.0
 text = "Comparables"
 
-[node name="Comps" type="Label" parent="VBoxContainer/Top/Notes"]
+[node name="Comps" type="Label" parent="VBoxContainer/Top/Notes1"]
 layout_mode = 2
 text = "Guy 1 (K/LG): 2 Years, 38c/w
 Guy 2 (RG/RF): 2% share, 15 meals"
 
-[node name="LeverageRect" type="ColorRect" parent="VBoxContainer/Top/Notes"]
+[node name="LeverageRect" type="ColorRect" parent="VBoxContainer/Top/Notes1"]
 layout_mode = 2
 
-[node name="Label" type="Label" parent="VBoxContainer/Top/Notes/LeverageRect"]
+[node name="Label" type="Label" parent="VBoxContainer/Top/Notes1/LeverageRect"]
 layout_mode = 0
 offset_right = 40.0
 offset_bottom = 23.0
 text = "Leverage"
 
-[node name="Leverage" type="Label" parent="VBoxContainer/Top/Notes"]
+[node name="Leverage" type="Label" parent="VBoxContainer/Top/Notes1"]
 layout_mode = 2
-text = "+Has a Day Job"
+text = "+Has a Day Job
+-Hasn't played in 3 years"
 
-[node name="InterestRect" type="ColorRect" parent="VBoxContainer/Top/Notes"]
+[node name="InterestRect" type="ColorRect" parent="VBoxContainer/Top/Notes1"]
 layout_mode = 2
 
-[node name="Label" type="Label" parent="VBoxContainer/Top/Notes/InterestRect"]
+[node name="Label" type="Label" parent="VBoxContainer/Top/Notes1/InterestRect"]
 layout_mode = 0
 offset_right = 40.0
 offset_bottom = 23.0
 text = "Interest"
 
-[node name="Interest" type="Label" parent="VBoxContainer/Top/Notes"]
+[node name="Interest" type="Label" parent="VBoxContainer/Top/Notes1"]
 layout_mode = 2
 text = "+Thinks the pool is sweet
 -Thinks the uniforms are ugly"
+
+[node name="Notes2" type="VBoxContainer" parent="VBoxContainer/Top"]
+layout_mode = 2
+
+[node name="SkillRect" type="ColorRect" parent="VBoxContainer/Top/Notes2"]
+layout_mode = 2
+color = Color(0.191456, 0.709857, 0.388838, 1)
+
+[node name="Label" type="Label" parent="VBoxContainer/Top/Notes2/SkillRect"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0
+text = "Skill"
+
+[node name="Skill" type="Label" parent="VBoxContainer/Top/Notes2"]
+layout_mode = 2
+text = "85 Overall Machine
+Speed, Reactions"
+
+[node name="SitRect" type="ColorRect" parent="VBoxContainer/Top/Notes2"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="VBoxContainer/Top/Notes2/SitRect"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0
+text = "Situation"
+
+[node name="Situation" type="Label" parent="VBoxContainer/Top/Notes2"]
+layout_mode = 2
+text = "1 family member
+No gang affiliation"
+
+[node name="PotentialRect" type="ColorRect" parent="VBoxContainer/Top/Notes2"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="VBoxContainer/Top/Notes2/PotentialRect"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0
+text = "Potential"
+
+[node name="Potential" type="Label" parent="VBoxContainer/Top/Notes2"]
+layout_mode = 2
+text = "PHYS: ? TECH: ? MENT: ?
+Pleateauing"
 
 [node name="GridContainer" type="GridContainer" parent="VBoxContainer/Top"]
 layout_mode = 2
@@ -359,7 +406,7 @@ text = "Earn Promotion"
 
 [node name="ChangeButton" type="TextureButton" parent="VBoxContainer/Bottom/Right/HBoxContainer/PerkDetails/Promise"]
 layout_mode = 2
-focus_neighbor_right = NodePath("../../../BonusDetails/Decisions/OfferButton")
+focus_neighbor_right = NodePath("../../../BonusDetails/BuyoutValue/ChangeButton")
 texture_normal = ExtResource("5_33xh0")
 texture_hover = ExtResource("6_ky1r2")
 texture_focused = ExtResource("6_ky1r2")
@@ -436,7 +483,30 @@ text = "+2%"
 [node name="ChangeButton" type="TextureButton" parent="VBoxContainer/Bottom/Right/HBoxContainer/BonusDetails/BonusValue"]
 layout_mode = 2
 focus_neighbor_left = NodePath("../../../PerkDetails/Pitch/ChangeButton")
-focus_neighbor_bottom = NodePath("../../Decisions/CancelButton")
+texture_normal = ExtResource("5_33xh0")
+texture_hover = ExtResource("6_ky1r2")
+texture_focused = ExtResource("6_ky1r2")
+
+[node name="BuyoutValue" type="HBoxContainer" parent="VBoxContainer/Bottom/Right/HBoxContainer/BonusDetails"]
+layout_mode = 2
+
+[node name="ColorRect" type="ColorRect" parent="VBoxContainer/Bottom/Right/HBoxContainer/BonusDetails/BuyoutValue"]
+layout_mode = 2
+color = Color(0.905882, 0.380392, 0.0196078, 1)
+
+[node name="Label" type="Label" parent="VBoxContainer/Bottom/Right/HBoxContainer/BonusDetails/BuyoutValue/ColorRect"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0
+text = "Buyout Value"
+
+[node name="Label" type="Label" parent="VBoxContainer/Bottom/Right/HBoxContainer/BonusDetails/BuyoutValue"]
+layout_mode = 2
+text = "1/2 Season's Salary"
+
+[node name="ChangeButton" type="TextureButton" parent="VBoxContainer/Bottom/Right/HBoxContainer/BonusDetails/BuyoutValue"]
+layout_mode = 2
+focus_neighbor_left = NodePath("../../../PerkDetails/Promise/ChangeButton")
 texture_normal = ExtResource("5_33xh0")
 texture_hover = ExtResource("6_ky1r2")
 texture_focused = ExtResource("6_ky1r2")
@@ -446,8 +516,6 @@ layout_mode = 2
 
 [node name="OfferButton" type="TextureButton" parent="VBoxContainer/Bottom/Right/HBoxContainer/BonusDetails/Decisions"]
 layout_mode = 2
-focus_neighbor_left = NodePath("../../../PerkDetails/Promise/ChangeButton")
-focus_neighbor_top = NodePath("../../BonusValue/ChangeButton")
 texture_normal = ExtResource("7_ch1wq")
 texture_hover = ExtResource("8_j2mns")
 texture_focused = ExtResource("8_j2mns")
@@ -477,5 +545,7 @@ texture_focused = ExtResource("10_auraa")
 [connection signal="pressed" from="VBoxContainer/Bottom/Right/HBoxContainer/BonusDetails/BonusClause/ChangeButton" to="." method="change_bonus_clause"]
 [connection signal="pressed" from="VBoxContainer/Bottom/Right/HBoxContainer/BonusDetails/BonusPrize/ChangeButton" to="." method="change_bonus_prize"]
 [connection signal="pressed" from="VBoxContainer/Bottom/Right/HBoxContainer/BonusDetails/BonusValue/ChangeButton" to="." method="change_bonus_value"]
+[connection signal="pressed" from="VBoxContainer/Bottom/Right/HBoxContainer/BonusDetails/BuyoutValue/ChangeButton" to="." method="_on_buyout_button_pressed"]
 [connection signal="pressed" from="VBoxContainer/Bottom/Right/HBoxContainer/BonusDetails/Decisions/OfferButton" to="." method="_on_offer_button_pressed"]
 [connection signal="pressed" from="VBoxContainer/Bottom/Right/HBoxContainer/BonusDetails/Decisions/CancelButton" to="." method="_on_cancel_button_pressed"]
+[connection signal="id_pressed" from="PopupMenu" to="." method="_on_popup_menu_id_pressed"]
