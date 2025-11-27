@@ -85,6 +85,50 @@ var sharp_turn_threshold: float
 	"pitches_k": 0 #pitches played at keeper position
 }
 
+@export var season_stats:={
+	"gp": 0, #played at least one pitch in a game
+	"starts": 0, #one of the 6 starting players
+	"clean_sheets": 0, #played more than half the game and had 0 mark points and 0 sacks allowed
+	"shutouts": 0, #played more than half the game and had 0 goals against
+	"points": 0, #sum of goals and assists
+	"hattricks": 0, #games with 3 goals or more
+	"5-hits": 0, #games with 5 hits or more
+	"goals": 0, #scored goal
+	"assists": 0, #passed to teammate who scored
+	"sacks": 0, #stun opposing keeper- forward
+	"hits": 0, #aggressor in a collision
+	"sacks_allowed": 0,#mark gets a sack - guard
+	"pitches_played": 0, #number of plays on field
+	"pitches_thrown": 0,
+	"aces": 0, #goals directly off pitch- pitcher
+	"knockouts": 0, #knocked out opposing pitcher- pitcher
+	"got_kod": 0, #knocked out by opposing pitcher- pitcher
+	"goals_for":0, #team scored while on field
+	"goals_against":0, #team scored against while on field
+	"returns": 0,#opposing pitch doesn't score- keeper
+	"aces_allowed": 0, #opposing pitch goes in- keeper
+	"touches": 0, #times touching the ball, not including pitches
+	"mark_points": 0, #points from assigned forward, guard only
+	"partner_sacks": 0, #how many times a partner has sacked the keeper, forwards only
+	"pitches_f": 0, #pitches played at forward position
+	"pitches_g": 0, #pitches played at guard position
+	"pitches_p": 0, #pitches played at pitcher position
+	"pitches_k": 0, #pitches played at keeper position
+	"return_rate": 0, #returns/aces allowed
+	"guard_rating": 0, #(mark points + sacks allowed)/pitches_g
+	"pressure_rating": 0, #(sacks + partner_sacks)/pitches_f
+	"involvement_rating": 0, #touches/(pitches_f + pitches_g + pitches_k)
+	"attack_rating": 0, #(goals + assists)/(pitches_f + pitches_g + pitches_k)
+	"diff_per_play": 0, #(goals for - goals against) / (pitches_f + pitches_g + pitches_k + pitches_p)
+	"ace_rate": 0 #(aces/pitches_thrown)
+}
+
+@export var career_stats:={
+	"teams": 0, #number of teams played for
+	"contracts": 0, #number of contracts signed
+	"career_earnings": 0, #sum of all money paid between all contracts
+}
+
 #what the guards do on the counterattack is unique to a given player
 #it can be coached in training, but not changed in the tactics menu
 @export var guard_counterattack_preferences := {
@@ -1785,3 +1829,31 @@ func find_pitcher_style():
 		playStyle = "Workhorse"
 		playStyle_texture = "res://UI/PlayerTypeSymbols/playerType_horseShoe.png"
 	return
+
+func find_preferred_position():
+	match playStyle:
+		"Fastball", "Curveball", "Enforcer", "Workhorse":
+			preferred_position = "P"
+		"Maestro", "Machine", "Spin Doctor", "Prospect Goalkeeper":
+			preferred_position = "K"
+		"Goal Scorer", "Anti-Keeper", "Skull Cracker", "Support Forward":
+			if playable_positions.contains("LF") and !playable_positions.contains("RF"):
+				preferred_position = "LF"
+			elif playable_positions.contains("RF") and !playable_positions.contains("LF"):
+				preferred_position = "RF"
+			else:
+				if bio.leftHanded:
+					preferred_position = "LF"
+				else:
+					preferred_position = "RF"
+		"Ball Hound", "Defender", "Bully":
+			if playable_positions.contains("LG") and !playable_positions.contains("RG"):
+				preferred_position = "LG"
+			elif playable_positions.contains("RG") and !playable_positions.contains("LG"):
+				preferred_position = "RG"
+			else:
+				if bio.leftHanded:
+					preferred_position = "LG"
+				else:
+					preferred_position = "RG"
+			

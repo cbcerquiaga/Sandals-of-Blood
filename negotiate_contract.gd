@@ -1,5 +1,6 @@
 extends Control
 
+var character: Character
 var player: Player
 @onready var popup: PopupMenu = $PopupMenu
 
@@ -17,7 +18,7 @@ const max_food: int = 42 #3 meals a day and double rations
 var player_contract_types = ["tryout", "standard", "tradeable", "franchise"]
 var staff_contract_types = ["coach", "scout", "security", "surgeon", "medic", "promoter", "grounds", "equipment", "cook", "accountant", "entourage"]
 var housing_types = ["none", "spot", "tent", "car", "shack", "trailer", "room", "cabin", "mansion"]
-var focus_types = ["value", "stability", "flexibility", "satiety", "hydration", "hometown", "housing", "training", "gameday", "travel", "medical", "party", "win_now", "win_later", "loyalty", "opportunity", "community", "development", "safety", "education", "trade", "farming", "day_lif", "night_life", "welfare"]
+var focus_types = ["value", "stability", "flexibility", "satiety", "hydration", "hometown", "housing", "gameday", "travel", "medical", "party", "chill", "win_now", "win_later", "loyalty", "opportunity", "community", "development", "safety", "education", "trade", "farming", "day_life", "night_life", "welfare"]
 var bonus_types = ["gp", "win", "goal", "assist", "point", "sack", "partner_sack", "team_sack", "KO", "5hits", "5returns", "5fow", "gf", "clean_sheet"]
 var bonus_prizes = ["salary_raise", "cash_payment", "feast"] #permanent raise in salary, one time cash payment, one time food payment
 var bonus_values_raise = [1, 2, 3, 4, 5]
@@ -51,6 +52,7 @@ var current_bonus_value: int = 1
 var current_popup_type: String = ""
 
 func _ready():
+	debug_default_player()#TODO: Debug only
 	true_max_food = max_food * (1 + player_family)
 	base_offer()
 	arrange()
@@ -108,13 +110,15 @@ func arrange():
 	arrange_top_sections()
 	arrange_left_sections()
 	arrange_right_sections()
+	arrange_knowledge_grid()
+	arrange_focuses_grid()
+	
 
 func arrange_portrait_section():
 	var backRect = $VBoxContainer/Top/PlayerColorRect
 	var frontRect = $VBoxContainer/Top/PlayerColorRect/ColorRect
-	var portrait = $VBoxContainer/Top/PlayerColorRect/ColorRect/VBoxContainer/Portrait
-	var label = $VBoxContainer/Top/PlayerColorRect/ColorRect/VBoxContainer/Label
-	var vbox = $VBoxContainer/Top/PlayerColorRect/ColorRect/VBoxContainer
+	var portrait = $VBoxContainer/Top/PlayerColorRect/ColorRect/Portrait
+	var label = $VBoxContainer/Top/PlayerColorRect/ColorRect/Label
 	
 	backRect.color = Color.BLACK
 	backRect.custom_minimum_size = Vector2(200, 250)
@@ -124,25 +128,24 @@ func arrange_portrait_section():
 	frontRect.custom_minimum_size = Vector2(180, 230)
 	frontRect.size = Vector2(180, 230)
 	
-	vbox.custom_minimum_size = Vector2(180, 230)
-	vbox.size = Vector2(180, 230)
-	
 	if portrait is TextureRect:
 		portrait.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
 		portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	portrait.custom_minimum_size = Vector2(160, 115)
-	portrait.size = Vector2(160, 115)
-	
-	label.add_theme_font_size_override("font_size", 20)
+	portrait.custom_minimum_size = Vector2(200, 200)
+	portrait.size = Vector2(200, 200)
+	portrait.position = Vector2(-450, 10)
+	label.add_theme_font_size_override("font_size", 32)
 	label.custom_minimum_size = Vector2(160, 115)
 	label.size = Vector2(160, 115)
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	label.position.y += 140
+	
 	backRect.position = Vector2(400, backRect.position.y)
 
 func arrange_top_sections():
-	var labelRectangles = [$VBoxContainer/Top/Notes1/CompsRect, $VBoxContainer/Top/Notes1/LeverageRect, $VBoxContainer/Top/Notes1/InterestRect, $VBoxContainer/Top/Notes2/SkillRect, $VBoxContainer/Top/Notes2/SitRect, $VBoxContainer/Top/Notes2/PotentialRect]
-	var notes = [$VBoxContainer/Top/Notes1/Comps, $VBoxContainer/Top/Notes1/Leverage, $VBoxContainer/Top/Notes1/Interest, $VBoxContainer/Top/Notes2/Skill, $VBoxContainer/Top/Notes2/Situation, $VBoxContainer/Top/Notes2/Potential]
+	var labelRectangles = [$VBoxContainer/Top/Notes1/CompsRect, $VBoxContainer/Top/Notes1/LeverageRect, $VBoxContainer/Top/Notes1/InterestRect, $VBoxContainer/Top/Notes2/TopSkillsRect, $VBoxContainer/Top/Notes2/ThrowsRect, $VBoxContainer/Top/Notes2/PotentialRect]
+	var notes = [$VBoxContainer/Top/Notes1/Comps, $VBoxContainer/Top/Notes1/Leverage, $VBoxContainer/Top/Notes1/Interest, $VBoxContainer/Top/Notes2/TopSkills, $VBoxContainer/Top/Notes2/Throws, $VBoxContainer/Top/Notes2/Potential]
 	
 	for rect in labelRectangles:
 		rect.color = Color("#31b563")
@@ -241,11 +244,164 @@ func scale_texture_button(button: TextureButton, new_size: Vector2):
 			var image = texture.get_image()
 			image.resize(int(new_size.x), int(new_size.y))
 			button.set(prop, ImageTexture.create_from_image(image))
+			
+func arrange_knowledge_grid():
+	fill_knowledge_headers()
+	fill_knowledge_values()
+	var knowledge_labels = [
+		$VBoxContainer/Top/Knowledge/Positions,
+		$VBoxContainer/Top/Knowledge/Type,
+		$VBoxContainer/Top/Knowledge/Potential,
+		$VBoxContainer/Top/Knowledge/Professional,
+		$VBoxContainer/Top/Knowledge/Hustle,
+		$VBoxContainer/Top/Knowledge/Family,
+		$VBoxContainer/Top/Knowledge/Gang,
+		$VBoxContainer/Top/Knowledge/Job,
+		$VBoxContainer/Top/Knowledge/Positions_player,
+		$VBoxContainer/Top/Knowledge/Type_player,
+		$VBoxContainer/Top/Knowledge/Potential_player,
+		$VBoxContainer/Top/Knowledge/Professional_player,
+		$VBoxContainer/Top/Knowledge/Hustle_player,
+		$VBoxContainer/Top/Knowledge/Family_player,
+		$VBoxContainer/Top/Knowledge/Gang_player,
+		$VBoxContainer/Top/Knowledge/Job_player
+	]
+	var label_style = StyleBoxFlat.new()
+	label_style.bg_color = Color.TRANSPARENT
+	label_style.border_width_left = 5
+	label_style.border_width_right = 5
+	label_style.border_width_top = 5
+	label_style.border_width_bottom = 5
+	label_style.border_color = Color.WHITE
+	label_style.content_margin_left = 10
+	label_style.content_margin_right = 10
+	label_style.content_margin_top = 10
+	label_style.content_margin_bottom = 10
+	
+	for label in knowledge_labels:
+		if label is Label:
+			label.add_theme_font_size_override("font_size", 36)
+			label.add_theme_stylebox_override("normal", label_style)
+			label.custom_minimum_size = Vector2(250, 50)
+
+	
+func fill_knowledge_headers():
+	$VBoxContainer/Top/Knowledge/Positions.text = "Positions Played"
+	$VBoxContainer/Top/Knowledge/Type.text = "Player Type"
+	$VBoxContainer/Top/Knowledge/Potential.text = "Potential"
+	$VBoxContainer/Top/Knowledge/Professional.text = "Professionalism"
+	$VBoxContainer/Top/Knowledge/Hustle.text = "Hustle"
+	$VBoxContainer/Top/Knowledge/Family.text = "Family Size"
+	$VBoxContainer/Top/Knowledge/Gang.text = "Gang Affiliations"
+	$VBoxContainer/Top/Knowledge/Job.text = "Day Job"
+	
+func fill_knowledge_values():
+	#TODO: fill values sbased on player
+	"""
+	positions played in format of K/LG/RG or P/LF/RF etc; preferred position first, then in order of LG/K/RG/LF/P/RF
+	player type as string, readable version
+	"""
+	
+	var positions_string = ""
+	if true: #TODO: only fill in if there is scouting knowledge
+		if player.preferred_position != null:
+			positions_string += player.preferred_position
+		else:
+			player.find_preferred_position()
+			positions_string += player.preferred_position
+		for position in player.playable_positions:
+			if position == player.preferred_position:
+				continue
+			else:
+				positions_string += "/" + position
+	else:
+		positions_string = "?"
+	$VBoxContainer/Top/Knowledge/Positions_player.text = positions_string
+	var style_string
+	if true: #TODO: only fill in if there is scouting knowledge
+		if player.playStyle:
+			style_string = player.playStyle
+		else:
+			player.calculate_player_type()
+			style_string = player.playStyle
+	else:
+		style_string = "?"
+	$VBoxContainer/Top/Knowledge/Type_player.text = style_string
+	var potential_string
+	if true:
+		$VBoxContainer/Top/Knowledge/Potential_player.text = str(character.off_attributes.potential)
+	else:
+		$VBoxContainer/Top/Knowledge/Potential_player.text = "?"
+		
+	if true:
+		$VBoxContainer/Top/Knowledge/Professional_player.text = str(character.off_attributes.professionalism)
+	else:
+		$VBoxContainer/Top/Knowledge/Professional_player.text = "?"
+	
+	if true:
+		$VBoxContainer/Top/Knowledge/Hustle_player.text = str(character.off_attributes.hustle)
+	else:
+		$VBoxContainer/Top/Knowledge/Hustle_player.text = "?"
+	
+	if true:
+		var family = character.get_family_count()
+		player_family = family
+		$VBoxContainer/Top/Knowledge/Family_player.text = str(family)
+	else:
+		$VBoxContainer/Top/Knowledge/Family_player.text = "?"
+		player_family = 1
+		
+	if true:
+		$VBoxContainer/Top/Knowledge/Gang_player.text = character.gang_affiliation
+	else:
+		$VBoxContainer/Top/Knowledge/Gang_player.text = "?"
+		
+	var job_str = "?"
+	if true:
+		if character.day_job != "none":
+			job_str = "Yes"
+		else:
+			job_str = "No"
+	$VBoxContainer/Top/Knowledge/Job_player.text = job_str
+		
+	pass
+	
+
+	
+func arrange_focuses_grid():
+	#TODO: fill labels with focuses
+	#TODO: calculate wights into letter grades
+	#TODO: fill letter grades for each focus for what our team and city have and for what the player wants
+	#TODO: draw into a grid
+	#TODO: scale
+	
+	var focus_labels = [$VBoxContainer/Top/Focuses/Focus_header, $VBoxContainer/Top/Focuses/Team_header, $VBoxContainer/Top/Focuses/Want_header, $VBoxContainer/Top/Focuses/Focus1, $VBoxContainer/Top/Focuses/Team1,$VBoxContainer/Top/Focuses/Want1, $VBoxContainer/Top/Focuses/Focus2, $VBoxContainer/Top/Focuses/Team2, $VBoxContainer/Top/Focuses/Want2, $VBoxContainer/Top/Focuses/Focus3, $VBoxContainer/Top/Focuses/Team3, $VBoxContainer/Top/Focuses/Want3, $VBoxContainer/Top/Focuses/Focus4, $VBoxContainer/Top/Focuses/Team4, $VBoxContainer/Top/Focuses/Want4, $VBoxContainer/Top/Focuses/Focus5, $VBoxContainer/Top/Focuses/Team5, $VBoxContainer/Top/Focuses/Want5, $VBoxContainer/Top/Focuses/Focus6, $VBoxContainer/Top/Focuses/Team6, $VBoxContainer/Top/Focuses/Want6, $VBoxContainer/Top/Focuses/Focus7, $VBoxContainer/Top/Focuses/Team7, $VBoxContainer/Top/Focuses/Want7]
+	
+	var label_style = StyleBoxFlat.new()
+	label_style.bg_color = Color.TRANSPARENT
+	label_style.border_width_left = 5
+	label_style.border_width_right = 5
+	label_style.border_width_top = 5
+	label_style.border_width_bottom = 5
+	label_style.border_color = Color.WHITE
+	label_style.content_margin_left = 10
+	label_style.content_margin_right = 10
+	label_style.content_margin_top = 10
+	label_style.content_margin_bottom = 10
+	
+	for label in focus_labels:
+		if label is Label:
+			label.add_theme_font_size_override("font_size", 36)
+			label.add_theme_stylebox_override("normal", label_style)
+			label.custom_minimum_size = Vector2(250, 50)
+	pass
 
 func fill_info():
 	pass
 	
 func debug_default_player():
+	character = Character.new()
+	player = Player.new()
 	pass
 
 func _on_offer_button_pressed() -> void:
@@ -459,18 +615,18 @@ func update_housing_type_label() -> void:
 
 func change_pitch_offered() -> void:
 	var readable = {
-		"value": "Good Value",
+		"value": "Maximum Value",
 		"stability": "Job Stability",
 		"flexibility": "Flexibility",
 		"satiety": "Food Security",
 		"hydration": "Water Access",
 		"hometown": "Hometown Team",
 		"housing": "Quality Housing",
-		"training": "Training Facilities",
 		"gameday": "Game Day Experience",
 		"travel": "Travel",
 		"medical": "Medical Care",
-		"party": "Party Life",
+		"party": "Post-win Ragers",
+		"chill": "Chilling with Teammates",
 		"win_now": "Win Now",
 		"win_later": "Future Success",
 		"loyalty": "Team Loyalty",
@@ -481,7 +637,7 @@ func change_pitch_offered() -> void:
 		"education": "Education",
 		"trade": "Trade Market",
 		"farming": "Farming Access",
-		"day_lif": "Day Life",
+		"day_life": "Day Life",
 		"night_life": "Night Life",
 		"welfare": "Welfare Benefits"
 	}
@@ -497,7 +653,7 @@ func update_pitch_label() -> void:
 	var label = $VBoxContainer/Bottom/Right/HBoxContainer/PerkDetails/Pitch/Label
 	match current_focus:
 		"value":
-			label.text = "Good Value"
+			label.text = "Maximum Value"
 		"stability":
 			label.text = "Job Stability"
 		"flexibility":
@@ -510,8 +666,6 @@ func update_pitch_label() -> void:
 			label.text = "Hometown Team"
 		"housing":
 			label.text = "Quality Housing"
-		"training":
-			label.text = "Training Facilities"
 		"gameday":
 			label.text = "Game Day Experience"
 		"travel":
@@ -519,7 +673,7 @@ func update_pitch_label() -> void:
 		"medical":
 			label.text = "Medical Care"
 		"party":
-			label.text = "Party Life"
+			label.text = "Post-win Ragers"
 		"win_now":
 			label.text = "Win Now"
 		"win_later":
@@ -540,7 +694,7 @@ func update_pitch_label() -> void:
 			label.text = "Trade Market"
 		"farming":
 			label.text = "Farming Access"
-		"day_lif":
+		"day_life":
 			label.text = "Day Life"
 		"night_life":
 			label.text = "Night Life"
@@ -763,3 +917,4 @@ func update_buyout_value_label() -> void:
 			label.text = "Buyout Double Owed"
 		"nobuy":
 			label.text = "Guaranteed Contract"
+	

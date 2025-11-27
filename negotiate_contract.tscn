@@ -29,6 +29,7 @@ offset_bottom = 40.0
 
 [node name="Top" type="HBoxContainer" parent="VBoxContainer"]
 layout_mode = 2
+theme_override_constants/separation = 40
 
 [node name="PlayerColorRect" type="ColorRect" parent="VBoxContainer/Top"]
 layout_mode = 2
@@ -40,17 +41,29 @@ offset_right = 40.0
 offset_bottom = 40.0
 color = Color(0.345946, 0.345946, 0.345946, 1)
 
-[node name="VBoxContainer" type="VBoxContainer" parent="VBoxContainer/Top/PlayerColorRect/ColorRect"]
-layout_mode = 0
-offset_right = 1080.0
-offset_bottom = 1377.0
-
-[node name="Portrait" type="TextureRect" parent="VBoxContainer/Top/PlayerColorRect/ColorRect/VBoxContainer"]
-layout_mode = 2
+[node name="Portrait" type="TextureRect" parent="VBoxContainer/Top/PlayerColorRect/ColorRect"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = -520.0
+offset_right = 520.0
+offset_bottom = 1350.0
+grow_horizontal = 2
 texture = ExtResource("2_picmc")
 
-[node name="Label" type="Label" parent="VBoxContainer/Top/PlayerColorRect/ColorRect/VBoxContainer"]
-layout_mode = 2
+[node name="Label" type="Label" parent="VBoxContainer/Top/PlayerColorRect/ColorRect"]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -101.0
+grow_horizontal = 2
+grow_vertical = 0
+text = "Johan Baller
+Goalkeeper
+5'0\" 315lbs
+28 Years Old"
 
 [node name="Notes1" type="VBoxContainer" parent="VBoxContainer/Top"]
 layout_mode = 2
@@ -68,7 +81,8 @@ text = "Comparables"
 [node name="Comps" type="Label" parent="VBoxContainer/Top/Notes1"]
 layout_mode = 2
 text = "Guy 1 (K/LG): 2 Years, 38c/w
-Guy 2 (RG/RF): 2% share, 15 meals"
+Guy 2 (RG/RF): 2% share, 15 meals
+Guy 3 (K) 3 years, 45c/w"
 
 [node name="LeverageRect" type="ColorRect" parent="VBoxContainer/Top/Notes1"]
 layout_mode = 2
@@ -77,12 +91,14 @@ layout_mode = 2
 layout_mode = 0
 offset_right = 40.0
 offset_bottom = 23.0
-text = "Leverage"
+text = "Scout Notes"
 
 [node name="Leverage" type="Label" parent="VBoxContainer/Top/Notes1"]
 layout_mode = 2
-text = "+Has a Day Job
--Hasn't played in 3 years"
+text = "Party animal
+Loves the game
+Hasn't played in 3 years
+"
 
 [node name="InterestRect" type="ColorRect" parent="VBoxContainer/Top/Notes1"]
 layout_mode = 2
@@ -101,34 +117,37 @@ text = "+Thinks the pool is sweet
 [node name="Notes2" type="VBoxContainer" parent="VBoxContainer/Top"]
 layout_mode = 2
 
-[node name="SkillRect" type="ColorRect" parent="VBoxContainer/Top/Notes2"]
+[node name="TopSkillsRect" type="ColorRect" parent="VBoxContainer/Top/Notes2"]
 layout_mode = 2
 color = Color(0.191456, 0.709857, 0.388838, 1)
 
-[node name="Label" type="Label" parent="VBoxContainer/Top/Notes2/SkillRect"]
+[node name="Label" type="Label" parent="VBoxContainer/Top/Notes2/TopSkillsRect"]
 layout_mode = 0
 offset_right = 40.0
 offset_bottom = 23.0
-text = "Skill"
+text = "Top Skills"
 
-[node name="Skill" type="Label" parent="VBoxContainer/Top/Notes2"]
+[node name="TopSkills" type="Label" parent="VBoxContainer/Top/Notes2"]
 layout_mode = 2
-text = "85 Overall Machine
-Speed, Reactions"
+text = "Speed 90
+Power 85
+Toughness 84"
 
-[node name="SitRect" type="ColorRect" parent="VBoxContainer/Top/Notes2"]
+[node name="ThrowsRect" type="ColorRect" parent="VBoxContainer/Top/Notes2"]
 layout_mode = 2
 
-[node name="Label" type="Label" parent="VBoxContainer/Top/Notes2/SitRect"]
+[node name="Label" type="Label" parent="VBoxContainer/Top/Notes2/ThrowsRect"]
 layout_mode = 0
 offset_right = 40.0
 offset_bottom = 23.0
-text = "Situation"
+text = "Throws"
 
-[node name="Situation" type="Label" parent="VBoxContainer/Top/Notes2"]
+[node name="Throws" type="Label" parent="VBoxContainer/Top/Notes2"]
 layout_mode = 2
-text = "1 family member
-No gang affiliation"
+text = "Curveball
+None
+None
+"
 
 [node name="PotentialRect" type="ColorRect" parent="VBoxContainer/Top/Notes2"]
 layout_mode = 2
@@ -144,8 +163,177 @@ layout_mode = 2
 text = "PHYS: ? TECH: ? MENT: ?
 Pleateauing"
 
-[node name="GridContainer" type="GridContainer" parent="VBoxContainer/Top"]
+[node name="Knowledge" type="GridContainer" parent="VBoxContainer/Top"]
 layout_mode = 2
+theme_override_constants/h_separation = -5
+theme_override_constants/v_separation = -5
+columns = 2
+
+[node name="Positions" type="Label" parent="VBoxContainer/Top/Knowledge"]
+layout_mode = 2
+text = "Positions"
+
+[node name="Positions_player" type="Label" parent="VBoxContainer/Top/Knowledge"]
+layout_mode = 2
+text = "K/LG/RG"
+
+[node name="Type" type="Label" parent="VBoxContainer/Top/Knowledge"]
+layout_mode = 2
+text = "Player Type"
+
+[node name="Type_player" type="Label" parent="VBoxContainer/Top/Knowledge"]
+layout_mode = 2
+text = "Machine"
+
+[node name="Potential" type="Label" parent="VBoxContainer/Top/Knowledge"]
+layout_mode = 2
+text = "Potential"
+
+[node name="Potential_player" type="Label" parent="VBoxContainer/Top/Knowledge"]
+layout_mode = 2
+text = "89"
+
+[node name="Professional" type="Label" parent="VBoxContainer/Top/Knowledge"]
+layout_mode = 2
+text = "Professionalism"
+
+[node name="Professional_player" type="Label" parent="VBoxContainer/Top/Knowledge"]
+layout_mode = 2
+text = "?"
+
+[node name="Hustle" type="Label" parent="VBoxContainer/Top/Knowledge"]
+layout_mode = 2
+text = "Hustle"
+
+[node name="Hustle_player" type="Label" parent="VBoxContainer/Top/Knowledge"]
+layout_mode = 2
+text = "65"
+
+[node name="Family" type="Label" parent="VBoxContainer/Top/Knowledge"]
+layout_mode = 2
+text = "Family Size"
+
+[node name="Family_player" type="Label" parent="VBoxContainer/Top/Knowledge"]
+layout_mode = 2
+text = "3"
+
+[node name="Gang" type="Label" parent="VBoxContainer/Top/Knowledge"]
+layout_mode = 2
+text = "Gang Affiliations"
+
+[node name="Gang_player" type="Label" parent="VBoxContainer/Top/Knowledge"]
+layout_mode = 2
+text = "None"
+
+[node name="Job" type="Label" parent="VBoxContainer/Top/Knowledge"]
+layout_mode = 2
+text = "Day Job"
+
+[node name="Job_player" type="Label" parent="VBoxContainer/Top/Knowledge"]
+layout_mode = 2
+text = "No"
+
+[node name="Focuses" type="GridContainer" parent="VBoxContainer/Top"]
+layout_mode = 2
+theme_override_constants/h_separation = -5
+theme_override_constants/v_separation = -5
+columns = 3
+
+[node name="Focus_header" type="Label" parent="VBoxContainer/Top/Focuses"]
+layout_mode = 2
+text = "Contract Focus"
+
+[node name="Team_header" type="Label" parent="VBoxContainer/Top/Focuses"]
+layout_mode = 2
+text = "Team"
+
+[node name="Want_header" type="Label" parent="VBoxContainer/Top/Focuses"]
+layout_mode = 2
+text = "Want"
+
+[node name="Focus1" type="Label" parent="VBoxContainer/Top/Focuses"]
+layout_mode = 2
+text = "?"
+
+[node name="Team1" type="Label" parent="VBoxContainer/Top/Focuses"]
+layout_mode = 2
+text = "?"
+
+[node name="Want1" type="Label" parent="VBoxContainer/Top/Focuses"]
+layout_mode = 2
+text = "?"
+
+[node name="Focus2" type="Label" parent="VBoxContainer/Top/Focuses"]
+layout_mode = 2
+text = "Contract Stability"
+
+[node name="Team2" type="Label" parent="VBoxContainer/Top/Focuses"]
+layout_mode = 2
+text = "C"
+
+[node name="Want2" type="Label" parent="VBoxContainer/Top/Focuses"]
+layout_mode = 2
+text = "D"
+
+[node name="Focus3" type="Label" parent="VBoxContainer/Top/Focuses"]
+layout_mode = 2
+text = "Housing"
+
+[node name="Team3" type="Label" parent="VBoxContainer/Top/Focuses"]
+layout_mode = 2
+text = "F"
+
+[node name="Want3" type="Label" parent="VBoxContainer/Top/Focuses"]
+layout_mode = 2
+text = "C"
+
+[node name="Focus4" type="Label" parent="VBoxContainer/Top/Focuses"]
+layout_mode = 2
+text = "Game Day Atmosphere"
+
+[node name="Team4" type="Label" parent="VBoxContainer/Top/Focuses"]
+layout_mode = 2
+text = "C"
+
+[node name="Want4" type="Label" parent="VBoxContainer/Top/Focuses"]
+layout_mode = 2
+text = "D"
+
+[node name="Focus5" type="Label" parent="VBoxContainer/Top/Focuses"]
+layout_mode = 2
+text = "Community"
+
+[node name="Team5" type="Label" parent="VBoxContainer/Top/Focuses"]
+layout_mode = 2
+text = "C"
+
+[node name="Want5" type="Label" parent="VBoxContainer/Top/Focuses"]
+layout_mode = 2
+text = "B"
+
+[node name="Focus6" type="Label" parent="VBoxContainer/Top/Focuses"]
+layout_mode = 2
+text = "Win Now"
+
+[node name="Team6" type="Label" parent="VBoxContainer/Top/Focuses"]
+layout_mode = 2
+text = "B"
+
+[node name="Want6" type="Label" parent="VBoxContainer/Top/Focuses"]
+layout_mode = 2
+text = "C"
+
+[node name="Focus7" type="Label" parent="VBoxContainer/Top/Focuses"]
+layout_mode = 2
+text = "City Night Life"
+
+[node name="Team7" type="Label" parent="VBoxContainer/Top/Focuses"]
+layout_mode = 2
+text = "A"
+
+[node name="Want7" type="Label" parent="VBoxContainer/Top/Focuses"]
+layout_mode = 2
+text = "C"
 
 [node name="Bottom" type="HBoxContainer" parent="VBoxContainer"]
 layout_mode = 2
