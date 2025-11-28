@@ -11,6 +11,7 @@ var bounce_drag = 0.95 #how much speed ball retains when bouncing off walls
 var center_influence = 0.5 #affects how close to 0,0 ball bounces when it's not sure where to go
 var spin_curve_factor: float = 180.0
 var is_faceoff_ball: bool = false #special behavior for faceoffs
+@onready var bounciness: int = 0
 
 #special pitch stuff
 var special_curves: Array[float] = []
@@ -55,6 +56,8 @@ func _ready():
 	area_entered.connect(_on_area_entered)
 
 func _physics_process(delta):
+	if bounciness > 0:
+		bounciness -= 1
 	# Handle chill timer
 	if chill_timer > 0:
 		chill_timer -= 1
@@ -157,6 +160,7 @@ func handle_player_collision(player: Player):
 	last_hit_by = player
 	player.game_stats.touches += 1
 	last_touched_time = 0
+	bounciness += 180 #3 seconds of bounce
 	
 	match player.position_type:
 		"keeper", "guard":
@@ -234,6 +238,12 @@ func apply_forward_hit(forward: Player, direction: Vector2, emit: bool = true):
 func handle_wall_collision(wall: StaticBody2D):
 	#print("ball hit wall")
 	var add_spin_effect = false
+	if bounciness > 300: #touched twice within a second
+		var rand = randf()
+		if rand < float(bounciness/900): #base is 1/3 chance, up to 100% chance at 5 touches in a second
+			"the ball bounces over the curb and out of play"
+			global_position = global_position + linear_velocity #teleport past current position
+			return
 	
 	if current_state == BallState.WAITING:
 		return

@@ -17,6 +17,11 @@ var successful_pitches: Array[Dictionary] = []
 var pitch_success_threshold: int = 3 # How many times a pitch needs to succeed to be "favored"
 var favor_successful_chance: float = 0.3 # 30% chance to use a favored pitch type
 var most_recent_pitch #dictionary of the data from current pitch
+var buddyK
+var buddyLG
+var buddyRG
+var buddyLF
+var buddyRF
 
 # AI Target Range (relative to pitcher position)
 var target_x_min: float = -60.0
@@ -150,6 +155,10 @@ func _physics_process(delta):
 		check_human_input()
 	elif current_behavior == "going_away":
 		handle_going_away()
+	elif current_behavior == "faceoff":
+		faceoff()
+	elif current_behavior == "faceoff_recover":
+		faceoff_recover()
 	if is_controlling_player and is_aiming:
 		current_behavior = "pitching"
 		has_arrived = false
@@ -200,6 +209,43 @@ func increment_pitch_time():
 	current_frame = current_frame + 1
 	if current_frame > pitch_goal:
 		can_pitch = true
+		
+func faceoff():
+	var open_passes = [false, false, false, false, false] #LG, K, RG, LF, RF
+	
+	#TODO: check which teammates have an open path to passing, update booleans
+	var distance_to_goal = global_position.distance_squared_to(oppGoal)
+	var shoot_weight #TODO: calculate based on distance to goal, aggression, and confidence
+	var wants_forward = randf_range(0,120) < get_buffed_attribute("aggression")
+	var weights = [0,0,0,0,0,0] #LG, K, RG, LF, RF, shoot
+	if wants_forward: #wants to pass forward
+		if bio.leftHanded:
+			weights = [0.3,0.2,0.1,0.6,0.9,shoot_weight] #LG, K, RG, LF, RF, shoot
+		else:
+			weights = [0.1,0.2,0.3,0.9,0.6,shoot_weight] #LG, K, RG, LF, RF, shoot
+	else: #wants to pass backward
+		if bio.leftHanded:
+			weights = [0.6,0.5,0.4,0.3,0.2,shoot_weight/2] #LG, K, RG, LF, RF, shoot
+		else:
+			weights = [0.4,0.5,0.6,0.2,0.3,shoot_weight/2] #LG, K, RG, LF, RF, shoot
+	for option in open_passes:
+		if !option:
+			weights[option] = 0 #if it's not open we don't go for it
+	var sum = 0
+	for weight in weights:
+		sum = sum + weight
+	var rand = randi_range(0,sum)
+	#TODO: pick a target based on the random value
+	#TODO: return the target
+	pass
+	
+func check_pass_open(player: Player):
+	#TODO: check path from global_position to player.global_position for obstacles with a raycast
+	#if open, return true
+	return false
+
+func faceoff_recover():
+	pass
 
 func _on_pitch_phase_started():
 	status.boost = max(status.boost, 10) 

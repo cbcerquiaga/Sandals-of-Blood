@@ -27,6 +27,9 @@ var most_recent_scorer: Player
 @onready var ball= $Ball as Ball
 var pTeam : Team
 var aTeam : Team
+@onready var faceoff_signal = $UI/FaceoffSignal #TODO: make this prettier
+var faceoff_countdown_timer: float = 0.0
+var faceoff_countdown_duration: float = 2.0 #TODO: add some randomness
 @onready var play_timer = $PlayTimer
 #@onready var match_ui = $MatchUI #TODO
 @onready var field: Field = $RoadField #TODO: import different kinds of fields
@@ -77,6 +80,8 @@ func _ready():
 	aTeam.reset_player_stats()
 	pTeam.set_starters()
 	aTeam.set_starters()
+	if faceoff_signal:
+		faceoff_signal.visible = false
 	
 func load_team_strategies():
 	# TODO: load from file
@@ -162,26 +167,31 @@ func _on_ball_exited_field():
 			print("and the ball goes out of bounds at the sideline, we'll re-set with a face-off")
 			lineup_faceoff()
 		elif went_out_endline: # traditional pitch restart at endline
-			GlobalSettings.record_event(str(current_pitch) + ", " + str(time_remaining) + ", Ball Out at Endline)")
-			print("and the ball goes out of bounds over the endline, the pitcher is warming up now")
-			#Determine who put the ball out of bounds and switch accordingly
-			if GlobalSettings.human_always_pitch:
-				is_human_team_pitching = true
-			elif !ball or !ball.last_hit_by:
-				# If no one hit it, switch pitching team
-				is_human_team_pitching = !is_human_team_pitching
-			elif ball.last_hit_by.team == 1: # Player team put it out
-				is_human_team_pitching = false # AI team pitches next
-			else: # AI team put it out
-				is_human_team_pitching = true # Human team pitches next
+			var c_att_fo = field.playerGoal.global_position/2
+			var p_att_fo = field.cpuGoal.global_position/2
 			
-			# Update team offense/defense status
-			pTeam.is_on_offense = is_human_team_pitching
-			aTeam.is_on_offense = !is_human_team_pitching
-			pitches_remaining -= 1
+			var player_team_attacks = false
+	
+			if !ball or !ball.last_hit_by:
+				# Not clear who put it out - base on which goal it went out near
+				player_team_attacks = ball.global_position.distance_squared_to(field.cpuGoal.global_position) < ball.global_position.distance_squared_to(field.playerGoal.global_position)
+			elif ball.last_hit_by.team == 2:  # AI team put it out
+				player_team_attacks = true  # Player team gets attacking face-off
+			else:  # Player team put it out
+				player_team_attacks = false  # AI team gets attacking face-off
 			
-			# Start next play
-			next_play()
+			# Select corner based on who attacks and which side (left/right)
+			if player_team_attacks:
+				faceoff_ball_position = p_att_fo
+			else:
+				faceoff_ball_position = c_att_fo
+			
+			GlobalSettings.record_event(str(current_pitch) + ", " + str(time_remaining) + ", Ball Out at Endline - Face-off")
+			print("and the ball goes out of bounds over the endline, this face-off could lead to a goal!")
+			
+			# Set ball position for the face-off
+			ball.global_position = faceoff_ball_position
+			lineup_faceoff(true)
 		else:
 			# Unclear where it went out, default to endline behavior
 			GlobalSettings.record_event(str(current_pitch) + ", " + str(time_remaining) + ", Ball Out of Play)")
@@ -207,14 +217,19 @@ func _on_ball_exited_field():
 		out_of_bounds_frames += 1
 		ball.apply_drag()
 		
-func lineup_faceoff():
+func lineup_faceoff(already_set_position: bool = false):
 	is_faceoff = true
 	is_play_live = false
 	is_ball_pitched = false
-	faceoff_ball_position = Vector2(
-		clamp(ball.global_position.x, -55, 55), #TODO: base this on the field width
-		ball.global_position.y
-	)
+	if !already_set_position:
+		var left_faceoff = Vector2(-30, 0) #TODO: update based on field size
+		var right_faceoff = Vector2(30, 0) #TODO: update based on field size
+		#TODO: determine if the ball went out on the left or right sideline
+		#TODO: if the ball went out on the left, put the 
+		if ball.global_position.x < 0:
+			faceoff_ball_position = left_faceoff
+		else:
+			faceoff_ball_position = right_faceoff
 	var offset_distance = 15.0
 	var human_pitcher_pos = Vector2(faceoff_ball_position.x,faceoff_ball_position.y + offset_distance)
 	position_player(pTeam.P, human_pitcher_pos, field.human_orientation)
@@ -244,7 +259,7 @@ func lineup_faceoff():
 	execute_faceoff()
 
 func execute_faceoff():
-	cpu_faceoff_target = calculate_cpu_faceoff_target()
+	var cpu_faceoff_target = aTeam.P.faceoff()
 	var human_input_time = 0.0
 	var max_input_time = 0.5 # Half second to respond
 	
@@ -291,14 +306,13 @@ func execute_faceoff():
 	ball.last_touched_time = 0
 	
 	# Record the faceoff
-	GlobalSettings.record_event(str(GlobalSettings.pitch_limit - pitches_remaining) + ", " + 
-		str(int(max_play_time - current_play_time)) + ", Face-off won by " + 
-		winner.team_ref.team_abbreviation + " " + winner.bio.last_name)
-	
-	# Update stats
-	winner.game_stats.faceoffs_won += 1
+	#GlobalSettings.record_event(str(GlobalSettings.pitch_limit - pitches_remaining) + ", " + 
+		#str(int(max_play_time - current_play_time)) + ", Face-off won by " + 
+		#winner.team_ref.team_abbreviation + " " + winner.bio.last_name)
+
+	winner.game_stats.faceoff_wins += 1
 	if loser:
-		loser.game_stats.faceoffs_lost += 1
+		loser.game_stats.faceoff_losses += 1
 	
 	# Pitchers decide whether to fight or flee
 	handle_faceoff_aftermath(winner, loser)
@@ -309,47 +323,7 @@ func execute_faceoff():
 	is_play_live = true
 	is_faceoff = false
 
-func calculate_cpu_faceoff_target() -> Vector2:
-	var cpu_aggression = aTeam.P.get_buffed_attribute("aggression")
-	var rand = randf() * 100
-	
-	if rand < cpu_aggression:
-		# Shoot at the goal
-		return field.playerGoal.global_position
-	else:
-		rand = randf() * 100
-		if rand < cpu_aggression:
-			# Pass to a forward
-			if randf() < 0.6:
-				# 60% chance for near side forward
-				if faceoff_ball_position.x < 0:
-					return aTeam.LF.global_position
-				else:
-					return aTeam.RF.global_position
-			else:
-				# 40% chance for far side forward
-				if faceoff_ball_position.x < 0:
-					return aTeam.RF.global_position
-				else:
-					return aTeam.LF.global_position
-		else:
-			# Pass to guard or keeper
-			var pass_rand = randf()
-			if pass_rand < 0.5:
-				# Near guard
-				if faceoff_ball_position.x < 0:
-					return aTeam.LG.global_position
-				else:
-					return aTeam.RG.global_position
-			elif pass_rand < 0.8:
-				# Far guard
-				if faceoff_ball_position.x < 0:
-					return aTeam.RG.global_position
-				else:
-					return aTeam.LG.global_position
-			else:
-				# Keeper
-				return aTeam.K.global_position
+
 
 func determine_tie_faceoff(human_target: Vector2, cpu_target: Vector2) -> Vector2:
 	var human_faceoff_rating = pTeam.P.get_buffed_attribute("faceoff")
@@ -620,6 +594,27 @@ func _process(delta: float) -> void:
 		get_tree().paused = true
 		pauseMenu.open_menu()
 		pauseMenu.matchHandler = self
+	
+	if is_faceoff and faceoff_countdown_timer > 0:
+		faceoff_countdown_timer -= delta
+		#indicator #TODO: design something pretty
+		if faceoff_signal:
+			var progress = faceoff_countdown_timer / faceoff_countdown_duration
+			if progress > 0.66:
+				faceoff_signal.color = Color.RED
+			elif progress > 0.33:
+				faceoff_signal.color = Color.YELLOW
+			else:
+				faceoff_signal.color = Color.GREEN
+		
+		if faceoff_countdown_timer <= 0:
+			if faceoff_signal:
+				faceoff_signal.color = Color.GREEN
+				faceoff_signal.visible = true
+			await get_tree().create_timer(0.3).timeout
+			if faceoff_signal:
+				faceoff_signal.visible = false
+			execute_faceoff()
 		
 	if is_play_live or is_ball_pitched:
 		GlobalSettings.record_frame()
@@ -693,8 +688,9 @@ func _process(delta: float) -> void:
 				elif out_of_bounds_frames > too_much_out_of_bounds:
 					# Only reset after grace period has passed
 					# This should rarely happen since _on_ball_exited_field handles it
-					reset_play()
+					#reset_play()
 					print("Ball out too long during pitch")
+					_on_ball_exited_field()
 				# Otherwise, let the grace period in _on_ball_exited_field() handle it
 					
 		if pTeam.P.current_behavior == "fighting" and aTeam.P.current_behavior == "fighting":

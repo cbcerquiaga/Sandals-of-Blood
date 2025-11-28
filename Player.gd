@@ -1861,4 +1861,3 @@ func find_preferred_position():
 					preferred_position = "LG"
 				else:
 					preferred_position = "RG"
-			

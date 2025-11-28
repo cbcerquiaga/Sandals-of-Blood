@@ -43,5 +43,10 @@ offset_bottom = 40.0
 
 [node name="Game_endSceeen" parent="UI" instance=ExtResource("9_vmgvg")]
 
+[node name="FaceoffSignal" type="ColorRect" parent="UI"]
+visible = false
+offset_right = 40.0
+offset_bottom = 40.0
+
 [connection signal="on_team_ready" from="AITeam" to="." method="on_team_ready_signal"]
 [connection signal="on_team_ready" from="PlayerTeam" to="." method="on_team_ready_signal"]
