@@ -690,7 +690,6 @@ func _process(delta: float) -> void:
 			if field.ball_in_play == false:
 				if field.is_position_in_bounds(ball.global_position):
 					field.ball_in_play = true
-				else:
 				elif out_of_bounds_frames > too_much_out_of_bounds:
 					# Only reset after grace period has passed
 					# This should rarely happen since _on_ball_exited_field handles it
