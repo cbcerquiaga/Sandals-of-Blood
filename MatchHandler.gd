@@ -32,6 +32,12 @@ var aTeam : Team
 @onready var field: Field = $RoadField #TODO: import different kinds of fields
 @onready var aimTarget: AimTarget = $Aim_Target
 
+#faceoff stuff
+var is_faceoff: bool = false
+var faceoff_ball_position: Vector2
+var human_faceoff_target: Vector2
+var cpu_faceoff_target: Vector2
+
 #UI
 @onready var statusUI = $UI/MatchStatusUI
 @onready var pauseMenu = $UI/PauseMenu
@@ -134,31 +140,248 @@ func _on_ball_crossed_midfield():
 		pTeam.K.current_behavior = "pitch_defense"
 
 func _on_ball_exited_field():
+	
 	if (out_of_bounds_frames > too_much_out_of_bounds):
-		GlobalSettings.record_event(str(GlobalSettings.pitch_limit - pitches_remaining) + ", " + str(int(max_play_time - current_play_time)) + ", Ball Out of Play)")
-		print("and the ball goes out of bounds, we'll re-set")
-		# Determine who put the ball out of bounds and switch accordingly
-		if GlobalSettings.human_always_pitch:
-			is_human_team_pitching = true
-		elif !ball or !ball.last_hit_by:
-			# If no one hit it, switch pitching team
-			is_human_team_pitching = !is_human_team_pitching
-		elif ball.last_hit_by.team == 1: # Player team put it out
-			is_human_team_pitching = false # AI team pitches next
-		else: # AI team put it out
-			is_human_team_pitching = true # Human team pitches next
+		var current_pitch = GlobalSettings.pitch_limit - pitches_remaining
+		var time_remaining = int(max_play_time - current_play_time)
 		
-		# Update team offense/defense status
-		pTeam.is_on_offense = is_human_team_pitching
-		aTeam.is_on_offense = !is_human_team_pitching
-		pitches_remaining -= 1
-		# Start next play
-		next_play()
+		# Determine where the ball went out
+		var went_out_sideline = false
+		var went_out_endline = false
+		
+		#TODO: field types
+		#check if it went out the sides (x boundaries)
+		if abs(ball.global_position.x) > 60:
+			went_out_sideline = true
+		#check if it went out the ends (y boundaries)
+		elif abs(ball.global_position.y) > 120:
+			went_out_endline = true
+		
+		if went_out_sideline:
+			GlobalSettings.record_event(str(current_pitch) + ", " + str(time_remaining) + ", Ball Out at Sideline - Face-off")
+			print("and the ball goes out of bounds at the sideline, we'll re-set with a face-off")
+			lineup_faceoff()
+		elif went_out_endline: # traditional pitch restart at endline
+			GlobalSettings.record_event(str(current_pitch) + ", " + str(time_remaining) + ", Ball Out at Endline)")
+			print("and the ball goes out of bounds over the endline, the pitcher is warming up now")
+			#Determine who put the ball out of bounds and switch accordingly
+			if GlobalSettings.human_always_pitch:
+				is_human_team_pitching = true
+			elif !ball or !ball.last_hit_by:
+				# If no one hit it, switch pitching team
+				is_human_team_pitching = !is_human_team_pitching
+			elif ball.last_hit_by.team == 1: # Player team put it out
+				is_human_team_pitching = false # AI team pitches next
+			else: # AI team put it out
+				is_human_team_pitching = true # Human team pitches next
+			
+			# Update team offense/defense status
+			pTeam.is_on_offense = is_human_team_pitching
+			aTeam.is_on_offense = !is_human_team_pitching
+			pitches_remaining -= 1
+			
+			# Start next play
+			next_play()
+		else:
+			# Unclear where it went out, default to endline behavior
+			GlobalSettings.record_event(str(current_pitch) + ", " + str(time_remaining) + ", Ball Out of Play)")
+			print("Ball went out of bounds")
+			
+			if GlobalSettings.human_always_pitch:
+				is_human_team_pitching = true
+			elif !ball or !ball.last_hit_by:
+				is_human_team_pitching = !is_human_team_pitching
+			elif ball.last_hit_by.team == 1:
+				is_human_team_pitching = false
+			else:
+				is_human_team_pitching = true
+			
+			pTeam.is_on_offense = is_human_team_pitching
+			aTeam.is_on_offense = !is_human_team_pitching
+			pitches_remaining -= 1
+			next_play()
 	else:
+		# Ball hasn't been out long enough yet, try to keep it in play
 		if ball.current_state == ball.BallState.PITCHING:
 			ball.force_inbounds()
 		out_of_bounds_frames += 1
 		ball.apply_drag()
+		
+func lineup_faceoff():
+	is_faceoff = true
+	is_play_live = false
+	is_ball_pitched = false
+	faceoff_ball_position = Vector2(
+		clamp(ball.global_position.x, -55, 55), #TODO: base this on the field width
+		ball.global_position.y
+	)
+	var offset_distance = 15.0
+	var human_pitcher_pos = Vector2(faceoff_ball_position.x,faceoff_ball_position.y + offset_distance)
+	position_player(pTeam.P, human_pitcher_pos, field.human_orientation)
+	pTeam.P.current_behavior = "faceoff"
+	pTeam.P.can_move = false
+	var cpu_pitcher_pos = Vector2(faceoff_ball_position.x,faceoff_ball_position.y - offset_distance)
+	position_player(aTeam.P, cpu_pitcher_pos, field.cpu_orientation)
+	aTeam.P.current_behavior = "faceoff"
+	aTeam.P.can_move = false
+	ball.global_position = faceoff_ball_position #slightly out of bounds at the sideline
+	ball.linear_velocity = Vector2.ZERO
+	ball.current_state = Ball.BallState.WAITING
+	ball.freeze = true
+	#position other players in their starting positions
+	position_player(pTeam.K, field.human_k_spawn, field.human_orientation)
+	position_player(pTeam.LG, field.human_lg_spawn, field.human_orientation)
+	position_player(pTeam.RG, field.human_rg_spawn, field.human_orientation)
+	position_player(pTeam.LF, field.human_lf_spawn, field.human_orientation)
+	position_player(pTeam.RF, field.human_rf_spawn, field.human_orientation)
+	position_player(aTeam.K, field.cpu_k_spawn, field.cpu_orientation)
+	position_player(aTeam.LG, field.cpu_lg_spawn, field.cpu_orientation)
+	position_player(aTeam.RG, field.cpu_rg_spawn, field.cpu_orientation)
+	position_player(aTeam.LF, field.cpu_lf_spawn, field.cpu_orientation)
+	position_player(aTeam.RF, field.cpu_rf_spawn, field.cpu_orientation)
+
+	await get_tree().create_timer(0.5).timeout #TODO: have visual feedback TODO: figure out how long to make the delay
+	execute_faceoff()
+
+func execute_faceoff():
+	cpu_faceoff_target = calculate_cpu_faceoff_target()
+	var human_input_time = 0.0
+	var max_input_time = 0.5 # Half second to respond
+	
+	# For now, use a simple timer - in full implementation, track actual mouse input
+	await get_tree().create_timer(max_input_time).timeout
+	if pTeam.P.is_aiming and pTeam.P.target != Vector2.ZERO:
+		human_faceoff_target = pTeam.P.target
+	else: #if there is something wrong, we aim at the goal
+		human_faceoff_target = field.cpuGoal.global_position
+	var human_reaction = (1.0 - human_input_time / max_input_time) * pTeam.P.get_buffed_attribute("reactions")
+	var cpu_reaction = randf() * aTeam.P.get_buffed_attribute("reactions")
+	var winner: Player
+	var winner_target: Vector2
+	var loser: Player
+	if abs(human_reaction - cpu_reaction) < 2.0: #tie, broken by faceoff ratings
+		winner_target = determine_tie_faceoff(human_faceoff_target, cpu_faceoff_target)
+		if pTeam.P.get_buffed_attribute("faceoffs") >= aTeam.P.get_buffed_attribute("faceoffs"): #slight advantage to player team
+			winner = pTeam.P
+			loser = aTeam.P
+		else:
+			winner = aTeam.P
+			loser = pTeam.P
+	elif human_reaction > cpu_reaction:
+		winner = pTeam.P
+		loser = aTeam.P
+		winner_target = human_faceoff_target
+	else:
+		winner = aTeam.P
+		loser = pTeam.P
+		winner_target = cpu_faceoff_target
+	var accuracy = winner.get_buffed_attribute("accuracy") / 100.0
+	var accuracy_variance = (1.0 - accuracy) * 0.3
+	var angle_offset = randf_range(-accuracy_variance, accuracy_variance)
+	var direction = (winner_target - ball.global_position).normalized().rotated(angle_offset)
+	
+	# Calculate ball speed based on face-off rating
+	var faceoff_rating = winner.get_buffed_attribute("faceoff")
+	var ball_speed = lerp(200.0, 500.0, faceoff_rating / 100.0) #TODO: balance this
+	ball.start_faceoff()  #special collision mask to pass through walls
+	ball.freeze = false
+	ball.linear_velocity = direction * ball_speed
+	ball.current_state = Ball.BallState.HOCKEY
+	ball.last_hit_by = winner
+	ball.last_touched_time = 0
+	
+	# Record the faceoff
+	GlobalSettings.record_event(str(GlobalSettings.pitch_limit - pitches_remaining) + ", " + 
+		str(int(max_play_time - current_play_time)) + ", Face-off won by " + 
+		winner.team_ref.team_abbreviation + " " + winner.bio.last_name)
+	
+	# Update stats
+	winner.game_stats.faceoffs_won += 1
+	if loser:
+		loser.game_stats.faceoffs_lost += 1
+	
+	# Pitchers decide whether to fight or flee
+	handle_faceoff_aftermath(winner, loser)
+	
+	# Allow other players to move
+	pTeam.allow_movement()
+	aTeam.allow_movement()
+	is_play_live = true
+	is_faceoff = false
+
+func calculate_cpu_faceoff_target() -> Vector2:
+	var cpu_aggression = aTeam.P.get_buffed_attribute("aggression")
+	var rand = randf() * 100
+	
+	if rand < cpu_aggression:
+		# Shoot at the goal
+		return field.playerGoal.global_position
+	else:
+		rand = randf() * 100
+		if rand < cpu_aggression:
+			# Pass to a forward
+			if randf() < 0.6:
+				# 60% chance for near side forward
+				if faceoff_ball_position.x < 0:
+					return aTeam.LF.global_position
+				else:
+					return aTeam.RF.global_position
+			else:
+				# 40% chance for far side forward
+				if faceoff_ball_position.x < 0:
+					return aTeam.RF.global_position
+				else:
+					return aTeam.LF.global_position
+		else:
+			# Pass to guard or keeper
+			var pass_rand = randf()
+			if pass_rand < 0.5:
+				# Near guard
+				if faceoff_ball_position.x < 0:
+					return aTeam.LG.global_position
+				else:
+					return aTeam.RG.global_position
+			elif pass_rand < 0.8:
+				# Far guard
+				if faceoff_ball_position.x < 0:
+					return aTeam.RG.global_position
+				else:
+					return aTeam.LG.global_position
+			else:
+				# Keeper
+				return aTeam.K.global_position
+
+func determine_tie_faceoff(human_target: Vector2, cpu_target: Vector2) -> Vector2:
+	var human_faceoff_rating = pTeam.P.get_buffed_attribute("faceoff")
+	var cpu_faceoff_rating = aTeam.P.get_buffed_attribute("faceoff")
+	var total = human_faceoff_rating + cpu_faceoff_rating
+	#weighted average based on face-off ratings
+	var human_weight = human_faceoff_rating / total
+	return human_target.lerp(cpu_target, 1.0 - human_weight)
+
+func handle_faceoff_aftermath(winner: Player, loser: Player):
+	# Each pitcher decides to fight or flee based on aggression vs toughness difference
+	var winner_aggression = winner.get_buffed_attribute("aggression")
+	var loser_aggression = loser.get_buffed_attribute("aggression")
+	var toughness_diff = winner.get_buffed_attribute("toughness") - loser.get_buffed_attribute("toughness")
+	
+	#winner is more likely to fight if they're tougher because of the endorphin boost
+	var winner_fight_chance = winner_aggression + max(0, toughness_diff)
+	var loser_fight_chance = loser_aggression - max(0, toughness_diff)
+	var winner_fights = randf() * 100 < winner_fight_chance
+	var loser_fights = randf() * 100 < loser_fight_chance
+	
+	if winner_fights and loser_fights:
+		# Both fight
+		winner.current_behavior = "fighting"
+		loser.current_behavior = "fighting"
+		fighting_frame = 0
+	else:
+		# At least one flees
+		winner.current_behavior = "deciding"
+		loser.current_behavior = "deciding"
+		winner.can_move = true
+		loser.can_move = true
 	
 func _on_player_goal():
 	if match_ended or not is_instance_valid(ball):
@@ -397,11 +620,10 @@ func _process(delta: float) -> void:
 		get_tree().paused = true
 		pauseMenu.open_menu()
 		pauseMenu.matchHandler = self
-	#if Input.is_action_just_pressed("switch_zone"):
-		#pTeam.switch_zone()
+		
 	if is_play_live or is_ball_pitched:
 		GlobalSettings.record_frame()
-		current_play_time += delta / Engine.time_scale#adjust for time scale so it's always one second per second
+		current_play_time += delta / Engine.time_scale
 		if ball.global_position.distance_squared_to(field.cpuGoal.global_position) < ball.global_position.distance_squared_to(field.playerGoal.global_position):
 			aTeam.game_stats.ball_in_half += delta / Engine.time_scale
 		else:
@@ -415,6 +637,7 @@ func _process(delta: float) -> void:
 			pTeam.is_on_offense = !pTeam.is_on_offense
 			aTeam.is_on_offense = !aTeam.is_on_offense
 			next_play()
+			
 	if Input.is_action_just_pressed("debug_reset"):
 		GlobalSettings.record_event(str(GlobalSettings.pitch_limit - pitches_remaining) + ", Play Debug Skipped)")
 		var tempScore = team_scores
@@ -425,21 +648,20 @@ func _process(delta: float) -> void:
 		pitches_remaining = current_pitch
 		check_match_end()
 		return
+		
 	if !ready_to_start:
 		if pTeam and aTeam and ball and field:
-			#print("everybody is here" + str(pTeam.has_readied) + "/"+str(aTeam.has_readied))
 			if team1Ready and team2Ready:
 				print("teams are ready. Goal: " + str(field.cpuGoal))
 				if pTeam.K != null and field.cpuGoal != null and ball.global_position != null:
 					print("We're ready")
 					ready_to_start = true
 					reset_match(true)
-		#else:
-			##problem
-			#
+					
 	elif !has_started:
-		reset_match(true) # Start with human team pitching
+		reset_match(true)
 		has_started = true
+		
 	elif match_ended:
 		if Input.is_anything_pressed():
 			var result
@@ -452,11 +674,6 @@ func _process(delta: float) -> void:
 			if !over_shown:
 				overMenu.bringUp(result, self)
 				over_shown = true
-		else:
-			#have the winning team play celebration animations
-			#have the losing team play loser animations
-			#wait a few seconds then bring up the overMenu
-			pass
 	else:
 		if pTeam.K.is_special_active() or aTeam.K.is_special_active():
 			if pTeam.K.is_maestro and !aTeam.K.is_maestro:
@@ -474,13 +691,19 @@ func _process(delta: float) -> void:
 				if field.is_position_in_bounds(ball.global_position):
 					field.ball_in_play = true
 				else:
+				elif out_of_bounds_frames > too_much_out_of_bounds:
+					# Only reset after grace period has passed
+					# This should rarely happen since _on_ball_exited_field handles it
 					reset_play()
-					print("something has gone wrong")
+					print("Ball out too long during pitch")
+				# Otherwise, let the grace period in _on_ball_exited_field() handle it
+					
 		if pTeam.P.current_behavior == "fighting" and aTeam.P.current_behavior == "fighting":
 			fighting_frame += 1
 			if fighting_frame >= max_fighting_frame:
 				fighting_frame = 0
 				pitchers_fight()
+				
 		var brawlers = pTeam.get_brawlers() + aTeam.get_brawlers()
 		if brawlers.size() > 0:
 			var pairs = []
@@ -492,7 +715,7 @@ func _process(delta: float) -> void:
 			for pair in pairs:
 				if already_fought.size() > 0:
 					for fight in already_fought:
-						if (fight[0].has_same_name(pair[1]) and fight[1].has_same_name_name(pair[0])) or (fight[0].has_same_name(pair[0]) and fight[1].has_same_name_name(pair[1])):
+						if (fight[0].has_same_name(pair[1]) and fight[1].has_same_name(pair[0])) or (fight[0].has_same_name(pair[0]) and fight[1].has_same_name(pair[1])):
 							continue
 						else:
 							players_fight(pair[0], pair[1])

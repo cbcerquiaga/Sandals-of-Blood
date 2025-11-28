@@ -32,7 +32,8 @@ var sharp_turn_threshold: float
 	"shooting": 50,		# 1-100, affects shot and pass speed, punch power in fights
 	"toughness": 60,    # 1-100, fighting defense/skill
 	"confidence": 90,    # 1-100, affects special moves
-	"agility": 90 	#1-100, impacts player acceleration after sharp turns
+	"agility": 90, 	#1-100, impacts player acceleration after sharp turns
+	"faceoffs": 50 #0-100, impacts ties on faceoffs and how fast the ball goes off of face-offs
 }
 
 @export var status := {
@@ -82,8 +83,10 @@ var sharp_turn_threshold: float
 	"pitches_f": 0, #pitches played at forward position
 	"pitches_g": 0, #pitches played at guard position
 	"pitches_p": 0, #pitches played at pitcher position
-	"pitches_k": 0 #pitches played at keeper position
-}
+	"pitches_k": 0, #pitches played at keeper position
+	"faceoff_wins": 0,
+	"faceoff_losses": 0
+	}
 
 @export var season_stats:={
 	"gp": 0, #played at least one pitch in a game
@@ -120,7 +123,9 @@ var sharp_turn_threshold: float
 	"involvement_rating": 0, #touches/(pitches_f + pitches_g + pitches_k)
 	"attack_rating": 0, #(goals + assists)/(pitches_f + pitches_g + pitches_k)
 	"diff_per_play": 0, #(goals for - goals against) / (pitches_f + pitches_g + pitches_k + pitches_p)
-	"ace_rate": 0 #(aces/pitches_thrown)
+	"ace_rate": 0, #(aces/pitches_thrown)
+	"faceoff_wins": 0,
+	"faceoff_losses": 0
 }
 
 @export var career_stats:={
@@ -1320,7 +1325,7 @@ func get_buffed_attribute(attribute_name: String) -> float:
 		push_error("Attribute '" + attribute_name + "' does not exist")
 		return 0.0
 	var total = attributes[attribute_name]
-	print("Value of " + attribute_name + " before buff: " + str(total))
+	#print("Value of " + attribute_name + " before buff: " + str(total))
 	if active_buffs.size() == 0:
 		return total
 	for buff_name in active_buffs:
@@ -1330,7 +1335,7 @@ func get_buffed_attribute(attribute_name: String) -> float:
 		for i in range(buff_attributes.size()):
 			if buff_attributes[i] == attribute_name:
 				total += buff_values[i]
-	print("Value of " + attribute_name + " after buff: " + str(total))
+	#print("Value of " + attribute_name + " after buff: " + str(total))
 	return clamp(total, 0, total)#can't go below 0
 	
 func get_position_class(position: String) -> GDScript:

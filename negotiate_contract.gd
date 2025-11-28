@@ -369,14 +369,7 @@ func fill_knowledge_values():
 
 	
 func arrange_focuses_grid():
-	#TODO: fill labels with focuses
-	#TODO: calculate wights into letter grades
-	#TODO: fill letter grades for each focus for what our team and city have and for what the player wants
-	#TODO: draw into a grid
-	#TODO: scale
-	
 	var focus_labels = [$VBoxContainer/Top/Focuses/Focus_header, $VBoxContainer/Top/Focuses/Team_header, $VBoxContainer/Top/Focuses/Want_header, $VBoxContainer/Top/Focuses/Focus1, $VBoxContainer/Top/Focuses/Team1,$VBoxContainer/Top/Focuses/Want1, $VBoxContainer/Top/Focuses/Focus2, $VBoxContainer/Top/Focuses/Team2, $VBoxContainer/Top/Focuses/Want2, $VBoxContainer/Top/Focuses/Focus3, $VBoxContainer/Top/Focuses/Team3, $VBoxContainer/Top/Focuses/Want3, $VBoxContainer/Top/Focuses/Focus4, $VBoxContainer/Top/Focuses/Team4, $VBoxContainer/Top/Focuses/Want4, $VBoxContainer/Top/Focuses/Focus5, $VBoxContainer/Top/Focuses/Team5, $VBoxContainer/Top/Focuses/Want5, $VBoxContainer/Top/Focuses/Focus6, $VBoxContainer/Top/Focuses/Team6, $VBoxContainer/Top/Focuses/Want6, $VBoxContainer/Top/Focuses/Focus7, $VBoxContainer/Top/Focuses/Team7, $VBoxContainer/Top/Focuses/Want7]
-	
 	var label_style = StyleBoxFlat.new()
 	label_style.bg_color = Color.TRANSPARENT
 	label_style.border_width_left = 5
@@ -397,6 +390,14 @@ func arrange_focuses_grid():
 	pass
 
 func fill_info():
+	$VBoxContainer/Top/PlayerColorRect/ColorRect/Portrait
+	#TODO: set portrait from player character
+	$VBoxContainer/Top/PlayerColorRect/ColorRect/Label
+	#TODO: fill character info:
+	#Firstname Lastname
+	#Primary Position
+	#Ft ' In " Pounds Lbs
+	#Age Years Old
 	pass
 	
 func debug_default_player():

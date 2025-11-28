@@ -111,6 +111,10 @@ func _physics_process(delta):
 	await ball
 	update_special_pitch_availability()
 	powerbar.visible = false
+	if current_behavior == "faceoff_waiting":
+		velocity = Vector2.ZERO
+		can_move = false
+		return
 	if Input.is_action_pressed("pitch"):
 		human_ready = true
 		prepare_ai_to_pitch()

@@ -10,6 +10,7 @@ var max_speed: float = 1500.0
 var bounce_drag = 0.95 #how much speed ball retains when bouncing off walls
 var center_influence = 0.5 #affects how close to 0,0 ball bounces when it's not sure where to go
 var spin_curve_factor: float = 180.0
+var is_faceoff_ball: bool = false #special behavior for faceoffs
 
 #special pitch stuff
 var special_curves: Array[float] = []
@@ -60,6 +61,9 @@ func _physics_process(delta):
 		if chill_timer == 0:
 			collision_mask = original_collision_mask
 	
+	if is_faceoff_ball:
+		check_faceoff_inbounds()
+	
 	match current_state:
 		BallState.PITCHING:
 			apply_pitching_physics(delta)
@@ -73,9 +77,23 @@ func _physics_process(delta):
 		BallState.WAITING:
 			apply_waiting_physics()
 	
-	# Enforce max speed in all states
 	if linear_velocity.length() > max_speed:
 		linear_velocity = linear_velocity.normalized() * max_speed
+
+func check_faceoff_inbounds():
+	if field_type == "road": #TODO: other kinds of field
+		var in_x_bounds = global_position.x >= -60 and global_position.x <= 60
+		var in_y_bounds = global_position.y >= -120 and global_position.y <= 120
+		
+		if in_x_bounds and in_y_bounds:#ball is back in bounds, restore normal collision
+			collision_mask = original_collision_mask
+			is_faceoff_ball = false
+			print("Face-off ball re-entered play")
+			emit_signal("ball_entered_play")
+			
+func start_faceoff():
+	is_faceoff_ball = true
+	collision_mask = 0b0100  #only collide with players temporarily
 
 func apply_waiting_physics():
 	global_position = pitcher_position
