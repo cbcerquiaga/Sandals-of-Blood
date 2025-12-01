@@ -53,6 +53,10 @@ var chaseNW
 var chaseNE
 var chaseSW
 var chaseSE
+var p_att_fo
+var c_att_fo
+var l_fo
+var r_fo
 
 #collision areas
 var playerHalf
@@ -171,6 +175,10 @@ func _ready():
 	chaseNW = $PositioningGuides/P_NW
 	chaseSW = $PositioningGuides/P_SW
 	chaseSE = $PositioningGuides/P_SE
+	p_att_fo = $FaceoffSpots/Human.global_position
+	c_att_fo = $FaceoffSpots/CPU.global_position
+	l_fo = $FaceoffSpots/Left.global_position
+	r_fo = $FaceoffSpots/Right.global_position
 	
 func _process(delta) -> void:
 	if ball:

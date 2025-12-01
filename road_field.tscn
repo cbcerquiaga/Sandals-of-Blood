@@ -285,3 +285,17 @@ position = Vector2(57, 75)
 position = Vector2(0.999998, 0)
 scale = Vector2(114, 4)
 texture = SubResource("CanvasTexture_88c2a")
+
+[node name="FaceoffSpots" type="Node2D" parent="."]
+
+[node name="CPU" type="Node2D" parent="FaceoffSpots"]
+position = Vector2(0, 80)
+
+[node name="Human" type="Node2D" parent="FaceoffSpots"]
+position = Vector2(0, -80)
+
+[node name="Left" type="Node2D" parent="FaceoffSpots"]
+position = Vector2(-40, 0)
+
+[node name="Right" type="Node2D" parent="FaceoffSpots"]
+position = Vector2(40, 0)

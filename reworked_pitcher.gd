@@ -34,7 +34,7 @@ const MAX_DIRECTION_CHANGES := 3 #double juke and change
 const REACTION_CHECK_INTERVAL := 2.0
 const CLOSE_DISTANCE_THRESHOLD := 0.45
 
-var oppGoal: Vector2
+var oppGoal: Vector2 #center of opposing goal
 var left_wall
 var right_wall
 var lastTarget: Vector2
@@ -109,17 +109,16 @@ func _ready():
 		hand_offset = hand_offset * -1
 		
 func restore_behaviors():
-	behaviors = ["pitching", "going_away", "deciding", "waiting", "chilling", "chasing", "fleeing", "fighting"]
+	behaviors = ["pitching", "going_away", "deciding", "waiting", "chilling", "chasing", "fleeing", "fighting", "faceoff", "faceoff_recover"]
 
 func _physics_process(delta):
 	super._physics_process(delta)
 	await ball
 	update_special_pitch_availability()
 	powerbar.visible = false
-	if current_behavior == "faceoff_waiting":
+	if current_behavior == "faceoff":
 		velocity = Vector2.ZERO
 		can_move = false
-		return
 	if Input.is_action_pressed("pitch"):
 		human_ready = true
 		prepare_ai_to_pitch()
@@ -157,6 +156,8 @@ func _physics_process(delta):
 		handle_going_away()
 	elif current_behavior == "faceoff":
 		faceoff()
+		if ball.linear_velocity != Vector2.ZERO:
+			faceoff_recover()
 	elif current_behavior == "faceoff_recover":
 		faceoff_recover()
 	if is_controlling_player and is_aiming:
@@ -212,40 +213,221 @@ func increment_pitch_time():
 		
 func faceoff():
 	var open_passes = [false, false, false, false, false] #LG, K, RG, LF, RF
+	var teammates = [buddyLG, buddyK, buddyRG, buddyLF, buddyRF]
 	
-	#TODO: check which teammates have an open path to passing, update booleans
+	# Check which teammates have open passing lanes
+	for i in teammates.size():
+		if teammates[i]:
+			open_passes[i] = check_pass_open(teammates[i])
+	
 	var distance_to_goal = global_position.distance_squared_to(oppGoal)
-	var shoot_weight #TODO: calculate based on distance to goal, aggression, and confidence
-	var wants_forward = randf_range(0,120) < get_buffed_attribute("aggression")
-	var weights = [0,0,0,0,0,0] #LG, K, RG, LF, RF, shoot
-	if wants_forward: #wants to pass forward
-		if bio.leftHanded:
-			weights = [0.3,0.2,0.1,0.6,0.9,shoot_weight] #LG, K, RG, LF, RF, shoot
-		else:
-			weights = [0.1,0.2,0.3,0.9,0.6,shoot_weight] #LG, K, RG, LF, RF, shoot
-	else: #wants to pass backward
-		if bio.leftHanded:
-			weights = [0.6,0.5,0.4,0.3,0.2,shoot_weight/2] #LG, K, RG, LF, RF, shoot
-		else:
-			weights = [0.4,0.5,0.6,0.2,0.3,shoot_weight/2] #LG, K, RG, LF, RF, shoot
-	for option in open_passes:
-		if !option:
-			weights[option] = 0 #if it's not open we don't go for it
-	var sum = 0
-	for weight in weights:
-		sum = sum + weight
-	var rand = randi_range(0,sum)
-	#TODO: pick a target based on the random value
-	#TODO: return the target
-	pass
+	var max_shooting_distance = 200000 # Adjust based on your field size
+	var distance_factor = clamp(1.0 - (distance_to_goal / max_shooting_distance), 0.0, 1.0)
+	var shoot_weight = distance_factor * (get_buffed_attribute("aggression") / 100.0) * (status.groove / 100.0)
 	
-func check_pass_open(player: Player):
-	#TODO: check path from global_position to player.global_position for obstacles with a raycast
-	#if open, return true
-	return false
+	var wants_forward = randf_range(0, 120) < get_buffed_attribute("aggression")
+	var weights = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0] #LG, K, RG, LF, RF, shoot
+	
+	if wants_forward:
+		if bio.leftHanded:
+			weights = [0.3, 0.2, 0.1, 0.6, 0.9, shoot_weight]
+		else:
+			weights = [0.1, 0.2, 0.3, 0.9, 0.6, shoot_weight]
+	else:
+		if bio.leftHanded:
+			weights = [0.6, 0.5, 0.4, 0.3, 0.2, shoot_weight / 2]
+		else:
+			weights = [0.4, 0.5, 0.6, 0.2, 0.3, shoot_weight / 2]
+	
+	# Zero out weights for closed passing lanes
+	for i in open_passes.size():
+		if !open_passes[i]:
+			weights[i] = 0.0
+	
+	# Calculate sum of weights
+	var sum = 0.0
+	for weight in weights:
+		sum += weight
+	
+	# If no options available, just shoot
+	if sum == 0:
+		return select_shooting_target()
+	
+	# Pick target based on weighted random
+	var rand = randf_range(0, sum)
+	var cumulative = 0.0
+	
+	for i in weights.size():
+		cumulative += weights[i]
+		if rand <= cumulative:
+			if i == 5: # Shoot option
+				return select_shooting_target()
+			else: # Pass to teammate
+				return teammates[i].global_position
+	
+	# Fallback: shoot
+	return select_shooting_target()
+
+func select_shooting_target() -> Vector2:
+	# Assuming oppGoal has left_post and right_post members or you calculate them
+	# For now, we'll estimate the goal posts based on goal position
+	var goal_width = 100 # Adjust based on your goal size
+	var left_post = oppGoal + Vector2(-goal_width / 2, 0)
+	var right_post = oppGoal + Vector2(goal_width / 2, 0)
+	
+	# Don't always shoot dead center - vary the target
+	var accuracy_factor = get_buffed_attribute("accuracy") / 100.0
+	var randomness = (1.0 - accuracy_factor) * 0.5
+	var target_ratio = randf_range(0.3 - randomness, 0.7 + randomness)
+	
+	return left_post.lerp(right_post, target_ratio)
+	
+func check_pass_open(player: Player) -> bool:
+	if !player:
+		return false
+	
+	var space = get_world_2d().direct_space_state
+	var query = PhysicsRayQueryParameters2D.create(global_position, player.global_position)
+	query.exclude = [self, ball] # Don't collide with self or ball
+	query.collision_mask = 0b0001 # Assuming layer 1 is for players/obstacles
+	
+	var result = space.intersect_ray(query)
+	
+	# If we hit something other than the target player, path is blocked
+	if result and result.collider != player:
+		return false
+	
+	return true
 
 func faceoff_recover():
-	pass
+	# Identify safe directions off the field
+	var back_left = Vector2(-1, -1)
+	var back_right = Vector2(1, -1)
+	var front_left = Vector2(-1, 1)
+	var front_right = Vector2(1, 1)
+	var direct_left = Vector2(-1, 0)
+	var direct_right = Vector2(1, 0)
+	var off_field_options = [back_left, back_right, front_left, front_right, direct_left, direct_right]
+	
+	# Get ball direction to avoid it
+	var ball_direction = Vector2.ZERO
+	if ball:
+		ball_direction = (ball.global_position - global_position).normalized()
+	
+	# Calculate distances and filter out options toward the ball
+	var viable_options = []
+	for option in off_field_options:
+		# Don't go in the direction the ball is moving
+		if ball_direction.length() > 0 and option.dot(ball_direction) > 0.3:
+			continue
+		
+		var edge_point = global_position + option.normalized() * 1000 # Project far off field
+		var distance = global_position.distance_to(edge_point)
+		viable_options.append({"direction": option, "distance": distance})
+	
+	# Sort by distance
+	viable_options.sort_custom(func(a, b): return a.distance < b.distance)
+	
+	if viable_options.size() == 0:
+		# Emergency: just go away from ball
+		current_waypoint = global_position + (ball_direction * -1000)
+		move_toward_waypoint()
+		return
+	
+	# Decide behavior based on personality
+	var behavior_roll = randf_range(0, 100)
+	var flee_threshold = scrapping["flee"]
+	var chill_threshold = flee_threshold + scrapping["chill"]
+	
+	var selected_exit: Vector2
+	
+	if behavior_roll < flee_threshold:
+		# Flee: pick safest route away from opponent goal
+		var away_from_goal = (global_position - oppGoal).normalized()
+		var best_option = viable_options[0]
+		for option in viable_options:
+			if option.direction.dot(away_from_goal) > best_option.direction.dot(away_from_goal):
+				best_option = option
+		selected_exit = best_option.direction
+		
+	elif behavior_roll < chill_threshold:
+		# Chill: take closest safe exit
+		selected_exit = viable_options[0].direction
+		
+	else:
+		# Chase: go toward where we expect opponent
+		if opp_pitcher:
+			var toward_opp = (opp_pitcher.global_position - global_position).normalized()
+			# Find closest option that's in opponent's general direction
+			var best_option = viable_options[0]
+			var best_alignment = -1.0
+			for option in viable_options:
+				var alignment = option.direction.dot(toward_opp)
+				if alignment > best_alignment:
+					best_alignment = alignment
+					best_option = option
+			selected_exit = best_option.direction
+		else:
+			selected_exit = viable_options[0].direction
+	
+	# Set waypoint off the field
+	current_waypoint = global_position + selected_exit.normalized() * 1000
+	move_toward_waypoint()
+	if is_off_field():
+		if behavior_roll < flee_threshold:
+			current_behavior = "fleeing"
+			initialize_flee()
+		elif behavior_roll < chill_threshold:
+			current_behavior = "chilling"
+			current_chill_target = get_random_chill_target()
+		else:
+			if opp_pitcher and !is_off_field_at_position(opp_pitcher.global_position): #dude isn't off the field yet, but we wait for them at the end
+				var closest_waypoint = find_closest_position_index(global_position)
+				#TODO: if distance to opponent is less than the distance to the next waypoint, stop
+				var opp_closest = find_closest_position_index(opp_pitcher.global_position)
+				var clockwise_dist = calculate_clockwise_distance(closest_waypoint, opp_closest)
+				var counter_dist = calculate_counter_distance(closest_waypoint, opp_closest)
+				var next_waypoint
+				if clockwise_dist < counter_dist:
+					var next_clock = (closest_waypoint + 1) % running_positions.size()
+					var next_counter = (closest_waypoint - 1 + running_positions.size()) % running_positions.size()
+					legal_first_moves = [next_clock, next_counter]
+					moving_clockwise = true
+					next_waypoint = next_clock
+				else:
+					var next_counter = (closest_waypoint - 1 + running_positions.size()) % running_positions.size()
+					var next_clock = (closest_waypoint + 1) % running_positions.size()
+					legal_first_moves = [next_clock, next_counter]
+					next_waypoint = next_counter
+					moving_clockwise = false
+				if global_position.distance_squared_to(opp_pitcher.global_position) < global_position.distance_squared_to(next_waypoint):
+					velocity = Vector2.ZERO
+			else: #other pitcher is off the field, just chase them
+				var closest_waypoint = find_closest_position_index(global_position)
+				var next_clock = (closest_waypoint + 1) % running_positions.size()
+				var next_counter = (closest_waypoint - 1 + running_positions.size()) % running_positions.size()
+				legal_first_moves = [next_clock, next_counter]
+				current_behavior = "chasing"
+				initialize_chase()
+
+func move_toward_waypoint():
+	var speed
+	if status.boost > 0:
+		speed = get_buffed_attribute("sprint_speed")
+		status.boost = max(0, status.boost - 0.25)
+	else:
+		speed = get_buffed_attribute("speed")
+	var direction = global_position.direction_to(current_waypoint)
+	velocity = direction * speed
+	move_and_slide()
+
+func is_off_field() -> bool:
+	var field_bounds = Rect2(left_wall.x, right_wall, oppGoal.y, 0 - oppGoal.y)
+	return !field_bounds.has_point(global_position)
+
+func is_off_field_at_position(pos: Vector2) -> bool:
+	var field_bounds = Rect2(left_wall.x, right_wall, oppGoal.y, 0 - oppGoal.y)
+	return !field_bounds.has_point(pos)
 
 func _on_pitch_phase_started():
 	status.boost = max(status.boost, 10) 

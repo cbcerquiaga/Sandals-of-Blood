@@ -19,7 +19,7 @@ var is_human_team_pitching = true
 var team1Ready:bool
 var team2Ready:bool
 var out_of_bounds_frames: int = 0
-var too_much_out_of_bounds: int = 20
+var too_much_out_of_bounds: int = 6
 var fighting_frame = 0
 var max_fighting_frame = 15 #TODO: update based on refresh rate
 var most_recent_scorer: Player
@@ -145,7 +145,8 @@ func _on_ball_crossed_midfield():
 		pTeam.K.current_behavior = "pitch_defense"
 
 func _on_ball_exited_field():
-	
+	if is_faceoff:
+		return
 	if (out_of_bounds_frames > too_much_out_of_bounds):
 		var current_pitch = GlobalSettings.pitch_limit - pitches_remaining
 		var time_remaining = int(max_play_time - current_play_time)
@@ -166,21 +167,21 @@ func _on_ball_exited_field():
 			GlobalSettings.record_event(str(current_pitch) + ", " + str(time_remaining) + ", Ball Out at Sideline - Face-off")
 			print("and the ball goes out of bounds at the sideline, we'll re-set with a face-off")
 			lineup_faceoff()
+			out_of_bounds_frames = 0
+			return
 		elif went_out_endline: # traditional pitch restart at endline
-			var c_att_fo = field.playerGoal.global_position/2
-			var p_att_fo = field.cpuGoal.global_position/2
+			var c_att_fo = field.c_att_fo
+			var p_att_fo = field.p_att_fo
 			
 			var player_team_attacks = false
 	
 			if !ball or !ball.last_hit_by:
-				# Not clear who put it out - base on which goal it went out near
+				#not clear who put it out - base on which goal it went out closer to
 				player_team_attacks = ball.global_position.distance_squared_to(field.cpuGoal.global_position) < ball.global_position.distance_squared_to(field.playerGoal.global_position)
 			elif ball.last_hit_by.team == 2:  # AI team put it out
-				player_team_attacks = true  # Player team gets attacking face-off
-			else:  # Player team put it out
-				player_team_attacks = false  # AI team gets attacking face-off
-			
-			# Select corner based on who attacks and which side (left/right)
+				player_team_attacks = true  #player team gets attacking face-off
+			else:  #player team put it out
+				player_team_attacks = false  #CPU team gets attacking face-off
 			if player_team_attacks:
 				faceoff_ball_position = p_att_fo
 			else:
@@ -188,12 +189,11 @@ func _on_ball_exited_field():
 			
 			GlobalSettings.record_event(str(current_pitch) + ", " + str(time_remaining) + ", Ball Out at Endline - Face-off")
 			print("and the ball goes out of bounds over the endline, this face-off could lead to a goal!")
-			
-			# Set ball position for the face-off
 			ball.global_position = faceoff_ball_position
 			lineup_faceoff(true)
-		else:
-			# Unclear where it went out, default to endline behavior
+			out_of_bounds_frames = 0
+			return
+		else: #something has gone wrong, we'll do a pitch
 			GlobalSettings.record_event(str(current_pitch) + ", " + str(time_remaining) + ", Ball Out of Play)")
 			print("Ball went out of bounds")
 			
@@ -209,6 +209,7 @@ func _on_ball_exited_field():
 			pTeam.is_on_offense = is_human_team_pitching
 			aTeam.is_on_offense = !is_human_team_pitching
 			pitches_remaining -= 1
+			out_of_bounds_frames = 0
 			next_play()
 	else:
 		# Ball hasn't been out long enough yet, try to keep it in play
@@ -222,10 +223,10 @@ func lineup_faceoff(already_set_position: bool = false):
 	is_play_live = false
 	is_ball_pitched = false
 	if !already_set_position:
-		var left_faceoff = Vector2(-30, 0) #TODO: update based on field size
-		var right_faceoff = Vector2(30, 0) #TODO: update based on field size
+		var left_faceoff = field.l_fo
+		var right_faceoff = field.r_fo
 		#TODO: determine if the ball went out on the left or right sideline
-		#TODO: if the ball went out on the left, put the 
+		#TODO: if the ball went out on the left, put the ball on the right
 		if ball.global_position.x < 0:
 			faceoff_ball_position = left_faceoff
 		else:
@@ -239,7 +240,7 @@ func lineup_faceoff(already_set_position: bool = false):
 	position_player(aTeam.P, cpu_pitcher_pos, field.cpu_orientation)
 	aTeam.P.current_behavior = "faceoff"
 	aTeam.P.can_move = false
-	ball.global_position = faceoff_ball_position #slightly out of bounds at the sideline
+	ball.global_position = faceoff_ball_position
 	ball.linear_velocity = Vector2.ZERO
 	ball.current_state = Ball.BallState.WAITING
 	ball.freeze = true
@@ -261,9 +262,7 @@ func lineup_faceoff(already_set_position: bool = false):
 func execute_faceoff():
 	var cpu_faceoff_target = aTeam.P.faceoff()
 	var human_input_time = 0.0
-	var max_input_time = 0.5 # Half second to respond
-	
-	# For now, use a simple timer - in full implementation, track actual mouse input
+	var max_input_time = 1.5 # Half second to respond #TODO: balance
 	await get_tree().create_timer(max_input_time).timeout
 	if pTeam.P.is_aiming and pTeam.P.target != Vector2.ZERO:
 		human_faceoff_target = pTeam.P.target
@@ -590,6 +589,8 @@ func on_ball_pitched():
 	
 	
 func _process(delta: float) -> void:
+	if is_faceoff:
+		print("DEBUG _process: In faceoff - has_started=" + str(has_started))
 	if Input.is_action_just_pressed("pause") and !match_ended:
 		get_tree().paused = true
 		pauseMenu.open_menu()
@@ -643,19 +644,21 @@ func _process(delta: float) -> void:
 		pitches_remaining = current_pitch
 		check_match_end()
 		return
-		
-	if !ready_to_start:
-		if pTeam and aTeam and ball and field:
-			if team1Ready and team2Ready:
-				print("teams are ready. Goal: " + str(field.cpuGoal))
-				if pTeam.K != null and field.cpuGoal != null and ball.global_position != null:
-					print("We're ready")
-					ready_to_start = true
-					reset_match(true)
+	
+	if !has_started:
+		if !ready_to_start:
+			if pTeam and aTeam and ball and field:
+				if team1Ready and team2Ready:
+					print("teams are ready. Goal: " + str(field.cpuGoal))
+					if pTeam.K != null and field.cpuGoal != null and ball.global_position != null:
+						print("We're ready")
+						ready_to_start = true
+						has_started = true
+						reset_match(true)
 					
-	elif !has_started:
-		reset_match(true)
-		has_started = true
+		else:
+			reset_match(true)
+			has_started = true
 		
 	elif match_ended:
 		if Input.is_anything_pressed():
@@ -718,6 +721,8 @@ func _process(delta: float) -> void:
 		
 
 func next_play():
+	if is_faceoff:
+		return 
 	print("Starting next play - Human pitching: " + str(is_human_team_pitching))
 	is_play_live = false
 	is_ball_pitched = false
@@ -766,6 +771,9 @@ func pitch_returned():
 		pTeam.K.game_stats.returns += 1
 
 func reset_ball_and_field():
+	print("DEBUG: reset_ball_and_field() called - is_faceoff: " + str(is_faceoff) + " is_play_live: " + str(is_play_live))
+	print("Stack trace:")
+	print(get_stack())
 	if is_instance_valid(ball):
 		if pTeam.is_on_offense:
 			ball.reset_ball(Vector2(pTeam.P.global_position.x + pTeam.P.hand_offset, pTeam.P.global_position.y))
