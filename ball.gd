@@ -11,7 +11,7 @@ var bounce_drag = 0.95 #how much speed ball retains when bouncing off walls
 var center_influence = 0.5 #affects how close to 0,0 ball bounces when it's not sure where to go
 var spin_curve_factor: float = 180.0
 var is_faceoff_ball: bool = false #special behavior for faceoffs
-@onready var bounciness: int = 100000 #TODO: 0
+@onready var bounciness: int = 0
 
 #special pitch stuff
 var special_curves: Array[float] = []

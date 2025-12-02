@@ -146,6 +146,9 @@ func _on_ball_crossed_midfield():
 
 func _on_ball_exited_field():
 	if is_faceoff:
+		if ball.global_position != faceoff_ball_position:
+			ball.global_position = faceoff_ball_position
+		print("we're facing off. ball is at: " + str(ball.global_position) + " and it's supposed to be at: " + str(faceoff_ball_position))
 		return
 	if (out_of_bounds_frames > too_much_out_of_bounds):
 		var current_pitch = GlobalSettings.pitch_limit - pitches_remaining
@@ -222,11 +225,11 @@ func lineup_faceoff(already_set_position: bool = false):
 	is_faceoff = true
 	is_play_live = false
 	is_ball_pitched = false
+	field.ball_in_play = true
 	if !already_set_position:
 		var left_faceoff = field.l_fo
 		var right_faceoff = field.r_fo
 		#TODO: determine if the ball went out on the left or right sideline
-		#TODO: if the ball went out on the left, put the ball on the right
 		if ball.global_position.x < 0:
 			faceoff_ball_position = left_faceoff
 		else:
@@ -274,6 +277,7 @@ func execute_faceoff():
 	var winner_target: Vector2
 	var loser: Player
 	if abs(human_reaction - cpu_reaction) < 2.0: #tie, broken by faceoff ratings
+		print("it's a closely contested faceoff...")
 		winner_target = determine_tie_faceoff(human_faceoff_target, cpu_faceoff_target)
 		if pTeam.P.get_buffed_attribute("faceoffs") >= aTeam.P.get_buffed_attribute("faceoffs"): #slight advantage to player team
 			winner = pTeam.P
@@ -289,6 +293,10 @@ func execute_faceoff():
 		winner = aTeam.P
 		loser = pTeam.P
 		winner_target = cpu_faceoff_target
+	if winner == aTeam.P:
+		print("And the " + aTeam.team_name + " come away with the ball")
+	else:
+		print("And the " + pTeam.team_name + " come away with the ball")
 	var accuracy = winner.get_buffed_attribute("accuracy") / 100.0
 	var accuracy_variance = (1.0 - accuracy) * 0.3
 	var angle_offset = randf_range(-accuracy_variance, accuracy_variance)
