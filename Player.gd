@@ -152,6 +152,7 @@ var sharp_turn_threshold: float
 	"challenge_depth": 10, #how far out the player will venture when defending the goal. Default 10, conservative 0
 	"charges_out": false, #if the player "dives" up the middle of the field to defend pitches
 	"sweeper_keeper": true, #if the keeper will go out and chase loose balls
+	"likes_contact": false, #if the keeper will deliberately attack opposing forwards
 }
 
 @export var brawl_preferences := {

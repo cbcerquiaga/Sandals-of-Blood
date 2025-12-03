@@ -32,6 +32,13 @@ class_name Keeper
 }
 var has_guessed: bool = false
 
+#sweeping specific behavior
+var sweep_state: String = "none"  # "approaching", "retreating", "bailed"
+var sweep_target: Vector2 = Vector2.ZERO
+var sweep_commit_point: Vector2 = Vector2.ZERO  #starting point when deciding to commit to sweeping up a loose ball
+var frames_since_sweep_start: int = 0
+const SWEEP_BAILOUT_CHECK_FREQUENCY: int = 5  #frames per bailout decision check
+
 # State
 var own_goal: Vector2
 var opp_goal: Vector2
@@ -69,6 +76,20 @@ var human_block_timer: float = 0.0
 var human_block_target: Vector2
 var human_block_speed_multiplier: float = 1.2
 const HUMAN_BLOCK_DURATION: float = 0.2  # How long to override input
+const DIVE_HESITATION_FRAMES = 15  # Base hesitation before committing to dive
+const CONTACT_EVALUATION_DISTANCE = 100.0  # Distance to consider attacking
+const GUARD_PROTECTION_WEIGHT = 0.6  # How much contact-averse keepers value guard positioning
+const ANTICIPATION_THRESHOLD: float = 300.0  # Distance to consider opponent as passing target
+const PASS_INTERCEPT_RANGE: float = 80.0  # How close opponent needs to be to ball path
+
+# Anticipation variables
+var anticipated_shooter: Player = null
+var anticipation_frames: int = 0
+var last_anticipated_position: Vector2 = Vector2.ZERO
+var forced_guess: String = ""
+var lf_shot_history: Array = []
+var rf_shot_history: Array = []
+
 # Constants
 const MAX_REACTION_TIME: float = 0.5  # seconds
 const MIN_REACTION_TIME: float = 0.1  # seconds
@@ -109,7 +130,7 @@ func _physics_process(delta):
 				return
 		elif handle_human_blocking(delta):
 			move_and_slide()
-			return  # Skip normal input processing while blocking
+			return  #skip normal input processing while blocking
 	if is_special_active():
 		use_special_ability()
 	
@@ -150,7 +171,6 @@ func human_aim():
 #region Behavior Implementations
 func AI_behavior(delta):
 	time_since_last_touch += delta
-	# Update ball tracking
 	if ball:
 		ball_last_velocity = (ball.global_position - ball_last_position) / delta
 		ball_last_position = ball.global_position
@@ -197,7 +217,7 @@ func perform_waiting():
 func check_state():
 	if !ball:
 		return
-	if current_behavior == "waiting": #sit down and wait!
+	if current_behavior == "waiting":
 		return
 	
 	var ball_speed = ball_last_velocity.length()
@@ -205,116 +225,66 @@ func check_state():
 	var ball_direction = ball_last_velocity.normalized()
 	var goal_threat = ball_direction.dot(ball_to_goal)
 	
-	var ball_dist_to_goal = ball.global_position.distance_squared_to(own_goal)
-	var keeper_dist_to_goal = global_position.distance_squared_to(own_goal)
+	var ball_dist_to_goal = ball.global_position.distance_to(own_goal)
 	var keeper_dist_to_ball = global_position.distance_to(ball.global_position)
-	
-	# Check for avoiding conditions (forward pressure)
-	var closest_opponent = get_closest_opponent()
-	if closest_opponent and global_position.distance_to(closest_opponent.global_position) < avoidance_weights["panic_threshold"]:
-		current_behavior = "avoiding"
+	if ball.current_state == ball.BallState.PITCHING or ball.current_state == ball.BallState.SPECIAL_PITCH:
+		current_behavior = "pitch_defense"
 		return
-	#check to see if we ought to sweep
-	elif global_position.distance_to(ball.global_position) < 150 - get_buffed_attribute("aggression"): #100 to 51
+	if goalkeeping_preferences.likes_contact:
+		var should_attack = _decide_attack_opponent()
+		if should_attack:
+			current_behavior = "attacking"
+			return
+	var closest_opponent = get_closest_opponent()
+	if closest_opponent:
+		var opp_distance = global_position.distance_to(closest_opponent.global_position)
+		if goalkeeping_preferences.likes_contact:
+			if opp_distance < avoidance_weights["panic_threshold"]:
+				var attack_chance = get_buffed_attribute("aggression") / 99.0
+				if randf() < attack_chance and status.anger >= 100:
+					current_behavior = "fencing"
+					current_opponent = closest_opponent
+					return
+		else:
+			if opp_distance < avoidance_weights["panic_threshold"]:
+				current_behavior = "avoiding"
+				return
+	if goal_threat > 0.6 and ball_speed > 100 and ball_dist_to_goal < get_buffed_attribute("reactions"):
+		current_behavior = "blocking"
+		ball_last_sighted = ball.global_position
+		ball_direction_projection = ball_direction
+		return
+
+	if keeper_dist_to_ball < 30 + get_buffed_attribute("aggression"):
 		_make_sweeping_decision()
 	else:
 		current_behavior = "defending"
 
-func perform_sweeping():
-	if !ball:
-		current_behavior = "defending"
-		return
-	
-	var goal_line_y = leftPost.y
-	var buffer = 10.0  # Stay at least this far in front of goal line
-	
-	var distance_to_ball = global_position.distance_to(ball.global_position)
-	
-	# Check if we've reached the ball or gotten close enough
-	if distance_to_ball < 2 or (time_since_last_touch < 0.1):
-		# Successfully collected the ball - sprint back to defensive position
-		var goal_center = (leftPost + rightPost) / 2
-		var defensive_y = goal_line_y - sign(goal_line_y) * buffer
-		var defensive_position = Vector2(goal_center.x, defensive_y)
-		navigation_agent.target_position = defensive_position
-		# Sprint back at full speed but don't go beyond goal line
-		var move_dir = (defensive_position - global_position).normalized()
-		velocity = move_dir * get_buffed_attribute("sprint_speed")
-		# Once we're back in position, switch to defending
-		if global_position.distance_to(defensive_position) < 20:
-			current_behavior = "defending"
-			return
-	if check_ball_close():
-		return
-	
-	var anticipated_pos = _calculate_ball_intercept_with_bounces()
-	
-	if sign(goal_line_y) > 0:  # Bottom goal (positive Y)
-		anticipated_pos.y = min(anticipated_pos.y, goal_line_y - buffer)
-	else:  # Top goal (negative Y)
-		anticipated_pos.y = max(anticipated_pos.y, goal_line_y + buffer)
-	if sign(global_position.y) != sign(anticipated_pos.y) or anticipated_pos.distance_squared_to(Vector2(0,0)) > own_goal.distance_squared_to(Vector2(0,0)):
-		current_behavior = "defending"
-		return
-	if global_position.distance_squared_to(anticipated_pos) > ball.global_position.distance_squared_to(own_goal):
-		current_behavior = "defending"
-		return
-	var ball_to_center = (Vector2(0, 0) - ball.global_position).normalized()
-	if (global_position - anticipated_pos).normalized().dot(ball_to_center) < 0.7:
-		#get the fuck back in the goal
-		is_sprinting = status.boost > 0
-		var speed = get_buffed_attribute("speed")
-		if is_sprinting:
-			speed = get_buffed_attribute("sprint_speed")
-		navigation_agent.target_position = own_goal
-		velocity = (navigation_agent.target_position - global_position).normalized() * speed
-		return
-	
-	navigation_agent.target_position = anticipated_pos
-	velocity = (anticipated_pos - global_position).normalized() * get_buffed_attribute("sprint_speed")
-	if distance_to_ball > sweeping_params["max_distance"]:
-		current_behavior = "defending"
-	
 func _calculate_ball_intercept_with_bounces() -> Vector2:
 	if !ball or ball_last_velocity.length() < 50:
 		return ball.global_position
-	
 	var current_pos = ball.global_position
 	var current_vel = ball_last_velocity
 	var keeper_speed = get_buffed_attribute("sprint_speed")
 	var max_bounces = 2
 	var bounce_count = 0
 	var goal_line_y = leftPost.y
-	var buffer = 15.0  # Stay in front of goal
-	
-	# Try to find where we can intercept the ball
+	var buffer = 5.0  #stay in front of the damned goal
 	while bounce_count <= max_bounces:
-		# Calculate time for keeper to reach current ball position
 		var distance_to_intercept = global_position.distance_to(current_pos)
 		var keeper_time = distance_to_intercept / keeper_speed
-		
-		# Project where ball will be when keeper arrives
 		var ball_future_pos = current_pos + current_vel * keeper_time
-		
-		# Check for wall collision before keeper arrives
 		var wall_collision = _check_wall_collision(current_pos, current_vel, keeper_time)
-		
 		if wall_collision.has("collision"):
-			# Ball will bounce - update position and velocity for next iteration
 			current_pos = wall_collision["position"]
 			current_vel = wall_collision["new_velocity"]
 			bounce_count += 1
 		else:
-			# No wall collision - this is our intercept point
-			# Ensure we don't go behind goal line
 			if sign(goal_line_y) > 0:  # Bottom goal
 				ball_future_pos.y = min(ball_future_pos.y, goal_line_y - buffer)
 			else:  # Top goal
 				ball_future_pos.y = max(ball_future_pos.y, goal_line_y + buffer)
 			return ball_future_pos
-	
-	# If we can't predict after max bounces, just go for current ball position
-	# Still respect goal boundary
 	if sign(goal_line_y) > 0:
 		current_pos.y = min(current_pos.y, goal_line_y - buffer)
 	else:
@@ -326,18 +296,15 @@ func perform_avoiding():
 	if !closest_opponent or global_position.distance_squared_to(closest_opponent.global_position) >= avoidance_weights.chill_threshold :
 		current_behavior = "defending"
 		return
-	
 	var threat = _calculate_forward_threat(closest_opponent)
 	if threat > 0.9 and randf() < get_buffed_attribute("aggression") / 100.0:
 		if status.anger + get_buffed_attribute("aggression") >= 150: #150 instead of 100 because the keeper needs to focus on the goal
 			current_behavior = "fencing"
 			current_opponent = closest_opponent
 			return
-	
 	var avoidance_pos = _calculate_avoidance_position(threat, 0.0)
 	navigation_agent.target_position = avoidance_pos
 	velocity = (avoidance_pos - global_position).normalized() * get_buffed_attribute("speed")
-	
 	if threat > 0.5 and randf() < 0.05:
 		super.attempt_dodge()
 
@@ -364,7 +331,6 @@ func perform_attacking():
 		attack_cooldown -= get_physics_process_delta_time()
 		velocity *= 0.9
 		return
-	
 	if !attack_target or attack_target.is_stunned:
 		attack_target = _select_attack_target()
 		if !attack_target:
@@ -379,37 +345,352 @@ func perform_attacking():
 
 func _make_sweeping_decision():
 	if !goalkeeping_preferences.sweeper_keeper:
-		print("homie don't play like that")
 		current_behavior = "defending"
 		return
-	var ball_speed = ball_last_velocity.length()
-	var opponent_dist = global_position.distance_to(get_closest_opponent().global_position)
-	var goal_dist = global_position.distance_to(own_goal)
-	var dist_modifier #go for it if it's safe
-	if goal_dist < opponent_dist:
-		dist_modifier = 1.25
-	else:
-		dist_modifier = 0.75
-	var corner_modifier #go for it if it's in the corner
-	if abs(ball.global_position.y) - own_goal.y < 10:
-		corner_modifier = 2
-	else:
-		corner_modifier = 1
-	var keeper_bias = (get_buffed_attribute("aggression") * 0.7 + get_buffed_attribute("confidence") * 0.3) / 100.0#have o want it and believe in yourself
-	var clearness = _path_clearness(global_position, ball.global_position)
-	var choice = clearness * keeper_bias * dist_modifier * corner_modifier
-	if ball.last_touched_time > 180:
-		choice = choice * 1.2
-	elif ball.last_touched_time > 90:
-		choice = choice * 1.1
-	if randf() < choice:
-		current_behavior = "sweeping"
-		print("gimme that ball!")
-	else:
-		current_behavior = "defending"
+	#don't sweep if ball is on wrong side of field
 	if (ball.global_position.y < 0 and own_goal.y > 0) or (ball.global_position.y > 0 and own_goal.y < 0):
 		current_behavior = "defending"
+		return
+	
+	var ball_speed = ball_last_velocity.length()
+	var closest_opponent = get_closest_opponent()
+	var opponent_dist = global_position.distance_to(closest_opponent.global_position) if closest_opponent else 999999
+	var goal_dist = global_position.distance_to(own_goal)
+	var anticipated_ball_pos = _calculate_sweep_intercept()
+	var anticipated_distance = global_position.distance_to(anticipated_ball_pos)
+	var clearness = _path_clearness_to_ball(global_position, anticipated_ball_pos)
+	var positioning_skill = get_buffed_attribute("positioning")
+	var judgment_quality = positioning_skill / 99.0
+	var dist_modifier = 1.25 if goal_dist < opponent_dist else 0.75
+	var corner_modifier = 2.0 if abs(ball.global_position.x - own_goal.x) > 80 else 1.0
+	var keeper_bias = (get_buffed_attribute("aggression") * 0.7 + judgment_quality * 0.3)
+	var time_modifier = 1.0
+	if ball.last_touched_time > 180:
+		time_modifier = 1.2
+	elif ball.last_touched_time > 90:
+		time_modifier = 1.1
+	var distance_viable = true
+	if anticipated_distance > sweeping_params["max_distance"]:
+		distance_viable = false
+		clearness *= 0.3
+	elif anticipated_distance < sweeping_params["min_distance"]:
+		distance_viable = false
+	if sign(anticipated_ball_pos.y) != sign(own_goal.y):
+		clearness *= 0.1
+	var choice = clearness * keeper_bias * dist_modifier * corner_modifier * time_modifier / 100.0
+	
+	if distance_viable and randf() < choice:
+		sweep_state = "approaching"
+		sweep_commit_point = global_position
+		sweep_target = anticipated_ball_pos
+		frames_since_sweep_start = 0
+		current_behavior = "sweeping"
+		print("CGimme that ball! Target: ", sweep_target, " | Clearness: ", clearness)
+	else:
+		current_behavior = "defending"
 
+func _calculate_sweep_intercept() -> Vector2:
+	if !ball or ball_last_velocity.length() < 50:
+		return ball.global_position
+	
+	var positioning_skill = get_buffed_attribute("positioning")
+	var reactions_skill = get_buffed_attribute("reactions") 
+	var prediction_quality = (positioning_skill + reactions_skill) / 2.0 / 99.0  #0 to 1
+	
+	var current_pos = ball.global_position
+	var current_vel = ball_last_velocity
+	var keeper_speed = get_buffed_attribute("sprint_speed")
+	var simulation_steps = int(60 * prediction_quality)  #0-60 
+	var best_intercept = current_pos
+	var best_time_diff = 999999.0
+	
+	for step in range(1, simulation_steps):
+		var time_elapsed = step / 60.0  #frames to seconds
+		var projected_pos = current_pos + current_vel * time_elapsed
+		projected_pos = _apply_wall_bounces_to_projection(current_pos, current_vel, time_elapsed)
+		var keeper_distance = global_position.distance_to(projected_pos)
+		var keeper_time = keeper_distance / keeper_speed
+		var time_diff = abs(keeper_time - time_elapsed)
+		if time_diff < best_time_diff:
+			best_time_diff = time_diff
+			best_intercept = projected_pos
+		current_vel *= 0.98
+		if current_vel.length() < 50:
+			break
+	
+	var error_margin = (100 - positioning_skill) * 0.8  #0-80 pixels of error
+	best_intercept.x += randf_range(-error_margin, error_margin)
+	best_intercept.y += randf_range(-error_margin * 0.5, error_margin * 0.5)
+	var goal_line_y = leftPost.y
+	if sign(goal_line_y) > 0:
+		best_intercept.y = min(best_intercept.y, goal_line_y)
+	else:
+		best_intercept.y = max(best_intercept.y, goal_line_y)
+	return best_intercept
+
+func _apply_wall_bounces_to_projection(start_pos: Vector2, velocity: Vector2, time: float) -> Vector2:
+	var pos = start_pos
+	var vel = velocity
+	var remaining_time = time
+	var bounces = 0
+	var max_bounces = 3
+	
+	while remaining_time > 0 and bounces < max_bounces:
+		var next_pos = pos + vel * remaining_time
+		var collision = _find_nearest_wall_collision(pos, vel, remaining_time)
+		if collision.has("time") and collision["time"] < remaining_time:
+			pos = collision["position"]
+			vel = collision["new_velocity"]
+			remaining_time -= collision["time"]
+			bounces += 1
+		else:
+			pos = next_pos
+			break
+	return pos
+
+func _find_nearest_wall_collision(pos: Vector2, vel: Vector2, max_time: float) -> Dictionary:
+	var nearest_collision = {}
+	var nearest_time = max_time
+	if vel.x < 0 and left_wall:
+		var wall_x = left_wall.global_position.x + 20
+		var time_to_wall = (wall_x - pos.x) / vel.x
+		if time_to_wall > 0 and time_to_wall < nearest_time:
+			nearest_time = time_to_wall
+			nearest_collision = {
+				"time": time_to_wall,
+				"position": Vector2(wall_x, pos.y + vel.y * time_to_wall),
+				"new_velocity": Vector2(-vel.x * 0.8, vel.y)
+			}
+	if vel.x > 0 and right_wall:
+		var wall_x = right_wall.global_position.x - 20
+		var time_to_wall = (wall_x - pos.x) / vel.x
+		if time_to_wall > 0 and time_to_wall < nearest_time:
+			nearest_time = time_to_wall
+			nearest_collision = {
+				"time": time_to_wall,
+				"position": Vector2(wall_x, pos.y + vel.y * time_to_wall),
+				"new_velocity": Vector2(-vel.x * 0.8, vel.y)
+			}
+	if back_wall:
+		var wall_y = back_wall.global_position.y + (20 if vel.y > 0 else -20)
+		if abs(vel.y) > 0.1:
+			var time_to_wall = (wall_y - pos.y) / vel.y
+			if time_to_wall > 0 and time_to_wall < nearest_time:
+				nearest_time = time_to_wall
+				nearest_collision = {
+					"time": time_to_wall,
+					"position": Vector2(pos.x + vel.x * time_to_wall, wall_y),
+					"new_velocity": Vector2(vel.x, -vel.y * 0.8)
+				}
+	
+	return nearest_collision
+
+func perform_sweeping():
+	if !ball:
+		_bailout_sweep("no ball")
+		return
+	frames_since_sweep_start += 1
+	if frames_since_sweep_start % SWEEP_BAILOUT_CHECK_FREQUENCY == 0:
+		if _should_bailout_sweep():
+			_bailout_sweep("danger detected")
+			return
+	
+	var goal_line_y = leftPost.y
+	var goal_center = (leftPost + rightPost) / 2
+	
+	match sweep_state:
+		"approaching":
+			_handle_sweep_approach(goal_center, goal_line_y)
+		"retreating":
+			_handle_sweep_retreat(goal_center, goal_line_y)
+		"bailed":
+			_handle_sweep_bailout(goal_center, goal_line_y)
+
+func _handle_sweep_approach(goal_center: Vector2, goal_line_y: float):
+	# Check if we got the ball
+	var distance_to_ball = global_position.distance_to(ball.global_position)
+	if distance_to_ball < 30 or time_since_last_touch < 0.1:
+		print("Got the ball! Retreating to goal")
+		sweep_state = "retreating"
+		return
+	
+	# Recalculate target periodically for moving ball
+	if frames_since_sweep_start % 10 == 0:
+		sweep_target = _calculate_sweep_intercept()
+	
+	# Avoid opponents while approaching
+	var avoidance_vector = _calculate_sweep_avoidance()
+	var target_with_avoidance = sweep_target + avoidance_vector
+	
+	# Path to ball
+	var direction_to_target = (target_with_avoidance - global_position).normalized()
+	navigation_agent.target_position = target_with_avoidance
+	
+	# Sprint to ball
+	velocity = direction_to_target * get_buffed_attribute("sprint_speed")
+	
+	# Don't go past goal line while sweeping
+	var buffer = 10.0
+	if sign(goal_line_y) > 0:
+		if global_position.y > goal_line_y - buffer:
+			velocity.y = min(velocity.y, 0)  # Can't move further away from center
+	else:
+		if global_position.y < goal_line_y + buffer:
+			velocity.y = max(velocity.y, 0)
+
+func _handle_sweep_retreat(goal_center: Vector2, goal_line_y: float):
+	# Return to defensive position after getting ball
+	var defensive_position = Vector2(goal_center.x, goal_line_y - sign(goal_line_y) * 15)
+	navigation_agent.target_position = defensive_position
+	var distance_to_position = global_position.distance_to(defensive_position)
+	
+	# Sprint back
+	var direction = (defensive_position - global_position).normalized()
+	velocity = direction * get_buffed_attribute("sprint_speed")
+	
+	# Once we're back in position, return to defending
+	if distance_to_position < 20:
+		print("Back in position - returning to defending")
+		sweep_state = "none"
+		current_behavior = "defending"
+		return
+	
+	# If ball gets loose again while retreating, might need to re-sweep
+	if ball and global_position.distance_to(ball.global_position) > 100:
+		var ball_threat = _calculate_ball_threat()
+		if ball_threat > 0.6:  # Ball is threatening - stop retreating and defend
+			sweep_state = "none"
+			current_behavior = "defending"
+
+func _handle_sweep_bailout(goal_center: Vector2, goal_line_y: float):
+	# Emergency return to goal
+	var safe_position = Vector2(goal_center.x, goal_line_y - sign(goal_line_y) * 10)
+	navigation_agent.target_position = safe_position
+	
+	# Sprint back at maximum speed
+	var direction = (safe_position - global_position).normalized()
+	velocity = direction * get_buffed_attribute("sprint_speed")
+	
+	# Avoid opponents while bailing
+	var avoidance = _calculate_sweep_avoidance()
+	if avoidance.length() > 0:
+		velocity += avoidance.normalized() * get_buffed_attribute("speed") * 0.5
+		velocity = velocity.normalized() * get_buffed_attribute("sprint_speed")
+	
+	# Once safe, return to defending
+	if global_position.distance_to(safe_position) < 25:
+		print("Bailout complete - back to defending")
+		sweep_state = "none"
+		current_behavior = "defending"
+
+# Calculate avoidance vector for opponents
+func _calculate_sweep_avoidance() -> Vector2:
+	var avoidance = Vector2.ZERO
+	var opponents = [oppLF, oppRF]
+	
+	for opponent in opponents:
+		if !opponent:
+			continue
+		
+		var to_opponent = opponent.global_position - global_position
+		var distance = to_opponent.length()
+		
+		# Avoid if opponent is close
+		if distance < 100:
+			var repulsion_strength = 1.0 - (distance / 100.0)  # Stronger when closer
+			avoidance -= to_opponent.normalized() * repulsion_strength * 80.0
+	
+	return avoidance
+
+# Decide if we should abort the sweep
+func _should_bailout_sweep() -> bool:
+	if sweep_state != "approaching":
+		return false
+	
+	var closest_opponent = get_closest_opponent()
+	if !closest_opponent:
+		return false
+	
+	# Bailout condition 1: Opponent much closer to ball than us
+	var our_dist_to_ball = global_position.distance_to(ball.global_position)
+	var opp_dist_to_ball = closest_opponent.global_position.distance_to(ball.global_position)
+	if opp_dist_to_ball < our_dist_to_ball * 0.6:
+		print("Bailout: Opponent will reach ball first")
+		return true
+	
+	# Bailout condition 2: Opponent dangerously close to us
+	var opp_dist_to_keeper = global_position.distance_to(closest_opponent.global_position)
+	if opp_dist_to_keeper < 50:
+		print("Bailout: Opponent too close to keeper")
+		return true
+	
+	# Bailout condition 3: Ball became more threatening to goal
+	var ball_threat = _calculate_ball_threat()
+	var distance_from_goal = global_position.distance_to(own_goal)
+	if ball_threat > 0.7 and distance_from_goal > 60:
+		print("Bailout: Ball became dangerous and we're too far out")
+		return true
+	
+	# Bailout condition 4: Ball went past us toward goal
+	var ball_past_keeper = false
+	if sign(own_goal.y) > 0:  # Bottom goal
+		ball_past_keeper = ball.global_position.y > global_position.y
+	else:  # Top goal
+		ball_past_keeper = ball.global_position.y < global_position.y
+	
+	if ball_past_keeper and ball.global_position.distance_to(own_goal) < global_position.distance_to(own_goal):
+		print("Bailout: Ball went past us")
+		return true
+	
+	# Bailout condition 5: We've been sweeping too long (safety)
+	if frames_since_sweep_start > 180:  # 3 seconds at 60fps
+		print("Bailout: Sweep timeout")
+		return true
+	
+	# Bailout condition 6: Ball is going away from us now
+	var ball_direction = ball_last_velocity.normalized()
+	var to_ball = (ball.global_position - global_position).normalized()
+	if ball_last_velocity.length() > 200 and ball_direction.dot(to_ball) < -0.3:
+		print("Bailout: Ball moving away from us")
+		return true
+	
+	# Personality factor: Less aggressive keepers bail more easily
+	var aggression = get_buffed_attribute("aggression")
+	if aggression < 60 and (opp_dist_to_ball < our_dist_to_ball * 0.8 or opp_dist_to_keeper < 80):
+		print("Bailout: Low aggression keeper being cautious")
+		return true
+	
+	return false
+
+func _bailout_sweep(reason: String):
+	print("Bailing from sweep: ", reason)
+	sweep_state = "bailed"
+
+func _path_clearness_to_ball(from_pos: Vector2, to_pos: Vector2) -> float:
+	var clearness = 1.0
+	var dir = (to_pos - from_pos).normalized()
+	var dist = from_pos.distance_to(to_pos)
+	var segments = int(dist / 40)
+	for i in range(1, segments + 1):
+		var check_pos = from_pos + dir * (i * 40)
+		for opponent in [opposing_keeper, oppLF, oppRF]: #ignore the guards
+			if !opponent:
+				continue
+			
+			var opp_dist = opponent.global_position.distance_to(check_pos)
+			if opp_dist < 80:
+				clearness -= 0.3
+			elif opp_dist < 120:
+				clearness -= 0.15
+		for opponent in [oppLF, oppRF]:
+			if !opponent:
+				continue
+			var opponent_to_check = (check_pos - opponent.global_position).normalized()
+			var opponent_velocity = opponent.velocity.normalized()
+			if opponent_velocity.dot(opponent_to_check) > 0.7:
+				clearness -= 0.2
+	
+	return clamp(clearness, 0.0, 1.0)
 
 func _determine_strike_target() -> Vector2:
 	if _can_shoot_directly():
@@ -702,48 +983,64 @@ func handle_human_blocking(delta: float):
 	return true # Return true to indicate we're still overriding input
 			
 func perform_blocking():
-	#print("Not in my house")
-	var goal_line = leftPost.y
-	var time_to_goal = (goal_line - ball_last_sighted.y) / ball_direction_projection.y
-	var intercept = ball_last_sighted + (ball_direction_projection * time_to_goal)
-	var positioning_variance = (100 - get_buffed_attribute("positioning"))/3 #16.67 at 50, 0.33 at 99
-	if intercept.distance_squared_to(own_goal) > ball.global_position.distance_squared_to(own_goal) + positioning_variance:
+	#print("not in my house!")
+	if !ball:
 		current_behavior = "defending"
 		return
 	
-	if intercept.distance_to(own_goal) > max_goal_offset or is_nan(time_to_goal) or is_inf(time_to_goal) or is_nan(intercept.x) or is_nan(intercept.y) or is_inf(intercept.x) or is_inf(intercept.y):
+	var goal_line_y = leftPost.y
+	var goal_center = (leftPost + rightPost) / 2
+	var style = get_defensive_style()
+	
+	# Recalculate intercept
+	var intercept = _calculate_ball_intercept_with_bounces()
+	
+	# Validate intercept
+	if intercept.distance_to(own_goal) > max_goal_offset * 2:
 		current_behavior = "defending"
 		return
-		
-	var block_distance = (15*(get_buffed_attribute("blocking") - 50))/49 + 5 #if 50, bd is 5; if 99, bd is 20
-	var block_direction 
 	
-	if block_distance <= global_position.distance_to(intercept):
-		var diff = global_position.x - intercept.x
-		var target_y = intercept.y
-		
-		if sign(goal_line) > 0:  # Bottom goal
-			target_y = min(target_y, goal_line - 1)
-		else:  # Top goal
-			target_y = max(target_y, goal_line + 1)
-		
-		if diff <= 0:
-			navigation_agent.target_position = Vector2(intercept.x + block_distance, target_y)
-		else:
-			navigation_agent.target_position = Vector2(intercept.x - block_distance, target_y)
-	else:
-		var target_y = intercept.y
-		if sign(goal_line) > 0:  # Bottom goal
-			target_y = min(target_y, goal_line - 1)
-		else:  # Top goal
-			target_y = max(target_y, goal_line + 1)
-		navigation_agent.target_position = Vector2(intercept.x, target_y)
+	# Check if we're too far behind - switch to defending
+	if ball.global_position.distance_to(own_goal) > global_position.distance_to(own_goal) + 50:
+		current_behavior = "defending"
+		return
 	
-	if ball.global_position.distance_squared_to(global_position) > 100: #10 units
-		block_direction = global_position.direction_to(navigation_agent.target_position).normalized()
+	# Calculate target position based on personality
+	var target_pos = intercept
+	
+	# Keepers who dive backwards adjust positioning
+	if goalkeeping_preferences.dives_backwards:
+		# Move target closer to goal line
+		var backward_offset = style.backward_dive_offset
+		target_pos.y = lerp(target_pos.y, goal_line_y, 0.4)
+		
+		# When diving, they'll dive backward from this position
+		var dive_back_direction = (goal_center - global_position).normalized()
+		target_pos += dive_back_direction * backward_offset
+	
+	# Clamp to goal line
+	if sign(goal_line_y) > 0:
+		target_pos.y = min(target_pos.y, goal_line_y - 1)
 	else:
-		block_direction = global_position.direction_to(ball.global_position).normalized()
-	velocity = block_direction * get_buffed_attribute("sprint_speed") * BLOCKING_BONUS
+		target_pos.y = max(target_pos.y, goal_line_y + 1)
+	
+	# If ball very close, go directly for it
+	if ball.global_position.distance_to(global_position) < 30:
+		target_pos = ball.global_position
+	
+	navigation_agent.target_position = target_pos
+	
+	# Calculate dive speed based on blocking attribute
+	var blocking_skill = get_buffed_attribute("blocking")
+	var base_speed = get_buffed_attribute("sprint_speed")
+	var dive_speed = base_speed * style.dive_speed_multiplier
+	
+	# Apply hesitation based on reactions
+	if reaction_timer > 0:
+		dive_speed *= 0.5  # Slower while hesitating
+	
+	var direction = (target_pos - global_position).normalized()
+	velocity = direction * dive_speed * BLOCKING_BONUS
 
 func ensure_in_front_of_goal_line(position: Vector2) -> Vector2:
 	var goal_line_y = leftPost.y
@@ -758,12 +1055,149 @@ func ensure_in_front_of_goal_line(position: Vector2) -> Vector2:
 	
 	return corrected_position
 
+# Anticipation helper functions
+func _check_for_potential_pass() -> void:
+	if !ball or ball_last_velocity.length() < 100:
+		anticipated_shooter = null
+		return
+	
+	var ball_direction = ball_last_velocity.normalized()
+	var ball_speed = ball_last_velocity.length()
+	
+	# Check each opponent forward
+	var most_likely_shooter: Player = null
+	var highest_threat: float = 0.0
+	
+	for opponent in [oppLF, oppRF]:
+		if !opponent or opponent.is_stunned:
+			continue
+		
+		# Calculate if opponent is in path of ball using distance_squared_to for performance
+		var to_opponent = opponent.global_position - ball.global_position
+		var distance_to_path = _distance_to_line_segment_squared(
+			opponent.global_position,
+			ball.global_position,
+			ball.global_position + ball_direction * 500  # Look ahead 500 pixels
+		)
+		
+		# Check if opponent is moving toward the ball path
+		var opp_velocity_toward_ball = opponent.velocity.normalized().dot(to_opponent.normalized())
+		var is_moving_to_intercept = opp_velocity_toward_ball > 0.3
+		
+		# Calculate threat level using squared distances for performance
+		var proximity_to_path = 1.0 - clamp(sqrt(distance_to_path) / PASS_INTERCEPT_RANGE, 0.0, 1.0)
+		var time_to_intercept = to_opponent.length() / max(ball_speed, 100.0)
+		
+		# Opponent closer to goal is more dangerous - use distance_squared_to for performance
+		var dist_sq_to_goal = opponent.global_position.distance_squared_to(own_goal)
+		var goal_proximity_threat = 1.0 - clamp(sqrt(dist_sq_to_goal) / 400.0, 0.0, 1.0)
+		
+		# Final threat calculation
+		var threat = proximity_to_path * 0.4 + goal_proximity_threat * 0.4
+		if is_moving_to_intercept:
+			threat += 0.2
+		
+		# If opponent is likely to receive pass and is in scoring position
+		if threat > 0.5 and threat > highest_threat:
+			highest_threat = threat
+			most_likely_shooter = opponent
+	
+	# Use positioning attribute to determine anticipation quality
+	var positioning_skill = get_buffed_attribute("positioning")
+	var anticipation_chance = positioning_skill / 99.0
+	
+	# Use reactions attribute to determine hesitation frames
+	var reactions_skill = get_buffed_attribute("reactions")
+	var base_hesitation_frames = DIVE_HESITATION_FRAMES
+	# Higher reactions = fewer hesitation frames (faster anticipation)
+	var hesitation_frames = int(base_hesitation_frames * (1.0 - reactions_skill / 99.0))
+	hesitation_frames = max(hesitation_frames, 1)  # At least 1 frame
+	
+	# Add some randomness based on positioning skill
+	if most_likely_shooter and highest_threat > 0.6:
+		# Higher positioning = more accurate anticipation
+		if randf() < anticipation_chance:
+			anticipated_shooter = most_likely_shooter
+			anticipation_frames = hesitation_frames
+			last_anticipated_position = anticipated_shooter.global_position
+			return
+	
+	anticipated_shooter = null
+	anticipation_frames = 0
+
+# Helper function to calculate squared distance from point to line segment (more efficient)
+func _distance_to_line_segment_squared(point: Vector2, line_start: Vector2, line_end: Vector2) -> float:
+	var line_vec = line_end - line_start
+	var line_length_sq = line_vec.length_squared()
+	if line_length_sq == 0:
+		return point.distance_squared_to(line_start)
+	
+	var t = clamp((point - line_start).dot(line_vec) / line_length_sq, 0.0, 1.0)
+	var projection = line_start + t * line_vec
+	return point.distance_squared_to(projection)
+
+func _calculate_anticipation_position(shooter: Player) -> Vector2:
+	if !shooter:
+		return Vector2.ZERO
+	
+	var goal_center = (leftPost + rightPost) / 2
+	var goal_line_y = leftPost.y
+	
+	# Calculate line from shooter to goal center
+	var shooter_pos = shooter.global_position
+	var to_goal = goal_center - shooter_pos
+	
+	# Position ourselves along this line based on positioning skill
+	var positioning_skill = get_buffed_attribute("positioning")
+	
+	# Perfect positioning (99) = directly on the line between shooter and goal
+	# Poor positioning (0) = just follows ball
+	var position_quality = positioning_skill / 99.0
+	
+	# Calculate where to stand on the line
+	# Higher skill = closer to optimal cutoff angle
+	var cutoff_distance = lerp(30.0, 80.0, position_quality)  # How far out from goal
+	
+	# Don't go too far from goal line
+	var max_distance_from_line = 40.0
+	var adjusted_distance = min(cutoff_distance, shooter_pos.distance_to(goal_center) * 0.5)
+	adjusted_distance = clamp(adjusted_distance, 10.0, max_distance_from_line)
+	
+	# Calculate position along the line
+	var direction_to_goal = to_goal.normalized()
+	var anticipation_pos = goal_center - direction_to_goal * adjusted_distance
+	
+	# Adjust Y position to stay in front of goal line
+	if sign(goal_line_y) > 0:  # Bottom goal
+		anticipation_pos.y = min(anticipation_pos.y, goal_line_y - 5)
+	else:  # Top goal
+		anticipation_pos.y = max(anticipation_pos.y, goal_line_y + 5)
+	
+	# Add some error based on positioning skill (less error for higher skill)
+	var error_margin = (100 - positioning_skill) * 0.3
+	anticipation_pos.x += randf_range(-error_margin, error_margin)
+	anticipation_pos.y += randf_range(-error_margin * 0.5, error_margin * 0.5)
+	
+	return anticipation_pos
+
 func defending_behavior(delta: float):
 	if !ball:
 		return
+	
 	var goal_center: Vector2 = (leftPost + rightPost) / 2
 	var goal_width: float = rightPost.distance_to(leftPost)
-	if global_position.distance_squared_to(goal_center) > 2025: #45 units away
+	var style = get_defensive_style()
+	var goal_line_y = leftPost.y
+	
+	# Check for potential passes to opponents
+	_check_for_potential_pass()
+	
+	# Update anticipation frames
+	if anticipation_frames > 0:
+		anticipation_frames -= 1
+	
+	# Get back to goal if too far
+	if global_position.distance_to(goal_center) > 80:
 		navigation_agent.target_position = goal_center
 		var speed = get_buffed_attribute("speed")
 		if status.boost > 0:
@@ -771,108 +1205,145 @@ func defending_behavior(delta: float):
 			speed = get_buffed_attribute("sprint_speed")
 		velocity = global_position.direction_to(goal_center).normalized() * speed
 		return
-		
 	
-	# Check if ball changed direction significantly - freeze reaction
-	var current_ball_direction = ball_last_velocity.normalized()
-	if last_ball_direction != Vector2.ZERO:
-		var direction_change = last_ball_direction.angle_to(current_ball_direction)
-		if abs(direction_change) > deg_to_rad(45):  # Significant direction change
-			if !reacting:
-				reacting = true
-				reaction_timer = map_attribute_to_reaction_time(get_buffed_attribute("reactions"))
-			
-			if reaction_timer > 0:
-				reaction_timer -= delta
-				velocity = Vector2.ZERO  # Freeze in place
-				return
-			else:
-				reacting = false
-	
-	last_ball_direction = current_ball_direction
-	
-	# Project ball path with wall reflections
-	var projected_intercept = _project_ball_path_with_reflections()
-	
-	if ball.global_position.y < leftPost.y + 10 and abs(ball.global_position.x) > 35: 
-		# Ball in corner - position near closest post
-		var pos_check = (100 - get_buffed_attribute("positioning")) / 10
-		var positioning_variance = randf_range(-pos_check, pos_check)
-		var aggression_variance = get_buffed_attribute("aggression") / 20
-		
-		if leftPost.distance_squared_to(ball.global_position) < rightPost.distance_squared_to(ball.global_position):
-			var target_y = leftPost.y - sign(leftPost.y) * 5  # 5 units in front of goal line
-			navigation_agent.target_position = Vector2(leftPost.x + aggression_variance, target_y + positioning_variance)
-		else:
-			var target_y = rightPost.y - sign(rightPost.y) * 5  # 5 units in front of goal line
-			navigation_agent.target_position = Vector2(rightPost.x - aggression_variance, target_y + positioning_variance)
-			
-	elif ball.global_position.distance_to(goal_center) < (get_buffed_attribute("reactions") / 2) + 10: #35 at 50, 59.5 at 99
-		# Very close ball - go directly for it
-		navigation_agent.target_position = ball.global_position
-		velocity = (navigation_agent.target_position - global_position).normalized() * get_buffed_attribute("sprint_speed")
+	# Check reaction delay for direction changes
+	if _check_reaction_delay(delta):
 		return
+	
+	var challenge_depth = style.challenge_distance
+	
+	# Calculate base position based on ball
+	var ball_field_ratio = clamp(ball.global_position.x / 100.0, -1.0, 1.0)
+	var base_ideal_x = goal_center.x + ball_field_ratio * (goal_width * 0.4)
+	
+	# Calculate ideal Y position based on ball distance
+	var ball_distance_to_goal_y = abs(ball.global_position.y - leftPost.y)
+	var dynamic_depth = min(ball_distance_to_goal_y * 0.3, challenge_depth)
+	
+	# Adjust for goalkeeper preferences
+	if goalkeeping_preferences.dives_backwards:
+		dynamic_depth *= 0.6
+	
+	var base_ideal_y = goal_line_y - sign(goal_line_y) * dynamic_depth
+	
+	# Start with base position
+	var ideal_position = Vector2(base_ideal_x, base_ideal_y)
+	
+	# Apply anticipation if we have a likely shooter
+	if anticipated_shooter and anticipation_frames > 0:
+		var anticipation_pos = _calculate_anticipation_position(anticipated_shooter)
 		
+		var ball_to_shooter = (anticipated_shooter.global_position - ball.global_position).normalized()
+		var ball_direction = ball_last_velocity.normalized()
+		var pass_alignment = ball_direction.dot(ball_to_shooter)
+		
+		# Calculate blend factor
+		var positioning_skill = get_buffed_attribute("positioning")
+		var dist_sq_to_goal = anticipated_shooter.global_position.distance_squared_to(own_goal)
+		var danger_factor = 1.0 - clamp(sqrt(dist_sq_to_goal) / 300.0, 0.0, 1.0)
+		
+		var blend_factor = clamp(pass_alignment * 0.5 + (positioning_skill / 99.0) * 0.3 + danger_factor * 0.2, 0.0, 1.0)
+		
+		# Blend positions
+		ideal_position = ideal_position.lerp(anticipation_pos, blend_factor)
+		
+		# Visual feedback (optional)
+		if debug:
+			print("Anticipating pass to: ", anticipated_shooter.name, " Blend: ", blend_factor, " Frames left: ", anticipation_frames)
+	
+	# Non-contact keepers adjust position based on guards
+	if !goalkeeping_preferences.likes_contact:
+		ideal_position.x = _adjust_position_for_guard_protection(ideal_position.x, goal_center)
+	
+	# Apply positioning skill variance
+	var positioning_skill = get_buffed_attribute("positioning")
+	var variance = (100 - positioning_skill) / 6.0 #0-8
+	ideal_position.x += randf_range(-variance, variance)
+	ideal_position.x = clamp(ideal_position.x, goal_center.x - max_goal_offset, goal_center.x + max_goal_offset)
+	if sign(goal_line_y) > 0:
+		ideal_position.y = min(ideal_position.y, goal_line_y - 1)
 	else:
-		# Use projected intercept for positioning
-		if projected_intercept != Vector2.ZERO:
-			# Position based on where ball is likely to end up
-			var intercept_x = projected_intercept.x
-			var ball_field_distance#TODO: different field types
-			if fieldType == "road":
-				ball_field_distance = ball.global_position.x / 57.0
-			else:
-				ball_field_distance = ball.global_position.x / 100.0
-			
-			var relative_x = ball_field_distance * goal_width
-			# Apply positioning skill variance
-			var variance_x = (100 - get_buffed_attribute("positioning")) / 10
-			variance_x = randf_range(-variance_x, variance_x)
-			intercept_x += variance_x
-			
-			var ball_distance_to_goal_y = abs(ball.global_position.y - leftPost.y)
-			intercept_x = clamp(intercept_x, goal_center.x - max_goal_offset, goal_center.x + max_goal_offset)
-			var goal_line_y = leftPost.y
-			var challenge_distance = min(ball_distance_to_goal_y * 0.3, goalkeeping_preferences.challenge_depth)
-			var target_y = goal_line_y - sign(goal_line_y) * challenge_distance  # In front of goal line
-			
-			navigation_agent.target_position = Vector2(relative_x + variance_x, target_y)
-		else:
-			# Fallback to ball field position method
-			var ball_field_distance
-			if fieldType == "road":
-				ball_field_distance = ball.global_position.x / 57.0
-			else:
-				ball_field_distance = ball.global_position.x / 100.0
-			
-			var relative_x = ball_field_distance * goal_width
-			var variance_x = (100 - get_buffed_attribute("positioning")) / 10
-			variance_x = randf_range(-variance_x, variance_x)
-			
-			var goal_line_y = leftPost.y
-			var target_y = goal_line_y - sign(goal_line_y) * goalkeeping_preferences.challenge_depth
-			navigation_agent.target_position = Vector2(relative_x + variance_x, target_y)
-	
-	# Ensure we don't go too far from goal center
-	var distance_from_center = abs(navigation_agent.target_position.x - goal_center.x)
-	if distance_from_center > max_goal_offset:
-		navigation_agent.target_position.x = goal_center.x + sign(navigation_agent.target_position.x - goal_center.x) * max_goal_offset
-	var goal_line_y = leftPost.y
-	if sign(goal_line_y) > 0:  # Bottom goal
-		navigation_agent.target_position.y = min(navigation_agent.target_position.y, goal_line_y - 1)
-	else:  # Top goal
-		navigation_agent.target_position.y = max(navigation_agent.target_position.y, goal_line_y + 1)
-	
-	if global_position.distance_to(navigation_agent.target_position) > 40 and status.boost > 0:
+		ideal_position.y = max(ideal_position.y, goal_line_y + 1)
+	navigation_agent.target_position = ideal_position
+	var distance = global_position.distance_to(navigation_agent.target_position)
+	var ball_threat = _calculate_ball_threat()
+	if anticipated_shooter and anticipation_frames > 0:
+		is_sprinting = true
+		velocity = (navigation_agent.target_position - global_position).normalized() * get_buffed_attribute("sprint_speed")
+	elif distance > 20 and (ball_threat > 0.5 or status.boost > 0):
 		is_sprinting = true
 		velocity = (navigation_agent.target_position - global_position).normalized() * get_buffed_attribute("sprint_speed")
 	else:
 		velocity = (navigation_agent.target_position - global_position).normalized() * get_buffed_attribute("speed")
+	
 	check_ball_close()
 
-# Helper function to project ball path with wall reflections
+func _on_ball_touched_by_player(player: Player):
+	if player.team == team:#our team touched it
+		anticipated_shooter = null
+		anticipation_frames = 0
+		forced_guess = ""
+		return
+	elif player == oppLF or player == oppRF:
+		if player == anticipated_shooter:
+			var reactions_skill = get_buffed_attribute("reactions")
+			var hesitation_frames = int(DIVE_HESITATION_FRAMES * (1.0 - reactions_skill / 99.0))
+			hesitation_frames = max(hesitation_frames, 1)
+			var dist_sq_to_goal = player.global_position.distance_squared_to(own_goal)
+			
+			if dist_sq_to_goal < 400: #20 units, too close to the goal to react
+				current_behavior = "holding"
+				hold_frame = hesitation_frames
+				
+				# Use weighted decision based on shot history
+				var weights = set_reaction_save_weights(player)
+				var actions = ["dive_left", "dive_right", "stay_middle", "charge_out", "regular_block"]
+				var chosen_action = weighted_random_choice(actions, weights)
+				
+				match chosen_action:
+					"dive_left":
+						forced_guess = "left"
+					"dive_right":
+						forced_guess = "right"
+					"stay_middle":
+						forced_guess = "middle"
+					"charge_out":
+						forced_guess = "middle"  # Charge out is a special middle action
+					"regular_block":
+						forced_guess = ""  # No guess, use regular blocking
+						current_behavior = "blocking"
+						return
+			else: #far enough to react properly
+				var reaction_time = map_attribute_to_reaction_time(reactions_skill)
+				await get_tree().create_timer(reaction_time).timeout
+				current_behavior = "blocking"
+		anticipated_shooter = null
+		anticipation_frames = 0
+
+func perform_holding(frame: int):
+	if !ball: 
+		current_behavior = "defending"
+		return
+	
+	check_ball_close()
+	
+	if frame > 0:
+		hold_frame = hold_frame - 1
+		if global_position.distance_to(navigation_agent.target_position) < 3.0:
+			current_behavior = "holding"
+			velocity = Vector2.ZERO
+		if global_position.distance_to(ball.global_position) < sqrt(get_buffed_attribute("reactions")) - get_buffed_attribute("reactions")/10:
+			current_behavior = "defending"
+			return
+	else:
+		if forced_guess != "":
+			current_behavior = "guessing"
+			has_guessed = false
+		else:
+			current_behavior = "defending"
+
 func _project_ball_path_with_reflections() -> Vector2:
-	if !ball or ball_last_velocity.length() < 50:  # Ball too slow to project
+	if !ball or ball_last_velocity.length() < 40: #ball is moving too slow to make a projection
 		return Vector2.ZERO
 	
 	var current_pos = ball.global_position
@@ -880,25 +1351,17 @@ func _project_ball_path_with_reflections() -> Vector2:
 	var goal_line_y = leftPost.y
 	var max_bounces = 3
 	var bounce_count = 0
-	
-	# Check for opponent deflection potential
 	var deflection_risk = _calculate_deflection_risk(current_pos, current_vel)
 	if deflection_risk > 0.7:
-		# High chance of deflection - use more conservative positioning
 		return Vector2(current_pos.x * 0.7, goal_line_y)
 	
 	while bounce_count < max_bounces:
-		# Calculate time to reach goal line
-		if abs(current_vel.y) < 0.1:  # Ball not moving toward/away from goal
+		if abs(current_vel.y) < 0.1:
 			break
-			
 		var time_to_goal = (goal_line_y - current_pos.y) / current_vel.y
-		if time_to_goal < 0:  # Ball moving away from goal
+		if time_to_goal < 0: #ball going away from the goal
 			break
-			
 		var projected_x = current_pos.x + current_vel.x * time_to_goal
-		
-		# Check for wall collisions before reaching goal
 		var wall_collision = _check_wall_collision(current_pos, current_vel, time_to_goal)
 		if wall_collision.has("collision"):
 			# Bounce off wall
@@ -1004,10 +1467,25 @@ func inverse_lerp(a: float, b: float, value: float) -> float:
 	return clamp((value - a) / (b - a), 0.0, 1.0)
 	
 	
-#have to guess to make saves
+#have to guess to make some saves
 func perform_guessing():
 	if has_guessed:
 		return
+	if forced_guess != "":
+		last_guess = forced_guess
+		has_guessed = true
+		if forced_guess == "left":
+			dive_left()
+		elif forced_guess == "right":
+			dive_right()
+		else: # middle
+			if goalkeeping_preferences.charges_out:
+				charge_middle()
+			else:
+				current_behavior = "defending"
+		forced_guess = ""
+		return
+	
 	var sum = pitches_left + pitches_middle + pitches_right
 	if sum == 0:
 		sum = 1
@@ -1039,40 +1517,94 @@ func perform_guessing():
 			last_guess = "right"
 			dive_right()
 	print("dive: " + last_guess)
-			
+
 func dive_left():
 	check_ball_close()
+	var style = get_defensive_style()
+	
 	current_behavior = "holding"
-	hold_frame = 15
-	var threeQuarters = (leftPost.x * 3 + global_position.x)/3
-	var place = Vector2(threeQuarters, global_position.y)
+	# Use reactions attribute to determine hesitation frames
+	var reactions_skill = get_buffed_attribute("reactions")
+	var hesitation_frames = int(style.dive_hesitation * (1.0 - reactions_skill / 99.0))
+	hesitation_frames = max(hesitation_frames, 1)  # At least 1 frame
+	hold_frame = hesitation_frames
+	
+	var target_x = leftPost.x
+	var target_y = global_position.y
+	
+	# Backward divers go toward goal
+	if goalkeeping_preferences.dives_backwards:
+		var goal_line_y = leftPost.y
+		target_y = lerp(global_position.y, goal_line_y, 0.6)
+		target_x = lerp(global_position.x, leftPost.x, 0.75)  # 3/4 of the way
+	else:
+		target_x = (leftPost.x * 3 + global_position.x) / 4
+	
+	var place = Vector2(target_x, target_y)
 	navigation_agent.target_position = place
+	
 	var dir = global_position.direction_to(place)
-	velocity = dir * get_buffed_attribute("sprint_speed") * get_buffed_attribute("blocking") / 45 #2.2 for 99; 1 for 50
+	var dive_speed = get_buffed_attribute("sprint_speed") * style.dive_speed_multiplier
+	velocity = dir * dive_speed
 	move_and_slide()
 
 func dive_right():
 	check_ball_close()
+	var style = get_defensive_style()
+	
 	current_behavior = "holding"
-	hold_frame = 15
-	var threeQuarters = (rightPost.x * 3 + global_position.x)/3
-	var place = Vector2(threeQuarters, global_position.y)
+	# Use reactions attribute to determine hesitation frames
+	var reactions_skill = get_buffed_attribute("reactions")
+	var hesitation_frames = int(style.dive_hesitation * (1.0 - reactions_skill / 99.0))
+	hesitation_frames = max(hesitation_frames, 1)  # At least 1 frame
+	hold_frame = hesitation_frames
+	
+	var target_x = rightPost.x
+	var target_y = global_position.y
+	
+	# Backward divers go toward goal
+	if goalkeeping_preferences.dives_backwards:
+		var goal_line_y = rightPost.y
+		target_y = lerp(global_position.y, goal_line_y, 0.6)
+		target_x = lerp(global_position.x, rightPost.x, 0.75)
+	else:
+		target_x = (rightPost.x * 3 + global_position.x) / 4
+	
+	var place = Vector2(target_x, target_y)
 	navigation_agent.target_position = place
+	
 	var dir = global_position.direction_to(place)
-	velocity = dir * get_buffed_attribute("sprint_speed") * get_buffed_attribute("blocking") / 45 #2.2 for 99; 1 for 50
+	var dive_speed = get_buffed_attribute("sprint_speed") * style.dive_speed_multiplier
+	velocity = dir * dive_speed
 	move_and_slide()
 
 func charge_middle():
-	check_ball_close()
-	current_behavior = "holding"
-	hold_frame = 20
-	var spot = global_position.x/3 #3/4 to the middle of the field
-	var place = Vector2(global_position.x, spot)
-	navigation_agent.target_position = place
-	var dir = global_position.direction_to(place)
-	velocity = dir * get_buffed_attribute("sprint_speed") * get_buffed_attribute("blocking") / 45 #2.2 for 99; 1 for 50
-	move_and_slide()
+	if !goalkeeping_preferences.charges_out:
+		current_behavior = "defending"
+		return
 	
+	check_ball_close()
+	var style = get_defensive_style()
+	
+	current_behavior = "holding"
+	# Use reactions attribute to determine hesitation frames
+	var reactions_skill = get_buffed_attribute("reactions")
+	var hesitation_frames = int(style.dive_hesitation * 1.3 * (1.0 - reactions_skill / 99.0))
+	hesitation_frames = max(hesitation_frames, 1)  # At least 1 frame
+	hold_frame = hesitation_frames
+	
+	# Charge forward aggressively
+	var charge_distance = lerp(30.0, 60.0, get_buffed_attribute("aggression") / 99.0)
+	var target_y = global_position.y - sign(global_position.y) * charge_distance
+	var place = Vector2(global_position.x, target_y)
+	
+	navigation_agent.target_position = place
+	
+	var dir = global_position.direction_to(place)
+	var dive_speed = get_buffed_attribute("sprint_speed") * style.dive_speed_multiplier
+	velocity = dir * dive_speed
+	move_and_slide()
+
 func save_pitch_from_ball(side: String):
 	if side == "left":
 		pitches_left += 1
@@ -1126,21 +1658,6 @@ func ai_check_special_ability():
 			print("AI using special ability")
 			activate_special_ability()
 
-#hold in place for x frames
-func perform_holding(frame: int):
-	if !ball: return
-	check_ball_close()
-	print("hold frame: ", hold_frame)
-	if frame > 0:
-		hold_frame = hold_frame - 1
-		if global_position.distance_to(navigation_agent.target_position) < 3.0:
-			current_behavior = "holding"
-			velocity = Vector2.ZERO
-		if global_position.distance_to(ball.global_position) < sqrt(get_buffed_attribute("reactions")) - get_buffed_attribute("reactions")/10:
-			current_behavior = "defending"
-			return
-	else:
-		current_behavior = "defending"
 		
 func _on_ball_emit_pitch_side():
 	if is_controlling_player:
@@ -1180,29 +1697,54 @@ func perform_pitch_defense():
 		current_behavior = "defending"
 		return
 	
-	# Check if ball is in pitching state
-	if ball.current_state != ball.BallState.PITCHING && ball.current_state != ball.BallState.SPECIAL_PITCH:
+	if ball.current_state != ball.BallState.PITCHING and ball.current_state != ball.BallState.SPECIAL_PITCH:
 		current_behavior = "defending"
 		return
 	
-	# Calculate prediction parameters based on blocking attribute
-	var prediction_accuracy = 1.0 - (0.3 * (100 - get_buffed_attribute("blocking")) / 100.0) #0.85 to 0.997
-	var distance = ball.global_position.distance_to(own_goal)
-	var margin_of_error = sqrt(distance) * 10 * (1.0 - prediction_accuracy) #15 to 0.3 at 100, 8 to 0.16 at 30
-	var block_position
+	var blocking_skill = get_buffed_attribute("blocking")
+	var prediction_quality = blocking_skill / 99.0
+	var style = get_defensive_style()
+	
+	# Calculate predicted position
+	var predicted_pos
 	if ball.current_state == ball.BallState.PITCHING:
-		block_position = predict_normal_pitch_path(prediction_accuracy)
-	else:  # Special pitch
-		block_position = predict_special_pitch_path(prediction_accuracy)
-	block_position.x += randf_range(-margin_of_error, margin_of_error)
-	navigation_agent.target_position = block_position
-	velocity = (block_position - global_position).normalized() * get_buffed_attribute("sprint_speed") * BLOCKING_BONUS
-	# Freeze briefly when ball changes direction significantly
-	if ball_last_velocity != Vector2.ZERO:
-		var direction_change = ball_last_velocity.normalized().angle_to(ball.linear_velocity.normalized())
-		if abs(direction_change) > deg_to_rad(30):  # Significant direction change
-			velocity = Vector2.ZERO
-			reaction_timer = map_attribute_to_reaction_time(get_buffed_attribute("reactions"))
+		predicted_pos = predict_normal_pitch_path(prediction_quality)
+	else:
+		predicted_pos = predict_special_pitch_path(prediction_quality)
+	
+	# Add error based on blocking skill
+	var error_range = (100 - blocking_skill) * 0.5
+	predicted_pos.x += randf_range(-error_range, error_range)
+	
+	# Keepers who dive backwards need different positioning
+	if goalkeeping_preferences.dives_backwards:
+		# Stay deeper to have room to dive back
+		var goal_line_y = leftPost.y
+		predicted_pos.y = lerp(predicted_pos.y, goal_line_y, 0.4)
+	
+	# Keepers who charge out move up for pitches
+	if goalkeeping_preferences.charges_out:
+		var goal_center = (leftPost + rightPost) / 2
+		var charge_distance = lerp(20.0, 50.0, get_buffed_attribute("aggression") / 99.0)
+		predicted_pos.y = goal_center.y + sign(predicted_pos.y - goal_center.y) * charge_distance
+	
+	# Clamp to goal boundaries
+	var goal_center = (leftPost + rightPost) / 2
+	predicted_pos.x = clamp(predicted_pos.x, goal_center.x - max_goal_offset, goal_center.x + max_goal_offset)
+	
+	# Apply reaction hesitation
+	if reaction_timer > 0:
+		reaction_timer -= get_physics_process_delta_time()
+		velocity = velocity * 0.5
+		return
+	
+	navigation_agent.target_position = predicted_pos
+	
+	# Movement speed
+	var base_speed = get_buffed_attribute("sprint_speed")
+	var move_speed = base_speed * style.dive_speed_multiplier * BLOCKING_BONUS
+	
+	velocity = (predicted_pos - global_position).normalized() * move_speed
 
 func predict_normal_pitch_path(accuracy: float) -> Vector2:
 	var goal_line_y = leftPost.y
@@ -1239,3 +1781,201 @@ func predict_special_pitch_path(accuracy: float) -> Vector2:
 	predicted_x += total_curve
 	
 	return Vector2(predicted_x, goal_line_y)
+
+func get_defensive_style() -> Dictionary:
+	var aggression = get_buffed_attribute("aggression")
+	var reactions = get_buffed_attribute("reactions")
+	var blocking = get_buffed_attribute("blocking")
+	
+	# Challenge depth from preferences
+	var depth = goalkeeping_preferences.challenge_depth
+	
+	# Sweeper keepers play further out
+	if goalkeeping_preferences.sweeper_keeper:
+		depth += 15.0
+	
+	# Likes contact keepers are more aggressive in positioning
+	if goalkeeping_preferences.likes_contact:
+		depth += lerp(5.0, 20.0, aggression / 99.0)
+	
+	return {
+		"challenge_distance": depth,
+		"sweep_willingness": aggression if goalkeeping_preferences.sweeper_keeper else 0.0,
+		"dive_speed_multiplier": lerp(1.0, 2.2, float(blocking) / 99.0),
+		"dive_hesitation": lerp(float(DIVE_HESITATION_FRAMES), float(DIVE_HESITATION_FRAMES) * 0.3, reactions / 99.0),  # Cast to float
+		"backward_dive_offset": 25.0 if goalkeeping_preferences.dives_backwards else 0.0,
+		"contact_aggression": aggression / 99.0 if goalkeeping_preferences.likes_contact else 0.0
+	}
+
+
+func _decide_attack_opponent() -> bool:
+	if !goalkeeping_preferences.likes_contact:
+		return false
+	
+	var closest_opponent = get_closest_opponent()
+	if !closest_opponent:
+		return false
+	
+	var opp_distance = global_position.distance_to(closest_opponent.global_position)
+	var ball_distance = global_position.distance_to(ball.global_position)
+	
+	# Don't attack if we're too far away
+	if opp_distance > CONTACT_EVALUATION_DISTANCE:
+		return false
+	
+	# Check 1: Is opponent closer than ball? (Attacking makes sense)
+	var opponent_closer = opp_distance < ball_distance * 0.8
+	
+	# Check 2: Would attacking take us away from dangerous ball position?
+	var ball_threat = _calculate_ball_threat()
+	var safe_to_leave_goal = ball_threat < 0.4
+	
+	# Check 3: Power comparison (don't attack much stronger opponents)
+	var power_ratio = get_buffed_attribute("power") / closest_opponent.get_buffed_attribute("power")
+	var reasonable_matchup = power_ratio > 0.6
+	
+	# Check 4: Is opponent actually threatening? (moving toward us or has ball)
+	var opponent_velocity_toward_us = closest_opponent.velocity.normalized().dot(
+		(global_position - closest_opponent.global_position).normalized()
+	)
+	var opponent_threatening = opponent_velocity_toward_us > 0.3 or closest_opponent.has_ball
+	
+	# All conditions must be favorable
+	if opponent_closer and safe_to_leave_goal and reasonable_matchup and opponent_threatening:
+		# Final decision based on aggression
+		var attack_chance = get_buffed_attribute("aggression") / 99.0
+		return randf() < attack_chance
+	
+	return false
+
+#try to find a position where our guards are protecting us
+func _adjust_position_for_guard_protection(ideal_x: float, goal_center: Vector2) -> float:
+	var guard_positions = []
+	if buddyLG:
+		guard_positions.append(buddyLG.global_position)
+	if buddyRG:
+		guard_positions.append(buddyRG.global_position)
+	
+	if guard_positions.is_empty():
+		return ideal_x
+	
+	var leftmost_guard = INF
+	var rightmost_guard = -INF
+	
+	for pos in guard_positions:
+		leftmost_guard = min(leftmost_guard, pos.x)
+		rightmost_guard = max(rightmost_guard, pos.x)
+	
+	var protected_x = clamp(ideal_x, leftmost_guard, rightmost_guard)
+	
+	return lerp(ideal_x, protected_x, GUARD_PROTECTION_WEIGHT)
+	
+func _check_reaction_delay(delta: float) -> bool:
+	var current_ball_direction = ball_last_velocity.normalized()
+	if last_ball_direction != Vector2.ZERO:
+		var direction_change = last_ball_direction.angle_to(current_ball_direction)
+		if abs(direction_change) > deg_to_rad(45):
+			if !reacting:
+				reacting = true
+				reaction_timer = map_attribute_to_reaction_time(get_buffed_attribute("reactions"))
+			
+			if reaction_timer > 0:
+				reaction_timer -= delta
+				velocity = Vector2.ZERO
+				return true
+			else:
+				reacting = false
+	
+	last_ball_direction = current_ball_direction
+	return false
+
+func _calculate_ball_threat() -> float: #how dangerous is the ball to our goal right now?
+	var dist_to_goal = ball.global_position.distance_to(own_goal)
+	var speed = ball_last_velocity.length()
+	var direction_to_goal = (own_goal - ball.global_position).normalized()
+	var ball_direction = ball_last_velocity.normalized()
+	
+	var direction_threat = max(0.0, ball_direction.dot(direction_to_goal))
+	var speed_threat = clamp(speed / 1000.0, 0.0, 1.0)
+	var distance_threat = 1.0 - clamp(dist_to_goal / 500.0, 0.0, 1.0)
+	
+	return (direction_threat * 0.5 + speed_threat * 0.3 + distance_threat * 0.2)
+
+func set_reaction_save_weights(forward: Player) -> Array:
+	var weights = {
+		"dive_left": 0.0,
+		"dive_right": 0.0,
+		"stay_middle": 0.0,
+		"charge_out": 0.0,
+		"regular_block": 0.0
+	}
+	
+	var shot_history = []
+	var total_shots = 0
+	var left_shots = 0
+	var right_shots = 0
+	var middle_shots = 0
+	if forward == oppLF:
+		shot_history = lf_shot_history
+	elif forward == oppRF:
+		shot_history = rf_shot_history
+	weights["dive_left"] = 0.2
+	weights["dive_right"] = 0.2
+	if goalkeeping_preferences.charges_out:
+		weights["charge_out"] = 0.5
+		weights["regular_block"] = 0.1
+	else:
+		weights["stay_middle"] = 0.3
+		weights["regular_block"] = 0.3
+	
+	return [weights["dive_left"], weights["dive_right"], weights["stay_middle"], 
+			weights["charge_out"], weights["regular_block"]]
+	total_shots = shot_history.size()
+	left_shots = shot_history.count("left")
+	right_shots = shot_history.count("right")
+	middle_shots = shot_history.count("middle")
+	if total_shots > 0:
+		weights["dive_left"] += float(left_shots) / total_shots
+		weights["dive_right"] += float(right_shots) / total_shots
+		if goalkeeping_preferences.charges_out:
+			weights["charge_out"] += float(middle_shots) / total_shots
+		else:
+			weights["stay_middle"] += float(middle_shots) / total_shots
+	else:
+		weights["dive_left"] = guess_preferences.left
+		weights["dive_right"] = guess_preferences.right
+		weights["stay_middle"] = guess_preferences.middle
+	if goalkeeping_preferences.charges_out:
+		weights["stay_middle"] = 0
+	else:
+		weights["charge_out"] = 0
+	weights["regular_block"] += 0.2
+	var total_weight = weights["dive_left"] + weights["dive_right"] + \
+					  weights["stay_middle"] + weights["charge_out"] + \
+					  weights["regular_block"]
+	if total_weight > 0:
+		weights["dive_left"] /= total_weight
+		weights["dive_right"] /= total_weight
+		weights["stay_middle"] /= total_weight
+		weights["charge_out"] /= total_weight
+		weights["regular_block"] /= total_weight
+	return [weights["dive_left"], weights["dive_right"], weights["stay_middle"], 
+			weights["charge_out"], weights["regular_block"]]
+
+#stores shotes as "left", "right", or "middle"
+func record_shot(forward: Player, shot_direction: String):
+	if forward == oppLF:
+		lf_shot_history.append(shot_direction)
+		if lf_shot_history.size() > 30:
+			lf_shot_history.pop_front()
+	elif forward == oppRF:
+		rf_shot_history.append(shot_direction)
+		if rf_shot_history.size() > 30:
+			rf_shot_history.pop_front()
+
+#if the opponent substitutes their forwards, we have to re-set the history
+func reset_shooter(left_side: bool):
+	if left_side:
+		lf_shot_history = []
+	else:
+		rf_shot_history = []
