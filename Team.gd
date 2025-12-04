@@ -569,7 +569,8 @@ func debug_default_roster():
 		"shooting": 90,    
 		"toughness": 90,
 		"confidence": 60 ,
-		"agility": 50
+		"agility": 50,
+		"faceoffs": 90
 	}
 	#TODO: figure out why I have to set variables to the exact types instead of just passing them in directly
 	pitches  = ["flutter", "knuckler", "fake_curve"]
@@ -589,7 +590,7 @@ func debug_default_roster():
 	"pounds": 255,
 	"years": 29
 }
-	P1.encode_player_type("EP")
+	P1.encode_player_type("TP")
 	var P0 = Player.new()
 	P0.position_type = "pitcher"
 	P0.declared_pitcher = true
@@ -629,9 +630,10 @@ func debug_default_roster():
 		"shooting": 50,    
 		"toughness": 32,
 		"confidence": 71,
-		"agility": 75 
+		"agility": 75,
+		"faceoffs": 56 
 	}
-	P0.encode_player_type("FP")
+	P0.encode_player_type("AP")
 	var P2 = Player.new()
 	P2.position_type = "pitcher"
 	P2.declared_pitcher = true
@@ -668,12 +670,13 @@ func debug_default_roster():
 		"accuracy": 65,   
 		"balance": 65,    
 		"focus": 80,  
-		"shooting": 50,    
-		"toughness": 52,
+		"shooting": 68,    
+		"toughness": 72,
 		"confidence": 71,
-		"agility": 75 
+		"agility": 75,
+		"faceoffs": 80 
 	}
-	P2.encode_player_type("WP")
+	P2.encode_player_type("HP")
 	var P3 = Player.new()
 	P3.position_type = "forward"
 	P3.playable_positions = ["LF", "RF"]
@@ -708,7 +711,8 @@ func debug_default_roster():
 		"shooting": 60,    
 		"toughness": 90,
 		"confidence": 60,
-		"agility": 65 
+		"agility": 65,
+		"faceoffs": 60 
 	}
 	P3.encode_player_type("AF")
 	var P4 = Player.new()
@@ -781,7 +785,8 @@ func debug_default_roster():
 		"shooting": 85,    
 		"toughness": 70,
 		"confidence": 60,
-		"agility": 80 
+		"agility": 80,
+		"faceoffs": 50 
 	}
 	G1.encode_player_type("BG")
 	var G2 = Guard.new()
@@ -818,7 +823,8 @@ func debug_default_roster():
 		"shooting": 55,    
 		"toughness": 70,
 		"confidence": 60,
-		"agility": 80 
+		"agility": 80,
+		"faceoffs": 40 
 	}
 	G2.encode_player_type("DG")
 	var F1 = Forward.new()
@@ -855,7 +861,8 @@ func debug_default_roster():
 		"shooting": 65,    
 		"toughness": 70,
 		"confidence": 60,
-		"agility": 80 
+		"agility": 80,
+		"faceoffs": 66 
 	}
 	F1.encode_player_type("GF")
 	var F2 = Guard.new()
@@ -892,7 +899,8 @@ func debug_default_roster():
 		"shooting": 55,    
 		"toughness": 70,
 		"confidence": 60,
-		"agility": 80 
+		"agility": 80,
+		"faceoffs": 75 
 	}
 	F2.encode_player_type("CF")
 	# Add players

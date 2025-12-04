@@ -1366,8 +1366,8 @@ func calculate_pitcher_overall():
 	var att = attributes
 	var ratings = []
 	ratings.append(( (att.power + att.throwing) + att.focus + att.accuracy + att.confidence)/5)#fastball rating
-	ratings.append(( (att.power + att.throwing)/2 + att.focus * 2 + att.accuracy + att.confidence * 2)/6)#curveball rating
-	ratings.append((att.endurance * 2 + att.confidence + att.accuracy * 2 + (att.power + att.throwing)/2 + att.focus)/7) #workhorse rating
+	ratings.append(((attributes.reactions + attributes.faceoffs) * 2 + (attributes.accuracy + attributes.speedRating))/6)#faceoff rating
+	#ratings.append((att.endurance * 2 + att.confidence + att.accuracy * 2 + (att.power + att.throwing)/2 + att.focus)/7) #workhorse rating
 	ratings.append((att.toughness + att.shooting + att.power + att.speedRating + att.durability + att.balance)/5) #enforcer rating
 	ratings.sort()
 	ratings.reverse()
@@ -1570,14 +1570,14 @@ func encode_player_type(type: String):
 			playStyle = "Defender"
 		"BG":
 			playStyle = "Bully"
-		"FP":
-			playStyle = "Fastball"
-		"CP":
-			playStyle = "Curveball"
+		"HP":
+			playStyle = "Hatchet Man"
+		"AP":
+			playStyle = "Ace"
 		"WP":
 			playStyle = "Workhorse"
-		"EP":
-			playStyle = "Enforcer"
+		"TP":
+			playStyle = "Track Hog"
 		"OK":
 			playStyle = "Maestro"
 		"SK":
@@ -1653,26 +1653,26 @@ func match_type_icon():
 		"game": 0.5, #find a ball-focused task
 		"cower": 0.1 #run away
 		}
-		"Fastball":
-			playStyle_texture = "res://UI/PlayerTypeSymbols/playerType_dart.png"
+		"Hatchet Man":
+			playStyle_texture = "res://UI/PlayerTypeSymbols/playerType_hatchet_man.png"
 			brawl_preferences = {
 		"lurk": 0.0, #wait outside the brawl
 		"join": 0.2, #join the big brawl
-		"partner": 0.5, #fight a random uninvolved person
+		"partner": 0.9, #fight a random uninvolved person
 		"game": 0.01, #find a ball-focused task
-		"cower": 0.5 #run away
+		"cower": 0.01 #run away
 		}
-		"Curveball":
-			playStyle_texture = "res://UI/PlayerTypeSymbols/playerType_boomerang.png"
+		"Ace":
+			playStyle_texture = "res://UI/PlayerTypeSymbols/playerType_ace.png"
 			brawl_preferences = {
 		"lurk": 0.0, #wait outside the brawl
 		"join": 0.2, #join the big brawl
-		"partner": 0.5, #fight a random uninvolved person
+		"partner": 0.01, #fight a random uninvolved person
 		"game": 0.01, #find a ball-focused task
-		"cower": 0.5 #run away
+		"cower": 0.6 #run away
 		}
-		"Enforcer":
-			playStyle_texture = "res://UI/PlayerTypeSymbols/playerType_hammer.png"
+		"Track Hog":
+			playStyle_texture = "res://UI/PlayerTypeSymbols/playerType_track_hog.png"
 			brawl_preferences = {
 		"lurk": 0.0, #wait outside the brawl
 		"join": 0.2, #join the big brawl
@@ -1819,18 +1819,18 @@ func find_keeper_style():
 
 func find_pitcher_style():
 	var fastball = ((attributes.power + attributes.throwing) + attributes.focus + attributes.accuracy + attributes.confidence)/5
-	var curveball = ((attributes.power + attributes.throwing)/2 + attributes.focus * 2 + attributes.accuracy + attributes.confidence * 2)/6
+	var faceoff = ((attributes.reactions + attributes.faceoffs) * 2 + (attributes.accuracy + attributes.speedRating))/6
 	var workhorse = (attributes.endurance * 2 + attributes.confidence + attributes.accuracy * 2 + (attributes.power + attributes.throwing)/2 + attributes.focus)/7
 	var fighter = (attributes.toughness + attributes.shooting + attributes.power + attributes.speedRating + attributes.durability + attributes.balance)/5
-	if fastball > curveball and fastball > workhorse and fastball > fighter:
-		playStyle = "Fastball"
-		playStyle_texture = "res://UI/PlayerTypeSymbols/playerType_dart.png"
-	elif curveball > fastball and curveball > workhorse and curveball > fighter:
-		playStyle = "Curveball"
-		playStyle_texture = "res://UI/PlayerTypeSymbols/playerType_boomerang.png"
-	elif fighter > fastball and fighter > curveball and fighter > workhorse:
-		playStyle = "Enforcer"
-		playStyle_texture = "res://UI/PlayerTypeSymbols/playerType_hammer.png"
+	if fastball < faceoff and fastball < fighter:
+		playStyle = "Track Hog"
+		playStyle_texture = "res://UI/PlayerTypeSymbols/playerType_track_hog.png"
+	elif faceoff < fastball and faceoff < fighter:
+		playStyle = "Hatchet Man"
+		playStyle_texture = "res://UI/PlayerTypeSymbols/playerType_hatchet_man.png"
+	elif fighter < fastball and fighter < fastball:
+		playStyle = "Ace"
+		playStyle_texture = "res://UI/PlayerTypeSymbols/playerType_ace.png"
 	else:
 		playStyle = "Workhorse"
 		playStyle_texture = "res://UI/PlayerTypeSymbols/playerType_horseShoe.png"
@@ -1838,7 +1838,7 @@ func find_pitcher_style():
 
 func find_preferred_position():
 	match playStyle:
-		"Fastball", "Curveball", "Enforcer", "Workhorse":
+		"Fastball", "Curveball", "Enforcer", "Workhorse", "Hatchet Man", "Track Hog", "Ace":
 			preferred_position = "P"
 		"Maestro", "Machine", "Spin Doctor", "Prospect Goalkeeper":
 			preferred_position = "K"
