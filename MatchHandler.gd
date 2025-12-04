@@ -753,6 +753,7 @@ func next_play():
 	# Start play timer
 	play_timer.start(GlobalSettings.play_time if GlobalSettings.play_time > 0 else 9999)
 	fighting_frame = 0
+	check_matchups()
 	emit_signal("play_ended", "next_play")
 
 func reset_players_for_next_play():
@@ -1047,6 +1048,8 @@ func fill_team_rosters():
 	import_team_rosters()
 	pTeam.debug_default_roster() #just until we figure out how to import players from text file
 	aTeam.debug_default_roster()
+	pTeam.set_team_id(1) #fixes bug when using the debug rosters, may be necessary to keep when importing from text, may not be
+	aTeam.set_team_id(2)
 	pTeam.onfield_players = [pTeam.LG, pTeam.RG, pTeam.LF, pTeam.RF, pTeam.K, pTeam.P]
 	aTeam.onfield_players = [aTeam.LG, aTeam.RG, aTeam.LF, aTeam.RF, aTeam.K, aTeam.P]
 	pTeam.next_onfield_players = [pTeam.LG, pTeam.RG, pTeam.LF, pTeam.RF, pTeam.K, pTeam.P]
@@ -1072,6 +1075,10 @@ func fill_team_rosters():
 	aTeam.LF.get_node("Polygon2D").color = aUniform
 	aTeam.RF.get_node("Polygon2D").color = aUniform
 	aTeam.P.get_node("Polygon2D").color = aUniform
+	print("Player team LF team: ", pTeam.LF.team)
+	print("Player team RF team: ", pTeam.RF.team)
+	print("AI team LF team: ", aTeam.LF.team)
+	print("AI team RF team: ", aTeam.RF.team)
 	
 func import_team_rosters():
 	pTeam.debug_default_roster()
@@ -1283,3 +1290,46 @@ func _on_pause_menu_new_sub() -> void:
 		else:
 			position_player(pTeam.P, field.human_rhp_spawn, field.human_orientation)
 		ball.reset_ball(Vector2(pTeam.P.global_position.x + pTeam.P.hand_offset, pTeam.P.global_position.y))
+		
+func check_matchups():
+	check_matchup_pair(pTeam.LG, aTeam.RF)
+	check_matchup_pair(pTeam.RG, aTeam.LF)
+	check_matchup_pair(aTeam.LG, pTeam.RF)
+	check_matchup_pair(aTeam.RG, pTeam.LF)
+
+func check_matchup_pair(guard: Guard, forward: Forward): #TODO: Balance
+	var buff_attributes = ["power", "endurance", "reactions", "agility", "positioning", "balance", "speed", "sprint_speed", "speedRating"]
+	var buff_impacts = []
+	var buff_effect = 0
+	match guard.playStyle:
+		"Defender": #better against ballers, worse against brutes
+			match forward.playStyle:
+				"Goal Scorer":
+					buff_effect = 10
+				"Anti-Keeper":
+					buff_effect = -10
+				"Support Forward":
+					buff_effect = 10
+				"Skull Cracker":
+					buff_effect = -10
+				_:
+					buff_effect = 0
+		"Bully":
+			match forward.playStyle: #good against physical forwards 
+				"Goal Scorer":
+					buff_effect = -10
+				"Anti-Keeper":
+					buff_effect = 10
+				"Support Forward":
+					buff_effect = -10
+				"Skull Cracker":
+					buff_effect = 10
+				_:
+					buff_effect = 0
+		_:
+			buff_effect = 0
+	guard.remove_buff("matchup")
+	if buff_effect != 0:
+		print(guard.bio.last_name + " is being buffed by " + str(buff_effect) + " for matchup reasons")
+		buff_impacts = [buff_effect, buff_effect, buff_effect, buff_effect, buff_effect, buff_effect, buff_effect, buff_effect * 2 - 5, buff_effect]
+		guard.add_buff("matchup", buff_attributes, buff_impacts)

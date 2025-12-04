@@ -1024,7 +1024,7 @@ func goalie_has_it():
 			if k_square < f1_square or assigned_forward.is_incapacitated:
 				if k_square < f2_square or other_forward.is_incapacitated:
 					return true
-		elif buddy_keeper.current_behavior == "blocking":
+		elif buddy_keeper.current_behavior == "blocking" and buddy_keeper.global_position.distance_squared_to(ball.global_position) < 225:#15px away from the ball
 			if randf() < get_buffed_attribute("aggression")/100:
 				return true
 			else:
@@ -1036,6 +1036,7 @@ func reset_chosen_counter_behavior():
 	chosen_counterattack_behavior = ""
 	
 func pick_counterattack_behavior():
+	print("I am on team " + str(team) +  " and I wanna score!")
 	if chosen_counterattack_behavior != "":
 		current_behavior = chosen_counterattack_behavior
 		return
