@@ -226,6 +226,11 @@ func lineup_faceoff(already_set_position: bool = false):
 	is_play_live = false
 	is_ball_pitched = false
 	field.ball_in_play = true
+	for player in pTeam.onfield_players + aTeam.onfield_players:
+		if player:
+			player.can_move = false
+			player.velocity = Vector2.ZERO
+	
 	if !already_set_position:
 		var left_faceoff = field.l_fo
 		var right_faceoff = field.r_fo
@@ -320,15 +325,12 @@ func execute_faceoff():
 	winner.game_stats.faceoff_wins += 1
 	if loser:
 		loser.game_stats.faceoff_losses += 1
-	
-	# Pitchers decide whether to fight or flee
-	handle_faceoff_aftermath(winner, loser)
-	
-	# Allow other players to move
 	pTeam.allow_movement()
 	aTeam.allow_movement()
 	is_play_live = true
 	is_faceoff = false
+	aTeam.P.current_behavior = "recover_faceoff"
+	pTeam.P.current_behavior = "recover_faceoff"
 
 
 
@@ -339,30 +341,6 @@ func determine_tie_faceoff(human_target: Vector2, cpu_target: Vector2) -> Vector
 	#weighted average based on face-off ratings
 	var human_weight = human_faceoff_rating / total
 	return human_target.lerp(cpu_target, 1.0 - human_weight)
-
-func handle_faceoff_aftermath(winner: Player, loser: Player):
-	# Each pitcher decides to fight or flee based on aggression vs toughness difference
-	var winner_aggression = winner.get_buffed_attribute("aggression")
-	var loser_aggression = loser.get_buffed_attribute("aggression")
-	var toughness_diff = winner.get_buffed_attribute("toughness") - loser.get_buffed_attribute("toughness")
-	
-	#winner is more likely to fight if they're tougher because of the endorphin boost
-	var winner_fight_chance = winner_aggression + max(0, toughness_diff)
-	var loser_fight_chance = loser_aggression - max(0, toughness_diff)
-	var winner_fights = randf() * 100 < winner_fight_chance
-	var loser_fights = randf() * 100 < loser_fight_chance
-	
-	if winner_fights and loser_fights:
-		# Both fight
-		winner.current_behavior = "fighting"
-		loser.current_behavior = "fighting"
-		fighting_frame = 0
-	else:
-		# At least one flees
-		winner.current_behavior = "deciding"
-		loser.current_behavior = "deciding"
-		winner.can_move = true
-		loser.can_move = true
 	
 func _on_player_goal():
 	if match_ended or not is_instance_valid(ball):
@@ -597,6 +575,7 @@ func on_ball_pitched():
 	
 	
 func _process(delta: float) -> void:
+	print("CPU LG is: " + aTeam.LG.current_behavior + " at " + str(aTeam.LG.global_position))
 	if is_faceoff:
 		print("DEBUG _process: In faceoff - has_started=" + str(has_started))
 	if Input.is_action_just_pressed("pause") and !match_ended:
@@ -726,9 +705,25 @@ func _process(delta: float) -> void:
 						else:
 							players_fight(pair[0], pair[1])
 							already_fought.append(pair)
+		if pTeam.K.is_workhorse:
+			pTeam.P.add_energy(100)
+			pTeam.LF.add_energy(100)
+			pTeam.RF.add_energy(100)
+			pTeam.LG.add_energy(100)
+			pTeam.RG.add_energy(100)
+		if aTeam.K.is_workhorse:
+			pTeam.P.add_energy(100)
+			pTeam.LF.add_energy(100)
+			pTeam.RF.add_energy(100)
+			pTeam.LG.add_energy(100)
+			pTeam.RG.add_energy(100)
 		
 
 func next_play():
+	if pTeam.K.is_workhorse:
+		pTeam.fire_up_bench
+	if aTeam.K.is_workhorse:
+		aTeam.fire_up_bench
 	if is_faceoff:
 		return 
 	print("Starting next play - Human pitching: " + str(is_human_team_pitching))

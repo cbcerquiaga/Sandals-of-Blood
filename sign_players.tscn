@@ -1,4 +1,25 @@
-[gd_scene format=3 uid="uid://dkxpvx0n1a0o7"]
+[gd_scene load_steps=21 format=3 uid="uid://dkxpvx0n1a0o7"]
+
+[ext_resource type="Script" path="res://sign_players.gd" id="1_qfm87"]
+[ext_resource type="Texture2D" uid="uid://ct6vtfmxy8eoo" path="res://UI/MenuUI/back_button_base.png" id="2_hr1iq"]
+[ext_resource type="Texture2D" uid="uid://cogfuux8c36rm" path="res://UI/PlayerTypeSymbols/playerType_anti_keeper.png" id="2_y0han"]
+[ext_resource type="Texture2D" uid="uid://n462x07kbx5s" path="res://UI/PlayerTypeSymbols/playerType_cannon.png" id="3_6whkd"]
+[ext_resource type="Texture2D" uid="uid://cl6f7cs2xrbn7" path="res://UI/MenuUI/back_button_highlighted.png" id="3_f08fc"]
+[ext_resource type="Texture2D" uid="uid://n4x2mkuundrs" path="res://UI/PauseUI/Default_button_base.png" id="4_52v3e"]
+[ext_resource type="Texture2D" uid="uid://bju7e5xhm2ivd" path="res://UI/PlayerTypeSymbols/playerType_skull.png" id="4_ffg4f"]
+[ext_resource type="Texture2D" uid="uid://nf57ed20an85" path="res://UI/PauseUI/Default_button_highlighted.png" id="5_02myf"]
+[ext_resource type="Texture2D" uid="uid://knqlxmpqjdeb" path="res://UI/PlayerTypeSymbols/playerType_support.png" id="5_imct7"]
+[ext_resource type="Texture2D" uid="uid://pf85rblbvtlf" path="res://UI/PlayerTypeSymbols/playerType_brickwall.png" id="6_sfthn"]
+[ext_resource type="Texture2D" uid="uid://cm8lly5ligy3" path="res://UI/PlayerTypeSymbols/playerType_ballhound.png" id="7_oph73"]
+[ext_resource type="Texture2D" uid="uid://24u6mllnp38i" path="res://UI/PlayerTypeSymbols/playerType_fist.png" id="8_ettqh"]
+[ext_resource type="Texture2D" uid="uid://c31a4fn0qbes2" path="res://UI/PlayerTypeSymbols/playerType_ace.png" id="9_l486n"]
+[ext_resource type="Texture2D" uid="uid://birtlssk75m6u" path="res://UI/PlayerTypeSymbols/playerType_hatchet_man.png" id="10_w27qo"]
+[ext_resource type="Texture2D" uid="uid://80tsc0fgb1bf" path="res://UI/PlayerTypeSymbols/playerType_track_hog.png" id="11_laaa6"]
+[ext_resource type="Texture2D" uid="uid://s0afhs6d5wep" path="res://UI/PlayerTypeSymbols/playerType_music.png" id="12_b52fq"]
+[ext_resource type="Texture2D" uid="uid://dobxcf4t2o6fs" path="res://UI/PlayerTypeSymbols/playerType_machine.png" id="13_6u115"]
+[ext_resource type="Texture2D" uid="uid://dsh7n56wr6o5i" path="res://UI/PlayerTypeSymbols/playerType_spindoctor.png" id="14_mtstt"]
+[ext_resource type="Texture2D" uid="uid://bxd5ixm2gbmmi" path="res://UI/PlayerTypeSymbols/playerType_horseShoe.png" id="15_ivsyf"]
+[ext_resource type="Texture2D" uid="uid://dxdxoovmjfda0" path="res://UI/PlayerTypeSymbols/playerType_prospectKeeper.png" id="16_84oia"]
 
 [node name="Control" type="Control"]
 layout_mode = 3
@@ -7,6 +28,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+script = ExtResource("1_qfm87")
 
 [node name="main" type="VBoxContainer" parent="."]
 layout_mode = 2
@@ -19,6 +41,9 @@ layout_mode = 2
 layout_mode = 2
 
 [node name="FilterStyle" type="TextureButton" parent="main/Filter"]
+layout_mode = 2
+
+[node name="FilterTraits" type="TextureButton" parent="main/Filter"]
 layout_mode = 2
 
 [node name="Sort" type="TextureButton" parent="main/Filter"]
@@ -35,9 +60,535 @@ layout_mode = 2
 
 [node name="Back" type="TextureButton" parent="main/Actions"]
 layout_mode = 2
+texture_normal = ExtResource("2_hr1iq")
+texture_hover = ExtResource("3_f08fc")
+texture_focused = ExtResource("3_f08fc")
 
-[node name="Comparables" type="TextureButton" parent="main/Actions"]
+[node name="Reset" type="TextureButton" parent="main/Actions"]
+layout_mode = 2
+texture_normal = ExtResource("4_52v3e")
+texture_hover = ExtResource("5_02myf")
+texture_focused = ExtResource("5_02myf")
+
+[node name="PopupMenu" type="PopupMenu" parent="."]
+item_count = 1
+
+[node name="TraitsMenu" type="VBoxContainer" parent="."]
+visible = false
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="Label" type="Label" parent="TraitsMenu"]
+layout_mode = 2
+text = "Filter by Player Traits"
+
+[node name="ContractType" type="HBoxContainer" parent="TraitsMenu"]
 layout_mode = 2
 
-[node name="Sign" type="TextureButton" parent="main/Actions"]
+[node name="FreeAgents" type="CheckBox" parent="TraitsMenu/ContractType"]
 layout_mode = 2
+tooltip_text = "Free Agents are not under contract with any team and can be signed at any time"
+text = "Free Agents"
+
+[node name="Standard" type="CheckBox" parent="TraitsMenu/ContractType"]
+layout_mode = 2
+tooltip_text = "Players on a Standard Contract can be signed from another team and it costs 1 Offer Sheet Token"
+text = "Standard"
+
+[node name="Tradeable" type="CheckBox" parent="TraitsMenu/ContractType"]
+layout_mode = 2
+tooltip_text = "Players on a Tradeable Contract can be traded. They can also be signed at the cost of 1 Offer Sheet Token."
+text = "Tradeable"
+
+[node name="Franchise" type="CheckBox" parent="TraitsMenu/ContractType"]
+layout_mode = 2
+tooltip_text = "Players on Franchise Contracts can be signed away from another team, but it costs 2 Offer Sheet Tokens"
+text = "Franchise"
+
+[node name="Staff" type="CheckBox" parent="TraitsMenu/ContractType"]
+layout_mode = 2
+tooltip_text = "People who are currently signed as team staff can be signed as players to your team for 1 Offer Sheet Token"
+text = "Staff Contract"
+
+[node name="StaffRole" type="HBoxContainer" parent="TraitsMenu"]
+visible = false
+layout_mode = 2
+
+[node name="Field" type="VBoxContainer" parent="TraitsMenu/StaffRole"]
+layout_mode = 2
+
+[node name="Coach" type="CheckBox" parent="TraitsMenu/StaffRole/Field"]
+layout_mode = 2
+text = "Coach"
+
+[node name="Scout" type="CheckBox" parent="TraitsMenu/StaffRole/Field"]
+layout_mode = 2
+tooltip_text = "Players on a Standard Contract can be signed from another team and it costs 1 Offer Sheet Token"
+text = "Scout"
+
+[node name="Grounds" type="CheckBox" parent="TraitsMenu/StaffRole/Field"]
+layout_mode = 2
+tooltip_text = "Players on a Standard Contract can be signed from another team and it costs 1 Offer Sheet Token"
+text = "Groundskeeper"
+
+[node name="Kit" type="CheckBox" parent="TraitsMenu/StaffRole/Field"]
+layout_mode = 2
+tooltip_text = "Players on a Standard Contract can be signed from another team and it costs 1 Offer Sheet Token"
+text = "Equipment Manager"
+
+[node name="Support" type="VBoxContainer" parent="TraitsMenu/StaffRole"]
+layout_mode = 2
+
+[node name="Doctor" type="CheckBox" parent="TraitsMenu/StaffRole/Support"]
+layout_mode = 2
+tooltip_text = "Players on a Tradeable Contract can be traded. They can also be signed at the cost of 1 Offer Sheet Token."
+text = "Doctor"
+
+[node name="Trainer" type="CheckBox" parent="TraitsMenu/StaffRole/Support"]
+layout_mode = 2
+tooltip_text = "Players on Franchise Contracts can be signed away from another team, but it costs 2 Offer Sheet Tokens"
+text = "Medical Trainer"
+
+[node name="Chef" type="CheckBox" parent="TraitsMenu/StaffRole/Support"]
+layout_mode = 2
+tooltip_text = "Players on Franchise Contracts can be signed away from another team, but it costs 2 Offer Sheet Tokens"
+text = "Cook"
+
+[node name="Entourage" type="CheckBox" parent="TraitsMenu/StaffRole/Support"]
+layout_mode = 2
+tooltip_text = "Players on Franchise Contracts can be signed away from another team, but it costs 2 Offer Sheet Tokens"
+text = "Entourage"
+
+[node name="Business" type="VBoxContainer" parent="TraitsMenu/StaffRole"]
+layout_mode = 2
+
+[node name="Security" type="CheckBox" parent="TraitsMenu/StaffRole/Business"]
+layout_mode = 2
+tooltip_text = "Players on Franchise Contracts can be signed away from another team, but it costs 2 Offer Sheet Tokens"
+text = "Head of Security"
+
+[node name="Promo" type="CheckBox" parent="TraitsMenu/StaffRole/Business"]
+layout_mode = 2
+tooltip_text = "Players on Franchise Contracts can be signed away from another team, but it costs 2 Offer Sheet Tokens"
+text = "Promoter"
+
+[node name="Money" type="CheckBox" parent="TraitsMenu/StaffRole/Business"]
+layout_mode = 2
+tooltip_text = "Players on Franchise Contracts can be signed away from another team, but it costs 2 Offer Sheet Tokens"
+text = "Accountant"
+
+[node name="GenTraits" type="HBoxContainer" parent="TraitsMenu"]
+layout_mode = 2
+
+[node name="Strong" type="CheckBox" parent="TraitsMenu/GenTraits"]
+layout_mode = 2
+tooltip_text = "Players who are stronger than the average at their position in your league"
+text = "Strong"
+
+[node name="Fast" type="CheckBox" parent="TraitsMenu/GenTraits"]
+layout_mode = 2
+tooltip_text = "Players who are faster and more nimble than the average at their position in your league"
+text = "Mobile"
+
+[node name="Technical" type="CheckBox" parent="TraitsMenu/GenTraits"]
+layout_mode = 2
+tooltip_text = "Players who are more skilled than the average at their position in your league"
+text = "Technical"
+
+[node name="Tough" type="CheckBox" parent="TraitsMenu/GenTraits"]
+layout_mode = 2
+tooltip_text = "Players who are tougher than the average at their position in your league"
+text = "Tough"
+
+[node name="Smart" type="CheckBox" parent="TraitsMenu/GenTraits"]
+layout_mode = 2
+tooltip_text = "Players who have better menaal attributes than the average at their position in your league"
+text = "Smart"
+
+[node name="Attribute1" type="HBoxContainer" parent="TraitsMenu/GenTraits"]
+layout_mode = 2
+
+[node name="CheckBox" type="CheckBox" parent="TraitsMenu/GenTraits/Attribute1"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="TraitsMenu/GenTraits/Attribute1"]
+layout_mode = 2
+text = "Attribute"
+
+[node name="Attribute" type="OptionButton" parent="TraitsMenu/GenTraits/Attribute1"]
+layout_mode = 2
+
+[node name="Label2" type="Label" parent="TraitsMenu/GenTraits/Attribute1"]
+layout_mode = 2
+text = "is at Least"
+
+[node name="Min" type="OptionButton" parent="TraitsMenu/GenTraits/Attribute1"]
+layout_mode = 2
+
+[node name="Label3" type="Label" parent="TraitsMenu/GenTraits/Attribute1"]
+layout_mode = 2
+text = "and at most"
+
+[node name="Max" type="OptionButton" parent="TraitsMenu/GenTraits/Attribute1"]
+layout_mode = 2
+
+[node name="Attribute2" type="HBoxContainer" parent="TraitsMenu/GenTraits"]
+layout_mode = 2
+
+[node name="CheckBox" type="CheckBox" parent="TraitsMenu/GenTraits/Attribute2"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="TraitsMenu/GenTraits/Attribute2"]
+layout_mode = 2
+text = "Attribute"
+
+[node name="Attribute" type="OptionButton" parent="TraitsMenu/GenTraits/Attribute2"]
+layout_mode = 2
+
+[node name="Label2" type="Label" parent="TraitsMenu/GenTraits/Attribute2"]
+layout_mode = 2
+text = "is at Least"
+
+[node name="Min" type="OptionButton" parent="TraitsMenu/GenTraits/Attribute2"]
+layout_mode = 2
+
+[node name="Label3" type="Label" parent="TraitsMenu/GenTraits/Attribute2"]
+layout_mode = 2
+text = "and at most"
+
+[node name="Max" type="OptionButton" parent="TraitsMenu/GenTraits/Attribute2"]
+layout_mode = 2
+
+[node name="Attribute3" type="HBoxContainer" parent="TraitsMenu/GenTraits"]
+layout_mode = 2
+
+[node name="CheckBox" type="CheckBox" parent="TraitsMenu/GenTraits/Attribute3"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="TraitsMenu/GenTraits/Attribute3"]
+layout_mode = 2
+text = "Attribute"
+
+[node name="Attribute" type="OptionButton" parent="TraitsMenu/GenTraits/Attribute3"]
+layout_mode = 2
+
+[node name="Label2" type="Label" parent="TraitsMenu/GenTraits/Attribute3"]
+layout_mode = 2
+text = "is at Least"
+
+[node name="Min" type="OptionButton" parent="TraitsMenu/GenTraits/Attribute3"]
+layout_mode = 2
+
+[node name="Label3" type="Label" parent="TraitsMenu/GenTraits/Attribute3"]
+layout_mode = 2
+text = "and at most"
+
+[node name="Max" type="OptionButton" parent="TraitsMenu/GenTraits/Attribute3"]
+layout_mode = 2
+
+[node name="BioTraits" type="HBoxContainer" parent="TraitsMenu"]
+layout_mode = 2
+
+[node name="Age" type="HBoxContainer" parent="TraitsMenu/BioTraits"]
+layout_mode = 2
+
+[node name="Label2" type="Label" parent="TraitsMenu/BioTraits/Age"]
+layout_mode = 2
+text = "Age is at Least"
+
+[node name="Min" type="OptionButton" parent="TraitsMenu/BioTraits/Age"]
+layout_mode = 2
+
+[node name="Label3" type="Label" parent="TraitsMenu/BioTraits/Age"]
+layout_mode = 2
+text = "and at most"
+
+[node name="Max" type="OptionButton" parent="TraitsMenu/BioTraits/Age"]
+layout_mode = 2
+
+[node name="Lefty" type="CheckBox" parent="TraitsMenu/BioTraits"]
+layout_mode = 2
+text = "Include Left Handed"
+
+[node name="Righty" type="CheckBox" parent="TraitsMenu/BioTraits"]
+layout_mode = 2
+text = "Include Right Handed"
+
+[node name="FullScoutOnly" type="CheckBox" parent="TraitsMenu/BioTraits"]
+layout_mode = 2
+tooltip_text = "Only include players where we know 100% of the attributes of the player"
+text = "Fully Scouted Only"
+
+[node name="PositionsMenu" type="VBoxContainer" parent="."]
+visible = false
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="Label" type="Label" parent="PositionsMenu"]
+layout_mode = 2
+text = "Filter by Position"
+
+[node name="Frontcourt" type="HBoxContainer" parent="PositionsMenu"]
+layout_mode = 2
+
+[node name="Plays_LF" type="CheckBox" parent="PositionsMenu/Frontcourt"]
+layout_mode = 2
+
+[node name="Plays_P" type="CheckBox" parent="PositionsMenu/Frontcourt"]
+layout_mode = 2
+
+[node name="Plays_RF" type="CheckBox" parent="PositionsMenu/Frontcourt"]
+layout_mode = 2
+
+[node name="Backcourt" type="HBoxContainer" parent="PositionsMenu"]
+layout_mode = 2
+
+[node name="Plays_LG" type="CheckBox" parent="PositionsMenu/Backcourt"]
+layout_mode = 2
+
+[node name="Plays_K" type="CheckBox" parent="PositionsMenu/Backcourt"]
+layout_mode = 2
+
+[node name="Plays_RG" type="CheckBox" parent="PositionsMenu/Backcourt"]
+layout_mode = 2
+
+[node name="NumPositions" type="HBoxContainer" parent="PositionsMenu"]
+layout_mode = 2
+
+[node name="Label2" type="Label" parent="PositionsMenu/NumPositions"]
+layout_mode = 2
+text = "Number of positions played is at least"
+
+[node name="Min" type="OptionButton" parent="PositionsMenu/NumPositions"]
+layout_mode = 2
+
+[node name="Label3" type="Label" parent="PositionsMenu/NumPositions"]
+layout_mode = 2
+text = "and at most"
+
+[node name="Max" type="OptionButton" parent="PositionsMenu/NumPositions"]
+layout_mode = 2
+
+[node name="StylesMenu" type="VBoxContainer" parent="."]
+visible = false
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="Label" type="Label" parent="StylesMenu"]
+layout_mode = 2
+text = "Forward Types"
+
+[node name="Forwards" type="HBoxContainer" parent="StylesMenu"]
+layout_mode = 2
+
+[node name="Anti" type="CheckBox" parent="StylesMenu/Forwards"]
+layout_mode = 2
+text = "Anti-Keeper"
+
+[node name="TextureRect" type="TextureRect" parent="StylesMenu/Forwards"]
+layout_mode = 2
+texture = ExtResource("2_y0han")
+
+[node name="Scorer" type="CheckBox" parent="StylesMenu/Forwards"]
+layout_mode = 2
+text = "Goal Scorer"
+
+[node name="TextureRect2" type="TextureRect" parent="StylesMenu/Forwards"]
+layout_mode = 2
+texture = ExtResource("3_6whkd")
+
+[node name="Skull" type="CheckBox" parent="StylesMenu/Forwards"]
+layout_mode = 2
+text = "Skull Cracker"
+
+[node name="TextureRect3" type="TextureRect" parent="StylesMenu/Forwards"]
+layout_mode = 2
+texture = ExtResource("4_ffg4f")
+
+[node name="Support" type="CheckBox" parent="StylesMenu/Forwards"]
+layout_mode = 2
+text = "Support"
+
+[node name="TextureRect4" type="TextureRect" parent="StylesMenu/Forwards"]
+layout_mode = 2
+texture = ExtResource("5_imct7")
+
+[node name="Label2" type="Label" parent="StylesMenu"]
+layout_mode = 2
+text = "Pitcher Types"
+
+[node name="Guards" type="HBoxContainer" parent="StylesMenu"]
+layout_mode = 2
+
+[node name="Defender" type="CheckBox" parent="StylesMenu/Guards"]
+layout_mode = 2
+text = "Defender"
+
+[node name="TextureRect" type="TextureRect" parent="StylesMenu/Guards"]
+layout_mode = 2
+texture = ExtResource("6_sfthn")
+
+[node name="BallHound" type="CheckBox" parent="StylesMenu/Guards"]
+layout_mode = 2
+text = "Ball Hound"
+
+[node name="TextureRect2" type="TextureRect" parent="StylesMenu/Guards"]
+layout_mode = 2
+texture = ExtResource("7_oph73")
+
+[node name="Bully" type="CheckBox" parent="StylesMenu/Guards"]
+layout_mode = 2
+text = "Skull Cracker"
+
+[node name="TextureRect3" type="TextureRect" parent="StylesMenu/Guards"]
+layout_mode = 2
+texture = ExtResource("8_ettqh")
+
+[node name="Label3" type="Label" parent="StylesMenu"]
+layout_mode = 2
+text = "Guard Types"
+
+[node name="Pitchers" type="HBoxContainer" parent="StylesMenu"]
+layout_mode = 2
+
+[node name="Ace" type="CheckBox" parent="StylesMenu/Pitchers"]
+layout_mode = 2
+text = "Ace"
+
+[node name="TextureRect" type="TextureRect" parent="StylesMenu/Pitchers"]
+layout_mode = 2
+texture = ExtResource("9_l486n")
+
+[node name="Hatchet" type="CheckBox" parent="StylesMenu/Pitchers"]
+layout_mode = 2
+text = "Hatchet Man"
+
+[node name="TextureRect2" type="TextureRect" parent="StylesMenu/Pitchers"]
+layout_mode = 2
+texture = ExtResource("10_w27qo")
+
+[node name="Hog" type="CheckBox" parent="StylesMenu/Pitchers"]
+layout_mode = 2
+text = "Track Hog"
+
+[node name="TextureRect3" type="TextureRect" parent="StylesMenu/Pitchers"]
+layout_mode = 2
+texture = ExtResource("11_laaa6")
+
+[node name="Label4" type="Label" parent="StylesMenu"]
+layout_mode = 2
+text = "Keeper Types"
+
+[node name="Goalies" type="HBoxContainer" parent="StylesMenu"]
+layout_mode = 2
+
+[node name="Maestro" type="CheckBox" parent="StylesMenu/Goalies"]
+layout_mode = 2
+text = "Maestro"
+
+[node name="TextureRect" type="TextureRect" parent="StylesMenu/Goalies"]
+layout_mode = 2
+texture = ExtResource("12_b52fq")
+
+[node name="Machine" type="CheckBox" parent="StylesMenu/Goalies"]
+layout_mode = 2
+text = "Machine"
+
+[node name="TextureRect2" type="TextureRect" parent="StylesMenu/Goalies"]
+layout_mode = 2
+texture = ExtResource("13_6u115")
+
+[node name="SpinDr" type="CheckBox" parent="StylesMenu/Goalies"]
+layout_mode = 2
+text = "Spin Doctor"
+
+[node name="TextureRect3" type="TextureRect" parent="StylesMenu/Goalies"]
+layout_mode = 2
+texture = ExtResource("14_mtstt")
+
+[node name="Workhorse" type="CheckBox" parent="StylesMenu/Goalies"]
+layout_mode = 2
+text = "Workhorse"
+
+[node name="TextureRect4" type="TextureRect" parent="StylesMenu/Goalies"]
+layout_mode = 2
+texture = ExtResource("15_ivsyf")
+
+[node name="Prospect" type="CheckBox" parent="StylesMenu/Goalies"]
+layout_mode = 2
+text = "Prospect"
+
+[node name="TextureRect5" type="TextureRect" parent="StylesMenu/Goalies"]
+layout_mode = 2
+texture = ExtResource("16_84oia")
+
+[connection signal="pressed" from="main/Filter/FilterPosition" to="." method="_on_filter_position_pressed"]
+[connection signal="pressed" from="main/Filter/FilterStyle" to="." method="_on_filter_style_pressed"]
+[connection signal="pressed" from="main/Filter/FilterTraits" to="." method="_on_filter_traits_pressed"]
+[connection signal="pressed" from="main/Filter/Sort" to="." method="_on_sort_pressed"]
+[connection signal="pressed" from="main/Actions/Back" to="." method="_on_back_pressed"]
+[connection signal="pressed" from="main/Actions/Reset" to="." method="_on_reset_pressed"]
+[connection signal="toggled" from="TraitsMenu/ContractType/FreeAgents" to="." method="_on_free_agents_toggled"]
+[connection signal="toggled" from="TraitsMenu/ContractType/Standard" to="." method="_on_standard_toggled"]
+[connection signal="toggled" from="TraitsMenu/ContractType/Tradeable" to="." method="_on_tradeable_toggled"]
+[connection signal="toggled" from="TraitsMenu/ContractType/Franchise" to="." method="_on_franchise_toggled"]
+[connection signal="toggled" from="TraitsMenu/ContractType/Staff" to="." method="_on_staff_toggled"]
+[connection signal="toggled" from="TraitsMenu/StaffRole/Field/Coach" to="." method="_on_coach_toggled"]
+[connection signal="toggled" from="TraitsMenu/StaffRole/Field/Scout" to="." method="_on_scout_toggled"]
+[connection signal="toggled" from="TraitsMenu/StaffRole/Field/Grounds" to="." method="_on_grounds_toggled"]
+[connection signal="toggled" from="TraitsMenu/StaffRole/Field/Kit" to="." method="_on_kit_toggled"]
+[connection signal="pressed" from="TraitsMenu/StaffRole/Support/Doctor" to="." method="_on_doctor_pressed"]
+[connection signal="pressed" from="TraitsMenu/StaffRole/Support/Trainer" to="." method="_on_trainer_pressed"]
+[connection signal="pressed" from="TraitsMenu/StaffRole/Support/Chef" to="." method="_on_chef_pressed"]
+[connection signal="pressed" from="TraitsMenu/StaffRole/Support/Entourage" to="." method="_on_entourage_pressed"]
+[connection signal="toggled" from="TraitsMenu/StaffRole/Business/Security" to="." method="_on_security_toggled"]
+[connection signal="toggled" from="TraitsMenu/StaffRole/Business/Promo" to="." method="_on_promo_toggled"]
+[connection signal="toggled" from="TraitsMenu/StaffRole/Business/Money" to="." method="_on_money_toggled"]
+[connection signal="toggled" from="TraitsMenu/GenTraits/Strong" to="." method="_on_strong_toggled"]
+[connection signal="toggled" from="TraitsMenu/GenTraits/Fast" to="." method="_on_fast_toggled"]
+[connection signal="toggled" from="TraitsMenu/GenTraits/Technical" to="." method="_on_technical_toggled"]
+[connection signal="toggled" from="TraitsMenu/GenTraits/Tough" to="." method="_on_tough_toggled"]
+[connection signal="pressed" from="TraitsMenu/GenTraits/Smart" to="." method="_on_smart_pressed"]
+[connection signal="toggled" from="TraitsMenu/GenTraits/Attribute1/CheckBox" to="." method="_on_check_box_attribute1_toggled"]
+[connection signal="item_selected" from="TraitsMenu/GenTraits/Attribute1/Attribute" to="." method="_on_attribute_1_selected"]
+[connection signal="item_selected" from="TraitsMenu/GenTraits/Attribute1/Min" to="." method="_on_min_attribute_1_selected"]
+[connection signal="item_selected" from="TraitsMenu/GenTraits/Attribute1/Max" to="." method="_on_max_attribute_1_selected"]
+[connection signal="toggled" from="TraitsMenu/GenTraits/Attribute2/CheckBox" to="." method="_on_check_box_attribute2_toggled"]
+[connection signal="item_selected" from="TraitsMenu/GenTraits/Attribute2/Attribute" to="." method="_on_attribute_2_selected"]
+[connection signal="item_selected" from="TraitsMenu/GenTraits/Attribute2/Min" to="." method="_on_min_attribute_2_selected"]
+[connection signal="item_selected" from="TraitsMenu/GenTraits/Attribute2/Max" to="." method="_on_max_attribute_2_selected"]
+[connection signal="toggled" from="TraitsMenu/GenTraits/Attribute3/CheckBox" to="." method="_on_check_box_attribute3_toggled"]
+[connection signal="item_selected" from="TraitsMenu/GenTraits/Attribute3/Attribute" to="." method="_on_attribute_3_selected"]
+[connection signal="item_selected" from="TraitsMenu/GenTraits/Attribute3/Min" to="." method="_on_min_attribute_3_selected"]
+[connection signal="item_selected" from="TraitsMenu/GenTraits/Attribute3/Max" to="." method="_on_max_attribute_3_selected"]
+[connection signal="item_selected" from="TraitsMenu/BioTraits/Age/Min" to="." method="_on_min_age_selected"]
+[connection signal="item_selected" from="TraitsMenu/BioTraits/Age/Max" to="." method="_on_max_age_selected"]
+[connection signal="toggled" from="TraitsMenu/BioTraits/Lefty" to="." method="_on_lefty_toggled"]
+[connection signal="toggled" from="TraitsMenu/BioTraits/Righty" to="." method="_on_righty_toggled"]
+[connection signal="toggled" from="TraitsMenu/BioTraits/FullScoutOnly" to="." method="_on_full_scout_only_toggled"]
+[connection signal="toggled" from="PositionsMenu/Frontcourt/Plays_LF" to="." method="_on_plays_lf_toggled"]
+[connection signal="toggled" from="PositionsMenu/Frontcourt/Plays_P" to="." method="_on_plays_p_toggled"]
+[connection signal="toggled" from="PositionsMenu/Frontcourt/Plays_RF" to="." method="_on_plays_rf_toggled"]
+[connection signal="toggled" from="PositionsMenu/Backcourt/Plays_LG" to="." method="_on_plays_lg_toggled"]
+[connection signal="toggled" from="PositionsMenu/Backcourt/Plays_K" to="." method="_on_plays_k_toggled"]
+[connection signal="toggled" from="PositionsMenu/Backcourt/Plays_RG" to="." method="_on_plays_rg_toggled"]
+[connection signal="item_selected" from="PositionsMenu/NumPositions/Min" to="." method="_on_min_positions_selected"]
+[connection signal="item_selected" from="PositionsMenu/NumPositions/Max" to="." method="_on_max_positions_selected"]
+[connection signal="toggled" from="StylesMenu/Forwards/Anti" to="." method="_on_anti_toggled"]
+[connection signal="toggled" from="StylesMenu/Forwards/Scorer" to="." method="_on_scorer_toggled"]
+[connection signal="toggled" from="StylesMenu/Forwards/Skull" to="." method="_on_skull_toggled"]
+[connection signal="toggled" from="StylesMenu/Forwards/Support" to="." method="_on_support_toggled"]
+[connection signal="toggled" from="StylesMenu/Guards/Defender" to="." method="_on_defender_toggled"]
+[connection signal="toggled" from="StylesMenu/Guards/BallHound" to="." method="_on_ball_hound_toggled"]
+[connection signal="toggled" from="StylesMenu/Guards/Bully" to="." method="_on_bully_toggled"]
+[connection signal="toggled" from="StylesMenu/Pitchers/Ace" to="." method="_on_ace_toggled"]
+[connection signal="toggled" from="StylesMenu/Pitchers/Hatchet" to="." method="_on_hatchet_toggled"]
+[connection signal="toggled" from="StylesMenu/Pitchers/Hog" to="." method="_on_hog_toggled"]
+[connection signal="toggled" from="StylesMenu/Goalies/Maestro" to="." method="_on_maestro_toggled"]
+[connection signal="toggled" from="StylesMenu/Goalies/Machine" to="." method="_on_machine_toggled"]
+[connection signal="toggled" from="StylesMenu/Goalies/SpinDr" to="." method="_on_spin_dr_toggled"]
+[connection signal="toggled" from="StylesMenu/Goalies/Workhorse" to="." method="_on_workhorse_toggled"]
+[connection signal="toggled" from="StylesMenu/Goalies/Prospect" to="." method="_on_prospect_toggled"]

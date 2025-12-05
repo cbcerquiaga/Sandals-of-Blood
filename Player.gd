@@ -33,7 +33,8 @@ var sharp_turn_threshold: float
 	"toughness": 60,    # 1-100, fighting defense/skill
 	"confidence": 90,    # 1-100, affects special moves
 	"agility": 90, 	#1-100, impacts player acceleration after sharp turns
-	"faceoffs": 50 #0-100, impacts ties on faceoffs and how fast the ball goes off of face-offs
+	"faceoffs": 50, #1-100, impacts ties on faceoffs and how fast the ball goes off of face-offs
+	"discipline": 80, #1-100, chance to go offside or commit a violation
 }
 
 @export var status := {
@@ -266,6 +267,7 @@ var special_ability: String #determines which of the
 var is_machine: bool = false #halves impact against in collisions, infinite boost, super shot blocker
 var is_maestro: bool = false #slows down time
 var is_spin_doctor: bool = false #curving shots
+var is_workhorse: bool = false #infinite boost for self, max boost and confidence for teammates
 var active_buffs: Dictionary = {} #buff structure: { "buff_name": { "attributes": ["speed", "power"], "values": [10, 5] } }
 var starting_position: Vector2
 
@@ -490,10 +492,11 @@ func standard_behavior(delta):
 		if status.boost < 0:
 			is_sprinting = false
 		
-	if is_machine:
+	if is_machine or is_workhorse:
 		status.energy = 100
 		status.max_boost = attributes.endurance * (status.energy/100)
 		status.boost = status.max_boost
+		
 	# Energy/boost recovery
 	if not is_sprinting:
 		recover_resources()
@@ -1470,6 +1473,7 @@ func set_all_properties(old_player: Player) -> void:
 	special_ability = old_player.special_ability
 	is_machine = old_player.is_machine
 	is_maestro = old_player.is_maestro
+	is_workhorse = old_player.is_workhorse
 	is_spin_doctor = old_player.is_spin_doctor
 	active_buffs = old_player.active_buffs.duplicate(true)
 	starting_position = old_player.starting_position

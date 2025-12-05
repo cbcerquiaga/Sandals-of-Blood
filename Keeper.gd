@@ -1621,6 +1621,8 @@ func activate_special_ability():
 			is_machine = true
 		"spin_doctor":
 			is_spin_doctor = true
+		"workhorse":
+			is_workhorse = true
 	if status.groove <= 0:
 		deactivate_special()
 			
@@ -1631,13 +1633,15 @@ func is_special_active():
 		return true
 	elif is_spin_doctor:
 		return true
+	elif is_workhorse:
+		return true
 	else:
 		return false
 
 func use_special_ability():
 	if is_maestro: #maestro chews through groove fastest
 		status.groove = status.groove - 0.18
-	elif is_machine:
+	elif is_machine or is_workhorse:
 		status.groove = status.groove - 0.1
 	else: #spin doctor is slower
 		status.groove = status.groove - 0.05
@@ -1650,6 +1654,7 @@ func deactivate_special():
 	is_maestro = false
 	is_machine = false
 	is_spin_doctor = false
+	is_workhorse = false
 		
 func ai_check_special_ability():
 	if status.groove >= get_buffed_attribute("confidence") / 2:

@@ -19,7 +19,7 @@ var menu_items = {
 	"league": ["News", "Leaders", "Stats", "Tables", "History"],
 	"career": ["Growth", "Job Openings", "Overview", "Retire"],
 	"system": ["Options", "Music", "Save", "Load", "Exit"],
-	"improve_add": ["Free Agents", "Offer Sheets", "Scouting", "Tryouts"],
+	"improve_add": ["Sign Players", "Scouting", "Tryouts"],
 	"improve_trade": ["Edit Trade Block", "View Trade Blocks", "Propose Trade"],
 	"improve_remove": ["Release Players", "Request Offers", "Loan Players"]
 }
@@ -387,13 +387,11 @@ func _on_popup_item_selected(id: int):
 					pass
 		"improve_add":
 			match id:
-				0:  #Free Agents
+				0:  #Sign Players
+					get_tree().change_scene_to_file("res://sign_players.tscn")
+				1:  #Scouting
 					pass
-				1:  #Offer Sheets
-					pass
-				2:  #Scouting
-					pass
-				3:  #Tryouts
+				2:  #Tryouts
 					pass
 		"improve_trade":
 			match id:
