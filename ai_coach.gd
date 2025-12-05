@@ -4,7 +4,7 @@ extends Node
 var eccentricity: float #0-1, impacts chance of making random decisions
 var flexibility: float #0-1, impacts how likely the coach is to change strategies to accommodate the best players
 var reactivity: float #0-1, impacts how likely the coach is to make substitutions or changes early in the game
-var matchups: float #0-1, impacts how likely the coach is to pursue an enforcer vs thrower matchup or avoid a thrower vs enforcer
+var matchups: float #0-1, impacts how likely the coach is to worry about a percieved mismatch between pitchers or a definite mismatch between G/F
 var violence: float #0-1, impacts how likely the coach is to look to injure opposing players
 var injury_tolerance: float #0-1, impacts how likely the coach is to pull a player with a minor injury
 var defense_1: String #preferred defense strategy
@@ -23,15 +23,23 @@ var fav_weight_lg: float
 var fav_type_rg: String
 var fav_weight_rg: float
 var mix_f_roles: bool = false #whether the team will use lf role 1 with an rf role other than 1
-var subs_reserve: int = 1 #how many substitutes the coach will leave in reserve in case of an injury
 var max_platoon: int = 2 #how many players the coach will substitute at once
-var sub_frequency_p: float = 0.7 #0-1, how often the coach will substitute pitchers
+var sub_frequency_p: float = 0.7 #0-1, how often the coach will substitute pitchers if they're tired or mismatched
 var sub_frequency_g: float = 0.2
 var sub_frequency_f: float = 0.3
 var sub_frequency_k: float = 0.1
-var p_plan_players: Array = ["Workhorse", "Enforcer", "Curveball"] #planned pitcher substitution scheme
-var p_plan_time: Array = [9, 6, 6] #how many pitches each player will play
+var planned_pitcher_subs: int = 1 #1 or 2, used for planning how many pitchers to used in game
+var planned_tactical_subs: int = 2 #1 or 2, used for subbing field players (energy, guard-forward matchup, change in strategy)
+var planned_saved_subs: int = 1 #saved for injuries
+var pitcher_matchup_weights = ["faceoff", "pitch", "fight", "speed"] #impacts which pitchers are chosen and what a mismatch is
 var endurance_sub: float = 0.5 #how much max boost a player would need to be considered tired, modified by sub frequency for a position
+
+# Track total subs available and used
+var total_subs_available: int = 4
+var subs_used: int = 0
+var pitcher_subs_used: int = 0
+var tactical_subs_used: int = 0
+var injury_subs_used: int = 0
 
 var consecutive_goals_against: int = 0
 var last_goal_pitch: int = -1
@@ -54,6 +62,28 @@ var forward_role_preferences = {
 	"Goon": {"scorer": 0.0, "anti_keeper": 0.1, "support": 0.2, "skull_cracker": 0.8}
 }
 
+# Guard type matchup bonuses: LG looks at RF, RG looks at LF
+const GUARD_MATCHUP_BONUSES = {
+	"Defender": {
+		"Goal Scorer": 15,
+		"Support Forward": 10,
+		"Anti-Keeper": -10,
+		"Skull Cracker": -15
+	},
+	"Bully": {
+		"Anti-Keeper": 15,
+		"Skull Cracker": 10,
+		"Goal Scorer": -10,
+		"Support Forward": -15
+	},
+	"Ball Hound": {
+		"Goal Scorer": 0,
+		"Support Forward": 0,
+		"Anti-Keeper": 0,
+		"Skull Cracker": 0
+	}
+}
+
 var violence_roles = ["Roving Menace", "Goon"] #if the game is definitely a loss, put fighters as goons and non-fighters as menaces
 
 func _ready():
@@ -72,12 +102,14 @@ func make_coaching_decisions(myTeam: Team, otherTeam: Team, myScore: int, otherS
 		decisions["strategy_changes"]["defense"] = get_next_defense()
 		consecutive_goals_against = 0
 	
-	var planned_subs = check_substitution_plans(myTeam, pitchCount)
-	if planned_subs:
-		decisions["substitutions"].append_array(planned_subs)
+	# Check guard matchups based on new type bonus/debuff system
+	var guard_matchup_subs = check_guard_matchup_subs(myTeam, otherTeam)
+	if guard_matchup_subs.size() > 0 and can_make_subs(guard_matchup_subs.size()):
+		decisions["substitutions"].append_array(guard_matchup_subs)
+		tactical_subs_used += guard_matchup_subs.size()
 	
 	var needed_subs = check_need_substitution(myTeam, otherTeam, myScore, otherScore, pitchCount, pitches_remaining)
-	if needed_subs:
+	if needed_subs and can_make_subs(needed_subs.size()):
 		decisions["substitutions"].append_array(needed_subs)
 	
 	if decisions["substitutions"].size() > 0:
@@ -87,7 +119,7 @@ func make_coaching_decisions(myTeam: Team, otherTeam: Team, myScore: int, otherS
 	
 	if violence > 0 and is_losing_badly(myScore, otherScore, pitches_remaining):
 		var violence_subs = make_violence_subs(myTeam)
-		if violence_subs:
+		if violence_subs and can_make_subs(violence_subs.size()):
 			decisions["substitutions"].append_array(violence_subs)
 			# Check how good our players are at fighting, make them menaces if they're not tough enough
 			var lf_violence = get_player_violence_rating(myTeam.LF)
@@ -102,7 +134,232 @@ func make_coaching_decisions(myTeam: Team, otherTeam: Team, myScore: int, otherS
 				decisions["forward_role_changes"]["RF"] = "Goon"
 			else:
 				decisions["forward_role_changes"]["RF"] = "Roving Menace"
+	
 	return decisions
+
+func can_make_subs(num_subs: int) -> bool:
+	return (subs_used + num_subs) <= total_subs_available
+
+func get_subs_remaining() -> int:
+	return total_subs_available - subs_used
+
+# Check guard matchups based on new type bonus/debuff system
+func check_guard_matchup_subs(myTeam: Team, otherTeam: Team) -> Array:
+	var substitutions = []
+	
+	# Don't make matchup subs if we've used all planned tactical subs
+	if tactical_subs_used >= planned_tactical_subs:
+		return substitutions
+	
+	# Check LG vs RF matchup
+	var lg_matchup_value = calculate_guard_matchup_value(myTeam.LG, otherTeam.RF)
+	if lg_matchup_value < -10 * matchups:  # Negative value means bad matchup
+		var better_lg = find_best_guard_for_matchup(myTeam, "LG", otherTeam.RF)
+		if better_lg and better_lg != myTeam.LG:
+			var new_matchup_value = calculate_guard_matchup_value(better_lg, otherTeam.RF)
+			if new_matchup_value > lg_matchup_value + 10:  # Significant improvement
+				substitutions.append({"position": "LG", "player_out": myTeam.LG, "player_in": better_lg})
+	
+	# Check RG vs LF matchup
+	var rg_matchup_value = calculate_guard_matchup_value(myTeam.RG, otherTeam.LF)
+	if rg_matchup_value < -10 * matchups:
+		var better_rg = find_best_guard_for_matchup(myTeam, "RG", otherTeam.LF)
+		if better_rg and better_rg != myTeam.RG and substitutions.size() < max_platoon:
+			var new_matchup_value = calculate_guard_matchup_value(better_rg, otherTeam.LF)
+			if new_matchup_value > rg_matchup_value + 10:
+				substitutions.append({"position": "RG", "player_out": myTeam.RG, "player_in": better_rg})
+	
+	return substitutions
+
+# Calculate the matchup value between guard and forward based on type bonuses
+func calculate_guard_matchup_value(guard: Player, forward: Player) -> float:
+	var guard_type = guard.playStyle
+	var forward_type = forward.playStyle
+	
+	if not GUARD_MATCHUP_BONUSES.has(guard_type):
+		return 0.0
+	
+	var bonus = 0.0
+	if GUARD_MATCHUP_BONUSES[guard_type].has(forward_type):
+		bonus = GUARD_MATCHUP_BONUSES[guard_type][forward_type]
+	
+	# Factor in overall skill difference
+	var guard_overall = guard.calculate_guard_overall()
+	var forward_overall = forward.calculate_forward_overall()
+	var skill_diff = guard_overall - forward_overall
+	
+	return bonus + (skill_diff * 0.5)
+
+# Find best guard for a specific matchup
+func find_best_guard_for_matchup(myTeam: Team, position: String, opposing_forward: Player) -> Player:
+	var best_guard = null
+	var best_value = -INF
+	
+	for bench_player in myTeam.next_bench:
+		if bench_player.position_type != "guard":
+			continue
+		
+		if not bench_player.can_play_position(position):
+			continue
+		
+		var matchup_value = calculate_guard_matchup_value(bench_player, opposing_forward)
+		var energy_factor = bench_player.status.energy / 100.0
+		var total_value = matchup_value * energy_factor
+		
+		if total_value > best_value:
+			best_value = total_value
+			best_guard = bench_player
+	
+	return best_guard
+
+# Pitcher mismatch calculation including faceoff ratings
+func get_p_mismatch(myTeam: Team, otherTeam: Team) -> float:
+	var my_pitcher = myTeam.P
+	var opp_pitcher = otherTeam.P
+	
+	# Calculate weighted ratings based on coach's preferences
+	var my_rating = calculate_weighted_pitcher_rating(my_pitcher)
+	var opp_rating = calculate_weighted_pitcher_rating(opp_pitcher)
+	
+	var mismatch = (opp_rating - my_rating) / 25.0  # Normalize to -1 to 1 range
+	
+	# Factor in toughness if violence-oriented
+	if violence > 0.5:
+		var toughness_diff = (opp_pitcher.attributes.toughness - my_pitcher.attributes.toughness) / 50.0
+		mismatch += toughness_diff * violence * 0.3
+	
+	return clamp(mismatch, -1.0, 1.0)
+
+# Calculate pitcher rating based on coach's weighted preferences (faceoff, pitch, fight, speed)
+func calculate_weighted_pitcher_rating(pitcher: Player) -> float:
+	var ratings = {
+		"faceoff": (pitcher.attributes.reactions + pitcher.attributes.faceoffs) * 2 + 
+				   (pitcher.attributes.accuracy + pitcher.attributes.speedRating),
+		"pitch": (pitcher.attributes.power + pitcher.attributes.throwing + 
+				 pitcher.attributes.focus + pitcher.attributes.accuracy + 
+				 pitcher.attributes.confidence),
+		"fight": (pitcher.attributes.toughness + pitcher.attributes.shooting + 
+				 pitcher.attributes.power + pitcher.attributes.speedRating + 
+				 pitcher.attributes.durability + pitcher.attributes.balance),
+		"speed": pitcher.attributes.speedRating * 6
+	}
+	
+	# Weight based on coach preferences
+	var total_rating = 0.0
+	var total_weight = 0.0
+	
+	for category in pitcher_matchup_weights:
+		if ratings.has(category):
+			# Earlier in array = higher weight
+			var weight = 4.0 - pitcher_matchup_weights.find(category)
+			total_rating += ratings[category] * weight
+			total_weight += weight
+	
+	return total_rating / total_weight if total_weight > 0 else 0.0
+
+# Substitution checking with 4-sub limit awareness
+func check_need_substitution(myTeam: Team, otherTeam: Team, myScore: int, otherScore: int, pitchCount: int, pitches_remaining: int) -> Array:
+	var substitutions = []
+	var subs_remaining = get_subs_remaining()
+	
+	if subs_remaining == 0:
+		return substitutions
+	
+	if pitchCount < GlobalSettings.pitch_limit / 2:  # Early game
+		var sub_chance = reactivity * 0.3
+		
+		# Prioritize injury subs if we have saved subs
+		if injury_subs_used < planned_saved_subs:
+			var injury_subs = check_injury_substitutions(myTeam)
+			if injury_subs:
+				var num_to_add = min(injury_subs.size(), subs_remaining)
+				for i in range(num_to_add):
+					substitutions.append(injury_subs[i])
+					injury_subs_used += 1
+		
+		# Check for severe pitcher mismatch if we have pitcher subs planned
+		if pitcher_subs_used < planned_pitcher_subs and substitutions.size() < subs_remaining:
+			var p_mismatch = get_p_mismatch(myTeam, otherTeam)
+			var mismatch_severity = abs(p_mismatch)
+			var mismatch_chance = mismatch_severity * reactivity * matchups
+			
+			if mismatch_chance > randf():
+				var position_subs = address_mismatch(myTeam, otherTeam, p_mismatch)
+				if position_subs:
+					substitutions.append_array(position_subs)
+					pitcher_subs_used += 1
+	else:  # Late game
+		# Pitcher endurance sub
+		if pitcher_subs_used < planned_pitcher_subs and should_sub_pitcher_endurance(myTeam, pitchCount, pitches_remaining):
+			var pitcher_sub = get_pitcher_sub_by_situation(myTeam, pitches_remaining)
+			if pitcher_sub:
+				substitutions.append({"position": "P", "player_out": myTeam.P, "player_in": pitcher_sub})
+				pitcher_subs_used += 1
+		
+		# Fatigue subs
+		var fatigue_subs = check_fatigue_substitutions(myTeam, pitchCount)
+		if fatigue_subs and tactical_subs_used < planned_tactical_subs:
+			var num_to_add = min(fatigue_subs.size(), subs_remaining - substitutions.size(), 
+								planned_tactical_subs - tactical_subs_used)
+			for i in range(num_to_add):
+				substitutions.append(fatigue_subs[i])
+				tactical_subs_used += 1
+		
+		# Strategic subs if we still have room
+		if tactical_subs_used < planned_tactical_subs and substitutions.size() < subs_remaining:
+			var strategic_subs = check_strategic_substitutions(myTeam, myScore, otherScore, pitches_remaining)
+			if strategic_subs:
+				var num_to_add = min(strategic_subs.size(), subs_remaining - substitutions.size(),
+									planned_tactical_subs - tactical_subs_used)
+				for i in range(num_to_add):
+					substitutions.append(strategic_subs[i])
+					tactical_subs_used += 1
+	
+	return substitutions
+
+# Determine if pitcher should be subbed based on endurance and planned sub distribution
+func should_sub_pitcher_endurance(myTeam: Team, pitchCount: int, pitches_remaining: int) -> bool:
+	var pitcher = myTeam.P
+	var energy_threshold = endurance_sub * sub_frequency_p
+	
+	if pitcher.status.energy < energy_threshold * 100:
+		return true
+	
+	# Calculate expected innings for subs
+	if planned_pitcher_subs == 1:
+		# Starter plays 65%, reliever 35%
+		var sub_point = GlobalSettings.pitch_limit * 0.65
+		return pitchCount >= sub_point
+	elif planned_pitcher_subs == 2:
+		# Starter 50%, reliever 30%, closer 20%
+		var first_sub_point = GlobalSettings.pitch_limit * 0.50
+		var second_sub_point = GlobalSettings.pitch_limit * 0.80
+		
+		if pitcher_subs_used == 0:
+			return pitchCount >= first_sub_point
+		elif pitcher_subs_used == 1:
+			return pitchCount >= second_sub_point
+	
+	return false
+
+# Get best available pitcher based on weighted rating
+func get_pitcher_sub_by_situation(myTeam: Team, pitches_remaining: int) -> Player:
+	var best_pitcher = null
+	var best_score = -INF
+	
+	for bench_player in myTeam.next_bench:
+		if bench_player.position_type != "pitcher":
+			continue
+		
+		var rating = calculate_weighted_pitcher_rating(bench_player)
+		var energy_factor = bench_player.status.energy / 100.0
+		var total_score = rating * energy_factor
+		
+		if total_score > best_score:
+			best_score = total_score
+			best_pitcher = bench_player
+	
+	return best_pitcher
 
 func check_defense_change_needed(myScore: int, otherScore: int, pitchCount: int) -> bool:
 	if pitchCount > last_goal_pitch + 3:
@@ -132,49 +389,6 @@ func get_next_defense() -> String:
 		return defense_2
 	else:
 		return defense_1
-
-func check_substitution_plans(myTeam: Team, pitchCount: int) -> Array:
-	var substitutions = []
-	for i in range(p_plan_time.size()):
-		if pitchCount == p_plan_time[i]:
-			var plan_player_type = p_plan_players[i]
-			var replacement = find_best_replacement_by_type(myTeam, "P", plan_player_type)
-			if replacement and replacement != myTeam.P:
-				substitutions.append({"position": "P", "player_out": myTeam.P, "player_in": replacement})
-	
-	return substitutions
-
-func check_need_substitution(myTeam: Team, otherTeam: Team, myScore: int, otherScore: int, pitchCount: int, pitches_remaining: int) -> Array:
-	var substitutions = []
-	
-	if pitchCount < GlobalSettings.pitch_limit/2:#early game, try to keep the starters in
-		var sub_chance = reactivity * 0.3 #more reactive managers are more likely to sub early
-		# Check for injuries first
-		var injury_subs = check_injury_substitutions(myTeam)
-		if injury_subs:
-			substitutions.append_array(injury_subs)
-		# Check for severe mismatches
-		var p_mismatch = get_p_mismatch(myTeam, otherTeam)
-		# Use reactivity and severity to weigh chance
-		var mismatch_severity = abs(p_mismatch)
-		var mismatch_chance = mismatch_severity * reactivity * matchups
-		if mismatch_chance > randf() and substitutions.size() == 0:
-			var position_subs = address_mismatch(myTeam, otherTeam, p_mismatch)
-			if position_subs:
-				substitutions.append_array(position_subs)
-	else: #late game, more likely to substitute
-		var sub_chance = reactivity * 0.7
-		var fatigue_subs = check_fatigue_substitutions(myTeam, pitchCount)
-		if fatigue_subs:
-			substitutions.append_array(fatigue_subs)
-		if substitutions.size() == 0 and randf() < sub_frequency_f:
-			var forward_subs = check_forward_substitutions(myTeam, pitchCount)
-			if forward_subs:
-				substitutions.append_array(forward_subs)
-		var strategic_subs = check_strategic_substitutions(myTeam, myScore, otherScore, pitches_remaining)
-		if strategic_subs:
-			substitutions.append_array(strategic_subs)
-	return substitutions
 
 func check_forward_substitutions(myTeam: Team, pitchCount: int) -> Array:
 	var substitutions = []
@@ -310,19 +524,8 @@ func check_strategic_substitutions(myTeam: Team, myScore: int, otherScore: int, 
 			substitutions.append(defensive_sub)
 	return substitutions
 
-func get_p_mismatch(myTeam: Team, otherTeam: Team) -> float:
-	#positive values mean their pitcher is better/tougher, negative values mean our pitcher is better/tougher
-	var better = get_p_better(myTeam, otherTeam)
-	var tougher = get_p_tougher(myTeam, otherTeam)
-	var mismatch = (better + tougher) / 4.0 # Normalize to -1 to 1 range
-	# Weight violence preference continuously
-	if tougher > 0: #their pitcher is tougher
-		mismatch += (tougher / 4.0) * violence * 0.5  # Scale violence effect
-	return clamp(mismatch, -1.0, 1.0)
-
 func address_mismatch(myTeam: Team, otherTeam: Team, mismatch: float) -> Array:
 	var substitutions = []
-	
 	# Use reactivity and severity to determine substitution urgency
 	var severity = abs(mismatch)
 	var substitution_urgency = severity * reactivity
@@ -485,29 +688,9 @@ func get_best_tactical_role_for_player(player: Player) -> String:
 	
 	return best_role
 
-func get_p_better(myTeam: Team, otherTeam: Team) -> int:
-	if otherTeam.P.calculate_pitcher_overall() - myTeam.P.calculate_pitcher_overall() > 10: #their guy is better
-		return 2
-	elif otherTeam.P.calculate_pitcher_overall() - myTeam.P.calculate_pitcher_overall() > 5:
-		return 1
-	elif myTeam.P.calculate_pitcher_overall() - otherTeam.P.calculate_pitcher_overall() > 10:
-		return -2
-	elif myTeam.P.calculate_pitcher_overall() - otherTeam.P.calculate_pitcher_overall() > 5:
-		return -1
-	else:
-		return 0
-
-func get_p_tougher(myTeam: Team, otherTeam: Team) -> int:
-	if otherTeam.P.attributes.toughness - myTeam.P.attributes.toughness > 10: #their guy is tougher
-		return 2
-	elif otherTeam.P.attributes.toughness - myTeam.P.attributes.toughness > 5:
-		return 1
-	elif myTeam.P.attributes.toughness - otherTeam.P.attributes.toughness > 10:
-		return -2
-	elif myTeam.P.attributes.toughness - otherTeam.P.attributes.toughness > 5:
-		return -1
-	else:
-		return 0
+func note_goal_against(pitchCount: int):
+	consecutive_goals_against += 1
+	last_goal_pitch = pitchCount
 
 # Calculate a player's suitability for a specific forward role
 func rate_player_for_forward_role(player: Player, role: String) -> float:
@@ -685,34 +868,6 @@ func find_defensive_forward_upgrade(myTeam: Team, defensive_roles: Array) -> Dic
 	
 	return best_sub
 
-func find_forward_sub(myTeam: Team, otherTeam: Team) -> Player:
-	var game_weight = calculate_game_weight(myTeam, otherTeam)
-	var best_player = null
-	var best_score = -1.0
-	
-	for player in myTeam.next_bench:
-		if player.position_type != "forward":
-			continue
-			
-		var role_score = rate_player_for_forward_role(player, current_lf_role)
-		var overall = player.calculate_forward_overall()
-		var score = (role_score * 0.6) + (overall * 0.4) * game_weight
-		
-		if score > best_score:
-			best_score = score
-			best_player = player
-	
-	return best_player
-
-func calculate_game_weight(myTeam: Team, otherTeam: Team) -> float:
-	#TODO: set game state
-	var game_percentage #pitches played/max pitches
-	var scoreDiff #difference in team score
-	var comeback_possible #if there are enough pithces left in the game to overcome the score diff, factoring in overtime
-	var is_sudden_death #no reason to save substitutions if it's regular season overtime, but for playoff overtime which can last longer, better to hold off
-	#TODO: calculate weights
-	return 1.0
-
 func find_best_replacement(myTeam: Team, position: String) -> Player:
 	var best_player = null
 	var best_rating = -1.0
@@ -738,72 +893,12 @@ func find_best_replacement(myTeam: Team, position: String) -> Player:
 	
 	return best_player
 
-func find_best_replacement_by_type(myTeam: Team, position: String, player_type: String) -> Player:
-	var best_player = null
-	var best_score = -1.0
-	
-	for player in myTeam.next_bench:
-		if player.position_type != position:
-			continue
-		
-		var type_match_score = calculate_type_match_score(player, player_type)
-		if type_match_score > best_score:
-			best_score = type_match_score
-			best_player = player
-	
-	return best_player
-
-func calculate_type_match_score(player: Player, player_type: String) -> float:
-	var score = 0.0
-	var att = player.attributes
-	
-	match player_type:
-		"Workhorse":
-			score = (att.endurance * 0.5 + att.durability * 0.3 + att.focus * 0.2) / 100.0
-		"Enforcer":
-			score = (att.toughness * 0.4 + att.power * 0.3 + att.aggression * 0.3) / 100.0
-		"Curveball":
-			score = (att.focus * 0.4 + att.accuracy * 0.4 + att.confidence * 0.2) / 100.0
-		"Fastball":
-			score = (att.throwing * 0.4 + att.power * 0.4 + att.accuracy * 0.2) / 100.0
-		"Goal Scorer":
-			score = (att.shooting * 0.4 + att.accuracy * 0.3 + att.positioning * 0.3) / 100.0
-		"Anti-Keeper":
-			score = (att.power * 0.5 + att.speedRating * 0.3 + att.balance * 0.2) / 100.0
-		"Support Forward":
-			score = (att.positioning * 0.4 + att.reactions * 0.3 + att.accuracy * 0.3) / 100.0
-		"Skull Cracker":
-			score = (att.toughness * 0.4 + att.power * 0.3 + att.aggression * 0.3) / 100.0
-		"Ball Hound":
-			score = (att.reactions * 0.4 + att.blocking * 0.3 + att.speedRating * 0.3) / 100.0
-		"Defender":
-			score = (att.positioning * 0.4 + att.blocking * 0.3 + att.power * 0.3) / 100.0
-		"Bully":
-			score = (att.power * 0.4 + att.toughness * 0.4 + att.aggression * 0.2) / 100.0
-		_:
-			# Default case - likely a goalkeeper or undefined type
-			# Use goalkeeper-specific attributes
-			score = (att.reactions * 0.35 + att.blocking * 0.35 + att.agility * 0.2 + att.positioning * 0.1) / 100.0
-	
-	return score
-
 func find_toughest_pitcher(myTeam: Team) -> Player:
 	var toughest = null
 	var max_toughness = -1
 	
 	for player in myTeam.next_bench:
 		if player.position_type == "pitcher" and player.attributes.toughness > max_toughness:
-			max_toughness = player.attributes.toughness
-			toughest = player
-	
-	return toughest
-
-func find_toughest_player_by_position(myTeam: Team, position_type: String) -> Player:
-	var toughest = null
-	var max_toughness = -1
-	
-	for player in myTeam.next_bench:
-		if player.position_type == position_type and player.attributes.toughness > max_toughness:
 			max_toughness = player.attributes.toughness
 			toughest = player
 	
@@ -821,7 +916,3 @@ func get_position_sub_frequency(position_type: String) -> float:
 			return sub_frequency_k
 		_:
 			return 0.5
-
-func note_goal_against(pitchCount: int):
-	consecutive_goals_against += 1
-	last_goal_pitch = pitchCount
