@@ -45,17 +45,16 @@ func import_npcs_from_csv(path: String) -> void:
 func set_npc_properties(npc: Character, row: PackedStringArray, column_indices: Dictionary) -> void:
 	npc.preferred_job = get_csv_value(row, column_indices, "preferred_job", "player")
 	npc.day_job = get_csv_value(row, column_indices, "day_job", "none")
+	npc.home_cooking_style = get_csv_value(row, column_indices, "home_cooking", "bbq")
 	npc.day_job_pay = get_csv_value(row, column_indices, "day_job_pay", "0").to_int()
-	npc.home_cooking_style = get_csv_value(row, column_indices, "home_cooking_style", "bbq")
 	npc.gender = get_csv_value(row, column_indices, "gender", "m")
 	npc.gang_affiliation = get_csv_value(row, column_indices, "gang_affiliation", "")
-	
 	npc.spouses = get_csv_value(row, column_indices, "spouses", "0").to_int()
 	npc.children = get_csv_value(row, column_indices, "children", "0").to_int()
 	npc.elders = get_csv_value(row, column_indices, "elders", "0").to_int()
 	npc.adults = get_csv_value(row, column_indices, "adults", "0").to_int()
 	npc.family = npc.spouses + npc.children + npc.elders + npc.adults
-	
+	npc.best_league = get_csv_value(row, column_indices, "best_league", "0").to_int()
 	npc.off_attributes = {
 		"positivity": get_csv_value(row, column_indices, "positivity", "50").to_int(),
 		"negativity": get_csv_value(row, column_indices, "negativity", "50").to_int(),

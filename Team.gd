@@ -674,7 +674,8 @@ func debug_default_roster():
 		"toughness": 72,
 		"confidence": 71,
 		"agility": 75,
-		"faceoffs": 80 
+		"faceoffs": 80,
+		"discipline": 75 
 	}
 	P2.encode_player_type("HP")
 	var P3 = Player.new()
@@ -712,7 +713,8 @@ func debug_default_roster():
 		"toughness": 90,
 		"confidence": 60,
 		"agility": 65,
-		"faceoffs": 60 
+		"faceoffs": 60,
+		"discipline": 75 
 	}
 	P3.encode_player_type("AF")
 	var P4 = Player.new()
@@ -748,7 +750,8 @@ func debug_default_roster():
 		"shooting": 65,    
 		"toughness": 80,
 		"confidence": 60,
-		"agility": 80 
+		"agility": 80,
+		"discipline": 75 
 	}
 	P4.encode_player_type("SF")
 	var G1 = Guard.new()
@@ -786,7 +789,8 @@ func debug_default_roster():
 		"toughness": 70,
 		"confidence": 60,
 		"agility": 80,
-		"faceoffs": 50 
+		"faceoffs": 50,
+		"discipline": 80 
 	}
 	G1.encode_player_type("BG")
 	var G2 = Guard.new()
@@ -824,7 +828,8 @@ func debug_default_roster():
 		"toughness": 70,
 		"confidence": 60,
 		"agility": 80,
-		"faceoffs": 40 
+		"faceoffs": 40,
+		"discipline": 90 
 	}
 	G2.encode_player_type("DG")
 	var F1 = Forward.new()
@@ -862,7 +867,8 @@ func debug_default_roster():
 		"toughness": 70,
 		"confidence": 60,
 		"agility": 80,
-		"faceoffs": 66 
+		"faceoffs": 66,
+		"discipline": 76 
 	}
 	F1.encode_player_type("GF")
 	var F2 = Guard.new()
@@ -900,7 +906,8 @@ func debug_default_roster():
 		"toughness": 70,
 		"confidence": 60,
 		"agility": 80,
-		"faceoffs": 75 
+		"faceoffs": 75,
+		"discipline": 82 
 	}
 	F2.encode_player_type("CF")
 	# Add players

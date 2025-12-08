@@ -136,6 +136,8 @@ var staff_skills= {#impacts a character's ability to handle a given staff role
 	
 }
 
+var best_league = 0 #0 for never played, 1 for B, 2 for A, 3 for AA, 4 for AAA
+
 var liked_NPCs = [] #all players and staff which the character likes and is influenced by
 
 func get_family_count() -> int:

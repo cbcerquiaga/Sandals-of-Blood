@@ -1,21 +1,31 @@
-[gd_scene load_steps=21 format=3 uid="uid://dkxpvx0n1a0o7"]
+[gd_scene load_steps=31 format=3 uid="uid://dkxpvx0n1a0o7"]
 
 [ext_resource type="Script" path="res://sign_players.gd" id="1_qfm87"]
 [ext_resource type="Texture2D" uid="uid://ct6vtfmxy8eoo" path="res://UI/MenuUI/back_button_base.png" id="2_hr1iq"]
+[ext_resource type="Texture2D" uid="uid://8ij5kppxat5g" path="res://UI/FreeAgencyUI/positions_button_base.png" id="2_j5yxv"]
 [ext_resource type="Texture2D" uid="uid://cogfuux8c36rm" path="res://UI/PlayerTypeSymbols/playerType_anti_keeper.png" id="2_y0han"]
 [ext_resource type="Texture2D" uid="uid://n462x07kbx5s" path="res://UI/PlayerTypeSymbols/playerType_cannon.png" id="3_6whkd"]
 [ext_resource type="Texture2D" uid="uid://cl6f7cs2xrbn7" path="res://UI/MenuUI/back_button_highlighted.png" id="3_f08fc"]
+[ext_resource type="Texture2D" uid="uid://nwdgg11cr34b" path="res://UI/FreeAgencyUI/positions_button_highlighted.png" id="3_rejo2"]
 [ext_resource type="Texture2D" uid="uid://n4x2mkuundrs" path="res://UI/PauseUI/Default_button_base.png" id="4_52v3e"]
+[ext_resource type="Texture2D" uid="uid://cu8pdoyikhkoo" path="res://UI/FreeAgencyUI/styles_button_base.png" id="4_b528l"]
 [ext_resource type="Texture2D" uid="uid://bju7e5xhm2ivd" path="res://UI/PlayerTypeSymbols/playerType_skull.png" id="4_ffg4f"]
 [ext_resource type="Texture2D" uid="uid://nf57ed20an85" path="res://UI/PauseUI/Default_button_highlighted.png" id="5_02myf"]
+[ext_resource type="Texture2D" uid="uid://cg3hxm8cuetol" path="res://UI/FreeAgencyUI/styles_button_highlighted.png" id="5_d5v3s"]
 [ext_resource type="Texture2D" uid="uid://knqlxmpqjdeb" path="res://UI/PlayerTypeSymbols/playerType_support.png" id="5_imct7"]
+[ext_resource type="Texture2D" uid="uid://be0cf872cevh3" path="res://UI/FreeAgencyUI/filter_button_base.png" id="6_hkdg4"]
 [ext_resource type="Texture2D" uid="uid://pf85rblbvtlf" path="res://UI/PlayerTypeSymbols/playerType_brickwall.png" id="6_sfthn"]
 [ext_resource type="Texture2D" uid="uid://cm8lly5ligy3" path="res://UI/PlayerTypeSymbols/playerType_ballhound.png" id="7_oph73"]
 [ext_resource type="Texture2D" uid="uid://24u6mllnp38i" path="res://UI/PlayerTypeSymbols/playerType_fist.png" id="8_ettqh"]
+[ext_resource type="Texture2D" uid="uid://rdusopvpyvlw" path="res://UI/FreeAgencyUI/filter_button_highlighted.png" id="8_mvv45"]
+[ext_resource type="Texture2D" uid="uid://iagoiso3vyiq" path="res://UI/FreeAgencyUI/sort_button_base.png" id="9_k7nbr"]
 [ext_resource type="Texture2D" uid="uid://c31a4fn0qbes2" path="res://UI/PlayerTypeSymbols/playerType_ace.png" id="9_l486n"]
+[ext_resource type="Texture2D" uid="uid://d37jqdhjq1xdf" path="res://UI/FreeAgencyUI/sort_button_highlighted.png" id="10_erbqw"]
 [ext_resource type="Texture2D" uid="uid://birtlssk75m6u" path="res://UI/PlayerTypeSymbols/playerType_hatchet_man.png" id="10_w27qo"]
+[ext_resource type="Texture2D" uid="uid://b3np7la2kgigh" path="res://UI/FreeAgencyUI/view_button_base.png" id="11_h7l5r"]
 [ext_resource type="Texture2D" uid="uid://80tsc0fgb1bf" path="res://UI/PlayerTypeSymbols/playerType_track_hog.png" id="11_laaa6"]
 [ext_resource type="Texture2D" uid="uid://s0afhs6d5wep" path="res://UI/PlayerTypeSymbols/playerType_music.png" id="12_b52fq"]
+[ext_resource type="Texture2D" uid="uid://dg2wrt5n4yqhd" path="res://UI/FreeAgencyUI/view_button_highlighted.png" id="12_s6m0f"]
 [ext_resource type="Texture2D" uid="uid://dobxcf4t2o6fs" path="res://UI/PlayerTypeSymbols/playerType_machine.png" id="13_6u115"]
 [ext_resource type="Texture2D" uid="uid://dsh7n56wr6o5i" path="res://UI/PlayerTypeSymbols/playerType_spindoctor.png" id="14_mtstt"]
 [ext_resource type="Texture2D" uid="uid://bxd5ixm2gbmmi" path="res://UI/PlayerTypeSymbols/playerType_horseShoe.png" id="15_ivsyf"]
@@ -39,15 +49,33 @@ layout_mode = 2
 
 [node name="FilterPosition" type="TextureButton" parent="main/Filter"]
 layout_mode = 2
+texture_normal = ExtResource("2_j5yxv")
+texture_hover = ExtResource("3_rejo2")
+texture_focused = ExtResource("3_rejo2")
 
 [node name="FilterStyle" type="TextureButton" parent="main/Filter"]
 layout_mode = 2
+texture_normal = ExtResource("4_b528l")
+texture_hover = ExtResource("5_d5v3s")
+texture_focused = ExtResource("5_d5v3s")
 
 [node name="FilterTraits" type="TextureButton" parent="main/Filter"]
 layout_mode = 2
+texture_normal = ExtResource("6_hkdg4")
+texture_hover = ExtResource("8_mvv45")
+texture_focused = ExtResource("8_mvv45")
 
 [node name="Sort" type="TextureButton" parent="main/Filter"]
 layout_mode = 2
+texture_normal = ExtResource("9_k7nbr")
+texture_hover = ExtResource("10_erbqw")
+texture_focused = ExtResource("10_erbqw")
+
+[node name="View" type="TextureButton" parent="main/Filter"]
+layout_mode = 2
+texture_normal = ExtResource("11_h7l5r")
+texture_hover = ExtResource("12_s6m0f")
+texture_focused = ExtResource("12_s6m0f")
 
 [node name="ScrollContainer" type="ScrollContainer" parent="main"]
 layout_mode = 2
@@ -299,6 +327,7 @@ text = "Age is at Least"
 
 [node name="Min" type="OptionButton" parent="TraitsMenu/BioTraits/Age"]
 layout_mode = 2
+selected = 0
 
 [node name="Label3" type="Label" parent="TraitsMenu/BioTraits/Age"]
 layout_mode = 2
@@ -525,10 +554,40 @@ text = "Prospect"
 layout_mode = 2
 texture = ExtResource("16_84oia")
 
+[node name="ViewMenu" type="VBoxContainer" parent="."]
+visible = false
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="HBoxContainer" type="HBoxContainer" parent="ViewMenu"]
+layout_mode = 2
+
+[node name="DefaultView" type="CheckButton" parent="ViewMenu/HBoxContainer"]
+layout_mode = 2
+text = "Default"
+
+[node name="RelativeView" type="CheckButton" parent="ViewMenu/HBoxContainer"]
+layout_mode = 2
+text = "Relative"
+
+[node name="PersonalView" type="CheckButton" parent="ViewMenu/HBoxContainer"]
+layout_mode = 2
+text = "Personal"
+
+[node name="ContractView" type="CheckButton" parent="ViewMenu/HBoxContainer"]
+layout_mode = 2
+text = "Contract"
+
+[node name="PitchingView" type="CheckButton" parent="ViewMenu/HBoxContainer"]
+layout_mode = 2
+text = "Pitching"
+
 [connection signal="pressed" from="main/Filter/FilterPosition" to="." method="_on_filter_position_pressed"]
 [connection signal="pressed" from="main/Filter/FilterStyle" to="." method="_on_filter_style_pressed"]
 [connection signal="pressed" from="main/Filter/FilterTraits" to="." method="_on_filter_traits_pressed"]
 [connection signal="pressed" from="main/Filter/Sort" to="." method="_on_sort_pressed"]
+[connection signal="pressed" from="main/Filter/View" to="." method="_on_view_pressed"]
 [connection signal="pressed" from="main/Actions/Back" to="." method="_on_back_pressed"]
 [connection signal="pressed" from="main/Actions/Reset" to="." method="_on_reset_pressed"]
 [connection signal="toggled" from="TraitsMenu/ContractType/FreeAgents" to="." method="_on_free_agents_toggled"]
@@ -592,3 +651,8 @@ texture = ExtResource("16_84oia")
 [connection signal="toggled" from="StylesMenu/Goalies/SpinDr" to="." method="_on_spin_dr_toggled"]
 [connection signal="toggled" from="StylesMenu/Goalies/Workhorse" to="." method="_on_workhorse_toggled"]
 [connection signal="toggled" from="StylesMenu/Goalies/Prospect" to="." method="_on_prospect_toggled"]
+[connection signal="toggled" from="ViewMenu/HBoxContainer/DefaultView" to="." method="_on_default_view_toggled"]
+[connection signal="toggled" from="ViewMenu/HBoxContainer/RelativeView" to="." method="_on_relative_view_toggled"]
+[connection signal="toggled" from="ViewMenu/HBoxContainer/PersonalView" to="." method="_on_personal_view_toggled"]
+[connection signal="toggled" from="ViewMenu/HBoxContainer/ContractView" to="." method="_on_contract_view_toggled"]
+[connection signal="toggled" from="ViewMenu/HBoxContainer/PitchingView" to="." method="_on_pitching_view_toggled"]

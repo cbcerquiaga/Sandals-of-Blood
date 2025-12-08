@@ -20,10 +20,8 @@ script = ExtResource("2_w1g4r")
 [node name="RoadField" parent="." instance=ExtResource("1_wmjeh")]
 
 [node name="AITeam" parent="." instance=ExtResource("3_4qoer")]
-subs_remaining = null
 
 [node name="PlayerTeam" parent="." instance=ExtResource("3_4qoer")]
-subs_remaining = null
 
 [node name="Ball" parent="." instance=ExtResource("4_uyrol")]
 
