@@ -2,7 +2,7 @@ extends Node
 class_name Contract
 
 var current_team: Franchise
-var current_contract_type: String = "standard"
+var type: String = "standard"
 var seasons_left: int = 1
 var tryout_games_left = 1
 var current_salary = 0

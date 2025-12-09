@@ -61,6 +61,12 @@ func default_team():
 	team = Team.new()
 	team._init()
 
+func print_name():
+	if team.team_name_inverted:
+		return team.team_name + " of " + team.team_city
+	else:
+		return team.team_city + team.team_name
+
 func print_record():
 	return str(wins)+"-"+str(losses)+"-"+str(ties)
 

@@ -40,6 +40,14 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_qfm87")
 
+[node name="ColorRect" type="ColorRect" parent="."]
+visible = false
+layout_mode = 2
+offset_top = 658.0
+offset_right = 5416.0
+offset_bottom = 658.0
+color = Color(0.36087, 0.364469, 0.35662, 1)
+
 [node name="main" type="VBoxContainer" parent="."]
 layout_mode = 2
 offset_bottom = 40.0
@@ -349,6 +357,12 @@ layout_mode = 2
 tooltip_text = "Only include players where we know 100% of the attributes of the player"
 text = "Fully Scouted Only"
 
+[node name="BackButton" type="TextureButton" parent="TraitsMenu"]
+layout_mode = 2
+texture_normal = ExtResource("2_hr1iq")
+texture_hover = ExtResource("3_f08fc")
+texture_focused = ExtResource("3_f08fc")
+
 [node name="PositionsMenu" type="VBoxContainer" parent="."]
 visible = false
 layout_mode = 0
@@ -364,24 +378,30 @@ layout_mode = 2
 
 [node name="Plays_LF" type="CheckBox" parent="PositionsMenu/Frontcourt"]
 layout_mode = 2
+text = "Left Forward"
 
 [node name="Plays_P" type="CheckBox" parent="PositionsMenu/Frontcourt"]
 layout_mode = 2
+text = "Pitcher"
 
 [node name="Plays_RF" type="CheckBox" parent="PositionsMenu/Frontcourt"]
 layout_mode = 2
+text = "Right Forward"
 
 [node name="Backcourt" type="HBoxContainer" parent="PositionsMenu"]
 layout_mode = 2
 
 [node name="Plays_LG" type="CheckBox" parent="PositionsMenu/Backcourt"]
 layout_mode = 2
+text = "Left Guard"
 
 [node name="Plays_K" type="CheckBox" parent="PositionsMenu/Backcourt"]
 layout_mode = 2
+text = "Goalkeeper"
 
 [node name="Plays_RG" type="CheckBox" parent="PositionsMenu/Backcourt"]
 layout_mode = 2
+text = "Right Guard"
 
 [node name="NumPositions" type="HBoxContainer" parent="PositionsMenu"]
 layout_mode = 2
@@ -399,6 +419,12 @@ text = "and at most"
 
 [node name="Max" type="OptionButton" parent="PositionsMenu/NumPositions"]
 layout_mode = 2
+
+[node name="BackButton" type="TextureButton" parent="PositionsMenu"]
+layout_mode = 2
+texture_normal = ExtResource("2_hr1iq")
+texture_hover = ExtResource("3_f08fc")
+texture_focused = ExtResource("3_f08fc")
 
 [node name="StylesMenu" type="VBoxContainer" parent="."]
 visible = false
@@ -554,6 +580,12 @@ text = "Prospect"
 layout_mode = 2
 texture = ExtResource("16_84oia")
 
+[node name="BackButton" type="TextureButton" parent="StylesMenu"]
+layout_mode = 2
+texture_normal = ExtResource("2_hr1iq")
+texture_hover = ExtResource("3_f08fc")
+texture_focused = ExtResource("3_f08fc")
+
 [node name="ViewMenu" type="VBoxContainer" parent="."]
 visible = false
 layout_mode = 0
@@ -582,6 +614,12 @@ text = "Contract"
 [node name="PitchingView" type="CheckButton" parent="ViewMenu/HBoxContainer"]
 layout_mode = 2
 text = "Pitching"
+
+[node name="BackButton" type="TextureButton" parent="ViewMenu"]
+layout_mode = 2
+texture_normal = ExtResource("2_hr1iq")
+texture_hover = ExtResource("3_f08fc")
+texture_focused = ExtResource("3_f08fc")
 
 [connection signal="pressed" from="main/Filter/FilterPosition" to="." method="_on_filter_position_pressed"]
 [connection signal="pressed" from="main/Filter/FilterStyle" to="." method="_on_filter_style_pressed"]
@@ -628,6 +666,7 @@ text = "Pitching"
 [connection signal="toggled" from="TraitsMenu/BioTraits/Lefty" to="." method="_on_lefty_toggled"]
 [connection signal="toggled" from="TraitsMenu/BioTraits/Righty" to="." method="_on_righty_toggled"]
 [connection signal="toggled" from="TraitsMenu/BioTraits/FullScoutOnly" to="." method="_on_full_scout_only_toggled"]
+[connection signal="pressed" from="TraitsMenu/BackButton" to="." method="_on_back_button_pressed"]
 [connection signal="toggled" from="PositionsMenu/Frontcourt/Plays_LF" to="." method="_on_plays_lf_toggled"]
 [connection signal="toggled" from="PositionsMenu/Frontcourt/Plays_P" to="." method="_on_plays_p_toggled"]
 [connection signal="toggled" from="PositionsMenu/Frontcourt/Plays_RF" to="." method="_on_plays_rf_toggled"]
@@ -636,6 +675,7 @@ text = "Pitching"
 [connection signal="toggled" from="PositionsMenu/Backcourt/Plays_RG" to="." method="_on_plays_rg_toggled"]
 [connection signal="item_selected" from="PositionsMenu/NumPositions/Min" to="." method="_on_min_positions_selected"]
 [connection signal="item_selected" from="PositionsMenu/NumPositions/Max" to="." method="_on_max_positions_selected"]
+[connection signal="pressed" from="PositionsMenu/BackButton" to="." method="_on_back_button_pressed"]
 [connection signal="toggled" from="StylesMenu/Forwards/Anti" to="." method="_on_anti_toggled"]
 [connection signal="toggled" from="StylesMenu/Forwards/Scorer" to="." method="_on_scorer_toggled"]
 [connection signal="toggled" from="StylesMenu/Forwards/Skull" to="." method="_on_skull_toggled"]
@@ -651,8 +691,10 @@ text = "Pitching"
 [connection signal="toggled" from="StylesMenu/Goalies/SpinDr" to="." method="_on_spin_dr_toggled"]
 [connection signal="toggled" from="StylesMenu/Goalies/Workhorse" to="." method="_on_workhorse_toggled"]
 [connection signal="toggled" from="StylesMenu/Goalies/Prospect" to="." method="_on_prospect_toggled"]
+[connection signal="pressed" from="StylesMenu/BackButton" to="." method="_on_back_button_pressed"]
 [connection signal="toggled" from="ViewMenu/HBoxContainer/DefaultView" to="." method="_on_default_view_toggled"]
 [connection signal="toggled" from="ViewMenu/HBoxContainer/RelativeView" to="." method="_on_relative_view_toggled"]
 [connection signal="toggled" from="ViewMenu/HBoxContainer/PersonalView" to="." method="_on_personal_view_toggled"]
 [connection signal="toggled" from="ViewMenu/HBoxContainer/ContractView" to="." method="_on_contract_view_toggled"]
 [connection signal="toggled" from="ViewMenu/HBoxContainer/PitchingView" to="." method="_on_pitching_view_toggled"]
+[connection signal="pressed" from="ViewMenu/BackButton" to="." method="_on_back_button_pressed"]

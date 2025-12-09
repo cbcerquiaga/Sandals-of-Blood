@@ -1,7 +1,8 @@
 extends Node
+class_name CharacterImporter
 
 
-@export var csv_file_path: String = "res://npcs.csv" #TODO: import file
+@export var csv_file_path: String = "res://Assets/Rosters/debug_roster.csv"
 
 var imported_npcs: Array[Character] = []
 
@@ -163,14 +164,34 @@ func set_npc_properties(npc: Character, row: PackedStringArray, column_indices: 
 	}
 
 func calculate_top_focuses(focuses: Dictionary) -> Array:
-	#TODO: always take the top one of stability, flexibility, value
 	var focus_array = []
 	for focus_name in focuses:
-		focus_array.append({"name": focus_name, "value": focuses[focus_name]})
+		var focus_value = focuses[focus_name]
+		if focus_value is float or focus_value is int:
+			focus_array.append({"name": focus_name, "value": float(focus_value)})
 	focus_array.sort_custom(func(a, b): return a.value > b.value)
+	var primary_focuses = ["stability", "flexibility", "value"] #always have at least one of these
+	var has_primary = false
 	var top_names = []
 	for i in range(min(5, focus_array.size())):
-		top_names.append(focus_array[i].name)
+		if focus_array[i].name in primary_focuses:
+			has_primary = true
+			break
+	if not has_primary:
+		var best_primary = null
+		var best_primary_value = -INF
+		for focus in focus_array:
+			if focus.name in primary_focuses and focus.value > best_primary_value:
+				best_primary = focus
+				best_primary_value = focus.value
+		if best_primary:
+			top_names.append(best_primary.name)
+		for i in range(min(4, focus_array.size())):
+			if focus_array[i].name not in primary_focuses:
+				top_names.append(focus_array[i].name)
+	else:
+		for i in range(min(5, focus_array.size())):
+			top_names.append(focus_array[i].name)
 	return top_names
 
 func create_player_from_csv(row: PackedStringArray, column_indices: Dictionary) -> Player:
@@ -214,7 +235,9 @@ func create_player_from_csv(row: PackedStringArray, column_indices: Dictionary) 
 		"shooting": get_csv_value(row, column_indices, "shooting", "50").to_int(),
 		"toughness": get_csv_value(row, column_indices, "toughness", "50").to_int(),
 		"confidence": get_csv_value(row, column_indices, "confidence", "50").to_int(),
-		"agility": get_csv_value(row, column_indices, "agility", "50").to_int()
+		"agility": get_csv_value(row, column_indices, "agility", "50").to_int(),
+		"faceoffs": get_csv_value(row, column_indices, "faceoffs", "50").to_int(),
+		"discipline": get_csv_value(row, column_indices, "discipline", "50").to_int(),
 	}
 	player.attributes.speed = player.attributes.speedRating + 35.0
 	player.attributes.sprint_speed = (player.attributes.speedRating - 5) * 2.0
@@ -239,7 +262,7 @@ func create_contract_from_csv(row: PackedStringArray, column_indices: Dictionary
 	var contract = Contract.new()
 	#TODO: implement set_team() method in Contract class
 	# contract.current_team = get_csv_value(row, column_indices, "contract_team", "")
-	contract.current_contract_type = get_csv_value(row, column_indices, "contract_type", "standard")
+	contract.type = get_csv_value(row, column_indices, "contract_type", "standard")
 	contract.seasons_left = get_csv_value(row, column_indices, "contract_seasons_left", "1").to_int()
 	contract.tryout_games_left = get_csv_value(row, column_indices, "contract_tryout_games_left", "0").to_int()
 	contract.current_salary = get_csv_value(row, column_indices, "contract_salary", "0").to_int()

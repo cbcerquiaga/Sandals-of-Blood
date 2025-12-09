@@ -28,7 +28,6 @@ const min_skill_back: int = 71
 const min_mental_front: int = 60
 const min_mental_back: int = 74
 
-# Filter state
 var filters = {
 	"free_agents": true,
 	"standard": true,
@@ -38,7 +37,7 @@ var filters = {
 	"positions": ["LF", "P", "RF", "LG", "K", "RG"],
 	"min_positions": 1,
 	"max_positions": 6,
-	"styles": [],
+	"styles": ["Goal Scorer", "Anti-Keeper", "Skull Cracker", "Support Forward", "Defender", "Bully", "Ball Hound", "Machine", "Workhorse", "Maestro", "Spin Doctor", "Ace", "Hatchet Man", "Track Hog"], #TODO: make sure these are all true
 	"min_age": 0,
 	"max_age": 120,
 	"lefty": true,
@@ -55,10 +54,8 @@ var current_view: String = "default"
 
 func _ready():
 	var importer = CharacterImporter.new()
-	var result = importer.import_from_csv("res://data/characters.csv")
-	if result.success:
-		print("Imported %d characters" % result.total_imported)
-		all_characters = result.characters
+	importer.import_npcs_from_csv("res://Assets/Rosters/debug_roster.csv")
+	all_characters = importer.get_imported_npcs()
 	format_page()
 	fill_options()
 	apply_filters()
@@ -258,9 +255,17 @@ func sign_player_pressed(player: Character, num_tokens: int = 0):
 
 func _on_filter_position_pressed() -> void:
 	$PositionsMenu.show()
+	$PositionsMenu.scale = Vector2(3, 3)
+	$PositionsMenu.position = Vector2(1000,500)
+	$ColorRect.show()
+	$ColorRect.size = Vector2(1200, 1000)
 
 func _on_filter_style_pressed() -> void:
 	$StylesMenu.show()
+	$StylesMenu.position = Vector2(700, 500)
+	$ColorRect.show()
+	$ColorRect.global_position = $StylesMenu.global_position - Vector2(200, 0)
+	$ColorRect.size = Vector2(1800, 1200)
 
 func _on_filter_traits_pressed(looking_for_players: bool = true) -> void:
 	$TraitsMenu.show()
@@ -270,6 +275,9 @@ func _on_filter_traits_pressed(looking_for_players: bool = true) -> void:
 	else:
 		$TraitsMenu/StaffRole.show()
 		$TraitsMenu/ContractType.hide()
+	$TraitsMenu.scale = Vector2(2, 2)
+	$TraitsMenu.position = Vector2(200, 600)
+	$ColorRect.show()
 
 func _on_sort_pressed() -> void:
 	popup.clear()
@@ -677,24 +685,23 @@ func format_page():
 	
 	if filter_position_button:
 		setup_button(filter_position_button, button_size)
-	if filter_style_button:
 		setup_button(filter_style_button, button_size)
-	if filter_traits_button:
 		setup_button(filter_traits_button, button_size)
-	if sort_button:
 		setup_button(sort_button, button_size)
-	if back_button:
 		setup_button(back_button, button_size)
-	if view_button:
 		setup_button(view_button, button_size)
-	if reset_button:
 		setup_button(reset_button, button_size)
-	
+	if $ViewMenu/BackButton:
+		setup_button($ViewMenu/BackButton, button_size)
+		setup_button($StylesMenu/BackButton, button_size)
+		setup_button($PositionsMenu/BackButton, button_size)
+		setup_button($TraitsMenu/BackButton, button_size)
 	var icon_size = Vector2(200, 200)
 	scale_icon_group("StylesMenu/Forwards", icon_size)
 	scale_icon_group("StylesMenu/Guards", icon_size)
 	scale_icon_group("StylesMenu/Pitchers", icon_size)
 	scale_icon_group("StylesMenu/Goalies", icon_size)
+	#TODO: scale up $TraitsMenu, $PositionsMenu, and $ViewMenu
 
 func setup_button(button: TextureButton, target_size: Vector2):
 	button.ignore_texture_size = true
@@ -717,10 +724,12 @@ func scale_icon_group(parent_path: String, target_size: Vector2):
 					child.texture = ImageTexture.create_from_image(image)
 
 func populate_scrollbar():
+	print("Allcharacters size: " +str(all_characters.size()))
 	for child in scrolling_area.get_children():
 		child.queue_free()
 	var alternate_color = false
 	for character in filtered_characters:
+		print("Character found")
 		var row = create_row(character, alternate_color)
 		scrolling_area.add_child(row)
 		alternate_color = !alternate_color
@@ -826,8 +835,8 @@ func add_label(container: HBoxContainer, text: String):
 	container.add_child(label)
 
 func get_contract_team(character: Character) -> String:
-	if character.contract and character.contract.has("team"):
-		return character.contract.team
+	if character.contract and character.contract.current_team != null:
+		return character.contract.current_team.print_name()
 	return "Free Agent"
 
 func get_contract_type(character: Character) -> String:
@@ -969,3 +978,14 @@ func no_results():
 	no_results_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	message_container.add_child(no_results_label)
 	scrolling_area.add_child(message_container)
+
+
+func _on_back_button_pressed() -> void:
+	$TraitsMenu.hide()
+	$PositionsMenu.hide()
+	$StylesMenu.hide()
+	$ViewMenu.hide()
+	$ColorRect.hide()
+	populate_scrollbar()
+	$main.show()
+	$main/Filter/FilterPosition.grab_focus()
