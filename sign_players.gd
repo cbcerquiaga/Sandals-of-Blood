@@ -285,6 +285,10 @@ func sign_player_pressed(player: Character, num_tokens: int = 0):
 
 func _on_filter_position_pressed() -> void:
 	$PositionsMenu.show()
+	$main.hide()
+	$TraitsMenu.hide()
+	$StylesMenu.hide()
+	$ViewMenu.hide()
 	$PositionsMenu.scale = Vector2(3, 3)
 	$PositionsMenu.position = Vector2(1000,500)
 	$ColorRect.show()
@@ -294,6 +298,10 @@ func _on_filter_style_pressed() -> void:
 	$StylesMenu.show()
 	$StylesMenu.position = Vector2(700, 500)
 	$ColorRect.show()
+	$ViewMenu.hide()
+	$PositionsMenu.hide()
+	$TraitsMenu.hide()
+	$main.hide()
 	$ColorRect.global_position = $StylesMenu.global_position - Vector2(200, 0)
 	$ColorRect.size = Vector2(1800, 1200)
 
@@ -308,6 +316,10 @@ func _on_filter_traits_pressed(looking_for_players: bool = true) -> void:
 	$TraitsMenu.scale = Vector2(2, 2)
 	$TraitsMenu.position = Vector2(200, 600)
 	$ColorRect.show()
+	$main.hide()
+	$PositionsMenu.hide()
+	$StylesMenu.hide()
+	$ViewMenu.hide()
 
 func _on_sort_pressed() -> void:
 	popup.clear()
@@ -338,6 +350,29 @@ func get_columns_for_view() -> Array:
 				{"display_name": "Player Type", "sort_key": "player_type"},
 				{"display_name": "Overall Rating", "sort_key": "overall"}
 			]
+		"detailed":
+			return [
+				{"display_name": "First", "sort_key": "first_name"},
+				{"display_name": "Last", "sort_key": "last_name"},
+				{"display_name": "Speed", "sort_key": "speedRating"},
+				{"display_name": "Blocking", "sort_key": "blocking"},
+				{"display_name": "Positioning", "sort_key": "positioning"},
+				{"display_name": "Aggression", "sort_key": "aggression"},
+				{"display_name": "Reactions", "sort_key": "reactions"},
+				{"display_name": "Durability", "sort_key": "durability"},
+				{"display_name": "Strength", "sort_key": "power"},
+				{"display_name": "Throwing", "sort_key": "throwing"},
+				{"display_name": "Endurance", "sort_key": "endurance"},
+				{"display_name": "Accuracy", "sort_key": "accuracy"},
+				{"display_name": "Balance", "sort_key": "balance"},
+				{"display_name": "Focus", "sort_key": "focus"},
+				{"display_name": "Striking", "sort_key": "shooting"},
+				{"display_name": "Toughness", "sort_key": "toughness"},
+				{"display_name": "Confidence", "sort_key": "confidence"},
+				{"display_name": "Agility", "sort_key": "agility"},
+				{"display_name": "Faceoffs", "sort_key": "faceoffs"},
+				{"display_name": "Discipline", "sort_key": "discipline"}
+			]
 		"relative":
 			return [
 				{"display_name": "First Name", "sort_key": "first_name"},
@@ -364,19 +399,25 @@ func get_columns_for_view() -> Array:
 				{"display_name": "Day Job", "sort_key": "day_job"},
 				{"display_name": "Gang Affiliation", "sort_key": "gang"},
 				{"display_name": "Family Size", "sort_key": "family_size"},
-				{"display_name": "Favorite Food", "sort_key": "cooking_style"},
-				{"display_name": "Best League", "sort_key": "best_league"}
+				{"display_name": "Home Cooking", "sort_key": "cooking_style"},
+				{"display_name": "Best League", "sort_key": "best_league"},
+				{"display_name": "Focus 1", "sort_key": "focus1"},
+				{"display_name": "Focus 2", "sort_key": "focus2"},
+				{"display_name": "Focus 3", "sort_key": "focus3"}
 			]
 		"contract":
 			return [
-				{"display_name": "First Name", "sort_key": "first_name"},
-				{"display_name": "Nickname", "sort_key": "nickname"},
-				{"display_name": "Last Name", "sort_key": "last_name"},
-				{"display_name": "Contract Type", "sort_key": "contract_type"},
+				{"display_name": "First", "sort_key": "first_name"},
+				{"display_name": "Last", "sort_key": "last_name"},
+				{"display_name": "Type", "sort_key": "contract_type"},
 				{"display_name": "Expiry", "sort_key": "expiry"},
 				{"display_name": "Length", "sort_key": "length"},
 				{"display_name": "Wage", "sort_key": "wage"},
-				{"display_name": "Ownership Share", "sort_key": "ownership"}
+				{"display_name": "Food", "sort_key": "food"},
+				{"display_name": "Water", "sort_key": "water"},
+				{"display_name": "Housing", "sort_key": "housing"},
+				{"display_name": "Buyout", "sort_key": "buyout"},
+				{"display_name": "Share", "sort_key": "ownership"}
 			]
 		"pitching":
 			return [
@@ -498,6 +539,32 @@ func get_sort_value(character: Character, column: String):
 		"mental":
 			return (character.player.attributes.positioning + character.player.attributes.reactions + 
 					character.player.attributes.discipline) / 3.0
+		"speedRating":
+			return character.player.attributes.speedRating
+		"blocking":
+			return character.player.attributes.blocking
+		"positioning":
+			return character.player.attributes.positioning
+		"aggression":
+			return character.player.attributes.aggression
+		"reactions":
+			return character.player.attributes.reactions
+		"agility":
+			return character.player.attributes.agility
+		"discipline":
+			return character.player.attributes.discipline
+		"food":
+			return character.contract.current_food if character.contract else 0
+		"water":
+			return character.contract.current_water if character.contract else 0
+		"housing": #TODO: sort alphabetically
+			if character.contract and character.contract.has("current_housing"):
+				return character.contract.current_housing
+			return ""
+		"buyout": #TODO: sort as free, then 50%, then 100%, then 200%, then no buyout
+			if character.contract and character.contract.has("current_buyout"):
+				return character.contract.current_buyout
+			return ""
 	return 0
 
 func _on_reset_pressed() -> void:
@@ -750,67 +817,96 @@ func scale_icon_group(parent_path: String, target_size: Vector2):
 				if image:
 					image.resize(int(target_size.x), int(target_size.y))
 					child.texture = ImageTexture.create_from_image(image)
-
+					
+func create_header_row() -> PanelContainer:
+	var header = PanelContainer.new()
+	var stylebox = StyleBoxFlat.new()
+	stylebox.bg_color = Color(0.1, 0.1, 0.1)
+	header.add_theme_stylebox_override("panel", stylebox)
+	var hbox = HBoxContainer.new()
+	hbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	hbox.add_theme_constant_override("separation", 30)
+	header.add_child(hbox)
+	var padding_label = Label.new()
+	padding_label.custom_minimum_size = Vector2(150, 0)
+	padding_label.text = ""
+	hbox.add_child(padding_label)
+	var columns = get_columns_for_view()
+	for column in columns:
+		var label = Label.new()
+		label.text = column.display_name
+		label.add_theme_color_override("font_color", Color.WHITE)
+		label.add_theme_font_size_override("font_size", 28)
+		label.custom_minimum_size = Vector2(150, 0)
+		label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		label.size_flags_stretch_ratio = 1.0
+		label.clip_text = false
+		label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		hbox.add_child(label)
+	var select_label = Label.new()
+	select_label.text = "Select"
+	select_label.custom_minimum_size = Vector2(120, 0)
+	select_label.add_theme_color_override("font_color", Color.WHITE)
+	select_label.add_theme_font_size_override("font_size", 28)
+	select_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	select_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	hbox.add_child(select_label)
+	return header
+	
 func populate_scrollbar():
 	print("All characters size: " + str(all_characters.size()))
 	print("Filtered characters size: " + str(filtered_characters.size()))
-	
-	# Clear existing rows
 	for child in scrolling_area.get_children():
 		child.queue_free()
-	
-	# Wait for children to actually be freed
 	await get_tree().process_frame
-	
+	var header = create_header_row()
+	scrolling_area.add_child(header)
 	if filtered_characters.size() == 0:
 		no_results()
 		return
-	
 	var alternate_color = false
 	for character in filtered_characters:
 		print("Adding character: " + character.player.bio.last_name)
 		var row = create_row(character, alternate_color)
 		scrolling_area.add_child(row)
 		alternate_color = !alternate_color
-	
 	print("Total rows added: " + str(scrolling_area.get_child_count()))
 
-func create_row(character: Character, dark_row: bool) -> HBoxContainer:
-	var row = HBoxContainer.new()
-	row.custom_minimum_size = Vector2(0, 80)
-	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	
-	var bg = ColorRect.new()
-	bg.color = Color(0.3, 0.3, 0.3) if dark_row else Color(0.2, 0.2, 0.2)
-	bg.z_index = -1
-	bg.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	bg.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	row.add_child(bg)
-	
-	# Add left padding label
+func create_row(character: Character, dark_row: bool) -> PanelContainer:
+	var row = PanelContainer.new()
+	var stylebox = StyleBoxFlat.new()
+	stylebox.bg_color = Color(0.3, 0.3, 0.3) if dark_row else Color(0.2, 0.2, 0.2)
+	row.add_theme_stylebox_override("panel", stylebox)
+	var hbox = HBoxContainer.new()
+	hbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	hbox.add_theme_constant_override("separation", 10)
+	row.add_child(hbox)
 	var padding_label = Label.new()
 	padding_label.custom_minimum_size = Vector2(100, 0)
 	padding_label.text = ""
-	row.add_child(padding_label)
+	hbox.add_child(padding_label)
 	
 	match current_view:
 		"default":
-			add_default_view_columns(row, character)
+			add_default_view_columns(hbox, character)
 		"relative":
-			add_relative_view_columns(row, character)
+			add_relative_view_columns(hbox, character)
 		"personal":
-			add_personal_view_columns(row, character)
+			add_personal_view_columns(hbox, character)
 		"contract":
-			add_contract_view_columns(row, character)
+			add_contract_view_columns(hbox, character)
 		"pitching":
-			add_pitching_view_columns(row, character)
+			add_pitching_view_columns(hbox, character)
+		"detailed":
+			add_detailed_view_columns(hbox, character)
 	
 	var select_button = Button.new()
 	select_button.text = "Select"
-	select_button.custom_minimum_size = Vector2(120, 60)
+	select_button.custom_minimum_size = Vector2(120, 0)  # Changed from (120, 60) to match header
+	select_button.size_flags_horizontal = Control.SIZE_FILL  # Add this to match label behavior
 	select_button.pressed.connect(func(): player_selected(character))
-	row.add_child(select_button)
+	hbox.add_child(select_button)
 	
 	return row
 
@@ -820,11 +916,13 @@ func add_label(container: HBoxContainer, text: String):
 	label.add_theme_color_override("font_color", Color.WHITE)
 	label.add_theme_font_size_override("font_size", 28)
 	label.custom_minimum_size = Vector2(150, 0)
-	label.size_flags_horizontal = Control.SIZE_FILL
+	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	label.size_flags_stretch_ratio = 1.0
 	label.clip_text = false
 	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	container.add_child(label)
+
 
 func add_default_view_columns(row: HBoxContainer, character: Character):
 	add_label(row, character.player.bio.first_name)
@@ -834,7 +932,7 @@ func add_default_view_columns(row: HBoxContainer, character: Character):
 	add_label(row, get_contract_type(character))
 	add_label(row, get_primary_position(character))
 	add_label(row, get_secondary_positions(character))
-	add_label(row, str(character.player.bio.years))
+	add_label(row, "          " + str(character.player.bio.years))
 	add_label(row, character.player.playStyle)
 	add_label(row, str(get_overall_rating(character.player)))
 
@@ -864,20 +962,29 @@ func add_personal_view_columns(row: HBoxContainer, character: Character):
 	add_label(row, str(character.get_family_count()))
 	add_label(row, character.home_cooking_style)
 	add_label(row, get_best_league_string(character.best_league))
+	var top_focuses = get_top_3_focuses(character)
+	var focus_list = top_focuses.split(", ")
+	for i in range(3):
+		if i < focus_list.size():
+			add_label(row, focus_list[i])
+		else:
+			add_label(row, "-")
 
 func add_contract_view_columns(row: HBoxContainer, character: Character):
 	add_label(row, character.player.bio.first_name)
-	add_label(row, character.player.bio.nickname if character.player.bio.nickname else "-")
 	add_label(row, character.player.bio.last_name)
 	
 	if character.contract:
 		add_label(row, get_contract_type(character))
-		add_label(row, str(character.contract.seasons_remaining) if character.contract.has("seasons_remaining") else "1")
-		add_label(row, str(character.contract.length))
-		add_label(row, str(character.contract.salary) + "¢")
-		add_label(row, str(character.contract.ownership_share) + "%" if character.contract.has("ownership_share") else "0%")
+		add_label(row, str(character.contract.seasons_left) if character.contract.seasons_left != null else "0")
+		add_label(row, str(character.contract.current_salary) + "¢")
+		add_label(row, str(character.contract.current_food) if character.contract.current_food != null else "0")
+		add_label(row, str(character.contract.current_water) if character.contract.current_water != null else "0")
+		add_label(row, character.contract.current_housing if character.contract.current_housing != null else "N/A")
+		add_label(row, character.contract.current_buyout if character.contract.current_buyout != null else "N/A")
+		add_label(row, str(character.contract.current_share) + "%" if character.contract.current_share != null else "0%")
 	else:
-		for i in range(5):
+		for i in range(11):
 			add_label(row, "N/A")
 
 func add_pitching_view_columns(row: HBoxContainer, character: Character):
@@ -1049,6 +1156,29 @@ func _on_back_button_pressed() -> void:
 
 func initialize_filter_ui():
 	var success = true
+	
+	var nodes_to_set = [ #block signals while setting these to keep the scrollbar from drawing more than once
+		$TraitsMenu/BioTraits/Age/Min,
+		$TraitsMenu/BioTraits/Age/Max,
+		$PositionsMenu/NumPositions/Min,
+		$PositionsMenu/NumPositions/Max,
+		$TraitsMenu/ContractType/FreeAgents,
+		$TraitsMenu/ContractType/Standard,
+		$TraitsMenu/ContractType/Tradeable,
+		$TraitsMenu/ContractType/Franchise,
+		$TraitsMenu/ContractType/Staff,
+		get_node_or_null("TraitsMenu/BioTraits/Handedness/Lefty"),
+		get_node_or_null("TraitsMenu/BioTraits/Handedness/Righty"),
+		get_node_or_null("PositionsMenu/Positions/LF"),
+		get_node_or_null("PositionsMenu/Positions/P"),
+		get_node_or_null("PositionsMenu/Positions/RF"),
+		get_node_or_null("PositionsMenu/Positions/LG"),
+		get_node_or_null("PositionsMenu/Positions/K"),
+		get_node_or_null("PositionsMenu/Positions/RG")
+	]
+	for node in nodes_to_set:
+		if node:
+			node.set_block_signals(true)
 	$TraitsMenu/BioTraits/Age/Min.selected = filters.min_age
 	$TraitsMenu/BioTraits/Age/Max.selected = filters.max_age
 	$PositionsMenu/NumPositions/Min.selected = filters.min_positions - 1
@@ -1058,44 +1188,125 @@ func initialize_filter_ui():
 	$TraitsMenu/ContractType/Tradeable.button_pressed = filters.tradeable
 	$TraitsMenu/ContractType/Franchise.button_pressed = filters.franchise
 	$TraitsMenu/ContractType/Staff.button_pressed = filters.staff
+	
 	var filtering_left = get_node_or_null("TraitsMenu/BioTraits/Handedness/Lefty")
 	if filtering_left and filtering_left is CheckButton:
 		filtering_left.button_pressed = filters.lefty
 	else:
 		success = false
+		
 	var filtering_right = get_node_or_null("TraitsMenu/BioTraits/Handedness/Righty")
 	if filtering_right and filtering_right is CheckButton:
 		filtering_right.button_pressed = filters.righty
 	else:
 		success = false
+		
 	var lf_node = get_node_or_null("PositionsMenu/Positions/LF")
 	if lf_node and lf_node is CheckButton:
 		lf_node.button_pressed = "LF" in filters.positions
 	else:
 		success = false
+		
 	var p_node = get_node_or_null("PositionsMenu/Positions/P")
 	if p_node and p_node is CheckButton:
 		p_node.button_pressed = "P" in filters.positions
 	else:
 		success = false
+		
 	var rf_node = get_node_or_null("PositionsMenu/Positions/RF")
 	if rf_node and rf_node is CheckButton:
 		rf_node.button_pressed = "RF" in filters.positions
 	else:
 		success = false
+		
 	var lg_node = get_node_or_null("PositionsMenu/Positions/LG")
 	if lg_node and lg_node is CheckButton:
 		lg_node.button_pressed = "LG" in filters.positions
 	else:
 		success = false
+		
 	var k_node = get_node_or_null("PositionsMenu/Positions/K")
 	if k_node and k_node is CheckButton:
 		k_node.button_pressed = "K" in filters.positions
 	else:
 		success = false
+		
 	var rg_node = get_node_or_null("PositionsMenu/Positions/RG")
 	if rg_node and rg_node is CheckButton:
 		rg_node.button_pressed = "RG" in filters.positions
 	else:
 		success = false
+	for node in nodes_to_set:
+		if node:
+			node.set_block_signals(false)
+	
 	return success
+
+func _on_view_pressed() -> void:
+	popup.clear()
+	if popup.id_pressed.is_connected(_on_view_item_selected):
+		popup.id_pressed.disconnect(_on_view_item_selected)
+	popup.add_item("Default View", 0)
+	popup.add_item("Relative View", 1)
+	popup.add_item("Detailed View", 2)
+	popup.add_item("Personal View", 3)
+	popup.add_item("Contract View", 4)
+	popup.add_item("Pitching View", 5)
+	popup.id_pressed.connect(_on_view_item_selected)
+	popup.popup_centered()
+
+
+func _on_view_item_selected(id: int) -> void:
+	match id:
+		0:  # Default View
+			current_view = "default"
+		1:  # Relative View
+			current_view = "relative"
+		2: # Detailed view
+			current_view = "detailed"
+		3:  # Personal View
+			current_view = "personal"
+		4:  # Contract View
+			current_view = "contract"
+		5:  # Pitching View
+			current_view = "pitching"
+			
+	populate_scrollbar()
+
+func add_detailed_view_columns(row: HBoxContainer, character: Character):
+	add_label(row, character.player.bio.first_name)
+	add_label(row, character.player.bio.last_name)
+	add_label(row, str(character.player.attributes.speedRating))
+	add_label(row, str(character.player.attributes.blocking))
+	add_label(row, str(character.player.attributes.positioning))
+	add_label(row, str(character.player.attributes.aggression))
+	add_label(row, str(character.player.attributes.reactions))
+	add_label(row, str(character.player.attributes.durability))
+	add_label(row, str(character.player.attributes.power))
+	add_label(row, str(character.player.attributes.throwing))
+	add_label(row, str(character.player.attributes.endurance))
+	add_label(row, str(character.player.attributes.accuracy))
+	add_label(row, str(character.player.attributes.balance))
+	add_label(row, str(character.player.attributes.focus))
+	add_label(row, str(character.player.attributes.shooting))
+	add_label(row, str(character.player.attributes.toughness))
+	add_label(row, str(character.player.attributes.confidence))
+	add_label(row, str(character.player.attributes.agility))
+	add_label(row, str(character.player.attributes.faceoffs))
+	add_label(row, str(character.player.attributes.discipline))
+	
+func get_top_3_focuses(character: Character) -> String:
+	if character.top_focuses and character.top_focuses.size() > 0:
+		var focuses = []
+		for i in range(min(3, character.top_focuses.size())):
+			focuses.append(character.top_focuses[i])
+		return ", ".join(focuses)
+	var focuses_dict = character.contract_focuses
+	if focuses_dict.size() == 0:
+		return ""
+	var sorted_focuses = focuses_dict.keys()
+	sorted_focuses.sort_custom(func(a, b): return focuses_dict[a] > focuses_dict[b])
+	var top_focuses = []
+	for i in range(min(3, sorted_focuses.size())):
+		top_focuses.append(sorted_focuses[i])
+	return ", ".join(top_focuses)
