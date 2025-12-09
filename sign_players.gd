@@ -52,6 +52,8 @@ var current_sort_column: String = ""
 var sort_ascending: bool = true
 var current_view: String = "default"
 
+var has_initialized_filters: bool
+
 func _ready():
 	var importer = CharacterImporter.new()
 	importer.import_npcs_from_csv("res://Assets/Rosters/debug_roster.csv")
@@ -60,12 +62,22 @@ func _ready():
 	fill_options()
 	apply_filters()
 	populate_scrollbar()
+	initialize_filter_ui()
+	popup.size = Vector2(800, 400)
+	has_initialized_filters = false
 	filter_position_button.grab_focus()
+
+	
+func _process(delta: float) -> void:
+	if !has_initialized_filters:
+		has_initialized_filters = initialize_filter_ui()
 
 func player_selected(player: Character):
 	print("Player selected: " + player.player.bio.last_name)
 	popup.clear()
-	
+	if popup.id_pressed.is_connected(_on_popup_item_selected):
+		popup.id_pressed.disconnect(_on_popup_item_selected)
+	popup.id_pressed.connect(func(id: int): _on_popup_item_selected(id, player))
 	if player.contract:
 		match player.contract.type:
 			"tradeable":
@@ -82,6 +94,23 @@ func player_selected(player: Character):
 	popup.add_item("Comparables", 4)
 	popup.add_item("Career", 5)
 	popup.popup_centered()
+	
+func _on_popup_item_selected(id: int, player: Character):
+	match id:
+		0:  # Trade
+			print("Trade selected for: " + player.player.bio.last_name)
+			# Add trade logic here
+		1:  # Sign (Free)
+			sign_player_pressed(player, 0)
+		2:  # Sign (1 Token)
+			sign_player_pressed(player, 1)
+		3:  # Sign (2 Tokens)
+			sign_player_pressed(player, 2)
+		4:  # Comparables
+			comparables_button_pressed(player)
+		5:  # Career
+			print("Career selected for: " + player.player.bio.last_name)
+			#TODO: bring up player history
 
 func comparables_button_pressed(player: Character):
 	print("Finding comparable contracts")
@@ -247,6 +276,7 @@ func pick_6_contract_features(player1: Character, player2: Character, player3: C
 	return selected_features
 
 func sign_player_pressed(player: Character, num_tokens: int = 0):
+	print("Get that guy a contract!")
 	var comparable_features = []
 	if all_characters.size() > 3:
 		comparables_button_pressed(player)
@@ -480,14 +510,13 @@ func _on_reset_pressed() -> void:
 		"positions": ["LF", "P", "RF", "LG", "K", "RG"],
 		"min_positions": 1,
 		"max_positions": 6,
-		"styles": [],
+		"styles": ["Goal Scorer", "Anti-Keeper", "Skull Cracker", "Support Forward", "Defender", "Bully", "Ball Hound", "Machine", "Workhorse", "Maestro", "Spin Doctor", "Ace", "Hatchet Man", "Track Hog"],
 		"min_age": 0,
 		"max_age": 120,
 		"lefty": true,
 		"righty": true,
 		"full_scout_only": false,
 		"attribute_filters": [],
-		#TODO: all player styles true
 	}
 	apply_filters()
 	populate_scrollbar()
@@ -525,8 +554,7 @@ func passes_all_filters(character: Character) -> bool:
 	else:
 		if not filters.free_agents:
 			return false
-	
-	# Position filters
+	#Position
 	var has_valid_position = false
 	for pos in character.player.playable_positions:
 		if pos in filters.positions:
@@ -534,22 +562,22 @@ func passes_all_filters(character: Character) -> bool:
 			break
 	if not has_valid_position:
 		return false
-	
-	# Position count filters
+	#Position count
 	var num_positions = character.player.playable_positions.size()
 	if num_positions < filters.min_positions or num_positions > filters.max_positions:
 		return false
-	
-	# Age filters
+	#Playing style
+	if filters.styles.size() > 0:
+		if not character.player.playStyle in filters.styles:
+			return false
+	#Age
 	if character.player.bio.years < filters.min_age or character.player.bio.years > filters.max_age:
 		return false
-	
-	# Handedness filters
+	#Handedness
 	if character.player.bio.leftHanded and not filters.lefty:
 		return false
 	if not character.player.bio.leftHanded and not filters.righty:
 		return false
-	
 	return true
 
 func _on_filter_changed():
@@ -724,24 +752,47 @@ func scale_icon_group(parent_path: String, target_size: Vector2):
 					child.texture = ImageTexture.create_from_image(image)
 
 func populate_scrollbar():
-	print("Allcharacters size: " +str(all_characters.size()))
+	print("All characters size: " + str(all_characters.size()))
+	print("Filtered characters size: " + str(filtered_characters.size()))
+	
+	# Clear existing rows
 	for child in scrolling_area.get_children():
 		child.queue_free()
+	
+	# Wait for children to actually be freed
+	await get_tree().process_frame
+	
+	if filtered_characters.size() == 0:
+		no_results()
+		return
+	
 	var alternate_color = false
 	for character in filtered_characters:
-		print("Character found")
+		print("Adding character: " + character.player.bio.last_name)
 		var row = create_row(character, alternate_color)
 		scrolling_area.add_child(row)
 		alternate_color = !alternate_color
+	
+	print("Total rows added: " + str(scrolling_area.get_child_count()))
 
 func create_row(character: Character, dark_row: bool) -> HBoxContainer:
 	var row = HBoxContainer.new()
-	row.custom_minimum_size = Vector2(0, 50)
+	row.custom_minimum_size = Vector2(0, 80)
+	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	
 	var bg = ColorRect.new()
 	bg.color = Color(0.3, 0.3, 0.3) if dark_row else Color(0.2, 0.2, 0.2)
 	bg.z_index = -1
+	bg.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	bg.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	row.add_child(bg)
+	
+	# Add left padding label
+	var padding_label = Label.new()
+	padding_label.custom_minimum_size = Vector2(100, 0)
+	padding_label.text = ""
+	row.add_child(padding_label)
 	
 	match current_view:
 		"default":
@@ -757,10 +808,23 @@ func create_row(character: Character, dark_row: bool) -> HBoxContainer:
 	
 	var select_button = Button.new()
 	select_button.text = "Select"
+	select_button.custom_minimum_size = Vector2(120, 60)
 	select_button.pressed.connect(func(): player_selected(character))
 	row.add_child(select_button)
 	
 	return row
+
+func add_label(container: HBoxContainer, text: String):
+	var label = Label.new()
+	label.text = text
+	label.add_theme_color_override("font_color", Color.WHITE)
+	label.add_theme_font_size_override("font_size", 28)
+	label.custom_minimum_size = Vector2(150, 0)
+	label.size_flags_horizontal = Control.SIZE_FILL
+	label.clip_text = false
+	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	container.add_child(label)
 
 func add_default_view_columns(row: HBoxContainer, character: Character):
 	add_label(row, character.player.bio.first_name)
@@ -826,13 +890,6 @@ func add_pitching_view_columns(row: HBoxContainer, character: Character):
 	add_label(row, str(character.player.attributes.accuracy))
 	add_label(row, str(character.player.attributes.confidence))
 	add_label(row, str(character.player.attributes.focus))
-
-func add_label(container: HBoxContainer, text: String):
-	var label = Label.new()
-	label.text = text
-	label.add_theme_color_override("font_color", Color.WHITE)
-	label.custom_minimum_size = Vector2(100, 0)
-	container.add_child(label)
 
 func get_contract_team(character: Character) -> String:
 	if character.contract and character.contract.current_team != null:
@@ -968,7 +1025,7 @@ func fill_options():
 
 func no_results():
 	for child in scrolling_area.get_children():
-		child.queue_free()
+		child.free()
 	var message_container = HBoxContainer.new()
 	message_container.custom_minimum_size = Vector2(0, 100)
 	message_container.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -989,3 +1046,56 @@ func _on_back_button_pressed() -> void:
 	populate_scrollbar()
 	$main.show()
 	$main/Filter/FilterPosition.grab_focus()
+
+func initialize_filter_ui():
+	var success = true
+	$TraitsMenu/BioTraits/Age/Min.selected = filters.min_age
+	$TraitsMenu/BioTraits/Age/Max.selected = filters.max_age
+	$PositionsMenu/NumPositions/Min.selected = filters.min_positions - 1
+	$PositionsMenu/NumPositions/Max.selected = filters.max_positions - 1
+	$TraitsMenu/ContractType/FreeAgents.button_pressed = filters.free_agents
+	$TraitsMenu/ContractType/Standard.button_pressed = filters.standard
+	$TraitsMenu/ContractType/Tradeable.button_pressed = filters.tradeable
+	$TraitsMenu/ContractType/Franchise.button_pressed = filters.franchise
+	$TraitsMenu/ContractType/Staff.button_pressed = filters.staff
+	var filtering_left = get_node_or_null("TraitsMenu/BioTraits/Handedness/Lefty")
+	if filtering_left and filtering_left is CheckButton:
+		filtering_left.button_pressed = filters.lefty
+	else:
+		success = false
+	var filtering_right = get_node_or_null("TraitsMenu/BioTraits/Handedness/Righty")
+	if filtering_right and filtering_right is CheckButton:
+		filtering_right.button_pressed = filters.righty
+	else:
+		success = false
+	var lf_node = get_node_or_null("PositionsMenu/Positions/LF")
+	if lf_node and lf_node is CheckButton:
+		lf_node.button_pressed = "LF" in filters.positions
+	else:
+		success = false
+	var p_node = get_node_or_null("PositionsMenu/Positions/P")
+	if p_node and p_node is CheckButton:
+		p_node.button_pressed = "P" in filters.positions
+	else:
+		success = false
+	var rf_node = get_node_or_null("PositionsMenu/Positions/RF")
+	if rf_node and rf_node is CheckButton:
+		rf_node.button_pressed = "RF" in filters.positions
+	else:
+		success = false
+	var lg_node = get_node_or_null("PositionsMenu/Positions/LG")
+	if lg_node and lg_node is CheckButton:
+		lg_node.button_pressed = "LG" in filters.positions
+	else:
+		success = false
+	var k_node = get_node_or_null("PositionsMenu/Positions/K")
+	if k_node and k_node is CheckButton:
+		k_node.button_pressed = "K" in filters.positions
+	else:
+		success = false
+	var rg_node = get_node_or_null("PositionsMenu/Positions/RG")
+	if rg_node and rg_node is CheckButton:
+		rg_node.button_pressed = "RG" in filters.positions
+	else:
+		success = false
+	return success
