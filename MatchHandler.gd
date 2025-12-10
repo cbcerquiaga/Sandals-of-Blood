@@ -220,7 +220,7 @@ func _on_ball_exited_field():
 			ball.force_inbounds()
 		out_of_bounds_frames += 1
 		ball.apply_drag()
-		
+
 func lineup_faceoff(already_set_position: bool = false):
 	is_faceoff = true
 	is_play_live = false
@@ -228,31 +228,33 @@ func lineup_faceoff(already_set_position: bool = false):
 	field.ball_in_play = true
 	for player in pTeam.onfield_players + aTeam.onfield_players:
 		if player:
-			player.can_move = false
 			player.velocity = Vector2.ZERO
-	
+			player.can_move = false
+			player.reset_state()
+			if player.current_behavior in ["fighting", "brawling", "chasing", "rushing"]:
+				player.current_behavior = "waiting"
 	if !already_set_position:
 		var left_faceoff = field.l_fo
 		var right_faceoff = field.r_fo
-		#TODO: determine if the ball went out on the left or right sideline
 		if ball.global_position.x < 0:
 			faceoff_ball_position = left_faceoff
 		else:
 			faceoff_ball_position = right_faceoff
+	ball.linear_velocity = Vector2.ZERO
+	ball.global_position = faceoff_ball_position
+	ball.current_state = Ball.BallState.WAITING
+	ball.freeze = true
 	var offset_distance = 15.0
-	var human_pitcher_pos = Vector2(faceoff_ball_position.x,faceoff_ball_position.y + offset_distance)
+	var human_pitcher_pos = Vector2(faceoff_ball_position.x, faceoff_ball_position.y + offset_distance)
 	position_player(pTeam.P, human_pitcher_pos, field.human_orientation)
 	pTeam.P.current_behavior = "faceoff"
 	pTeam.P.can_move = false
-	var cpu_pitcher_pos = Vector2(faceoff_ball_position.x,faceoff_ball_position.y - offset_distance)
+	pTeam.P.velocity = Vector2.ZERO
+	var cpu_pitcher_pos = Vector2(faceoff_ball_position.x, faceoff_ball_position.y - offset_distance)
 	position_player(aTeam.P, cpu_pitcher_pos, field.cpu_orientation)
 	aTeam.P.current_behavior = "faceoff"
 	aTeam.P.can_move = false
-	ball.global_position = faceoff_ball_position
-	ball.linear_velocity = Vector2.ZERO
-	ball.current_state = Ball.BallState.WAITING
-	ball.freeze = true
-	#position other players in their starting positions
+	aTeam.P.velocity = Vector2.ZERO
 	position_player(pTeam.K, field.human_k_spawn, field.human_orientation)
 	position_player(pTeam.LG, field.human_lg_spawn, field.human_orientation)
 	position_player(pTeam.RG, field.human_rg_spawn, field.human_orientation)
@@ -263,8 +265,7 @@ func lineup_faceoff(already_set_position: bool = false):
 	position_player(aTeam.RG, field.cpu_rg_spawn, field.cpu_orientation)
 	position_player(aTeam.LF, field.cpu_lf_spawn, field.cpu_orientation)
 	position_player(aTeam.RF, field.cpu_rf_spawn, field.cpu_orientation)
-
-	await get_tree().create_timer(0.5).timeout #TODO: have visual feedback TODO: figure out how long to make the delay
+	await get_tree().create_timer(0.5).timeout
 	execute_faceoff()
 
 func execute_faceoff():
@@ -546,16 +547,21 @@ func reset_match(p_offense):
 	is_in_extra_pitches = false
 	extra_pitches_used = 0
 	match_ended = false
+	current_play_time = 0.0
+	is_play_live = false
+	is_ball_pitched = false
+	is_faceoff = false
 	if GlobalSettings.human_always_pitch:
 		p_offense = true
 	is_human_team_pitching = p_offense
 	pTeam.is_on_offense = p_offense
 	aTeam.is_on_offense = !p_offense
-	enlighten_players()
-	statusUI.assign_team(self)
 	pTeam.default_grooves()
 	aTeam.default_grooves()
-	reset_play()
+	enlighten_players()
+	statusUI.assign_team(self)
+	await get_tree().process_frame
+	next_play()
 	
 func on_ball_pitched():
 	if !is_ball_pitched:
@@ -640,8 +646,10 @@ func _process(delta: float) -> void:
 					if pTeam.K != null and field.cpuGoal != null and ball.global_position != null:
 						print("We're ready")
 						ready_to_start = true
-						has_started = true
-						reset_match(true)
+		elif ready_to_start:
+			has_started = true
+			reset_match(true)
+			ready_to_start = false
 					
 		else:
 			reset_match(true)
@@ -718,34 +726,26 @@ func _process(delta: float) -> void:
 			pTeam.LG.add_energy(100)
 			pTeam.RG.add_energy(100)
 		
-
 func next_play():
 	if pTeam.K.is_workhorse:
-		pTeam.fire_up_bench
+		pTeam.fire_up_bench()
 	if aTeam.K.is_workhorse:
-		aTeam.fire_up_bench
+		aTeam.fire_up_bench()
 	if is_faceoff:
 		return 
-	print("Starting next play - Human pitching: " + str(is_human_team_pitching))
 	is_play_live = false
 	is_ball_pitched = false
-	reset_players_for_next_play()
-	# Reset play state but keep scores and pitching team assignment
 	current_play_time = 0.0
 	out_of_bounds_frames = 0
-	# Update team status for next play
-	#pTeam.check_pending_substitutions()
-	#aTeam.check_pending_substitutions()
+	reset_players_for_next_play()
 	pTeam.nextPlayStatus()
 	aTeam.nextPlayStatus()
 	pTeam.update_field()
 	aTeam.update_field()
-	reset_ball_and_field()
 	reposition_players()
 	setup_pitching_team()
+
 	statusUI.assign_team(self)
-	
-	# Start play timer
 	play_timer.start(GlobalSettings.play_time if GlobalSettings.play_time > 0 else 9999)
 	fighting_frame = 0
 	check_matchups()
@@ -753,20 +753,19 @@ func next_play():
 
 func reset_players_for_next_play():
 	is_play_live = false
-	# Reset player states and disable movement until ball is pitched
+	is_ball_pitched = false
 	for player in pTeam.onfield_players + aTeam.onfield_players:
 		if player:
-			player.can_move = false
 			player.velocity = Vector2.ZERO
-			player.lose_energy((100 - player.get_buffed_attribute("endurance"))/10) #0.1 for 99 endurance, 5 for 50
+			player.can_move = false
 			player.reset_state()
+			player.lose_energy((100 - player.get_buffed_attribute("endurance"))/10)
 			player.starting_position = player.global_position
-	pTeam.bench_rest() #resting players regain energy
+	pTeam.bench_rest()
 	aTeam.bench_rest()
-	# Clear team control
 	pTeam.wipe_player_control()
 	aTeam.wipe_player_control()
-	statusUI.assign_team(self) #update the UI
+	statusUI.assign_team(self)
 
 func pitch_returned():
 	if is_human_team_pitching:
