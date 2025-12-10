@@ -36,7 +36,7 @@ func import_npcs_from_csv(path: String) -> void:
 		var contract = create_contract_from_csv(row, column_indices)
 		npc.player = player
 		npc.contract = contract
-		
+		npc.scout_report = ScoutReport.new()
 		imported_npcs.append(npc)
 		print("Imported NPC: " + npc.player.bio.first_name + " " + npc.player.bio.last_name)
 	
@@ -262,7 +262,7 @@ func create_contract_from_csv(row: PackedStringArray, column_indices: Dictionary
 	var contract = Contract.new()
 	#TODO: implement set_team() method in Contract class
 	# contract.current_team = get_csv_value(row, column_indices, "contract_team", "")
-	contract.type = get_csv_value(row, column_indices, "contract_type", "standard")
+	contract.type = get_csv_value(row, column_indices, "contract_type", "free_agent")
 	contract.seasons_left = get_csv_value(row, column_indices, "contract_seasons_left", "1").to_int()
 	contract.tryout_games_left = get_csv_value(row, column_indices, "contract_tryout_games_left", "0").to_int()
 	contract.current_salary = get_csv_value(row, column_indices, "contract_salary", "0").to_int()

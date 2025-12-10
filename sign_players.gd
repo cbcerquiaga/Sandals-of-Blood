@@ -51,8 +51,8 @@ var filtered_characters: Array = []
 var current_sort_column: String = ""
 var sort_ascending: bool = true
 var current_view: String = "default"
-
 var has_initialized_filters: bool
+var comparables
 
 func _ready():
 	var importer = CharacterImporter.new()
@@ -91,8 +91,8 @@ func player_selected(player: Character):
 	else:
 		popup.add_item("Sign (Free)", 1)
 	
-	popup.add_item("Comparables", 4)
-	popup.add_item("Career", 5)
+	#popup.add_item("Comparables", 4)
+	popup.add_item("Career", 4)
 	popup.popup_centered()
 	
 func _on_popup_item_selected(id: int, player: Character):
@@ -112,7 +112,7 @@ func _on_popup_item_selected(id: int, player: Character):
 			print("Career selected for: " + player.player.bio.last_name)
 			#TODO: bring up player history
 
-func comparables_button_pressed(player: Character):
+func comparables_button_pressed(player: Character): 
 	print("Finding comparable contracts")
 	var comparable_players = []
 	var num_positions = player.player.playable_positions.size()
@@ -121,144 +121,275 @@ func comparables_button_pressed(player: Character):
 		if character == player:
 			continue
 		
-		# Check player type match
-		if character.player.playStyle != player.player.playStyle:
-			continue
+		# Calculate similarity score (0-100)
+		var similarity_score = calculate_similarity_score(player, character, num_positions)
 		
-		# Age filtering
-		var age_match = false
-		if player.player.bio.years < 20:
-			age_match = character.player.bio.years < 20
-		elif player.player.bio.years > 35:
-			age_match = character.player.bio.years > 35
-		else:
-			age_match = abs(character.player.bio.years - player.player.bio.years) <= 2
-		
-		if not age_match:
-			continue
-		
-		# Calculate similarity score
-		var position_similarity = float(character.player.playable_positions.size()) / float(num_positions)
-		if position_similarity > 1.0:
-			position_similarity = 1.0 / position_similarity
-		
-		var overall_player = get_overall_rating(player.player)
-		var overall_char = get_overall_rating(character.player)
-		var rating_similarity = 1.0 - (abs(overall_player - overall_char) / 100.0)
-		
-		var total_similarity = (position_similarity + rating_similarity) / 2.0
-		comparable_players.append({"character": character, "similarity": total_similarity})
+		if similarity_score > 0:  # Only include players with some similarity
+			comparable_players.append({
+				"character": character, 
+				"similarity": similarity_score
+			})
 	
-	# Sort by similarity
+	# Sort by similarity (highest first)
 	comparable_players.sort_custom(func(a, b): return a.similarity > b.similarity)
 	
-	# Pick top 3
+	# Always get top 3 (or pad with lower similarity if needed)
 	var top_3 = []
 	for i in range(min(3, comparable_players.size())):
-		top_3.append(comparable_players[i].character)
+		top_3.append(comparable_players[i])
 	
-	if top_3.size() >= 3:
-		pick_6_contract_features(top_3[0], top_3[1], top_3[2])
-	else:
-		print("Not enough comparable players found")
+	# If we don't have 3 players, relax constraints and search again
+	if top_3.size() < 3:
+		print("Warning: Only found ", top_3.size(), " comparable players")
+		# Could implement fallback logic here if needed
+	
+	# Get contract features and store in comparables
+	# Store as array of [similarity, type, value, display, player_name]
+	comparables = get_contract_features_data(top_3, player)
+	
+	print("Found ", top_3.size(), " comparable players with contract data")
 
-func pick_6_contract_features(player1: Character, player2: Character, player3: Character):
-	print("Here are your similar players:")
-	print(player1.player.bio.last_name, ", ", player2.player.bio.last_name, ", ", player3.player.bio.last_name)
+
+func get_play_style_similarity(style1: String, style2: String) -> float:
+	# Returns 0.0 to 1.0 based on how similar two play styles are
 	
-	var all_features = []
+	# Exact match
+	if style1 == style2:
+		return 1.0
 	
-	# Collect all contract features from the three comparable players
-	for p in [player1, player2, player3]:
-		if p.contract:
-			# Contract type
-			all_features.append({
-				"type": "contract_type",
-				"value": p.contract.type,
-				"display": "Contract: " + p.contract.type.capitalize(),
-				"player": p.player.bio.last_name
-			})
-			
-			# Wage
-			all_features.append({
-				"type": "wage",
-				"value": p.contract.salary,
-				"display": "Wage: " + str(p.contract.salary) + "¢/week",
-				"player": p.player.bio.last_name
-			})
-			
-			# Food
-			if p.contract.has("food"):
-				all_features.append({
-					"type": "food",
-					"value": p.contract.food,
-					"display": "Food: " + str(p.contract.food) + " meals/week",
-					"player": p.player.bio.last_name
-				})
-			
-			# Water
-			if p.contract.has("water"):
-				all_features.append({
-					"type": "water",
-					"value": p.contract.water,
-					"display": "Water: " + str(p.contract.water) + "L/week",
-					"player": p.player.bio.last_name
-				})
-			
-			# Ownership share
-			if p.contract.has("ownership_share"):
-				all_features.append({
-					"type": "ownership",
-					"value": p.contract.ownership_share,
-					"display": "Ownership: " + str(p.contract.ownership_share) + "%",
-					"player": p.player.bio.last_name
-				})
-			
-			# Buyout clause
-			if p.contract.has("buyout_clause"):
-				all_features.append({
-					"type": "buyout",
-					"value": p.contract.buyout_clause,
-					"display": "Buyout: " + p.contract.buyout_clause.capitalize(),
-					"player": p.player.bio.last_name
-				})
-			
-			# Housing type
-			if p.contract.has("housing"):
-				all_features.append({
-					"type": "housing",
-					"value": p.contract.housing,
-					"display": "Housing: " + p.contract.housing.capitalize(),
-					"player": p.player.bio.last_name
-				})
-			
-			# Contract length
-			if p.contract.has("length"):
-				all_features.append({
-					"type": "length",
-					"value": p.contract.length,
-					"display": "Length: " + str(p.contract.length) + " seasons",
-					"player": p.player.bio.last_name
-				})
-			
-			# Bonus clause
-			if p.contract.has("bonus_clause"):
-				all_features.append({
-					"type": "bonus",
-					"value": p.contract.bonus_clause,
-					"display": "Bonus: " + str(p.contract.bonus_clause),
-					"player": p.player.bio.last_name
-				})
+	# Define similarity groups
+	var similarity_groups = {
+		"Goal Scorer": ["Ball Hound"],
+		"Ball Hound": ["Goal Scorer"],
+		"Skull Cracker": ["Bully"],
+		"Bully": ["Skull Cracker"],
+		"Anti-Keeper": ["Support Forward"],
+		"Support Forward": ["Anti-Keeper"],
+		"Hatchet Man": ["Track Hog"],
+		"Track Hog": ["Hatchet Man"],
+		"Defender": ["Machine", "Workhorse"],
+		"Machine": ["Defender", "Workhorse"],
+		"Workhorse": ["Defender", "Machine"],
+		"Spin Doctor": ["Ace"],
+		"Ace": ["Spin Doctor"]
+	}
 	
-	# Shuffle features
-	all_features.shuffle()
+	# Check if styles are in a similarity group together
+	if similarity_groups.has(style1):
+		if style2 in similarity_groups[style1]:
+			return 0.7  # High similarity for grouped styles
+	
+	# Get primary positions for each style
+	var style1_positions = get_positions_for_style(style1)
+	var style2_positions = get_positions_for_style(style2)
+	
+	# Check if they share any positions (same position type)
+	for pos1 in style1_positions:
+		for pos2 in style2_positions:
+			if pos1 == pos2:
+				return 0.5  # Medium similarity for same position, different style
+	
+	# Different positions, different styles
+	return 0.2  # Low but not zero similarity
+
+func get_positions_for_style(style: String) -> Array:
+	# Returns typical positions for each play style
+	match style:
+		"Goal Scorer", "Anti-Keeper", "Skull Cracker", "Support Forward":
+			return ["LF", "RF"]
+		"Defender", "Bully", "Ball Hound":
+			return ["LG", "RG"]
+		"Hatchet Man", "Track Hog", "Ace", "Spin Doctor":
+			return ["P"]
+		"Machine", "Workhorse", "Maestro":
+			return ["K"]
+	return []
+
+func calculate_similarity_score(target_player: Character, compare_player: Character, target_num_positions: int) -> float:
+	var score = 0.0
+	var max_score = 100.0
+	
+	# Play style similarity (25 points max)
+	var style_similarity = get_play_style_similarity(target_player.player.playStyle, compare_player.player.playStyle)
+	score += style_similarity * 25.0
+	
+	# Age similarity (25 points max)
+	var age_score = 0.0
+	var age_diff = abs(compare_player.player.bio.years - target_player.player.bio.years)
+	
+	if target_player.player.bio.years < 20:
+		age_score = 25.0 if compare_player.player.bio.years < 20 else 0.0
+	elif target_player.player.bio.years > 35:
+		age_score = 25.0 if compare_player.player.bio.years > 35 else 0.0
+	else:
+		# Linear decay: perfect match = 25, 10 years diff = 0
+		age_score = max(0.0, 25.0 - (age_diff * 2.5))
+	
+	score += age_score
+	
+	# Position similarity (25 points max)
+	var position_overlap = 0
+	for pos in compare_player.player.playable_positions:
+		if pos in target_player.player.playable_positions:
+			position_overlap += 1
+	
+	var position_score = 0.0
+	if target_num_positions > 0:
+		var overlap_ratio = float(position_overlap) / float(max(target_num_positions, compare_player.player.playable_positions.size()))
+		position_score = overlap_ratio * 25.0
+	
+	score += position_score
+	
+	# Overall rating similarity (25 points max)
+	var target_overall = get_overall_rating(target_player.player)
+	var compare_overall = get_overall_rating(compare_player.player)
+	var rating_diff = abs(target_overall - compare_overall)
+	
+	# Linear decay: same rating = 25, 20+ points diff = 0
+	var rating_score = max(0.0, 25.0 - (rating_diff * 1.25))
+	score += rating_score
+	
+	return score
+
+func get_contract_features_data(top_comparables: Array, target_player: Character) -> Array:
+	# Returns 2D array: [[similarity_score, feature_type, feature_value, display_text, player_name], ...]
+	var features_data = []
+	
+	for comparable in top_comparables:
+		var character = comparable.character
+		var similarity = comparable.similarity
+		
+		if not character.contract:
+			continue
+		
+		# Contract type
+		features_data.append([
+			similarity,
+			"contract_type",
+			character.contract.type,
+			"Contract: " + character.contract.type.capitalize(),
+			character.player.bio.last_name
+		])
+		
+		# Salary
+		if character.contract.current_salary > 0:
+			features_data.append([
+				similarity,
+				"salary",
+				character.contract.current_salary,
+				"Wage: " + str(character.contract.current_salary) + "¢/week",
+				character.player.bio.last_name
+			])
+		
+		# Food
+		if character.contract.current_food > 0:
+			features_data.append([
+				similarity,
+				"food",
+				character.contract.current_food,
+				"Food: " + str(character.contract.current_food) + " meals/week",
+				character.player.bio.last_name
+			])
+		
+		# Water
+		if character.contract.current_water > 0:
+			features_data.append([
+				similarity,
+				"water",
+				character.contract.current_water,
+				"Water: " + str(character.contract.current_water) + "L/week",
+				character.player.bio.last_name
+			])
+		
+		# Ownership share
+		if character.contract.current_share > 0:
+			features_data.append([
+				similarity,
+				"ownership",
+				character.contract.current_share,
+				"Ownership: " + str(character.contract.current_share) + "%",
+				character.player.bio.last_name
+			])
+		
+		# Buyout clause
+		if character.contract.current_buyout != "free" and character.contract.current_buyout != "none":
+			features_data.append([
+				similarity,
+				"buyout",
+				character.contract.current_buyout,
+				"Buyout: " + character.contract.current_buyout.capitalize(),
+				character.player.bio.last_name
+			])
+		
+		# Housing type
+		if character.contract.current_housing != "none":
+			features_data.append([
+				similarity,
+				"housing",
+				character.contract.current_housing,
+				"Housing: " + character.contract.current_housing.capitalize(),
+				character.player.bio.last_name
+			])
+		
+		# Contract length
+		if character.contract.seasons_left > 0:
+			features_data.append([
+				similarity,
+				"length",
+				character.contract.seasons_left,
+				"Length: " + str(character.contract.seasons_left) + " seasons",
+				character.player.bio.last_name
+			])
+		
+		# Focus
+		if character.contract.current_focus != "none":
+			features_data.append([
+				similarity,
+				"focus",
+				character.contract.current_focus,
+				"Focus: " + character.contract.current_focus.capitalize(),
+				character.player.bio.last_name
+			])
+		
+		# Promise
+		if character.contract.current_promise != "none":
+			features_data.append([
+				similarity,
+				"promise",
+				character.contract.current_promise,
+				"Promise: " + character.contract.current_promise.capitalize(),
+				character.player.bio.last_name
+			])
+		
+		# Bonus type and value
+		if character.contract.current_bonus_type != "none":
+			var bonus_text = "Bonus: " + character.contract.current_bonus_type.capitalize()
+			if character.contract.current_bonus_prize != "none":
+				bonus_text += " → " + character.contract.current_bonus_prize.capitalize()
+			if character.contract.current_bonus_value > 0:
+				bonus_text += " (" + str(character.contract.current_bonus_value) + ")"
+			
+			features_data.append([
+				similarity,
+				"bonus",
+				{
+					"type": character.contract.current_bonus_type,
+					"prize": character.contract.current_bonus_prize,
+					"value": character.contract.current_bonus_value
+				},
+				bonus_text,
+				character.player.bio.last_name
+			])
+	
+	# Shuffle to randomize feature selection
+	features_data.shuffle()
 	
 	# Select 6 features, ensuring no more than 2 of the same type
 	var selected_features = []
 	var feature_type_counts = {}
 	
-	for feature in all_features:
-		var feature_type = feature.type
+	for feature in features_data:
+		var feature_type = feature[1]  # Index 1 is the feature type
 		var current_count = feature_type_counts.get(feature_type, 0)
 		
 		if current_count < 2:
@@ -271,17 +402,20 @@ func pick_6_contract_features(player1: Character, player2: Character, player3: C
 	# Print selected features for debugging
 	print("Selected contract features:")
 	for feature in selected_features:
-		print("  - ", feature.display, " (from ", feature.player, ")")
+		print("  - Similarity: ", feature[0], " | ", feature[3], " (from ", feature[4], ")")
 	
 	return selected_features
 
 func sign_player_pressed(player: Character, num_tokens: int = 0):
 	print("Get that guy a contract!")
-	var comparable_features = []
-	if all_characters.size() > 3:
-		comparables_button_pressed(player)
-	
-	get_tree().change_scene_to_file("res://negotiate_contract.tscn")
+	var contract_scene = load("res://negotiate_contract.tscn").instantiate()
+	comparables_button_pressed(player)
+	if contract_scene.has_method("open_with_character"):
+		player.scout_report.scout(100) #TODO: debug only
+		contract_scene.open_with_character(player, num_tokens, player.scout_report, comparables)
+	get_tree().root.add_child(contract_scene)
+	get_tree().current_scene = contract_scene
+	queue_free()
 
 func _on_filter_position_pressed() -> void:
 	$PositionsMenu.show()
@@ -348,7 +482,7 @@ func get_columns_for_view() -> Array:
 				{"display_name": "Secondary Positions", "sort_key": "num_positions"},
 				{"display_name": "Age", "sort_key": "age"},
 				{"display_name": "Player Type", "sort_key": "player_type"},
-				{"display_name": "Overall Rating", "sort_key": "overall"}
+				{"display_name": "Overall Rating", "sort_key": "overall"},
 			]
 		"detailed":
 			return [
@@ -796,7 +930,6 @@ func format_page():
 	scale_icon_group("StylesMenu/Guards", icon_size)
 	scale_icon_group("StylesMenu/Pitchers", icon_size)
 	scale_icon_group("StylesMenu/Goalies", icon_size)
-	#TODO: scale up $TraitsMenu, $PositionsMenu, and $ViewMenu
 
 func setup_button(button: TextureButton, target_size: Vector2):
 	button.ignore_texture_size = true
@@ -1138,7 +1271,7 @@ func no_results():
 	message_container.alignment = BoxContainer.ALIGNMENT_CENTER
 	var no_results_label = Label.new()
 	no_results_label.text = "No players were found matching the search criteria"
-	no_results_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7)) #TODO: find a good color
+	no_results_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7))
 	no_results_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	message_container.add_child(no_results_label)
 	scrolling_area.add_child(message_container)

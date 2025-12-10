@@ -84,16 +84,16 @@ text = "Guy 1 (K/LG): 2 Years, 38c/w
 Guy 2 (RG/RF): 2% share, 15 meals
 Guy 3 (K) 3 years, 45c/w"
 
-[node name="LeverageRect" type="ColorRect" parent="VBoxContainer/Top/Notes1"]
+[node name="ScoutNotesRect" type="ColorRect" parent="VBoxContainer/Top/Notes1"]
 layout_mode = 2
 
-[node name="Label" type="Label" parent="VBoxContainer/Top/Notes1/LeverageRect"]
+[node name="Label" type="Label" parent="VBoxContainer/Top/Notes1/ScoutNotesRect"]
 layout_mode = 0
 offset_right = 40.0
 offset_bottom = 23.0
 text = "Scout Notes"
 
-[node name="Leverage" type="Label" parent="VBoxContainer/Top/Notes1"]
+[node name="ScoutNotes" type="Label" parent="VBoxContainer/Top/Notes1"]
 layout_mode = 2
 text = "Party animal
 Loves the game

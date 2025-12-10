@@ -3,6 +3,7 @@ class_name Character
 
 var player: Player #has all of the bio and the relevant playing attributes
 var contract: Contract
+var scout_report: ScoutReport
 var preferred_job = "player" #favorite job option
 var job_roles= { #what staff roles the person is interested in
 	"player": true,

@@ -29,6 +29,9 @@ var promise_types = ["none", "make_captain", "championship", "promotion", "no_re
 #no promise, make the player captain, win the league or win a special tournament, move up to the next league (top 2), not get sent down to the lower league, sign or trade for LF/P/RF, sign or trade for LG/K/RG, improve the team's training facilities or coaching staff, improve team's housing or game day, improve team's party situation
 var player_family: int = 2 #how many mouths the player has to feed
 var true_max_food: int #adjusts max food for family size
+var offer_sheet_tokens: int = 0 #0 for free agent, 1 for standard offer sheet, 2 for franchise
+var scouting_knowledge: ScoutReport
+var comparables = []
 
 var increment_size: Vector2 = Vector2(100, 100) #increment contract details
 var change_size: Vector2 = Vector2(300, 100) #size of the literal "change" buttons
@@ -78,11 +81,6 @@ func base_offer_ui():
 	$VBoxContainer/Bottom/ContractDetails/Salary/Label.text = str(current_salary) + "¢ / Week"
 	update_seasons_label()
 	$VBoxContainer/Bottom/ContractDetails/Share/Label.text = str(current_share) + "%"
-
-func open_with_player(object: Player):
-	player = object
-	fill_info()
-	show()
 	
 func setup_popup_theme():
 	var theme = Theme.new()
@@ -144,8 +142,8 @@ func arrange_portrait_section():
 	backRect.position = Vector2(400, backRect.position.y)
 
 func arrange_top_sections():
-	var labelRectangles = [$VBoxContainer/Top/Notes1/CompsRect, $VBoxContainer/Top/Notes1/LeverageRect, $VBoxContainer/Top/Notes1/InterestRect, $VBoxContainer/Top/Notes2/TopSkillsRect, $VBoxContainer/Top/Notes2/ThrowsRect, $VBoxContainer/Top/Notes2/PotentialRect]
-	var notes = [$VBoxContainer/Top/Notes1/Comps, $VBoxContainer/Top/Notes1/Leverage, $VBoxContainer/Top/Notes1/Interest, $VBoxContainer/Top/Notes2/TopSkills, $VBoxContainer/Top/Notes2/Throws, $VBoxContainer/Top/Notes2/Potential]
+	var labelRectangles = [$VBoxContainer/Top/Notes1/CompsRect, $VBoxContainer/Top/Notes1/ScoutNotesRect, $VBoxContainer/Top/Notes1/InterestRect, $VBoxContainer/Top/Notes2/TopSkillsRect, $VBoxContainer/Top/Notes2/ThrowsRect, $VBoxContainer/Top/Notes2/PotentialRect]
+	var notes = [$VBoxContainer/Top/Notes1/Comps, $VBoxContainer/Top/Notes1/ScoutNotes, $VBoxContainer/Top/Notes1/Interest, $VBoxContainer/Top/Notes2/TopSkills, $VBoxContainer/Top/Notes2/Throws, $VBoxContainer/Top/Notes2/Potential]
 	
 	for rect in labelRectangles:
 		rect.color = Color("#31b563")
@@ -409,6 +407,7 @@ func _on_offer_button_pressed() -> void:
 	pass
 
 func _on_cancel_button_pressed() -> void:
+	get_tree().change_scene_to_file("res://sign_players.tscn")
 	pass
 
 func less_duration_pressed() -> void:
@@ -919,3 +918,105 @@ func update_buyout_value_label() -> void:
 		"nobuy":
 			label.text = "Guaranteed Contract"
 	
+
+func get_proper_position_name(string: String) -> String:
+	match string:
+		"K":
+			return "Goalkeeper"
+		"LG", "RG":
+			return "Guard"
+		"LF", "RF":
+			return "Forward"
+		"P":
+			return "Pitcher"
+	return ""
+
+func open_with_character(new_character: Character, tokens: int, report: ScoutReport, comps = []):
+	character = new_character
+	player = character.player
+	offer_sheet_tokens = tokens
+	scouting_knowledge = report
+	comparables = comps
+	# Update family size for food calculations
+	player_family = character.get_family_count()
+	true_max_food = max_food * (1 + player_family)
+	populate_imported_data(character)
+	#base_offer()
+
+
+func populate_imported_data(character: Character):
+	populate_bio_info()
+	populate_comparables()
+	populate_focuses()
+	populate_potential()
+	populate_scout_notes()
+	populate_scout_notes()
+	populate_knowledge()
+	
+func populate_bio_info():
+	var string = character.player.bio.first_name + " " + character.player.bio.last_name + "\n"
+	string = string + get_proper_position_name(character.player.preferred_position) + "\n"
+	string = string + str(character.player.bio.feet) + "\'" + str(character.player.bio.inches) + "\"" + " " + str(character.player.bio.pounds) + "lbs" + "\n"
+	string = string + str(character.player.bio.years) + " Years Old"
+	$VBoxContainer/Top/PlayerColorRect/ColorRect/Label.text = string
+	$VBoxContainer/Top/PlayerColorRect/ColorRect/Portrait.texture = load(character.player.portrait)
+	pass
+	
+func populate_scout_notes():
+	pass
+
+func populate_comparables():
+	var string = "No Known Comparables"
+
+	if scouting_knowledge and scouting_knowledge.info.comparables and comparables.size() > 0:
+		# Group features by player
+		var players_data = {}
+		
+		for feature in comparables:
+			var player_name = feature[4]  # Index 4 is player name
+			var similarity = feature[0]    # Index 0 is similarity score
+			var display_text = feature[3]  # Index 3 is display text
+			
+			if not players_data.has(player_name):
+				players_data[player_name] = {
+					"similarity": similarity,
+					"features": []
+				}
+			
+			players_data[player_name]["features"].append(display_text)
+		
+		# Build the display string
+		string = ""
+		var player_names = players_data.keys()
+		for i in range(player_names.size()):
+			var player_name = player_names[i]
+			var player_info = players_data[player_name]
+			var similarity_percent = int(player_info["similarity"])
+			
+			# Add player line: Name [XX%] Feature1 Feature2
+			string += player_name + " [" + str(similarity_percent) + "%]"
+			
+			# Add up to 2 features on the same line
+			for j in range(min(2, player_info["features"].size())):
+				string += " " + player_info["features"][j]
+			
+			# Add newline if not the last player
+			if i < player_names.size() - 1:
+				string += "\n"
+	
+	$VBoxContainer/Top/Notes1/Comps.text = string
+
+func populate_top_skills():
+	pass
+
+func populate_throws():
+	pass
+	
+func populate_potential():
+	pass
+	
+func populate_focuses():
+	pass
+
+func populate_knowledge():
+	pass
