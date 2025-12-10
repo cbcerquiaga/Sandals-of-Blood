@@ -116,9 +116,6 @@ func _physics_process(delta):
 	await ball
 	update_special_pitch_availability()
 	powerbar.visible = false
-	if current_behavior == "faceoff":
-		velocity = Vector2.ZERO
-		can_move = false
 	if Input.is_action_pressed("pitch"):
 		human_ready = true
 		prepare_ai_to_pitch()
@@ -126,6 +123,9 @@ func _physics_process(delta):
 		has_arrived = false
 		has_attacked = false
 		current_waypoint = Vector2.ZERO
+	elif current_behavior == "faceoff":
+		velocity = Vector2.ZERO
+		can_move = false
 	elif current_behavior == "deciding":
 		current_waypoint = Vector2.ZERO
 		if !opp_pitcher or opp_pitcher.has_arrived == false:
@@ -160,7 +160,7 @@ func _physics_process(delta):
 			faceoff_recover()
 	elif current_behavior == "faceoff_recover":
 		faceoff_recover()
-	if is_controlling_player and is_aiming:
+	if is_controlling_player and is_aiming and current_behavior != "faceoff":
 		current_behavior = "pitching"
 		has_arrived = false
 		powerbar.visible = true
@@ -321,7 +321,7 @@ func faceoff_recover():
 		if ball_direction.length() > 0 and option.dot(ball_direction) > 0.3:
 			continue
 		
-		var edge_point = global_position + option.normalized() * 1000 # Project far off field
+		var edge_point = global_position + option.normalized() * 1000
 		var distance = global_position.distance_to(edge_point)
 		viable_options.append({"direction": option, "distance": distance})
 	
@@ -358,7 +358,6 @@ func faceoff_recover():
 		# Chase: go toward where we expect opponent
 		if opp_pitcher:
 			var toward_opp = (opp_pitcher.global_position - global_position).normalized()
-			# Find closest option that's in opponent's general direction
 			var best_option = viable_options[0]
 			var best_alignment = -1.0
 			for option in viable_options:
@@ -383,7 +382,6 @@ func faceoff_recover():
 		else:
 			if opp_pitcher and !is_off_field_at_position(opp_pitcher.global_position): #dude isn't off the field yet, but we wait for them at the end
 				var closest_waypoint = find_closest_position_index(global_position)
-				#TODO: if distance to opponent is less than the distance to the next waypoint, stop
 				var opp_closest = find_closest_position_index(opp_pitcher.global_position)
 				var clockwise_dist = calculate_clockwise_distance(closest_waypoint, opp_closest)
 				var counter_dist = calculate_counter_distance(closest_waypoint, opp_closest)
@@ -418,15 +416,15 @@ func move_toward_waypoint():
 	else:
 		speed = get_buffed_attribute("speed")
 	var direction = global_position.direction_to(current_waypoint)
-	velocity = direction * speed
+	velocity = direction * speed 
 	move_and_slide()
 
 func is_off_field() -> bool:
-	var field_bounds = Rect2(left_wall.x, right_wall, oppGoal.y, 0 - oppGoal.y)
+	var field_bounds = Rect2(left_wall.global_position.x, right_wall.global_position.x, oppGoal.y, 0 - oppGoal.y)
 	return !field_bounds.has_point(global_position)
 
 func is_off_field_at_position(pos: Vector2) -> bool:
-	var field_bounds = Rect2(left_wall.x, right_wall, oppGoal.y, 0 - oppGoal.y)
+	var field_bounds = Rect2(left_wall.global_position.x, right_wall.global_position.x, oppGoal.y, 0 - oppGoal.y)
 	return !field_bounds.has_point(pos)
 
 func _on_pitch_phase_started():
@@ -865,7 +863,8 @@ func variance_timer():
 			increasing = true
 			
 func random_variance():
-	current_variance = randi_range(1,100)
+	var max_variance = (100 - attributes.accuracy)/2 
+	current_variance = randi_range(1,max_variance)
 
 func release_ball():
 	has_ball = false

@@ -329,8 +329,8 @@ func execute_faceoff():
 	aTeam.allow_movement()
 	is_play_live = true
 	is_faceoff = false
-	aTeam.P.current_behavior = "recover_faceoff"
-	pTeam.P.current_behavior = "recover_faceoff"
+	aTeam.P.current_behavior = "faceoff_recover"
+	pTeam.P.current_behavior = "faceoff_recover"
 
 
 

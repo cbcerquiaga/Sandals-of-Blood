@@ -333,6 +333,7 @@ func _on_popup_item_selected(id: int):
 		"game":
 			match id:
 				0:  #Play!
+					get_tree().change_scene_to_file("res://test_match_scene.tscn") #TODO: use final match scene and import players
 					pass
 				1:  #Simulate
 					pass
