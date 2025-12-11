@@ -383,12 +383,12 @@ func ui_update():
 			pitcher_pitch3.texture = load(get_pitch_texture(p_player.special_pitch_names[2]))
 		else:
 			pitcher_pitch3.hide()
-	$SubstitutionSection/FieldGrid/LF_Button/Label.text = "LF: " + lf_player.bio.first_name + " " +  lf_player.bio.last_name + "\n" + str(lf_overall) + " Rating " + str(lf_player.status.energy) + "% Energy"
-	$SubstitutionSection/FieldGrid/P_Button/Label.text = "P: " + p_player.bio.first_name+ " "  + p_player.bio.last_name + "\n" + str(p_overall) + " Rating " + str(p_player.status.energy) + "% Energy"
-	$SubstitutionSection/FieldGrid/RF_Button/Label.text = "RF: " + rf_player.bio.first_name + " " + rf_player.bio.last_name + "\n" + str(rf_overall) + " Rating " + str(rf_player.status.energy) + "% Energy"
-	$SubstitutionSection/FieldGrid/LG_Button/Label.text = "LG: " + lg_player.bio.first_name + " " + lg_player.bio.last_name + "\n" + str(lg_overall) + " Rating " + str(lg_player.status.energy) + "% Energy"
-	$SubstitutionSection/FieldGrid/K_Button/Label.text = "K: " + k_player.bio.first_name + " "+ k_player.bio.last_name + "\n" + str(k_overall) + " Rating " + str(k_player.status.energy) + "% Energy"
-	$SubstitutionSection/FieldGrid/RG_Button/Label.text = "RG: " + rg_player.bio.first_name + " "+ rg_player.bio.last_name + "\n" + str(rg_overall) + " Rating " + str(rg_player.status.energy) + "% Energy"
+	$SubstitutionSection/FieldGrid/LF_Button/Label.text = "LF: " + lf_player.bio.first_name + " " +  lf_player.bio.last_name + "\n" + str(lf_overall) + " Rating " + str(int(lf_player.status.energy)) + "% Energy"
+	$SubstitutionSection/FieldGrid/P_Button/Label.text = "P: " + p_player.bio.first_name+ " "  + p_player.bio.last_name + "\n" + str(p_overall) + " Rating " + str(int(p_player.status.energy)) + "% Energy"
+	$SubstitutionSection/FieldGrid/RF_Button/Label.text = "RF: " + rf_player.bio.first_name + " " + rf_player.bio.last_name + "\n" + str(rf_overall) + " Rating " + str(int(rf_player.status.energy)) + "% Energy"
+	$SubstitutionSection/FieldGrid/LG_Button/Label.text = "LG: " + lg_player.bio.first_name + " " + lg_player.bio.last_name + "\n" + str(lg_overall) + " Rating " + str(int(lg_player.status.energy)) + "% Energy"
+	$SubstitutionSection/FieldGrid/K_Button/Label.text = "K: " + k_player.bio.first_name + " "+ k_player.bio.last_name + "\n" + str(k_overall) + " Rating " + str(int(k_player.status.energy)) + "% Energy"
+	$SubstitutionSection/FieldGrid/RG_Button/Label.text = "RG: " + rg_player.bio.first_name + " "+ rg_player.bio.last_name + "\n" + str(rg_overall) + " Rating " + str(int(rg_player.status.energy)) + "% Energy"
 	set_pending_indicators(current_team)
 	if pending_subs > 0:
 		$SubstitutionSection/SubsRemaining.text = "Substitutions Remaining: " + str(pending_subs)

@@ -275,7 +275,7 @@ func apply_roster_to_UI():
 			pitches = player.special_pitch_names.duplicate(true)
 			if !bullpenPlayer1:
 				bullpenPlayer1 = player
-				$BullpenContainer/Button1/Label.text = player.bio.last_name + "\n" + str(calculate_pitcher_overall(player)) + " Rating " + str(player.status.energy) + "% Energy"
+				$BullpenContainer/Button1/Label.text = player.bio.last_name + "\n" + str(calculate_pitcher_overall(player)) + " Rating " + str(int(player.status.energy)) + "% Energy"
 				bullpen1.set_button_icon(load("res://UI/StrategyUI/ClippedHolder_base.png"))
 				pitcher1pitch1.text = get_pitch_text(pitches[0])
 				pitcher1pitch2.text = get_pitch_text(pitches[1])
@@ -284,14 +284,14 @@ func apply_roster_to_UI():
 				#print("pitcher1pitch1 text =" + pitcher1pitch1.text)
 			elif !bullpenPlayer2:
 				bullpenPlayer2 = player
-				$BullpenContainer/Button2/Label.text = player.bio.last_name + "\n" + str(calculate_pitcher_overall(player)) + " Rating " + str(player.status.energy) + "% Energy"
+				$BullpenContainer/Button2/Label.text = player.bio.last_name + "\n" + str(calculate_pitcher_overall(player)) + " Rating " + str(int(player.status.energy)) + "% Energy"
 				bullpen2.set_button_icon(load("res://UI/StrategyUI/ClippedHolder_base.png"))
 				pitcher2pitch1.text = get_pitch_text(pitches[0])
 				pitcher2pitch2.text = get_pitch_text(pitches[1])
 				pitcher2pitch3.text = get_pitch_text(pitches[2])
 			elif !bullpenPlayer3:
 				bullpenPlayer3 = player
-				$BullpenContainer/Button3/Label.text = player.bio.last_name + "\n" + str(calculate_pitcher_overall(player)) + " Rating " + str(player.status.energy) + "% Energy"
+				$BullpenContainer/Button3/Label.text = player.bio.last_name + "\n" + str(calculate_pitcher_overall(player)) + " Rating " + str(int(player.status.energy)) + "% Energy"
 				bullpen3.set_button_icon(load("res://UI/StrategyUI/ClippedHolder_base.png"))
 				pitcher3pitch1.text = get_pitch_text(pitches[0])
 				pitcher3pitch2.text = get_pitch_text(pitches[1])
@@ -302,7 +302,7 @@ func apply_roster_to_UI():
 				"keeper": text += "\n" + str(calculate_keeper_overall(player))
 				"guard": text += "\n" + str(calculate_guard_overall(player))
 				"forward": text += "\n" + str(calculate_forward_overall(player))
-			text += " Rating " + str(player.status.energy) + "% Energy"
+			text += " Rating " + str(int(player.status.energy)) + "% Energy"
 			bench.append(player)
 			if !benchPlayer1:
 				benchPlayer1 = player
