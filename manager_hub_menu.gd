@@ -21,11 +21,16 @@ var menu_items = {
 	"system": ["Options", "Music", "Save", "Load", "Exit"],
 	"improve_add": ["Sign Players", "Scouting", "Tryouts"],
 	"improve_trade": ["Edit Trade Block", "View Trade Blocks", "Propose Trade"],
-	"improve_remove": ["Release Players", "Request Offers", "Loan Players"]
+	"improve_remove": ["Release Players", "Request Offers", "Loan Players"],
+	"relations_fans": ["Fan Relations", "Fan Request", "City"],
+	"relations_players": ["Morale", "Plans", "Friends"],
+	"relations_gangs": ["Metalheads", "Holy Rollers", "The Family", "Banana Republicans", "The Posse"],
+	"relations_sponsors": ["View", "New"]
 }
 
 var main_containers = []
 var improve_buttons = []
+var relationships_buttons = []
 
 func _ready():
 	bringUp()
@@ -58,6 +63,8 @@ func _process(_delta):
 	
 	if $ImproveContainer.visible:
 		_navigate_buttons(improve_buttons, direction)
+	elif $RelationshipsContainer.visible:
+		_navigate_buttons(relationships_buttons, -1 * direction)
 	elif popup_is_open:
 		_navigate_buttons(main_containers, direction)
 
@@ -77,10 +84,19 @@ func _setup_button_arrays():
 		$ImproveContainer/TradeButton,
 		$ImproveContainer/AddButton
 	]
+	
+	relationships_buttons = [
+		$RelationshipsContainer/BackButton,
+		$RelationshipsContainer/FansButton,
+		$RelationshipsContainer/PlayersButton,
+		$RelationshipsContainer/GangsButton,
+		$RelationshipsContainer/SponsorsButton
+	]
 
 func _connect_all_buttons():
 	_connect_button_group(main_containers, true)
 	_connect_button_group(improve_buttons, false)
+	_connect_button_group(relationships_buttons, false)
 
 func _connect_button_group(containers_or_buttons, is_container_group: bool):
 	var buttons = []
@@ -97,10 +113,16 @@ func _connect_button_group(containers_or_buttons, is_container_group: bool):
 				if not button.pressed.is_connected(_on_main_button_pressed):
 					button.pressed.connect(_on_main_button_pressed.bind(button, context))
 			else:
-				if not button.focus_entered.is_connected(_on_improve_button_focused):
-					button.focus_entered.connect(_on_improve_button_focused.bind(button))
-				if not button.pressed.is_connected(_on_improve_button_pressed):
-					button.pressed.connect(_on_improve_button_pressed.bind(button))
+				if item in improve_buttons:
+					if not button.focus_entered.is_connected(_on_improve_button_focused):
+						button.focus_entered.connect(_on_improve_button_focused.bind(button))
+					if not button.pressed.is_connected(_on_improve_button_pressed):
+						button.pressed.connect(_on_improve_button_pressed.bind(button))
+				elif item in relationships_buttons:
+					if not button.focus_entered.is_connected(_on_relationships_button_focused):
+						button.focus_entered.connect(_on_relationships_button_focused.bind(button))
+					if not button.pressed.is_connected(_on_relationships_button_pressed):
+						button.pressed.connect(_on_relationships_button_pressed.bind(button))
 	
 	_setup_focus_neighbors(buttons)
 
@@ -131,6 +153,7 @@ func _on_improve_button_focused(button: Control):
 			popup.position = Vector2(button_rect.position.x, -10000)
 		else:
 			_show_popup_for_improve_button(button)
+	
 
 func _on_improve_button_pressed(button: Control):
 	if button.name == "BackButton":
@@ -165,6 +188,44 @@ func _show_popup_for_improve_button(button: Control):
 	var section = section_map.get(button.name, "")
 	if section:
 		_show_popup(section, button)
+		
+func _on_relationships_button_focused(button: Control):
+	print("Relationships button focused: ", button.name)
+	current_main_button = button
+	
+	if $RelationshipsContainer.visible:
+		if button.name == "BackButton":
+			var button_rect = button.get_global_rect()
+			popup.position = Vector2(button_rect.position.x, -10000)
+		else:
+			_show_popup_for_relationships_button(button)
+
+func _on_relationships_button_pressed(button: Control):
+	if button.name == "BackButton":
+		_return_to_main_menu_from_relationships()
+	elif popup_is_open and current_main_button == button:
+		popup.hide()
+	else:
+		_show_popup_for_relationships_button(button)
+		
+func _return_to_main_menu_from_relationships():
+	$RelationshipsContainer.hide()
+	$HBoxContainer.show()
+	popup.hide()
+	today_button.grab_focus()
+		
+func _show_popup_for_relationships_button(button: Control):
+	var section_map = {
+		"FansButton": "relations_fans",
+		"PlayersButton": "relations_players",
+		"GangsButton": "relations_gangs",
+		"SponsorsButton": "relations_sponsors"
+	}
+	
+	var section = section_map.get(button.name, "")
+	if section:
+		_show_popup(section, button)
+
 
 func _show_popup(section: String, button: Control):
 	if not is_inside_tree():
@@ -287,6 +348,7 @@ func bringUp():
 	strategy.hide()
 	$ImproveContainer.hide()
 	$ManageContainer.hide()
+	$RelationshipsContainer.hide()
 	today_button.grab_focus()
 
 func travelDay():
@@ -383,6 +445,13 @@ func _on_popup_item_selected(id: int):
 				1:  #Inventory
 					pass
 				2:  #Relationships
+					popup.hide()
+					$HBoxContainer.hide()
+					$RelationshipsContainer.show()
+					await get_tree().process_frame
+					$RelationshipsContainer/FansButton.grab_focus()
+					await get_tree().process_frame
+					_show_popup_for_improve_button($ImproveContainer/AddButton)
 					pass
 				3:  #Ownership
 					pass
@@ -410,6 +479,47 @@ func _on_popup_item_selected(id: int):
 					pass
 				2:  #Loan Players
 					pass
+		"relations_fans":
+			match id:
+				0: #fan relations
+					pass
+				1: #fan request store
+					pass
+				2: #city
+					pass
+		"relations_players":
+			match id:
+				0: #player morale
+					pass
+				1: #player plans
+					pass
+				2: #friends on other teams
+					pass
+		"relations_gangs":
+			match id:
+				0: #Metalheads
+					get_tree().change_scene_to_file("res://gang_relation_screen.tscn")
+					pass
+				1: #Holy Rollers
+					get_tree().change_scene_to_file("res://gang_relation_screen.tscn")
+					pass
+				2: #The Family
+					get_tree().change_scene_to_file("res://gang_relation_screen.tscn")
+					pass
+				3: #Banana Republicans
+					get_tree().change_scene_to_file("res://gang_relation_screen.tscn")
+					pass
+				4: #The Posse
+					get_tree().change_scene_to_file("res://gang_relation_screen.tscn")
+					pass
+		"relations_sponsors":
+			match id:
+				0: #View
+					pass
+				1: #New
+					pass
+
+
 
 
 func _on_a_button_pressed() -> void:

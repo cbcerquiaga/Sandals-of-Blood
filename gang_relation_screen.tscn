@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3 uid="uid://ptxg4lrijopy"]
+[gd_scene load_steps=12 format=3 uid="uid://ptxg4lrijopy"]
 
 [ext_resource type="Texture2D" uid="uid://c1l8u82tut2dr" path="res://UI/GangUI/Alignment_Rhomboid.png" id="1_a72th"]
 [ext_resource type="Texture2D" uid="uid://du7mal76i5x3v" path="res://Assets/Other/placeholer_warlord.png" id="1_obf8v"]
@@ -8,7 +8,9 @@
 [ext_resource type="Texture2D" uid="uid://b0ykc0d0s1cga" path="res://UI/GangUI/MilPowerTexture.png" id="4_1vhyf"]
 [ext_resource type="Texture2D" uid="uid://dpbkbc373bwa1" path="res://UI/GangUI/Take_button_highlighted.png" id="4_k8cfu"]
 [ext_resource type="Texture2D" uid="uid://ct6vtfmxy8eoo" path="res://UI/MenuUI/back_button_base.png" id="7_5dknc"]
+[ext_resource type="Texture2D" uid="uid://8q5xcucy03jl" path="res://UI/GangUI/Map_button_base.png" id="7_cdibf"]
 [ext_resource type="Texture2D" uid="uid://cl6f7cs2xrbn7" path="res://UI/MenuUI/back_button_highlighted.png" id="8_ihwug"]
+[ext_resource type="Texture2D" uid="uid://e2ut7avl6knf" path="res://UI/GangUI/Map_button_highlighted.png" id="8_t0pqb"]
 
 [node name="Control" type="Control"]
 layout_mode = 3
@@ -309,6 +311,12 @@ stretch_mode = 3
 
 [node name="Actions-VBox" type="VBoxContainer" parent="Top-VBox/BottomSection-HBox"]
 layout_mode = 2
+
+[node name="MapButton" type="TextureButton" parent="Top-VBox/BottomSection-HBox/Actions-VBox"]
+layout_mode = 2
+texture_normal = ExtResource("7_cdibf")
+texture_hover = ExtResource("8_t0pqb")
+texture_focused = ExtResource("8_t0pqb")
 
 [node name="Leavebutton" type="TextureButton" parent="Top-VBox/BottomSection-HBox/Actions-VBox"]
 layout_mode = 2

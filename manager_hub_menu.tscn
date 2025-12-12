@@ -1,4 +1,4 @@
-[gd_scene load_steps=28 format=3 uid="uid://cxtkbe8aypqef"]
+[gd_scene load_steps=36 format=3 uid="uid://cxtkbe8aypqef"]
 
 [ext_resource type="Script" path="res://manager_hub_menu.gd" id="1_anhhw"]
 [ext_resource type="Texture2D" uid="uid://crrgi3afo3d6k" path="res://UI/HubUI/TeamButton_base.png" id="2_chcud"]
@@ -27,6 +27,14 @@
 [ext_resource type="Texture2D" uid="uid://djmnrvav2tvmn" path="res://UI/ManagementUI/b_button_highlighted.png" id="25_0qgtm"]
 [ext_resource type="Texture2D" uid="uid://bxp8id45n577f" path="res://UI/ManagementUI/c_button_base.png" id="26_ygyiu"]
 [ext_resource type="Texture2D" uid="uid://c0rimiuksboub" path="res://UI/ManagementUI/c_button_highlighted.png" id="27_ae56d"]
+[ext_resource type="Texture2D" uid="uid://c3kevjhh72lek" path="res://UI/ManagementUI/Fans_button_base.png" id="28_xh6iq"]
+[ext_resource type="Texture2D" uid="uid://cn4il7egc6333" path="res://UI/ManagementUI/Fans_button_highlighted.png" id="29_4yf3m"]
+[ext_resource type="Texture2D" uid="uid://dy6wl483ov7gu" path="res://UI/ManagementUI/Players_button_base.png" id="30_1r17k"]
+[ext_resource type="Texture2D" uid="uid://dhqse3xl3mhr3" path="res://UI/ManagementUI/Players_button_highlighted.png" id="31_nhur1"]
+[ext_resource type="Texture2D" uid="uid://dllna1g4ir3fq" path="res://UI/ManagementUI/Gangs_button_base.png" id="32_jelsw"]
+[ext_resource type="Texture2D" uid="uid://hwe6jmsx084j" path="res://UI/ManagementUI/Gangs_button_highlighted.png" id="33_di6dh"]
+[ext_resource type="Texture2D" uid="uid://dc6tmymdii6gk" path="res://UI/ManagementUI/Sponsors_button_base.png" id="34_xrnqo"]
+[ext_resource type="Texture2D" uid="uid://787v55xnqiih" path="res://UI/ManagementUI/sponsors_button_highlighted.png" id="35_2n612"]
 
 [node name="ManagerHubMenu" type="Control"]
 layout_mode = 3
@@ -240,6 +248,43 @@ layout_mode = 2
 texture_normal = ExtResource("26_ygyiu")
 texture_hover = ExtResource("27_ae56d")
 texture_focused = ExtResource("27_ae56d")
+
+[node name="RelationshipsContainer" type="HBoxContainer" parent="."]
+visible = false
+layout_mode = 0
+offset_top = 3400.0
+offset_right = 6500.0
+offset_bottom = 3723.0
+
+[node name="FansButton" type="TextureButton" parent="RelationshipsContainer"]
+layout_mode = 2
+texture_normal = ExtResource("28_xh6iq")
+texture_hover = ExtResource("29_4yf3m")
+texture_focused = ExtResource("29_4yf3m")
+
+[node name="PlayersButton" type="TextureButton" parent="RelationshipsContainer"]
+layout_mode = 2
+texture_normal = ExtResource("30_1r17k")
+texture_hover = ExtResource("31_nhur1")
+texture_focused = ExtResource("31_nhur1")
+
+[node name="GangsButton" type="TextureButton" parent="RelationshipsContainer"]
+layout_mode = 2
+texture_normal = ExtResource("32_jelsw")
+texture_hover = ExtResource("33_di6dh")
+texture_focused = ExtResource("33_di6dh")
+
+[node name="SponsorsButton" type="TextureButton" parent="RelationshipsContainer"]
+layout_mode = 2
+texture_normal = ExtResource("34_xrnqo")
+texture_hover = ExtResource("35_2n612")
+texture_focused = ExtResource("35_2n612")
+
+[node name="BackButton" type="TextureButton" parent="RelationshipsContainer"]
+layout_mode = 2
+texture_normal = ExtResource("20_glte1")
+texture_hover = ExtResource("21_m5lb2")
+texture_focused = ExtResource("21_m5lb2")
 
 [connection signal="focus_entered" from="HBoxContainer/Travel_GameContainer/TextureButton" to="." method="_on_today_focus"]
 [connection signal="mouse_entered" from="HBoxContainer/Travel_GameContainer/TextureButton" to="." method="_on_today_focus"]
