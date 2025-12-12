@@ -1,0 +1,327 @@
+[gd_scene load_steps=10 format=3 uid="uid://ptxg4lrijopy"]
+
+[ext_resource type="Texture2D" uid="uid://c1l8u82tut2dr" path="res://UI/GangUI/Alignment_Rhomboid.png" id="1_a72th"]
+[ext_resource type="Texture2D" uid="uid://du7mal76i5x3v" path="res://Assets/Other/placeholer_warlord.png" id="1_obf8v"]
+[ext_resource type="Script" path="res://gang_relation_screen.gd" id="1_x7o3g"]
+[ext_resource type="Texture2D" uid="uid://i12tsk45ic0j" path="res://UI/GangUI/alignment_marker.png" id="3_3ookt"]
+[ext_resource type="Texture2D" uid="uid://bkqy8awkxocca" path="res://UI/GangUI/Take_button_base.png" id="3_fwo6y"]
+[ext_resource type="Texture2D" uid="uid://b0ykc0d0s1cga" path="res://UI/GangUI/MilPowerTexture.png" id="4_1vhyf"]
+[ext_resource type="Texture2D" uid="uid://dpbkbc373bwa1" path="res://UI/GangUI/Take_button_highlighted.png" id="4_k8cfu"]
+[ext_resource type="Texture2D" uid="uid://ct6vtfmxy8eoo" path="res://UI/MenuUI/back_button_base.png" id="7_5dknc"]
+[ext_resource type="Texture2D" uid="uid://cl6f7cs2xrbn7" path="res://UI/MenuUI/back_button_highlighted.png" id="8_ihwug"]
+
+[node name="Control" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_x7o3g")
+
+[node name="Top-VBox" type="VBoxContainer" parent="."]
+layout_mode = 0
+offset_right = 1682.0
+offset_bottom = 1236.0
+theme_override_constants/separation = 50
+
+[node name="InfoSection-HBox" type="HBoxContainer" parent="Top-VBox"]
+layout_mode = 2
+theme_override_constants/separation = 50
+
+[node name="Portrait-TextureRect" type="TextureRect" parent="Top-VBox/InfoSection-HBox"]
+layout_mode = 2
+texture = ExtResource("1_obf8v")
+
+[node name="Bio-Vbox" type="VBoxContainer" parent="Top-VBox/InfoSection-HBox"]
+layout_mode = 2
+
+[node name="NameLabel" type="Label" parent="Top-VBox/InfoSection-HBox/Bio-Vbox"]
+layout_mode = 2
+text = "Warlord McWarlordFace"
+
+[node name="GangLabel" type="Label" parent="Top-VBox/InfoSection-HBox/Bio-Vbox"]
+layout_mode = 2
+text = "Leader of the Debugging Gang"
+
+[node name="InfoLabel" type="Label" parent="Top-VBox/InfoSection-HBox/Bio-Vbox"]
+layout_mode = 2
+text = "Hedonist
+Position: Secure
+Economics: Command Economy
+"
+
+[node name="GridContainer" type="GridContainer" parent="Top-VBox/InfoSection-HBox"]
+layout_mode = 2
+columns = 3
+
+[node name="Blank1" type="Label" parent="Top-VBox/InfoSection-HBox/GridContainer"]
+layout_mode = 2
+
+[node name="IdeaLabel" type="Label" parent="Top-VBox/InfoSection-HBox/GridContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 35
+text = "                  Idealist"
+
+[node name="Blank2" type="Label" parent="Top-VBox/InfoSection-HBox/GridContainer"]
+layout_mode = 2
+
+[node name="MachLabel" type="Label" parent="Top-VBox/InfoSection-HBox/GridContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 35
+text = "Machiavellian"
+
+[node name="TextureRect2" type="TextureRect" parent="Top-VBox/InfoSection-HBox/GridContainer"]
+layout_mode = 2
+texture = ExtResource("1_a72th")
+
+[node name="HedLabel" type="Label" parent="Top-VBox/InfoSection-HBox/GridContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 35
+text = "Hedonist"
+
+[node name="Blank3" type="Label" parent="Top-VBox/InfoSection-HBox/GridContainer"]
+layout_mode = 2
+
+[node name="EviLabel" type="Label" parent="Top-VBox/InfoSection-HBox/GridContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 35
+text = "                      Evil"
+
+[node name="Blank4" type="Label" parent="Top-VBox/InfoSection-HBox/GridContainer"]
+layout_mode = 2
+
+[node name="Stats-Vbox" type="VBoxContainer" parent="Top-VBox/InfoSection-HBox"]
+layout_mode = 2
+
+[node name="PopLabel" type="Label" parent="Top-VBox/InfoSection-HBox/Stats-Vbox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 40
+text = "Population Info"
+
+[node name="PopStatsLabel" type="Label" parent="Top-VBox/InfoSection-HBox/Stats-Vbox"]
+layout_mode = 2
+text = "Eploited: 3500
+Subsistence: 6500
+Lower Working: 1800
+Upper Working: 700
+Middle Class: 345
+White Collar: 500
+Monied Class: 100
+
+TOTAL: 13,445"
+
+[node name="EconLabel" type="Label" parent="Top-VBox/InfoSection-HBox/Stats-Vbox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 40
+text = "Economic Power"
+
+[node name="EconStatsLabel" type="Label" parent="Top-VBox/InfoSection-HBox/Stats-Vbox"]
+layout_mode = 2
+text = "Farming: 76
+Trade: 12
+Transport: 98
+Hospitality: 4
+Finance: 21
+Medicine: 51
+Heavy Industry: 54
+Warfare: 112
+Public: 37
+
+TOTAL: 465"
+
+[node name="RelLabel" type="Label" parent="Top-VBox/InfoSection-HBox/Stats-Vbox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 40
+text = "Relationship to You:
+WARM"
+
+[node name="MilLabel" type="Label" parent="Top-VBox/InfoSection-HBox/Stats-Vbox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 40
+text = "Military Power"
+
+[node name="RoadLabel" type="Label" parent="Top-VBox/InfoSection-HBox/Stats-Vbox/MilLabel"]
+layout_mode = 2
+offset_top = 80.0
+offset_right = 74.0
+offset_bottom = 122.0
+theme_override_font_sizes/font_size = 30
+text = "Road"
+
+[node name="RoadPowerBar" type="TextureProgressBar" parent="Top-VBox/InfoSection-HBox/Stats-Vbox/MilLabel"]
+layout_mode = 2
+offset_left = 150.0
+offset_top = 80.0
+offset_right = 950.0
+offset_bottom = 120.0
+scale = Vector2(0.4, 1)
+min_value = 10.0
+value = 10.0
+texture_under = ExtResource("4_1vhyf")
+texture_over = ExtResource("4_1vhyf")
+texture_progress = ExtResource("4_1vhyf")
+
+[node name="SiegeLabel" type="Label" parent="Top-VBox/InfoSection-HBox/Stats-Vbox/MilLabel"]
+layout_mode = 2
+offset_top = 160.0
+offset_right = 74.0
+offset_bottom = 202.0
+theme_override_font_sizes/font_size = 30
+text = "Siege
+"
+
+[node name="SiegePowerBar" type="TextureProgressBar" parent="Top-VBox/InfoSection-HBox/Stats-Vbox/MilLabel"]
+layout_mode = 2
+offset_left = 150.0
+offset_top = 160.0
+offset_right = 950.0
+offset_bottom = 200.0
+scale = Vector2(0.4, 1)
+min_value = 10.0
+value = 10.0
+texture_under = ExtResource("4_1vhyf")
+texture_over = ExtResource("4_1vhyf")
+texture_progress = ExtResource("4_1vhyf")
+
+[node name="LogLabel" type="Label" parent="Top-VBox/InfoSection-HBox/Stats-Vbox/MilLabel"]
+layout_mode = 2
+offset_top = 240.0
+offset_right = 76.0
+offset_bottom = 282.0
+theme_override_font_sizes/font_size = 30
+text = "Logistics
+"
+
+[node name="LogPowerBar" type="TextureProgressBar" parent="Top-VBox/InfoSection-HBox/Stats-Vbox/MilLabel"]
+layout_mode = 2
+offset_left = 150.0
+offset_top = 240.0
+offset_right = 950.0
+offset_bottom = 280.0
+scale = Vector2(0.4, 1)
+min_value = 10.0
+value = 10.0
+texture_under = ExtResource("4_1vhyf")
+texture_over = ExtResource("4_1vhyf")
+texture_progress = ExtResource("4_1vhyf")
+
+[node name="BottomSection-HBox" type="HBoxContainer" parent="Top-VBox"]
+layout_mode = 2
+
+[node name="DealZone-Grid" type="GridContainer" parent="Top-VBox/BottomSection-HBox"]
+layout_mode = 2
+theme_override_constants/h_separation = 180
+theme_override_constants/v_separation = -50
+columns = 3
+
+[node name="TeamGetsLabel" type="Label" parent="Top-VBox/BottomSection-HBox/DealZone-Grid"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 40
+text = "Team Gets"
+
+[node name="GangGetsLabel2" type="Label" parent="Top-VBox/BottomSection-HBox/DealZone-Grid"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 40
+text = "Gang Gets"
+
+[node name="BlankLabel" type="Label" parent="Top-VBox/BottomSection-HBox/DealZone-Grid"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 40
+
+[node name="OfferLabel1" type="Label" parent="Top-VBox/BottomSection-HBox/DealZone-Grid"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 40
+text = "¢300"
+
+[node name="TakeLabel1" type="Label" parent="Top-VBox/BottomSection-HBox/DealZone-Grid"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 40
+text = "2% Ownership Stake"
+
+[node name="Button1" type="TextureButton" parent="Top-VBox/BottomSection-HBox/DealZone-Grid"]
+custom_minimum_size = Vector2(400, 200)
+layout_mode = 2
+texture_normal = ExtResource("3_fwo6y")
+texture_hover = ExtResource("4_k8cfu")
+texture_focused = ExtResource("4_k8cfu")
+stretch_mode = 3
+
+[node name="OfferLabel2" type="Label" parent="Top-VBox/BottomSection-HBox/DealZone-Grid"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 40
+text = "Sign FailSon McWarlordFace
+GAIN ⫘100 Gang Credit"
+
+[node name="TakeLabel2" type="Label" parent="Top-VBox/BottomSection-HBox/DealZone-Grid"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 40
+text = "Sign FailSon McWarlordFace
+⊞ Opinion Increase"
+
+[node name="Button2" type="TextureButton" parent="Top-VBox/BottomSection-HBox/DealZone-Grid"]
+custom_minimum_size = Vector2(400, 200)
+layout_mode = 2
+texture_normal = ExtResource("3_fwo6y")
+texture_hover = ExtResource("4_k8cfu")
+texture_focused = ExtResource("4_k8cfu")
+stretch_mode = 3
+
+[node name="OfferLabel3" type="Label" parent="Top-VBox/BottomSection-HBox/DealZone-Grid"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 40
+text = " LOSE ⫘100 Gang Credit
+"
+
+[node name="TakeLabel3" type="Label" parent="Top-VBox/BottomSection-HBox/DealZone-Grid"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 40
+text = "⨹ Sway to Idealist
+"
+
+[node name="Button3" type="TextureButton" parent="Top-VBox/BottomSection-HBox/DealZone-Grid"]
+custom_minimum_size = Vector2(400, 200)
+layout_mode = 2
+texture_normal = ExtResource("3_fwo6y")
+texture_hover = ExtResource("4_k8cfu")
+texture_focused = ExtResource("4_k8cfu")
+stretch_mode = 3
+
+[node name="OfferLabel4" type="Label" parent="Top-VBox/BottomSection-HBox/DealZone-Grid"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 40
+text = "⪦10 Food per week (rest of season)
+"
+
+[node name="TakeLabel4" type="Label" parent="Top-VBox/BottomSection-HBox/DealZone-Grid"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 40
+text = "50 Seats per game (rest of season)
+"
+
+[node name="Button4" type="TextureButton" parent="Top-VBox/BottomSection-HBox/DealZone-Grid"]
+custom_minimum_size = Vector2(400, 200)
+layout_mode = 2
+texture_normal = ExtResource("3_fwo6y")
+texture_hover = ExtResource("4_k8cfu")
+texture_focused = ExtResource("4_k8cfu")
+stretch_mode = 3
+
+[node name="Actions-VBox" type="VBoxContainer" parent="Top-VBox/BottomSection-HBox"]
+layout_mode = 2
+
+[node name="Leavebutton" type="TextureButton" parent="Top-VBox/BottomSection-HBox/Actions-VBox"]
+layout_mode = 2
+texture_normal = ExtResource("7_5dknc")
+texture_hover = ExtResource("8_ihwug")
+texture_focused = ExtResource("8_ihwug")
+
+[node name="AlignmentMarker" type="TextureRect" parent="."]
+layout_mode = 2
+offset_left = 1820.0
+offset_top = 512.0
+offset_right = 1883.0
+offset_bottom = 575.0
+texture = ExtResource("3_3ookt")
+
+[connection signal="pressed" from="Top-VBox/BottomSection-HBox/Actions-VBox/Leavebutton" to="." method="_on_leavebutton_pressed"]

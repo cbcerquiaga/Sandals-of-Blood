@@ -271,21 +271,26 @@ func lineup_faceoff(already_set_position: bool = false):
 func execute_faceoff():
 	var cpu_faceoff_target = aTeam.P.faceoff()
 	var human_input_time = 0.0
-	var max_input_time = 1.5 # Half second to respond #TODO: balance
+	var max_input_time = 1.5
+	
 	await get_tree().create_timer(max_input_time).timeout
+	
 	if pTeam.P.is_aiming and pTeam.P.target != Vector2.ZERO:
 		human_faceoff_target = pTeam.P.target
-	else: #if there is something wrong, we aim at the goal
+	else:
 		human_faceoff_target = field.cpuGoal.global_position
+	
 	var human_reaction = (1.0 - human_input_time / max_input_time) * pTeam.P.get_buffed_attribute("reactions")
 	var cpu_reaction = randf() * aTeam.P.get_buffed_attribute("reactions")
+	
 	var winner: Player
 	var winner_target: Vector2
 	var loser: Player
-	if abs(human_reaction - cpu_reaction) < 2.0: #tie, broken by faceoff ratings
+	
+	if abs(human_reaction - cpu_reaction) < 2.0:
 		print("it's a closely contested faceoff...")
 		winner_target = determine_tie_faceoff(human_faceoff_target, cpu_faceoff_target)
-		if pTeam.P.get_buffed_attribute("faceoffs") >= aTeam.P.get_buffed_attribute("faceoffs"): #slight advantage to player team
+		if pTeam.P.get_buffed_attribute("faceoffs") >= aTeam.P.get_buffed_attribute("faceoffs"):
 			winner = pTeam.P
 			loser = aTeam.P
 		else:
@@ -299,6 +304,7 @@ func execute_faceoff():
 		winner = aTeam.P
 		loser = pTeam.P
 		winner_target = cpu_faceoff_target
+	
 	if winner == aTeam.P:
 		print("And the " + aTeam.team_name + " come away with the ball")
 	else:
@@ -307,31 +313,32 @@ func execute_faceoff():
 	var accuracy_variance = (1.0 - accuracy) * 0.3
 	var angle_offset = randf_range(-accuracy_variance, accuracy_variance)
 	var direction = (winner_target - ball.global_position).normalized().rotated(angle_offset)
-	
-	# Calculate ball speed based on face-off rating
 	var faceoff_rating = winner.get_buffed_attribute("faceoff")
-	var ball_speed = lerp(200.0, 500.0, faceoff_rating / 100.0) #TODO: balance this
-	ball.start_faceoff()  #special collision mask to pass through walls
+	var ball_speed = lerp(200.0, 500.0, faceoff_rating / 100.0)
+	ball.start_faceoff()
 	ball.freeze = false
 	ball.linear_velocity = direction * ball_speed
 	ball.current_state = Ball.BallState.HOCKEY
 	ball.last_hit_by = winner
 	ball.last_touched_time = 0
-	
-	# Record the faceoff
-	#GlobalSettings.record_event(str(GlobalSettings.pitch_limit - pitches_remaining) + ", " + 
-		#str(int(max_play_time - current_play_time)) + ", Face-off won by " + 
-		#winner.team_ref.team_abbreviation + " " + winner.bio.last_name)
-
 	winner.game_stats.faceoff_wins += 1
 	if loser:
 		loser.game_stats.faceoff_losses += 1
+	pTeam.P.current_behavior = "faceoff_recover"
+	pTeam.P.has_arrived = false
+	pTeam.P.has_made_first_move = false
+	pTeam.P.velocity = Vector2.ZERO
+	pTeam.P.current_waypoint = Vector2.ZERO
+	aTeam.P.current_behavior = "faceoff_recover"
+	aTeam.P.has_arrived = false
+	aTeam.P.has_made_first_move = false
+	aTeam.P.velocity = Vector2.ZERO
+	aTeam.P.current_waypoint = Vector2.ZERO
 	pTeam.allow_movement()
 	aTeam.allow_movement()
 	is_play_live = true
 	is_faceoff = false
-	aTeam.P.current_behavior = "faceoff_recover"
-	pTeam.P.current_behavior = "faceoff_recover"
+	print("Faceoff complete - both pitchers entering recovery mode")
 
 
 
