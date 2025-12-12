@@ -273,20 +273,30 @@ func execute_faceoff():
 	var human_input_time = 0.0
 	var max_input_time = 1.5
 	
-	await get_tree().create_timer(max_input_time).timeout
+	# Use a timer that respects pause state
+	var timer = Timer.new()
+	timer.wait_time = max_input_time
+	timer.one_shot = true
+	# Use physics process so it respects the game's pause state
+	timer.process_callback = Timer.TIMER_PROCESS_PHYSICS
+	add_child(timer)
+	timer.start()
+	
+	# Wait for the timer to complete
+	await timer.timeout
+	
+	# Clean up the timer
+	timer.queue_free()
 	
 	if pTeam.P.is_aiming and pTeam.P.target != Vector2.ZERO:
 		human_faceoff_target = pTeam.P.target
 	else:
 		human_faceoff_target = field.cpuGoal.global_position
-	
 	var human_reaction = (1.0 - human_input_time / max_input_time) * pTeam.P.get_buffed_attribute("reactions")
 	var cpu_reaction = randf() * aTeam.P.get_buffed_attribute("reactions")
-	
 	var winner: Player
 	var winner_target: Vector2
 	var loser: Player
-	
 	if abs(human_reaction - cpu_reaction) < 2.0:
 		print("it's a closely contested faceoff...")
 		winner_target = determine_tie_faceoff(human_faceoff_target, cpu_faceoff_target)
@@ -304,7 +314,6 @@ func execute_faceoff():
 		winner = aTeam.P
 		loser = pTeam.P
 		winner_target = cpu_faceoff_target
-	
 	if winner == aTeam.P:
 		print("And the " + aTeam.team_name + " come away with the ball")
 	else:
@@ -312,9 +321,13 @@ func execute_faceoff():
 	var accuracy = winner.get_buffed_attribute("accuracy") / 100.0
 	var accuracy_variance = (1.0 - accuracy) * 0.3
 	var angle_offset = randf_range(-accuracy_variance, accuracy_variance)
-	var direction = (winner_target - ball.global_position).normalized().rotated(angle_offset)
+	var direction = (winner_target - faceoff_ball_position).normalized().rotated(angle_offset)
 	var faceoff_rating = winner.get_buffed_attribute("faceoff")
 	var ball_speed = lerp(200.0, 500.0, faceoff_rating / 100.0)
+	
+	ball.global_position = faceoff_ball_position
+	ball.linear_velocity = Vector2.ZERO
+	
 	ball.start_faceoff()
 	ball.freeze = false
 	ball.linear_velocity = direction * ball_speed
@@ -328,19 +341,14 @@ func execute_faceoff():
 	pTeam.P.has_arrived = false
 	pTeam.P.has_made_first_move = false
 	pTeam.P.velocity = Vector2.ZERO
-	pTeam.P.current_waypoint = Vector2.ZERO
 	aTeam.P.current_behavior = "faceoff_recover"
 	aTeam.P.has_arrived = false
 	aTeam.P.has_made_first_move = false
 	aTeam.P.velocity = Vector2.ZERO
-	aTeam.P.current_waypoint = Vector2.ZERO
 	pTeam.allow_movement()
 	aTeam.allow_movement()
 	is_play_live = true
 	is_faceoff = false
-	print("Faceoff complete - both pitchers entering recovery mode")
-
-
 
 func determine_tie_faceoff(human_target: Vector2, cpu_target: Vector2) -> Vector2:
 	var human_faceoff_rating = pTeam.P.get_buffed_attribute("faceoff")
@@ -588,7 +596,7 @@ func on_ball_pitched():
 	
 	
 func _process(delta: float) -> void:
-	print("CPU LG is: " + aTeam.LG.current_behavior + " at " + str(aTeam.LG.global_position))
+	#print("CPU LG is: " + aTeam.LG.current_behavior + " at " + str(aTeam.LG.global_position))
 	if is_faceoff:
 		print("DEBUG _process: In faceoff - has_started=" + str(has_started))
 	if Input.is_action_just_pressed("pause") and !match_ended:

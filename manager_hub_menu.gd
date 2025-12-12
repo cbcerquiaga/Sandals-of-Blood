@@ -31,6 +31,7 @@ var menu_items = {
 var main_containers = []
 var improve_buttons = []
 var relationships_buttons = []
+var all_main_buttons = []
 
 func _ready():
 	bringUp()
@@ -48,17 +49,13 @@ func _ready():
 			_setup_button_arrays()
 			_connect_all_buttons()
 			today_button.grab_focus()
-			#Show initial popup for the focused button
+			await get_tree().process_frame
 			_show_popup_for_container($HBoxContainer/Travel_GameContainer)
 
 func _process(_delta):
 	if not (Input.is_action_just_pressed("move_left") or Input.is_action_just_pressed("move_right")):
 		return
-	#var focused_node = get_viewport().gui_get_focus_owner()
-	#if focused_node:
-		#print("Currently focused: ", focused_node.name)
-	#else:
-		#print("No node currently focused")
+	
 	var direction = 1 if Input.is_action_just_pressed("move_left") else -1
 	
 	if $ImproveContainer.visible:
@@ -92,11 +89,20 @@ func _setup_button_arrays():
 		$RelationshipsContainer/GangsButton,
 		$RelationshipsContainer/SponsorsButton
 	]
+	
+	for container in main_containers:
+		var button = container.get_node("TextureButton")
+		if button:
+			all_main_buttons.append(button)
 
 func _connect_all_buttons():
 	_connect_button_group(main_containers, true)
 	_connect_button_group(improve_buttons, false)
 	_connect_button_group(relationships_buttons, false)
+	for button in all_main_buttons:
+		if button is TextureButton:
+			button.focus_mode = Control.FOCUS_ALL
+			button.mouse_filter = Control.MOUSE_FILTER_PASS
 
 func _connect_button_group(containers_or_buttons, is_container_group: bool):
 	var buttons = []
@@ -105,24 +111,33 @@ func _connect_button_group(containers_or_buttons, is_container_group: bool):
 		var button = item.get_node("TextureButton") if is_container_group else item
 		if button:
 			buttons.append(button)
-			var context = item if is_container_group else null
+			button.focus_mode = Control.FOCUS_ALL
+			button.mouse_filter = Control.MOUSE_FILTER_PASS
+			if button.focus_entered.is_connected(_on_main_button_focused):
+				button.focus_entered.disconnect(_on_main_button_focused)
+			if button.pressed.is_connected(_on_main_button_pressed):
+				button.pressed.disconnect(_on_main_button_pressed)
 			
 			if is_container_group:
-				if not button.focus_entered.is_connected(_on_main_button_focused):
-					button.focus_entered.connect(_on_main_button_focused.bind(button, context))
-				if not button.pressed.is_connected(_on_main_button_pressed):
-					button.pressed.connect(_on_main_button_pressed.bind(button, context))
+				button.focus_entered.connect(_on_main_button_focused.bind(button, item))
+				button.pressed.connect(_on_main_button_pressed.bind(button, item))
 			else:
 				if item in improve_buttons:
-					if not button.focus_entered.is_connected(_on_improve_button_focused):
-						button.focus_entered.connect(_on_improve_button_focused.bind(button))
-					if not button.pressed.is_connected(_on_improve_button_pressed):
-						button.pressed.connect(_on_improve_button_pressed.bind(button))
+					if button.focus_entered.is_connected(_on_improve_button_focused):
+						button.focus_entered.disconnect(_on_improve_button_focused)
+					if button.pressed.is_connected(_on_improve_button_pressed):
+						button.pressed.disconnect(_on_improve_button_pressed)
+					
+					button.focus_entered.connect(_on_improve_button_focused.bind(button))
+					button.pressed.connect(_on_improve_button_pressed.bind(button))
 				elif item in relationships_buttons:
-					if not button.focus_entered.is_connected(_on_relationships_button_focused):
-						button.focus_entered.connect(_on_relationships_button_focused.bind(button))
-					if not button.pressed.is_connected(_on_relationships_button_pressed):
-						button.pressed.connect(_on_relationships_button_pressed.bind(button))
+					if button.focus_entered.is_connected(_on_relationships_button_focused):
+						button.focus_entered.disconnect(_on_relationships_button_focused)
+					if button.pressed.is_connected(_on_relationships_button_pressed):
+						button.pressed.disconnect(_on_relationships_button_pressed)
+					
+					button.focus_entered.connect(_on_relationships_button_focused.bind(button))
+					button.pressed.connect(_on_relationships_button_pressed.bind(button))
 	
 	_setup_focus_neighbors(buttons)
 
@@ -137,6 +152,8 @@ func _on_main_button_focused(button: Control, container: Control):
 	_show_popup_for_container(container)
 
 func _on_main_button_pressed(button: Control, container: Control):
+	button.grab_focus()
+	current_main_button = button
 	if popup_is_open and current_main_button == button:
 		popup.hide()
 	else:
@@ -148,14 +165,15 @@ func _on_improve_button_focused(button: Control):
 	
 	if $ImproveContainer.visible:
 		if button.name == "BackButton":
-			#Move popup offscreen instead of hiding it
 			var button_rect = button.get_global_rect()
 			popup.position = Vector2(button_rect.position.x, -10000)
 		else:
 			_show_popup_for_improve_button(button)
-	
 
 func _on_improve_button_pressed(button: Control):
+	button.grab_focus()
+	current_main_button = button
+	
 	if button.name == "BackButton":
 		_return_to_main_menu()
 	elif popup_is_open and current_main_button == button:
@@ -201,6 +219,9 @@ func _on_relationships_button_focused(button: Control):
 			_show_popup_for_relationships_button(button)
 
 func _on_relationships_button_pressed(button: Control):
+	button.grab_focus()
+	current_main_button = button
+	
 	if button.name == "BackButton":
 		_return_to_main_menu_from_relationships()
 	elif popup_is_open and current_main_button == button:
@@ -226,19 +247,15 @@ func _show_popup_for_relationships_button(button: Control):
 	if section:
 		_show_popup(section, button)
 
-
 func _show_popup(section: String, button: Control):
-	if not is_inside_tree():
+	if not is_inside_tree() or button == null:
 		return
-	
 	current_section = section
 	current_main_button = button
 	popup.clear()
-	
 	if section in menu_items:
 		for i in range(menu_items[section].size()):
 			popup.add_item(menu_items[section][i], i)
-	
 	popup.popup()
 	popup_is_open = true
 	current_popup_index = 0
@@ -283,8 +300,6 @@ func _navigate_buttons(button_list: Array, direction: int):
 	if not is_inside_tree():
 		return
 	
-	print("Navigate buttons called, current_main_button: ", current_main_button.name if current_main_button else "null")
-	
 	var current_idx = -1
 	for i in range(button_list.size()):
 		var check_button = button_list[i].get_node("TextureButton") if button_list[i] is Control and button_list[i].has_node("TextureButton") else button_list[i]
@@ -292,26 +307,24 @@ func _navigate_buttons(button_list: Array, direction: int):
 			current_idx = i
 			break
 	
-	print("Current index: ", current_idx)
-	
-	if current_idx == -1:
+	if current_idx == -1: #if no button is focused, focus the first one
+		var first_item = button_list[0]
+		var first_button = first_item.get_node("TextureButton") if first_item is Control and first_item.has_node("TextureButton") else first_item
+		first_button.grab_focus()
 		return
 	
 	var new_idx = (current_idx + direction + button_list.size()) % button_list.size()
 	var new_item = button_list[new_idx]
 	var new_button = new_item.get_node("TextureButton") if new_item is Control and new_item.has_node("TextureButton") else new_item
 	
-	print("Grabbing focus on: ", new_button.name if new_button else "null", " at index ", new_idx)
 	new_button.grab_focus()
 	
 	if button_list == main_containers:
 		await get_tree().process_frame
-		if popup.get_item_count() > 0:
-			popup.set_focused_item(0)
 
 func _on_popup_hide():
 	popup_is_open = false
-	if current_main_button:
+	if current_main_button and is_inside_tree():
 		current_main_button.grab_focus()
 
 func _return_to_main_menu():
@@ -451,7 +464,7 @@ func _on_popup_item_selected(id: int):
 					await get_tree().process_frame
 					$RelationshipsContainer/FansButton.grab_focus()
 					await get_tree().process_frame
-					_show_popup_for_improve_button($ImproveContainer/AddButton)
+					_show_popup_for_relationships_button($RelationshipsContainer/FansButton)
 					pass
 				3:  #Ownership
 					pass
