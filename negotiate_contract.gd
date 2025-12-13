@@ -963,7 +963,221 @@ func populate_bio_info():
 	pass
 	
 func populate_scout_notes():
-	pass
+	var scout_notes_str = ""
+	#TODO: pick out 3 notable off-field attributes
+	var notable_attributes = ["professionalism", "hustle", "partying"] #TODO: populate with the 3 most notable values from the character
+	for notable in notable_attributes:
+		match notable:
+			"positivity":
+				if character.off_attributes.positivity < 20:
+					scout_notes_str += "Does not find joy" + "\n"
+				elif character.off_attributes.positivity < 40:
+					scout_notes_str += "Not the most excitable" + "\n"
+				elif character.off_attributes.positivity < 60:
+					scout_notes_str += "Healthy amount of optimism" + "\n"
+				elif character.off_attributes.positivity < 80:
+					scout_notes_str += "Brings a positive energy" + "\n"
+				elif character.off_attributes.positivity < 95:
+					scout_notes_str += "Very positive energy" + "\n"
+				else: #95+
+					scout_notes_str += "Oozes positivity" + "\n"
+			"negativity":
+				if character.off_attributes.negativity < 20:
+					scout_notes_str += "Goes with the flow" + "\n"
+				elif character.off_attributes.negativity < 40:
+					scout_notes_str += "Doesn't throw chairs when the team loses" + "\n"
+				elif character.off_attributes.negativity < 60:
+					scout_notes_str += "Hates losing" + "\n"
+				elif character.off_attributes.negativity < 80:
+					scout_notes_str += "Really hates losing" + "\n"
+				elif character.off_attributes.negativity < 95:
+					scout_notes_str += "Nobody hates losing more" + "\n"
+				else: #95+
+					scout_notes_str += "Has diagnosable depression" + "\n"
+			"influence":
+				if character.off_attributes.influence < 20:
+					scout_notes_str += "Very introverted" + "\n"
+				elif character.off_attributes.influence < 40:
+					match character.gender:
+						"m":
+							scout_notes_str += "Keeps to himself" + "\n"
+						"f":
+							scout_notes_str += "Keeps to herself" + "\n"
+						"i":
+							scout_notes_str += "Keeps to themselves" + "\n"
+				elif character.off_attributes.influence < 60:
+					scout_notes_str += "Likes to be a part of the team" + "\n"
+				elif character.off_attributes.influence < 80:
+					scout_notes_str += "Attitude is infections" + "\n"
+				elif character.off_attributes.influence < 95:
+					scout_notes_str += "Locker room presence" + "\n"
+				else: #95+
+					scout_notes_str += "A leader in the locker room" + "\n"
+			"promiscuity": 
+				var hiton = ""
+				if character.attracted.m & !character.attracted.f:
+					var rand = randi_range(0,2)
+					match rand:
+						0:
+							hiton = "dude"
+						1:
+							hiton = "hairy twink"
+						2:
+							hiton = "thick daddy"
+						3:
+							hiton = "B-league left guard"
+				elif character.attracted.f & !character.attracted.m:
+					var rand = randi_range(0,3)
+					match rand:
+						0:
+							hiton = "chick"
+						1:
+							hiton = "muscle mommy"
+						2:
+							hiton = "bad, bad, bitch"
+						3:
+							hiton = "warlord's daughter"
+				else: #non-gendered hitons
+					var rand = randi_range(0,3)
+					match rand:
+						0:
+							hiton = "hottie"
+						1:
+							hiton = "serf"
+						2:
+							hiton = "prostitute"
+						3:
+							hiton = "ball babe"
+				
+				if character.off_attributes.promiscuity < 20:
+					scout_notes_str += "Monogamous" + "\n"
+				elif character.off_attributes.promiscuity < 40:
+					scout_notes_str += "Not a prude" + "\n"
+				elif character.off_attributes.promiscuity < 60:
+					scout_notes_str += "Known to like a " + hiton + "\n"
+				elif character.off_attributes.promiscuity < 80:
+					scout_notes_str += "Always has some new " + hiton + " around" + "\n"
+				elif character.off_attributes.promiscuity < 95:
+					scout_notes_str += "Has too many " + hiton + "s around all the time" + "\n"
+				else: #95+
+					scout_notes_str += "Certified " + hiton + " freak" + "\n"
+			"loyalty": 
+				if character.off_attributes.loyalty < 20:
+					scout_notes_str += "Mercenary" + "\n"
+				elif character.off_attributes.loyalty < 40:
+					scout_notes_str += "Will sign with another team if the contract is good" + "\n"
+				elif character.off_attributes.influence < 60:
+					scout_notes_str += "Doesn't like moving teams" + "\n"
+				elif character.off_attributes.influence < 80:
+					scout_notes_str += "Loves to be on one team for a long time" + "\n"
+				elif character.off_attributes.influence < 95:
+					scout_notes_str += "Wants to have a one-team career" + "\n"
+				else: #95+
+					scout_notes_str += "Bleeds team colors" + "\n"
+			"love_of_the_game":
+				if character.off_attributes.love_of_the_game < 20:
+					scout_notes_str += "Secretly dislikes ball" + "\n"
+				elif character.off_attributes.love_of_the_game < 40:
+					scout_notes_str += "Love-hate relationship with the game" + "\n"
+				elif character.off_attributes.love_of_the_game < 60:
+					scout_notes_str += "Loves the game" + "\n"
+				elif character.off_attributes.love_of_the_game < 80:
+					scout_notes_str += "Student of the game" + "\n"
+				elif character.off_attributes.love_of_the_game < 95:
+					scout_notes_str += "Eats, sleeps, and breathes ball" + "\n"
+				else: #95+
+					scout_notes_str += "Loves ball more than life itself" + "\n"
+			"professionalism":
+				if character.off_attributes.professionalism < 20:
+					scout_notes_str += "Known to go missing for a few days at a time" + "\n"
+				elif character.off_attributes.professionalism < 40:
+					scout_notes_str += "Late more often than not" + "\n"
+				elif character.off_attributes.professionalism < 60:
+					scout_notes_str += "Not late too often" + "\n"
+				elif character.off_attributes.professionalism < 80:
+					scout_notes_str += "Usually on time" + "\n"
+				elif character.off_attributes.professionalism < 95:
+					scout_notes_str += "Almost always on time" + "\n"
+				else: #95+
+					scout_notes_str += "Has never been late before" + "\n"
+			"partying":
+				if character.off_attributes.partying < 20:
+					scout_notes_str += "Likes to go to bed early" + "\n"
+				elif character.off_attributes.partying < 40:
+					scout_notes_str += "Finds excuses to leave parties early" + "\n"
+				elif character.off_attributes.partying < 60:
+					scout_notes_str += "Likes to party" + "\n"
+				elif character.off_attributes.partying < 80:
+					scout_notes_str += "Really likes to party" + "\n"
+				elif character.off_attributes.partying < 95:
+					scout_notes_str += "Life of the party" + "\n"
+				else: #95+
+					scout_notes_str += "Middle name is \"Party\"" + "\n"
+			"potential":
+				if character.off_attributes.potential < 20:
+					scout_notes_str += "Has no chance of ever becoming a successful baller" + "\n"
+				elif character.off_attributes.potential < 40:
+					scout_notes_str += "Not cut our for professional ball" + "\n"
+				elif character.off_attributes.potential < 60:
+					scout_notes_str += "Low ceiling" + "\n"
+				elif character.off_attributes.potential < 80:
+					scout_notes_str += "Could have a good career" + "\n"
+				elif character.off_attributes.potential < 95:
+					scout_notes_str += "High ceiling" + "\n"
+				else: #95+
+					scout_notes_str += "Could be one of the greats" + "\n"
+			"hustle":
+				if character.off_attributes.hustle < 20:
+					scout_notes_str += "Genuinely lazy" + "\n"
+				elif character.off_attributes.hustle < 40:
+					scout_notes_str += "Doesn't want to do what it takes" + "\n"
+				elif character.off_attributes.hustle < 60:
+					scout_notes_str += "Has a little juice" + "\n"
+				elif character.off_attributes.hustle < 80:
+					scout_notes_str += "Definitely has the juice" + "\n"
+				elif character.off_attributes.hustle < 95:
+					match character.gender:
+						"m":
+							scout_notes_str += "Has that dawg in him" + "\n"
+						"f":
+							scout_notes_str += "Has that dawg in her" + "\n"
+						"i":
+							scout_notes_str += "Has that dawg in them" + "\n"
+				else: #95+
+					scout_notes_str += "The hardest worker I have ever seen" + "\n"
+			"hardiness":
+				if character.off_attributes.hardiness < 20:
+					scout_notes_str += "Needs a fainting couch for road trips" + "\n"
+				elif character.off_attributes.hardiness < 40:
+					scout_notes_str += "Has the constitution of a dry leaf" + "\n"
+				elif character.off_attributes.hardiness < 60:
+					scout_notes_str += "Could struggle with the rigors of a long season" + "\n"
+				elif character.off_attributes.hardiness < 80:
+					scout_notes_str += "Doesn't get sick much" + "\n"
+				elif character.off_attributes.hardiness < 95:
+					match character.gender:
+						"m":
+							scout_notes_str += "A pretty sturdy sonofabitch" + "\n"
+						"f":
+							scout_notes_str += "A pretty sturdy bitch" + "\n"
+						"i":
+							scout_notes_str += "A pretty sturdy fucker" + "\n"
+				else: #95+
+					scout_notes_str += "Could survive off of eating broken glass" + "\n"
+			"combat":
+				if character.off_attributes.combat < 20:
+					scout_notes_str += "Has no survival instincts whatsoever" + "\n"
+				elif character.off_attributes.combat < 40:
+					scout_notes_str += "Liable to get killed if the team bus gets raided" + "\n"
+				elif character.off_attributes.combat < 60:
+					scout_notes_str += "Knows how to take cover" + "\n"
+				elif character.off_attributes.combat < 80:
+					scout_notes_str += "Knows which end of an iron to point" + "\n"
+				elif character.off_attributes.combat < 95:
+					scout_notes_str += "Once killed a man" + "\n"
+				else: #95+
+					scout_notes_str += "Does not need security escort" + "\n"
+		$VBoxContainer/Top/Notes1/ScoutNotes.text = scout_notes_str
 
 func populate_comparables():
 	var string = "No Known Comparables"
@@ -1007,12 +1221,56 @@ func populate_comparables():
 	$VBoxContainer/Top/Notes1/Comps.text = string
 
 func populate_top_skills():
-	pass
+	var skill_1 = ""
+	var att_1 = 0
+	var skill_2 = ""
+	var att_2 = 0
+	var skill_3 = ""
+	var att_3 = 0
+	for attribute in player.attributes:
+		if player.attributes[attribute] > att_1:
+			att_3 = att_2
+			skill_3 = skill_2
+			att_2 = att_1
+			skill_2 = skill_1
+			att_1 = player.attributes[attribute]
+			skill_1 = attribute
+		elif player.attributes[attribute] > att_2:
+			att_3 = att_2
+			skill_3 = skill_2
+			att_2 = player.attributes[attribute]
+			skill_2 = attribute
+		elif player.attributes[attribute] > att_3:
+			att_3 = player.attributes[attribute]
+			skill_3 = attribute
+	var skills = [skill_1, skill_2, skill_3]
+	for skill in skills:
+		if skill == "power":
+			skill = "Strength"
+		elif skill == "shooting":
+			skill = "Striking"
+		else:
+			skill = skill.capitalize()
+	$VBoxContainer/Top/Notes2/TopSkills.text = skills[0] + " " + str(att_1) + "\n" + skills[1] + " " + str(att_2) + "\n" + skills[2] + " " + str(att_3) + "\n"
 
 func populate_throws():
 	pass
 	
 func populate_potential():
+	var body_type = ""
+	#Bulky Frame. Gains power.
+	#Lanky Frame. Gains technique
+	#Wiry Frame. Gains mobility
+	#TODO: based on height and weight, determine type
+	var true_height = player.bio.feet * 12 + player.bio.inches
+	var newtons = player.bio.pounds / true_height
+	if newtons > 3: 
+		body_type = "Bulky Frame. Builds strength and balance."
+	elif newtons > 2.5:
+		body_type = "Moderate frame. No bonuses."
+	else:
+		body_type = "Wiry Frame. Builds speed and endurance."
+	$VBoxContainer/Top/Notes2/Potential.text = body_type
 	pass
 	
 func populate_focuses():

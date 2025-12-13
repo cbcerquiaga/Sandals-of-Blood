@@ -71,7 +71,7 @@ var game_stats: Dictionary = {
 @export var RG: Guard
 @export var LF: Forward
 @export var RF: Forward
-@export var subs_remaining: int = 6 #sub every starter off the field; play all of your team's pitchers and sub 3 fielders; sub through all but one of your team's pitchers and sub all your fielders except your goalkeeper
+@export var subs_remaining: int = 4 #enough to put in a backup pitcher, sub off 2 mismatched F/G, and still have one left over for injuries
 
 
 @onready var onfield_players: Array[Player] = [K, P, LG, RG, LF, RF]
@@ -201,7 +201,7 @@ func add_players_to_roster():
 	
 	
 func reset_subs():
-	subs_remaining = 6
+	subs_remaining = 4
 
 func add_player(player: Player):
 	if not is_player_in_roster(player):
@@ -637,7 +637,7 @@ func debug_default_roster():
 	var P2 = Player.new()
 	P2.position_type = "pitcher"
 	P2.declared_pitcher = true
-	P2.portrait = "res://Assets/Player Portraits/placeholder portrait 2.png"
+	P2.portrait = "M"
 	pitches = ["changeup", "moonball", "stop_go"]
 	grooves = [15, 20, 25]
 	P2.special_pitch_names = pitches

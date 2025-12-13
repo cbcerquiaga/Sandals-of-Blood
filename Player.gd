@@ -362,6 +362,9 @@ func _ready():
 	update_ui()
 
 func _physics_process(delta):
+	if !can_move:
+		velocity = Vector2.ZERO
+		return
 	if overall_state == PlayerState.CHILD_STATE:
 		standard_behavior(delta)
 	elif overall_state == PlayerState.SOLO_CELEBRATION:

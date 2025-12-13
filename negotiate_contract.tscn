@@ -156,7 +156,7 @@ layout_mode = 2
 layout_mode = 0
 offset_right = 40.0
 offset_bottom = 23.0
-text = "Potential"
+text = "Condition"
 
 [node name="Potential" type="Label" parent="VBoxContainer/Top/Notes2"]
 layout_mode = 2

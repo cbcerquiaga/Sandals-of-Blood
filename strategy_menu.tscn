@@ -439,7 +439,7 @@ offset_top = 1900.0
 offset_right = 537.0
 offset_bottom = 1923.0
 scale = Vector2(6, 6)
-text = "Substitutions Remaining: 6"
+text = "Substitutions Remaining: 4"
 
 [node name="FieldGrid" type="GridContainer" parent="SubstitutionSection"]
 layout_mode = 0
