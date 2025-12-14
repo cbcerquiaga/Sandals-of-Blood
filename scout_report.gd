@@ -29,7 +29,7 @@ var info = { #determines what can be revealed based on current level of knowledg
 	"career_pooint": false, #reveals growing, peaking, plateauing, fading
 	"key_focus": false, #reveals value, stability, loyalty importance
 	"secondary_focus": false, #reveals 2nd and 3rd most important focuses
-	"tertiary focus": false, #reveals 4th and 5th most important focuses
+	"tertiary_focus": false, #reveals 4th and 5th most important focuses
 	"gravy_focus": false, #reveals 6th and 7th most important focuses
 	"coach_skills": false, #revealse physical, mental, technical training
 	"scout_skills": false, #reveals eval, spotting, and speed

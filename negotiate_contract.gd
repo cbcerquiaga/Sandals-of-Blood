@@ -245,7 +245,7 @@ func scale_texture_button(button: TextureButton, new_size: Vector2):
 			
 func arrange_knowledge_grid():
 	fill_knowledge_headers()
-	fill_knowledge_values()
+	#fill_knowledge_values()
 	var knowledge_labels = [
 		$VBoxContainer/Top/Knowledge/Positions,
 		$VBoxContainer/Top/Knowledge/Type,
@@ -294,54 +294,44 @@ func fill_knowledge_headers():
 	$VBoxContainer/Top/Knowledge/Job.text = "Day Job"
 	
 func fill_knowledge_values():
-	#TODO: fill values sbased on player
-	"""
-	positions played in format of K/LG/RG or P/LF/RF etc; preferred position first, then in order of LG/K/RG/LF/P/RF
-	player type as string, readable version
-	"""
+	#TODO: Has an extra / in the format
 	
 	var positions_string = ""
-	if true: #TODO: only fill in if there is scouting knowledge
-		if player.preferred_position != null:
-			positions_string += player.preferred_position
-		else:
-			player.find_preferred_position()
-			positions_string += player.preferred_position
-		for position in player.playable_positions:
-			if position == player.preferred_position:
-				continue
-			else:
-				positions_string += "/" + position
+	if player.preferred_position != null:
+		positions_string += player.preferred_position
 	else:
-		positions_string = "?"
+		player.find_preferred_position()
+		positions_string += player.preferred_position
+	for position in player.playable_positions:
+		if position == player.preferred_position:
+			continue
+		else:
+			positions_string += "/" + position
 	$VBoxContainer/Top/Knowledge/Positions_player.text = positions_string
 	var style_string
-	if true: #TODO: only fill in if there is scouting knowledge
-		if player.playStyle:
-			style_string = player.playStyle
-		else:
-			player.calculate_player_type()
-			style_string = player.playStyle
+	if player.playStyle:
+		style_string = player.playStyle
 	else:
-		style_string = "?"
+		player.calculate_player_type()
+		style_string = player.playStyle
 	$VBoxContainer/Top/Knowledge/Type_player.text = style_string
 	var potential_string
-	if true:
+	if scouting_knowledge.info.potential:
 		$VBoxContainer/Top/Knowledge/Potential_player.text = str(character.off_attributes.potential)
 	else:
 		$VBoxContainer/Top/Knowledge/Potential_player.text = "?"
 		
-	if true:
+	if scouting_knowledge.info.professionalism:
 		$VBoxContainer/Top/Knowledge/Professional_player.text = str(character.off_attributes.professionalism)
 	else:
 		$VBoxContainer/Top/Knowledge/Professional_player.text = "?"
 	
-	if true:
+	if scouting_knowledge.info.hustle:
 		$VBoxContainer/Top/Knowledge/Hustle_player.text = str(character.off_attributes.hustle)
 	else:
 		$VBoxContainer/Top/Knowledge/Hustle_player.text = "?"
 	
-	if true:
+	if scouting_knowledge.info.family:
 		var family = character.get_family_count()
 		player_family = family
 		$VBoxContainer/Top/Knowledge/Family_player.text = str(family)
@@ -349,7 +339,7 @@ func fill_knowledge_values():
 		$VBoxContainer/Top/Knowledge/Family_player.text = "?"
 		player_family = 1
 		
-	if true:
+	if scouting_knowledge.info.gang:
 		$VBoxContainer/Top/Knowledge/Gang_player.text = character.gang_affiliation
 	else:
 		$VBoxContainer/Top/Knowledge/Gang_player.text = "?"
@@ -951,7 +941,7 @@ func populate_imported_data(character: Character):
 	populate_potential()
 	populate_scout_notes()
 	populate_scout_notes()
-	populate_knowledge()
+	fill_knowledge_values()
 	
 func populate_bio_info():
 	var string = character.player.bio.first_name + " " + character.player.bio.last_name + "\n"
@@ -964,8 +954,10 @@ func populate_bio_info():
 	
 func populate_scout_notes():
 	var scout_notes_str = ""
-	#TODO: pick out 3 notable off-field attributes
-	var notable_attributes = ["professionalism", "hustle", "partying"] #TODO: populate with the 3 most notable values from the character
+	if scouting_knowledge.percentage == 0:
+		$VBoxContainer/Top/Notes1/ScoutNotes.text = "Not Scouted"
+		return
+	var notable_attributes = pick_notable_attributes()
 	for notable in notable_attributes:
 		match notable:
 			"positivity":
@@ -1179,6 +1171,11 @@ func populate_scout_notes():
 					scout_notes_str += "Does not need security escort" + "\n"
 		$VBoxContainer/Top/Notes1/ScoutNotes.text = scout_notes_str
 
+func pick_notable_attributes():
+	#TODO: identify values which are very high, very low, or relatively high or low compared to the rest of the character's off_attributes
+	
+	return ["professionalism", "hustle", "partying"] #TODO: populate with the 3 most notable values from the character
+
 func populate_comparables():
 	var string = "No Known Comparables"
 
@@ -1254,14 +1251,18 @@ func populate_top_skills():
 	$VBoxContainer/Top/Notes2/TopSkills.text = skills[0] + " " + str(att_1) + "\n" + skills[1] + " " + str(att_2) + "\n" + skills[2] + " " + str(att_3) + "\n"
 
 func populate_throws():
+	var throws_string = ""
+	if player.special_pitch_names:
+		for pitch in player.special_pitch_names:
+			if pitch.length() > 0:
+				throws_string += pitch.capitalize()
+			else:
+				throws_string += "None"
+			throws_string += "\n"
 	pass
 	
 func populate_potential():
 	var body_type = ""
-	#Bulky Frame. Gains power.
-	#Lanky Frame. Gains technique
-	#Wiry Frame. Gains mobility
-	#TODO: based on height and weight, determine type
 	var true_height = player.bio.feet * 12 + player.bio.inches
 	var newtons = player.bio.pounds / true_height
 	if newtons > 3: 
@@ -1271,10 +1272,36 @@ func populate_potential():
 	else:
 		body_type = "Wiry Frame. Builds speed and endurance."
 	$VBoxContainer/Top/Notes2/Potential.text = body_type
-	pass
 	
 func populate_focuses():
-	pass
-
-func populate_knowledge():
+	if scouting_knowledge.info.key_focus:
+		pass
+	else:
+		$VBoxContainer/Top/Focuses/Focus1.text = "?"
+		$VBoxContainer/Top/Focuses/Team1.text = "?"
+		$VBoxContainer/Top/Focuses/Want1.text = "?"
+	if scouting_knowledge.info.secondary_focus:
+		pass
+	else:
+		$VBoxContainer/Top/Focuses/Focus2.text = "?"
+		$VBoxContainer/Top/Focuses/Team2.text = "?"
+		$VBoxContainer/Top/Focuses/Want2.text = "?"
+		$VBoxContainer/Top/Focuses/Focus3.text = "?"
+		$VBoxContainer/Top/Focuses/Team3.text = "?"
+		$VBoxContainer/Top/Focuses/Want3.text = "?"
+		$VBoxContainer/Top/Focuses/Focus4.text = "?"
+		$VBoxContainer/Top/Focuses/Team4.text = "?"
+		$VBoxContainer/Top/Focuses/Want4.text = "?"
+	if scouting_knowledge.info.tertiary_focus:
+		pass
+	else:
+		$VBoxContainer/Top/Focuses/Focus5.text = "?"
+		$VBoxContainer/Top/Focuses/Team5.text = "?"
+		$VBoxContainer/Top/Focuses/Want5.text = "?"
+		$VBoxContainer/Top/Focuses/Focus6.text = "?"
+		$VBoxContainer/Top/Focuses/Team6.text = "?"
+		$VBoxContainer/Top/Focuses/Want6.text = "?"
+		$VBoxContainer/Top/Focuses/Focus7.text = "?"
+		$VBoxContainer/Top/Focuses/Team7.text = "?"
+		$VBoxContainer/Top/Focuses/Want7.text = "?"
 	pass
