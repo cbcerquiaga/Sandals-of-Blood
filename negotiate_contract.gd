@@ -1275,12 +1275,17 @@ func populate_potential():
 	
 func populate_focuses():
 	if scouting_knowledge.info.key_focus:
+		#TODO: identify the biggest focus between value, security, and flexibility
+		#TODO: assign a letter grade: "F" for 0-0.9, "D" for 1-1.9, "C-" for 2.0-2.1, "C" for 2.2-2.7, "C+" for 2.8-2.9, "B-" 3.0-3.1, "B" 3.2-3.7, "B+" for 3.8-3.9, "A-" for 4.0-4.1, "A" for 4.2-4.7, "A+" for 4.7 or above
+		#TODO: populate with letter grade for player's focus value and for the team's city's value 
 		pass
 	else:
-		$VBoxContainer/Top/Focuses/Focus1.text = "?"
-		$VBoxContainer/Top/Focuses/Team1.text = "?"
-		$VBoxContainer/Top/Focuses/Want1.text = "?"
+		$VBoxContainer/Top/Focuses/Focus1.text = "?" #focus label has the name of the focus; make it "pretty" so capitalized and spaces instead of underscores
+		$VBoxContainer/Top/Focuses/Team1.text = "?" #team has the letter grade for the franchise
+		$VBoxContainer/Top/Focuses/Want1.text = "?" #want has the value the player would be looking for
 	if scouting_knowledge.info.secondary_focus:
+		#TODO: identify focuses 2, 3, and 4 after the players' key focus
+		#TODO: same deal as key focus with letter grades
 		pass
 	else:
 		$VBoxContainer/Top/Focuses/Focus2.text = "?"
@@ -1293,6 +1298,8 @@ func populate_focuses():
 		$VBoxContainer/Top/Focuses/Team4.text = "?"
 		$VBoxContainer/Top/Focuses/Want4.text = "?"
 	if scouting_knowledge.info.tertiary_focus:
+		#TODO: identify focuses 5, 6, and 7
+		#TODO: fill labels with letter grades
 		pass
 	else:
 		$VBoxContainer/Top/Focuses/Focus5.text = "?"

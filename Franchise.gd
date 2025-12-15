@@ -1,7 +1,9 @@
 extends Node
 class_name Franchise
 
+var city: City
 var team: Team
+var travel_convoy: Convoy
 #staff
 var manager #player character on use team; makes strategic decisions and manages the players
 var staff_ass_coach #helps with practice, helps keep players in line
@@ -54,12 +56,54 @@ var ties
 var goal_diff #tiebreaker if teams have equalt points percentage and equal wins
 var last_season_position #tiebreaker if teams have equal goal differential. Tie goes to team which had lower position last season
 
+#amenities. These can be built and go into player focuses
+var amenities = {
+	#development amenities go into training and into 
+	"pitching cage": false, #throwing, focus, confidence, blocking, reactions
+	"bench press": false, #power
+	"squat rack": false, #power, balance
+	"dumbbells": false, #throwing, shooting
+	"leg workout machines": false, #blocking, reactions, faceoffs
+	"ergometer": false, #endurance, durability
+	"stationary bike": false, #endurance, speed
+	"sparring mat": false, #toughness
+	"running track": false, #speed, endurance
+	"agility ladder": false, #agility, balance
+	#game day amenities make it nice to be on the team
+	"locker room": false,
+	"showers": false,
+	"lounge": false,
+	"players only entrance": false,
+	"hot tub": false,
+	#rager amenities for when the team wins
+	"wet bar": false,
+	"fuck tent": false,
+	"lightshow": false,
+	"live band": false,
+	"drug cabinet": false,
+	#chill stuff for the team to party when they lose
+	"humidor": false,
+	"board games": false,
+	"massage table": false,
+	"conversation pit": false,
+	"music player": false,
+	#medical stuff- trainer
+	"painkillers": false, #novocaine, general anesthesia, or chronic
+	"athletic tape": false,
+	"stitching": false,
+	#medical stuff- surgeon
+	"x-ray": false,
+	"disinfecting": false,
+}
+
 func _ready():
 	default_team() #TODO: load from save
 
 func default_team():
 	team = Team.new()
 	team._init()
+	city = City.new()
+	city.franchises[0] = self #North side
 
 func print_name():
 	if team.team_name_inverted:
@@ -78,3 +122,42 @@ func get_winning_percentage():
 		return 0
 	else:
 		return float(get_standings_points())/games_played
+
+func get_contract_focus_value(focus):
+	match focus:
+		"gameday":
+			pass
+		"travel":
+			pass
+		"medical":
+			pass
+		"party":
+			pass
+		"chill":
+			pass
+		"win_now":
+			pass
+		"win_later": 
+			pass
+		"loyalty": 
+			pass
+		"opportunity":
+			pass
+		"community": 
+			pass
+		"development":
+			pass
+		"safety":
+			pass
+		"education": 
+			pass
+		"trade": 
+			pass
+		"farming": 
+			pass
+		"day_life": 
+			pass
+		"night_life": 
+			pass
+		"welfare": 
+			pass
