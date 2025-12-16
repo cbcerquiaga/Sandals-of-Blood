@@ -944,7 +944,7 @@ func populate_imported_data(character: Character):
 	fill_knowledge_values()
 	
 func populate_bio_info():
-	var string = character.player.bio.first_name + " " + character.player.bio.last_name + "\n"
+	var string = character.player.bio.first_name + "\n" + character.player.bio.last_name + "\n"
 	string = string + get_proper_position_name(character.player.preferred_position) + "\n"
 	string = string + str(character.player.bio.feet) + "\'" + str(character.player.bio.inches) + "\"" + " " + str(character.player.bio.pounds) + "lbs" + "\n"
 	string = string + str(character.player.bio.years) + " Years Old"
@@ -1275,18 +1275,54 @@ func populate_potential():
 	
 func populate_focuses():
 	if scouting_knowledge.info.key_focus:
-		#TODO: identify the biggest focus between value, security, and flexibility
-		#TODO: assign a letter grade: "F" for 0-0.9, "D" for 1-1.9, "C-" for 2.0-2.1, "C" for 2.2-2.7, "C+" for 2.8-2.9, "B-" 3.0-3.1, "B" 3.2-3.7, "B+" for 3.8-3.9, "A-" for 4.0-4.1, "A" for 4.2-4.7, "A+" for 4.7 or above
-		#TODO: populate with letter grade for player's focus value and for the team's city's value 
-		pass
+		var key_focus = character.get_key_focus()
+		var team_value = CareerFranchise.get_contract_focus_value(key_focus)
+		var want_value = character.contract_focuses[key_focus]
+		$VBoxContainer/Top/Focuses/Focus1.text = pretty_focus_name(key_focus)
+		$VBoxContainer/Top/Focuses/Team1.text = get_letter_value(team_value)
+		$VBoxContainer/Top/Focuses/Want1.text = get_letter_value(want_value)
 	else:
-		$VBoxContainer/Top/Focuses/Focus1.text = "?" #focus label has the name of the focus; make it "pretty" so capitalized and spaces instead of underscores
-		$VBoxContainer/Top/Focuses/Team1.text = "?" #team has the letter grade for the franchise
-		$VBoxContainer/Top/Focuses/Want1.text = "?" #want has the value the player would be looking for
+		$VBoxContainer/Top/Focuses/Focus1.text = "?"
+		$VBoxContainer/Top/Focuses/Team1.text = "?"
+		$VBoxContainer/Top/Focuses/Want1.text = "?"
+	
 	if scouting_knowledge.info.secondary_focus:
-		#TODO: identify focuses 2, 3, and 4 after the players' key focus
-		#TODO: same deal as key focus with letter grades
-		pass
+		var focus2 = character.get_nth_focus(1)
+		var focus3 = character.get_nth_focus(2)
+		var focus4 = character.get_nth_focus(3)
+		
+		if focus2:
+			var team_value2 = CareerFranchise.get_contract_focus_value(focus2)
+			var want_value2 = character.contract_focuses[focus2]
+			$VBoxContainer/Top/Focuses/Focus2.text = pretty_focus_name(focus2)
+			$VBoxContainer/Top/Focuses/Team2.text = get_letter_value(team_value2)
+			$VBoxContainer/Top/Focuses/Want2.text = get_letter_value(want_value2)
+		else:
+			$VBoxContainer/Top/Focuses/Focus2.text = "?"
+			$VBoxContainer/Top/Focuses/Team2.text = "?"
+			$VBoxContainer/Top/Focuses/Want2.text = "?"
+		
+		if focus3:
+			var team_value3 = CareerFranchise.get_contract_focus_value(focus3)
+			var want_value3 = character.contract_focuses[focus3]
+			$VBoxContainer/Top/Focuses/Focus3.text = pretty_focus_name(focus3)
+			$VBoxContainer/Top/Focuses/Team3.text = get_letter_value(team_value3)
+			$VBoxContainer/Top/Focuses/Want3.text = get_letter_value(want_value3)
+		else:
+			$VBoxContainer/Top/Focuses/Focus3.text = "?"
+			$VBoxContainer/Top/Focuses/Team3.text = "?"
+			$VBoxContainer/Top/Focuses/Want3.text = "?"
+		
+		if focus4:
+			var team_value4 = CareerFranchise.get_contract_focus_value(focus4)
+			var want_value4 = character.contract_focuses[focus4]
+			$VBoxContainer/Top/Focuses/Focus4.text = pretty_focus_name(focus4)
+			$VBoxContainer/Top/Focuses/Team4.text = get_letter_value(team_value4)
+			$VBoxContainer/Top/Focuses/Want4.text = get_letter_value(want_value4)
+		else:
+			$VBoxContainer/Top/Focuses/Focus4.text = "?"
+			$VBoxContainer/Top/Focuses/Team4.text = "?"
+			$VBoxContainer/Top/Focuses/Want4.text = "?"
 	else:
 		$VBoxContainer/Top/Focuses/Focus2.text = "?"
 		$VBoxContainer/Top/Focuses/Team2.text = "?"
@@ -1297,10 +1333,44 @@ func populate_focuses():
 		$VBoxContainer/Top/Focuses/Focus4.text = "?"
 		$VBoxContainer/Top/Focuses/Team4.text = "?"
 		$VBoxContainer/Top/Focuses/Want4.text = "?"
+	
 	if scouting_knowledge.info.tertiary_focus:
-		#TODO: identify focuses 5, 6, and 7
-		#TODO: fill labels with letter grades
-		pass
+		var focus5 = character.get_nth_focus(4)
+		var focus6 = character.get_nth_focus(5)
+		var focus7 = character.get_nth_focus(6)
+		
+		if focus5:
+			var team_value5 = CareerFranchise.get_contract_focus_value(focus5)
+			var want_value5 = character.contract_focuses[focus5]
+			$VBoxContainer/Top/Focuses/Focus5.text = pretty_focus_name(focus5)
+			$VBoxContainer/Top/Focuses/Team5.text = get_letter_value(team_value5)
+			$VBoxContainer/Top/Focuses/Want5.text = get_letter_value(want_value5)
+		else:
+			$VBoxContainer/Top/Focuses/Focus5.text = "?"
+			$VBoxContainer/Top/Focuses/Team5.text = "?"
+			$VBoxContainer/Top/Focuses/Want5.text = "?"
+		
+		if focus6:
+			var team_value6 = CareerFranchise.get_contract_focus_value(focus6)
+			var want_value6 = character.contract_focuses[focus6]
+			$VBoxContainer/Top/Focuses/Focus6.text = pretty_focus_name(focus6)
+			$VBoxContainer/Top/Focuses/Team6.text = get_letter_value(team_value6)
+			$VBoxContainer/Top/Focuses/Want6.text = get_letter_value(want_value6)
+		else:
+			$VBoxContainer/Top/Focuses/Focus6.text = "?"
+			$VBoxContainer/Top/Focuses/Team6.text = "?"
+			$VBoxContainer/Top/Focuses/Want6.text = "?"
+		
+		if focus7:
+			var team_value7 = CareerFranchise.get_contract_focus_value(focus7)
+			var want_value7 = character.contract_focuses[focus7]
+			$VBoxContainer/Top/Focuses/Focus7.text = pretty_focus_name(focus7)
+			$VBoxContainer/Top/Focuses/Team7.text = get_letter_value(team_value7)
+			$VBoxContainer/Top/Focuses/Want7.text = get_letter_value(want_value7)
+		else:
+			$VBoxContainer/Top/Focuses/Focus7.text = "?"
+			$VBoxContainer/Top/Focuses/Team7.text = "?"
+			$VBoxContainer/Top/Focuses/Want7.text = "?"
 	else:
 		$VBoxContainer/Top/Focuses/Focus5.text = "?"
 		$VBoxContainer/Top/Focuses/Team5.text = "?"
@@ -1311,4 +1381,125 @@ func populate_focuses():
 		$VBoxContainer/Top/Focuses/Focus7.text = "?"
 		$VBoxContainer/Top/Focuses/Team7.text = "?"
 		$VBoxContainer/Top/Focuses/Want7.text = "?"
-	pass
+
+func pretty_focus_name(focus: String) -> String:
+	match focus:
+		"satiety":
+			return "Food Security"
+		"hydration":
+			return "Water Access"
+		"hometown":
+			return "Proximity to Home"
+		"housing":
+			return "Preferred Housing"
+		"gameday":
+			return "Game Day Experience"
+		"travel":
+			return "Quality of Travel"
+		"medical":
+			return "Medical Care"
+		"party":
+			return "Post-win Ragers"
+		"chill":
+			return "Chilling with Teammates"
+		"win_now":
+			return "Win Now"
+		"win_later":
+			return "Future Success"
+		"loyalty":
+			return "Loyalty to Players"
+		"opportunity":
+			return "Career Opportunity"
+		"community":
+			return "Community Involvement"
+		"development":
+			return "Player Development"
+		"safety":
+			return "Safety"
+		"education":
+			return "Education"
+		"trade":
+			return "Economy"
+		"farming":
+			return "Farming"
+		"day_life":
+			return "Day Life"
+		"night_life":
+			return "Night Life"
+		"welfare":
+			return "Welfare System"
+		_:
+			return focus.capitalize()
+
+func get_letter_value(grade: float):
+	if grade < 0.7:
+		return "F"
+	elif grade < 1.0:
+		return "D-"
+	elif grade < 1.3:
+		return "D"
+	elif grade < 1.7:
+		return "D+"
+	elif grade < 2.0:
+		return "C-"
+	elif grade < 2.3:
+		return "C"
+	elif grade < 2.7:
+		return "C+"
+	elif grade < 3.0:
+		return "B-"
+	elif grade < 3.3:
+		return "B"
+	elif grade < 3.7:
+		return "B+"
+	elif grade < 4.0:
+		return "A-"
+	elif grade < 4.3:
+		return "A+"
+	else:
+		return "A++"
+
+func get_key_value(key):
+	match key:
+		"value":
+			return get_value_value()
+		"flexibility":
+			return get_flex_value()
+		"stability":
+			return get_stability_value()
+
+func get_value_value():
+	var guaranteed_total = 0
+	var max_bonus = 0
+	var weighted_value = guaranteed_total * 0.75 + max_bonus * 0.25
+	#TODO: compare to comparables
+	return 0
+	
+func get_flex_value():
+	var buyout_value #free ok, 50 ok, 100 ok, 200 bad, none awful
+	var franchise_tag #franchise tag bad
+	var tradeable #tradeable ok
+	var length #less length good
+	return 0
+
+func get_stability_value():
+	var length #more length good
+	var franchise_tag #franchise tag good
+	var tradeable #tradeable bad
+	var buyout_value #none is best, 200 better, 100 ok, 50 bad, free awful
+	return 0
+
+func offer_contract():
+	var value_weight #weigh contract based on value
+	var flex_weight #weigh contract based on flexibility
+	var stability_weight #weigh contract based on stability
+	var weighted_value #use weights * player focus weights for each of the key focuses
+	var match1
+	var match2
+	var match3
+	var match4
+	var match5
+	var match6
+	var match7
+	var housing_match
+	var promise_match

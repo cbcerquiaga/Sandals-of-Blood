@@ -144,3 +144,45 @@ var liked_NPCs = [] #all players and staff which the character likes and is infl
 func get_family_count() -> int:
 	family = spouses + children + elders + adults
 	return family
+
+func get_key_focus():
+	if contract_focuses.stability > contract_focuses.flexibility and contract_focuses.stability > contract_focuses.value:
+		return "stability"
+	elif contract_focuses.flexibility > contract_focuses.stability and contract_focuses.flexibility > contract_focuses.value:
+		return "flexibility"
+	else:
+		return "value"
+
+func get_nth_focus(n: int) -> String:
+	var key_focus = get_key_focus()
+	var numeric_focuses = []
+	for focus in contract_focuses:
+		if typeof(contract_focuses[focus]) == TYPE_FLOAT or typeof(contract_focuses[focus]) == TYPE_INT:
+			numeric_focuses.append(focus)
+	
+	numeric_focuses.sort_custom(func(a, b): 
+		return contract_focuses[a] > contract_focuses[b]
+	)
+	
+	var focus_order = {}
+	var index = 0
+	for focus in contract_focuses:
+		focus_order[focus] = index
+		index += 1
+	
+	numeric_focuses.sort_custom(func(a, b):
+		if contract_focuses[a] == contract_focuses[b]:
+			return focus_order[a] < focus_order[b]
+		else:
+			return contract_focuses[a] > contract_focuses[b]
+	)
+	
+	var filtered_focuses = []
+	for focus in numeric_focuses:
+		if focus != key_focus or len(filtered_focuses) > 0:
+			filtered_focuses.append(focus)
+	
+	if n - 1 < filtered_focuses.size():
+		return filtered_focuses[n - 1]
+	else:
+		return ""

@@ -3,6 +3,7 @@ class_name Franchise
 
 var city: City
 var team: Team
+var neighborhood: String #N,S,E,W
 var travel_convoy: Convoy
 #staff
 var manager #player character on use team; makes strategic decisions and manages the players
@@ -41,9 +42,29 @@ var food_bank
 var food_in_weekly
 var food_out_weekly
 var fan_rep
+var weekly_expenses :={
+	"Player Wages": 0,
+	"Staff Wages": 0,
+	"Debts": 0
+}
 #club
-var training_facilities
-var housing = []#array of housing owned by the team
+var housing = { #each stored as an array of [owned, available]
+	"tent spot": [99999, 99999], #"yeah you can camp over there"
+	"encampment": [0,0], #team provides a tent and some rudimentary cooking and washing
+	"crash pad": [0,0], #mattress, couch, or sleeping bag on the floor of a room full of them
+	"bunk house": [0,0], #designed to stack in people
+	"cabin": [0,0], #hand built house
+	"camper": [0,0], #small trailer designed for camping
+	"motel": [0,0], #room in a renoated old hotel
+	"bungalow": [0,0], #tiny house
+	"stationary car": [0,0], #Old car converted into a camper- engine replaced with grill
+	"big house": [0,0], #Room within a renovated large house
+	"farmhouse": [0,0], #Cottage with arable land
+	"shanty": [0,0], #Crude structure to keep out elements
+	"mobile car": [0,0], #A real life working car that drives around
+	"compound": [0,0], #A fortified, walled-off home
+	"mansion": [0,0], #A newly built private home with all the luxuries
+}
 var team_type: String = "Professional" #casual, competitive, semi-amateur, semi-pro, pro, high level pro, top level pro; impacts level of free agent interest, sponsor interest, and available training time
 var reputation 
 var sponsors = [] #array of sponsors signed to the team
@@ -59,33 +80,30 @@ var last_season_position #tiebreaker if teams have equal goal differential. Tie 
 #amenities. These can be built and go into player focuses
 var amenities = {
 	#development amenities go into training and into 
-	"pitching cage": false, #throwing, focus, confidence, blocking, reactions
-	"bench press": false, #power
-	"squat rack": false, #power, balance
-	"dumbbells": false, #throwing, shooting
-	"leg workout machines": false, #blocking, reactions, faceoffs
-	"ergometer": false, #endurance, durability
-	"stationary bike": false, #endurance, speed
-	"sparring mat": false, #toughness
-	"running track": false, #speed, endurance
-	"agility ladder": false, #agility, balance
+	"pitching cage": false, #trains pitching attributes, allows measuring pitch speed at tryouts
+	"1v1 pitch": false, #trains fielder technical attributes and faceoffs, allows measuring 1v1 tournament at tryouts
+	"weight room": false, #trains strength based physical attributes, allows measuring max squat at tryouts
+	"agility course": false, #trains mobility based physical attributes, allows measuring agility course time at tryouts
+	"sparring mat": false, #trains combat based attributes, allows measuring fight tournament at tryouts
+	"tactics board": false, #trains mental attributes, 
 	#game day amenities make it nice to be on the team
 	"locker room": false,
 	"showers": false,
 	"lounge": false,
-	"players only entrance": false,
+	"players only entrance": false, #also provides some safety
 	"hot tub": false,
+	"press box": false,
 	#rager amenities for when the team wins
 	"wet bar": false,
-	"fuck tent": false,
+	"fuck tent": false, #also provides some development
 	"lightshow": false,
 	"live band": false,
 	"drug cabinet": false,
 	#chill stuff for the team to party when they lose
 	"humidor": false,
 	"board games": false,
-	"massage table": false,
-	"conversation pit": false,
+	"massage table": false, #also provides some medical
+	"ping pong": false, #also provides some development
 	"music player": false,
 	#medical stuff- trainer
 	"painkillers": false, #novocaine, general anesthesia, or chronic
@@ -94,6 +112,12 @@ var amenities = {
 	#medical stuff- surgeon
 	"x-ray": false,
 	"disinfecting": false,
+	#food stuff
+	"smoker": false,
+	"grill": false,
+	"griddle": false,
+	"kitchen sink": false,
+	"fridge": false
 }
 
 func _ready():
@@ -103,7 +127,7 @@ func default_team():
 	team = Team.new()
 	team._init()
 	city = City.new()
-	city.franchises[0] = self #North side
+	#city.franchises[0] = self #North side
 
 func print_name():
 	if team.team_name_inverted:
@@ -124,40 +148,121 @@ func get_winning_percentage():
 		return float(get_standings_points())/games_played
 
 func get_contract_focus_value(focus):
+	var total_value = 0.0
+	
 	match focus:
 		"gameday":
-			pass
+			if amenities["locker room"]: total_value += 3.0
+			if amenities["showers"]: total_value += 2.0
+			if amenities["lounge"]: total_value += 1.0
+			if amenities["players only entrance"]: total_value += 1.0
+			if amenities["hot tub"]: total_value += 1.0
+			if amenities["press box"]: total_value += 0.5
+			if amenities["smoker"]: total_value += 0.1
+			if amenities["grill"]: total_value += 0.1
+			if amenities["griddle"]: total_value += 0.1
+			if amenities["kitchen sink"]: total_value += 0.1
+			if amenities["fridge"]: total_value += 0.2
+			if amenities["painkillers"]: total_value += 0.1
+			if amenities["athletic tape"]: total_value += 0.1
+			if amenities["stitching"]: total_value += 0.1
+		
 		"travel":
+			#TODO: determine how nice it would be to travel with the team's convoy
 			pass
+		
 		"medical":
-			pass
+			if amenities["painkillers"]: total_value += 1.0
+			if amenities["athletic tape"]: total_value += 0.5
+			if amenities["stitching"]: total_value += 1.0
+			if amenities["x-ray"]: total_value += 10.0
+			if amenities["disinfecting"]: total_value += 5.0
+			if amenities["massage table"]: total_value += 0.1
+		
 		"party":
-			pass
+			if amenities["wet bar"]: total_value += 3.0
+			if amenities["fuck tent"]: total_value += 3.0
+			if amenities["lightshow"]: total_value += 0.5
+			if amenities["live band"]: total_value += 1.0
+			if amenities["drug cabinet"]: total_value += 1.0
+			if amenities["smoker"]: total_value += 0.2
+			if amenities["grill"]: total_value += 0.3
+			if amenities["griddle"]: total_value += 0.1
+			if amenities["kitchen sink"]: total_value += 0.1
+			if amenities["fridge"]: total_value += 1.0
+			if amenities["painkillers"]: total_value += 1.0
+		
 		"chill":
-			pass
+			if amenities["humidor"]: total_value += 1.0
+			if amenities["board games"]: total_value += 1.0
+			if amenities["massage table"]: total_value += 1.0
+			if amenities["ping pong"]: total_value += 1.0
+			if amenities["music player"]: total_value += 1.0
+			if amenities["smoker"]: total_value += 0.2
+			if amenities["grill"]: total_value += 0.1
+			if amenities["griddle"]: total_value += 0.3
+			if amenities["kitchen sink"]: total_value += 0.1
+			if amenities["fridge"]: total_value += 1.0
+		
 		"win_now":
+			#TODO: determin prospects for winning now
 			pass
-		"win_later": 
+		
+		"win_later":
+			#TODO: determine prospects of winning in the future
 			pass
-		"loyalty": 
+		
+		"loyalty":
+			#TODO: determine team loyalty
 			pass
+		
 		"opportunity":
+			#TODO: determin frequency of moving players into higher leagues
 			pass
-		"community": 
+		
+		"community":
+			#TODO: determine community involvement in projects
 			pass
+		
 		"development":
-			pass
+			# Development amenities
+			if amenities["pitching cage"]: total_value += 1.0
+			if amenities["1v1 pitch"]: total_value += 1.0
+			if amenities["weight room"]: total_value += 1.0
+			if amenities["agility course"]: total_value += 1.0
+			if amenities["sparring mat"]: total_value += 1.0
+			if amenities["tactics board"]: total_value += 1.0
+			# Also from other amenities
+			if amenities["fuck tent"]: total_value += 1.0  # from rager
+			if amenities["ping pong"]: total_value += 1.0  # from chill
+		
 		"safety":
+			total_value += city.get_focus_value(focus, neighborhood)
+			if amenities["players only entrance"]: total_value += 1.0
+			if amenities["x-ray"]: total_value += 1.0
+			if amenities["disinfecting"]: total_value += 1.0
+		
+		"education":
+			total_value += city.get_focus_value(focus, neighborhood)
 			pass
-		"education": 
+		
+		"trade":
+			total_value += city.get_focus_value(focus, neighborhood)
 			pass
-		"trade": 
+		
+		"farming":
+			total_value += city.get_focus_value(focus, neighborhood)
 			pass
-		"farming": 
+		
+		"day_life":
+			total_value += city.get_focus_value(focus, neighborhood)
 			pass
-		"day_life": 
+		
+		"night_life":
+			total_value += city.get_focus_value(focus, neighborhood)
 			pass
-		"night_life": 
+		"welfare":
+			total_value += city.get_focus_value(focus, neighborhood)
 			pass
-		"welfare": 
-			pass
+	
+	return total_value
