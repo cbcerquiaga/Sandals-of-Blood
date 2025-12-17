@@ -19,6 +19,7 @@ config/icon="res://icon.svg"
 
 GlobalSettings="*res://global_settings.gd"
 CareerFranchise="*res://Franchise.gd"
+WorldCities="*res://WorldCities.gd"
 
 [display]
 
