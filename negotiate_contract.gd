@@ -1490,16 +1490,266 @@ func get_stability_value():
 	return 0
 
 func offer_contract():
-	var value_weight #weigh contract based on value
-	var flex_weight #weigh contract based on flexibility
-	var stability_weight #weigh contract based on stability
-	var weighted_value #use weights * player focus weights for each of the key focuses
-	var match1
-	var match2
-	var match3
-	var match4
-	var match5
-	var match6
-	var match7
-	var housing_match
+	var value_weight = character.contract_focuses.get("value", 0.0)
+	var flex_weight = character.contract_focuses.get("flexibility", 0.0)
+	var stability_weight = character.contract_focuses.get("stability", 0.0)
+	var weighted_value = value_weight * get_value_value() + flex_weight * get_flex_value() + stability_weight * get_stability_value()
+	var match1 = get_focus_match(character.get_key_focus()) #-2.9 to 2.3
+	var match2 = get_focus_match(character.get_nth_focus(1))
+	var match3 = get_focus_match(character.get_nth_focus(2))
+	var match4 = get_focus_match(character.get_nth_focus(3))
+	var match5 = get_focus_match(character.get_nth_focus(4))
+	var match6 = get_focus_match(character.get_nth_focus(5))
+	var match7 = get_focus_match(character.get_nth_focus(6))
+	var housing_match = get_housing_match(character.contract_focuses.house_type, current_housing) #0 to 1.45
 	var promise_match
+	var personal_wealth
+
+
+func get_housing_match(wanted: String, offered: String):
+	var value = 0
+	var ratio = float(get_total_house_val(offered))/float(get_total_house_val(wanted))
+	if ratio > 1.0:
+		ratio = 1.0
+	value = ratio
+	value += compare_house_type_to_focus(offered)
+	if wanted == offered:
+		value += 0.1
+	elif get_total_house_val(offered) > get_total_house_val(wanted):
+		value += 0.2
+	return value
+	
+#how well a person can sleep someplace, based on its insulation, noise, and physical space
+func get_house_sleep_val(house_type: String):
+	match house_type:
+		"tent spot": return 1
+		"encampment": return 2
+		"crash pad": return 1
+		"bunk house": return 1
+		"cabin": return 2
+		"camper": return 2
+		"motel": return 2
+		"bungalow": return 2
+		"stationary car": return 1
+		"apartment": return 2
+		"bus": return 2
+		"farmhouse": return 2
+		"shanty": return 2
+		"mobile car": return 1
+		"compound": return 3
+		"mansion": return 3
+	return 0
+	
+#how family friendly a place is- how easy it would be to raise children there
+func get_house_family_val(house_type: String):
+	match house_type:
+		"tent spot": return 0
+		"encampment": return 0
+		"crash pad": return 0
+		"bunk house": return 0
+		"cabin": return 1
+		"camper": return 1
+		"motel": return 1
+		"bungalow": return 1
+		"stationary car": return 1
+		"apartment": return 1
+		"bus": return 2
+		"farmhouse": return 1
+		"shanty": return 0
+		"mobile car": return 1
+		"compound": return 2
+		"mansion": return 2
+	return 0
+	
+#how connected to the community a house is, based on location, access to town, and the vibe
+func get_house_community_val(house_type: String):
+	match house_type:
+		"tent spot": return 1
+		"encampment": return 1
+		"crash pad": return 2
+		"bunk house": return 0
+		"cabin": return 0
+		"camper": return 1
+		"motel": return 1
+		"bungalow": return 2
+		"stationary car": return 0
+		"apartment": return 2
+		"bus": return 1
+		"farmhouse": return 0
+		"shanty": return 0
+		"mobile car": return 1
+		"compound": return 0
+		"mansion": return 1
+	return 0
+	
+#combination of food growing ability (yard) and food cooking ability
+func get_house_food_val(house_type: String):
+	match house_type:
+		"tent spot": return 0
+		"encampment": return 1
+		"crash pad": return 0
+		"bunk house": return 1
+		"cabin": return 2
+		"camper": return 1
+		"motel": return 2 #kitchenette, grills, some land
+		"bungalow": return 2 #big yard
+		"stationary car": return 2 #engine block grill, small yard
+		"apartment": return 1
+		"bus": return 1
+		"farmhouse": return 3
+		"shanty": return 0
+		"mobile car": return 1
+		"compound": return 2
+		"mansion": return 3
+	return 0
+
+#how safe a house is from raiders or robbers
+func get_house_security_val(house_type: String):
+	match house_type:
+		"tent spot": return 0
+		"encampment": return 0
+		"crash pad": return 1
+		"bunk house": return 1
+		"cabin": return 2
+		"camper": return 2
+		"motel": return 2
+		"bungalow": return 2
+		"stationary car": return 2
+		"apartment": return 1
+		"bus": return 2
+		"farmhouse": return 2
+		"shanty": return 1
+		"mobile car": return 3
+		"compound": return 4
+		"mansion": return 2
+	return 0
+
+func get_total_house_val(house_type: String):
+	var value = 0
+	value = value + get_house_security_val(house_type)
+	value = value + get_house_food_val(house_type)
+	value = value + get_house_family_val(house_type)
+	value = value + get_house_community_val(house_type)
+	value = value + get_house_sleep_val(house_type)
+	return value
+	
+func compare_house_type_to_focus(house_type: String) -> float:
+	var housing_bonus_val = 0.0
+	var top_focuses = []
+	for focus in character.contract_focuses:
+		top_focuses.append(focus)
+	var relevant_focuses = {
+		"satiety": "food",
+		"opportunity": "sleep",
+		"community": "community",
+		"development": "sleep",
+		"safety": "security",
+		"education": "family",
+		"farming": "food",
+		"day_life": "family",
+		"night_life": "community",
+		"value": "security"
+	}
+	for focus in relevant_focuses.keys():
+		if focus in top_focuses:
+			var house_attr = relevant_focuses[focus]
+			var house_attr_value = 0
+			match house_attr:
+				"food":
+					house_attr_value = get_house_food_val(house_type)
+				"sleep":
+					house_attr_value = get_house_sleep_val(house_type)
+				"community":
+					house_attr_value = get_house_community_val(house_type)
+				"security":
+					house_attr_value = get_house_security_val(house_type)
+				"family":
+					house_attr_value = get_house_family_val(house_type)
+			match house_attr_value:
+				4:
+					housing_bonus_val += 0.04
+				3:
+					housing_bonus_val += 0.03
+				2:
+					housing_bonus_val += 0.02
+				1:
+					housing_bonus_val += 0.01
+				0:
+					housing_bonus_val -= 0.02
+	if housing_bonus_val > 0.25:
+		housing_bonus_val = 0.25
+	return housing_bonus_val
+
+func get_focus_match(focus: String):
+	var match_value = 0.0
+	var team_value = CareerFranchise.get_contract_focus_value(focus)
+	var want_value = character.contract_focuses[focus]
+	var team_letter = get_letter_value(team_value)
+	var want_letter = get_letter_value(want_value)
+	var letter_grades = ["F", "D-", "D", "D+", "C-", "C", "C+", "B-", "B", "B+", "A-", "A", "A+", "A++"]
+	var team_index = letter_grades.find(team_letter)
+	var want_index = letter_grades.find(want_letter)
+	if team_index == -1 or want_index == -1:
+		return 0.0
+	if team_index == want_index:
+		match_value = 1.0
+	elif team_index > want_index: #some benefit for being better than asked for
+		var grade_difference = team_index - want_index
+		match_value = 1.0 + (grade_difference * 0.1)
+	else: #bigger penalty for not being good enough
+		var grade_difference = want_index - team_index
+		match_value = 1.0 - (grade_difference * 0.3)
+	return match_value
+	
+func get_promise_match(promise: String):
+	var relevant_focuses = {}
+	match promise:
+		"none":
+			return 0
+		"make_captain":
+			relevant_focuses = {"opportunity": 2,
+			 "development": 1,
+			"win_now": 1,
+			"win_later": 1,
+			"gameday": 1,
+			"loyalty": 2
+			}
+			pass
+		"championship":
+			relevant_focuses = {"win_now": 4, "win_later": 1, "party": 1, "opportunity": 1}
+			pass
+		"promotion":
+			relevant_focuses = {"win_now": 3, "win_later": 1, "party": 1, "opportunity": 2}
+			pass
+		"no_relegate":
+			relevant_focuses = {"chill": 1, "win_later": 1, "party": 1, "opportunity": 1}
+			pass
+		"improve_front":
+			if is_front_strength(): #piling it on and adding depth
+				relevant_focuses = {"win_now": 2, "opportunity": -1, "development": -1}
+			else: #could stand to be improved
+				relevant_focuses = {"win_now": 3, "win_later": 1}
+			pass
+		"improve_back":
+			if is_back_strength(): #piling it on and adding depth
+				relevant_focuses = {"win_now": 2, "opportunity": -1, "development": -1}
+			else: #could stand to be improved
+				relevant_focuses = {"win_now": 3, "win_later": 1}
+			pass
+		"improve_training":
+			relevant_focuses = {"development": 2, "win_later": 1}
+			pass
+		"improve_amenity":
+			relevant_focuses = {"chill": 1, "family": 1, "gameday": 1, "party": 1, "travel": 1, "development": 1, "safety": 1, "medical": 0, "win_now": -1}
+			pass
+		"improve_party":
+			relevant_focuses = {"party": 3, "chill": 1, "win_now": -2}
+			pass
+
+func is_front_strength():
+	#TODO: determine if the team's forwards and pitcehrs are a strength relative to the league or to the next league up
+	return false
+	
+func is_back_strength():
+	#TODO: determine if the team's guards and keepers are a strength relative to the league or to the next league up
+	return false

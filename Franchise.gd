@@ -58,7 +58,7 @@ var housing = { #each stored as an array of [owned, available]
 	"motel": [0,0], #room in a renoated old hotel
 	"bungalow": [0,0], #tiny house
 	"stationary car": [0,0], #Old car converted into a camper- engine replaced with grill
-	"big house": [0,0], #Room within a renovated large house
+	"apartment": [0,0], #Room within a  large house
 	"farmhouse": [0,0], #Cottage with arable land
 	"shanty": [0,0], #Crude structure to keep out elements
 	"mobile car": [0,0], #A real life working car that drives around
