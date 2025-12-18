@@ -53,6 +53,7 @@ var current_bonus_type: String = "gp"
 var current_bonus_prize: String = "salary_raise"
 var current_bonus_value: int = 1
 var current_popup_type: String = ""
+@onready var season_length = 28 #every league has 8 teams, teams play 2 home and 2 away against all 7 other teams
 
 func _ready():
 	debug_default_player()#TODO: Debug only
@@ -1469,11 +1470,80 @@ func get_key_value(key):
 			return get_stability_value()
 
 func get_value_value():
-	var guaranteed_total = 0
+	var salary_total = 0 #between 0 and 110,000 (probably)
 	var max_bonus = 0
-	var weighted_value = guaranteed_total * 0.75 + max_bonus * 0.25
-	#TODO: compare to comparables
-	return 0
+	var believed_bonus = 0
+	var share_value = 0
+	var bonus_wight = 0
+	if current_contract_type == "tryout":
+		salary_total = current_salary * current_tryout
+	else:
+		salary_total = current_salary * current_seasons * season_length
+	
+	max_bonus = get_max_bonus() * current_seasons
+	believed_bonus = max_bonus * player.get_buffed_attribute("confidence")/100
+	
+	var salary_weight = float(salary_total)/float(salary_total + max_bonus + share_value)
+	var share_weight = float(share_value)/float(salary_total + max_bonus + share_value)
+	var bonus_weight = float(believed_bonus)/float(salary_total + max_bonus + share_value)
+	var weighted_value = salary_total * salary_weight + max_bonus * bonus_weight/2 + believed_bonus * bonus_weight/2
+
+	var previous_contract_value = get_previous_contract_value()
+	var roster_equivalent = get_roster_equivalent()
+	var player_progression = get_player_progression_state()
+	
+	var min_expected = 0
+	match player_progression: #TODO: determine value rating based on this contract's weighted value, the previous contract, and the player progression state
+		4: #player expects a raise over the record contract
+			min_expected = GameWorld.max_world_contract_value * 1.05
+			pass
+		3: #player expects to be around the current top contract
+			min_expected = GameWorld.max_world_contract_value * 0.9 
+			pass
+		2: #player expects a big raise
+			if previous_contract_value > 0:
+				min_expected = previous_contract_value * 2
+			else:
+				min_expected = get_roster_equivalent()
+		1: #player expects a raise
+			if previous_contract_value > 0:
+				min_expected = previous_contract_value * 1.2
+			else:
+				min_expected = get_roster_equivalent()
+		0: #player expects roughly their previous contract
+			if previous_contract_value > 0:
+				min_expected = previous_contract_value
+			else:
+				min_expected = get_roster_equivalent()
+		-1: #player knows they're getting a pay cut
+			if previous_contract_value > 0:
+				min_expected = previous_contract_value * 0.8
+			else:
+				min_expected = get_roster_equivalent() * 0.8
+				pass
+		-2:
+			#player knows they are getting less contract than last time
+			if previous_contract_value > 0:
+				min_expected = previous_contract_value * 0.5
+			else:
+				min_expected = get_roster_equivalent() * 0.5
+	var equivalent = get_roster_equivalent()
+	var star_rating = 0
+	if weighted_value > min_expected + equivalent:
+		star_rating = 5 #too good to be true!
+	elif weighted_value > min_expected and weighted_value > equivalent:
+		star_rating = 4
+	elif (weighted_value < equivalent or weighted_value < min_expected) and (weighted_value >= equivalent or weighted_value >= min_expected):
+		star_rating = 3
+	elif weighted_value/equivalent > 0.7:
+		star_rating = 2
+	elif weighted_value/equivalent <= 0.7:
+		star_rating = 1 #not great
+	if current_buyout == "free":
+		star_rating -= 0.5
+	elif current_buyout == "buy200":
+		star_rating += 0.5
+	return star_rating
 	
 func get_flex_value():
 	var buyout_value #free ok, 50 ok, 100 ok, 200 bad, none awful
@@ -1484,13 +1554,184 @@ func get_flex_value():
 
 func get_stability_value():
 	var length #more length good
+	var shares #more share good
 	var franchise_tag #franchise tag good
 	var tradeable #tradeable bad
 	var buyout_value #none is best, 200 better, 100 ok, 50 bad, free awful
 	return 0
+	
+func get_max_bonus():
+	var max_possible = 0
+	match current_bonus_type:
+		"gp":
+			max_possible = season_length
+			if current_bonus_prize == "salary_raise":
+				return get_raise_bonus(max_possible)
+			elif current_bonus_prize == "cash_prize":
+				return current_bonus_value * max_possible
+			else:
+				return 0 #feast prize
+		"win":
+			max_possible = season_length
+			if current_bonus_prize == "salary_raise":
+				return get_raise_bonus(max_possible)
+			elif current_bonus_prize == "cash_prize":
+				return current_bonus_value * max_possible
+			else:
+				return 0 #feast prize
+		"goal":
+			max_possible = season_length * 4
+			if current_bonus_prize == "salary_raise":
+				return get_raise_bonus(season_length)
+			elif current_bonus_prize == "cash_prize":
+				return current_bonus_value * max_possible
+			else:
+				return 0 #feast prize
+		"assist":
+			max_possible = season_length * 3
+			if current_bonus_prize == "salary_raise":
+				return get_raise_bonus(max_possible)
+			elif current_bonus_prize == "cash_prize":
+				return current_bonus_value * max_possible
+			else:
+				return 0 #feast prize
+		"point":
+			max_possible = season_length * 7 #would require a one man team but doable
+			if current_bonus_prize == "salary_raise":
+				return get_raise_bonus(max_possible)
+			elif current_bonus_prize == "cash_prize":
+				return current_bonus_value * max_possible
+			else:
+				return 0 #feast prize
+		"sack":
+			max_possible = season_length * 3
+			if current_bonus_prize == "salary_raise":
+				return get_raise_bonus(max_possible)
+			elif current_bonus_prize == "cash_prize":
+				return current_bonus_value * max_possible
+			else:
+				return 0 #feast prize
+		"partner_sack":
+			max_possible = season_length * 3
+			if current_bonus_prize == "salary_raise":
+				return get_raise_bonus(max_possible)
+			elif current_bonus_prize == "cash_prize":
+				return current_bonus_value * max_possible
+			else:
+				return 0 #feast prize
+		"team_sack":
+			max_possible = season_length * 6
+			if current_bonus_prize == "salary_raise":
+				return get_raise_bonus(max_possible)
+			elif current_bonus_prize == "cash_prize":
+				return current_bonus_value * max_possible
+			else:
+				return 0 #feast prize
+		"KO":
+			max_possible = season_length * 2 #would be pretty spectacular, but technically possible
+			if current_bonus_prize == "salary_raise":
+				return get_raise_bonus(max_possible)
+			elif current_bonus_prize == "cash_prize":
+				return current_bonus_value * max_possible
+			else:
+				return 0 #feast prize
+		"5hits":
+			max_possible = int(season_length * 0.75)
+			if current_bonus_prize == "salary_raise":
+				return get_raise_bonus(max_possible)
+			elif current_bonus_prize == "cash_prize":
+				return current_bonus_value * max_possible
+			else:
+				return 0 #feast prize
+		"5returns":
+			max_possible = int(season_length * 0.9) #90% return rate would be good
+			if !player.playable_positions.contains("K"):
+				max_possible = 0 #not a keeper, can't get any
+			if current_bonus_prize == "salary_raise":
+				return get_raise_bonus(max_possible)
+			elif current_bonus_prize == "cash_prize":
+				return current_bonus_value * max_possible
+			else: return 0 #feast prize or not a keeper
+		"5fow":
+			max_possible = 5 #pretty rare achievement
+			if !player.playable_positions.contains("P"):
+				max_possible = 0 #not a pitcher, can't get any
+				if current_bonus_prize == "salary_raise":
+					return get_raise_bonus(max_possible)
+				elif current_bonus_prize == "cash_prize":
+					return current_bonus_value * max_possible
+			return 0 #feast prize or not a pitcher
+		"gf":
+			max_possible = 7 * season_length #assumes a perfect record
+			if current_bonus_prize == "salary_raise":
+				return get_raise_bonus(max_possible)
+			elif current_bonus_prize == "cash_prize":
+				return current_bonus_value * max_possible
+			else:
+				return 0 #feast prize
+		"clean_sheet":
+			max_possible = season_length
+			if current_bonus_prize == "salary_raise":
+				return get_raise_bonus(max_possible)
+			elif current_bonus_prize == "cash_prize":
+				return current_bonus_value * max_possible
+			else:
+				return 0 #feast prize
+	
+func get_raise_bonus(max_raises_season: int):
+	var modded_salary = current_salary
+	for raise in max_raises_season:
+		modded_salary = current_salary  + current_bonus_value
+	var diff = modded_salary - current_salary
+	return diff
+	
+func get_max_share_bonus(max_shares_season: int):
+	var modded_share = current_share
+	for option in max_shares_season:
+		modded_share = current_salary  + current_bonus_value
+	var diff = get_share_value(modded_share) - get_share_value(current_share)
+	return diff
+	
+func get_previous_contract_value():
+	var previous_contract = character.previous_contract
+	if previous_contract:
+		#TODO: get the weighted value of the previous contract
+		return 0
+	else:
+		return 0
+	
+func get_player_progression_state():
+	#4 is for hall of fame level player, 3 is for MVP level
+	#1 for going up, 2 for big breakout year
+	#0 for same
+	#-1 for declining, -2 for desperate
+	return 0
+	
+func get_roster_equivalent():
+	var position_depth = [] #TODO: identify all players on the roster who can play this player's position
+	var next_above #TODO: find index the player who has the next highest overall
+	var next_below #TODO: find index of the player who has the next lowest overall
+	if next_above == -1: #this player is better than the best one
+		var overall_ratio #TODO: currennt player ovr / franchise's best at that position
+		return position_depth[0] * overall_ratio #TODO: use contract value
+	elif next_below > position_depth.size(): #this is the worst player on the team
+		var overall_ratio #TODO: currennt player ovr / franchise's best at that position
+		var last #last index
+		return position_depth[last] * overall_ratio #TODO: use contract value
+	else:
+		return (position_depth[next_above] + position_depth[next_below])/2 #TODO: use contract value
+	
+func get_share_value(share):
+	var revenue
+	var costs
+	var profit = revenue - costs
+	if profit > 0:
+		return profit * (float(share)/100.0)
+	else:
+		return 0
 
 func offer_contract():
-	var value_weight = character.contract_focuses.get("value", 0.0)
+	var value_weight = character.contract_focuses.get("value", 0.0) #0 to 5.5
 	var flex_weight = character.contract_focuses.get("flexibility", 0.0)
 	var stability_weight = character.contract_focuses.get("stability", 0.0)
 	var weighted_value = value_weight * get_value_value() + flex_weight * get_flex_value() + stability_weight * get_stability_value()
@@ -1502,7 +1743,7 @@ func offer_contract():
 	var match6 = get_focus_match(character.get_nth_focus(5))
 	var match7 = get_focus_match(character.get_nth_focus(6))
 	var housing_match = get_housing_match(character.contract_focuses.house_type, current_housing) #0 to 1.45
-	var promise_match
+	var promise_match = get_promise_match(current_promise)
 	var personal_wealth
 
 
