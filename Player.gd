@@ -1364,17 +1364,27 @@ func can_play_position(field_position: String) -> bool:
 	return field_position in playable_positions
 		
 #overall calculators
-#TODO: assign playstyle deoending on result
-#TODO: assign playstyle icon depending on playstyle
-#TODO: apply buffed/debuffed attributes
+
+func get_best_overall():
+	var p = calculate_pitcher_overall()
+	var f = calculate_forward_overall()
+	var g = calculate_guard_overall()
+	var k = calculate_keeper_overall()
+	var best_ovr = 0
+	var all_overs = [p, f, g, k]
+	for ovr in all_overs:
+		if ovr > best_ovr:
+			best_ovr = ovr
+	return best_ovr
+
 
 func calculate_pitcher_overall():
 	var att = attributes
 	var ratings = []
-	ratings.append(( (att.power + att.throwing) + att.focus + att.accuracy + att.confidence)/5)#fastball rating
-	ratings.append(((attributes.reactions + attributes.faceoffs) * 2 + (attributes.accuracy + attributes.speedRating))/6)#faceoff rating
+	ratings.append(( (get_buffed_attribute("power") + get_buffed_attribute("throwing")) + get_buffed_attribute("focus") + get_buffed_attribute("accuracy") + get_buffed_attribute("confidence"))/5)#fastball rating
+	ratings.append(((get_buffed_attribute("reactions") + get_buffed_attribute("faceoffs")) * 2 + (get_buffed_attribute("accuracy") + get_buffed_attribute("speedRating")))/6)#faceoff rating
 	#ratings.append((att.endurance * 2 + att.confidence + att.accuracy * 2 + (att.power + att.throwing)/2 + att.focus)/7) #workhorse rating
-	ratings.append((att.toughness + att.shooting + att.power + att.speedRating + att.durability + att.balance)/5) #enforcer rating
+	ratings.append((get_buffed_attribute("toughness") + get_buffed_attribute("shooting") + get_buffed_attribute("power") + get_buffed_attribute("speedRating") + get_buffed_attribute("durability") + get_buffed_attribute("balance"))/5) #enforcer rating
 	ratings.sort()
 	ratings.reverse()
 	var bestRating = ratings[0]
@@ -1384,12 +1394,11 @@ func calculate_pitcher_overall():
 	return int(overall)
 	
 func calculate_forward_overall():
-	var att = attributes
 	var ratings = []
-	var shooter = (attributes.shooting * 3 + attributes.accuracy * 3 + attributes.positioning + attributes.speedRating + attributes.reactions + attributes.agility + attributes.endurance)/11
-	var antiKeeper = (attributes.power * 3 + attributes.speedRating * 3 + attributes.balance + attributes.endurance + attributes.durability)/9
-	var support = (attributes.power + attributes.accuracy + attributes.positioning + attributes.balance + attributes.reactions + attributes.durability)/6
-	var goon = (attributes.power + attributes.balance + attributes.durability + attributes.toughness*2 + attributes.shooting + attributes.aggression)/7
+	var shooter = (get_buffed_attribute("shooting") * 3 + get_buffed_attribute("accuracy") * 3 + get_buffed_attribute("positioning") + get_buffed_attribute("speedRating") + get_buffed_attribute("reactions") + get_buffed_attribute("agility") + get_buffed_attribute("endurance"))/11
+	var antiKeeper = (get_buffed_attribute("power") * 3 + get_buffed_attribute("speedRating") * 3 + get_buffed_attribute("balance") + get_buffed_attribute("endurance") + get_buffed_attribute("durability"))/9
+	var support = (get_buffed_attribute("power") + get_buffed_attribute("accuracy") + get_buffed_attribute("positioning") + get_buffed_attribute("balance") + get_buffed_attribute("reactions") + get_buffed_attribute("durability"))/6
+	var goon = (get_buffed_attribute("power") + get_buffed_attribute("balance") + get_buffed_attribute("durability") + get_buffed_attribute("toughness")*2 + get_buffed_attribute("shooting") + get_buffed_attribute("aggression"))/7
 	
 	ratings.append(shooter)#goal scorer rating
 	ratings.append(antiKeeper)#anti-keeper rating
@@ -1404,11 +1413,10 @@ func calculate_forward_overall():
 	return int(overall)
 	
 func calculate_guard_overall():
-	var att = attributes
 	var ratings = []
-	ratings.append((att.speedRating + att.power + att.positioning + att.endurance)/4) #defender rating
-	ratings.append((att.reactions * 2 + att.blocking * 2 + att.speedRating + att.shooting + att.accuracy)/7) #ball hound rating
-	ratings.append((att.power * 2 + att.toughness + att.durability + att.endurance)/5) #bully rating
+	ratings.append((get_buffed_attribute("speedRating") + get_buffed_attribute("power") + get_buffed_attribute("positioning") + get_buffed_attribute("endurance"))/4) #defender rating
+	ratings.append((get_buffed_attribute("reactions") * 2 + get_buffed_attribute("blocking") * 2 + get_buffed_attribute("speedRating") + get_buffed_attribute("shooting") + get_buffed_attribute("accuracy"))/7) #ball hound rating
+	ratings.append((get_buffed_attribute("power") * 2 + get_buffed_attribute("toughness") + get_buffed_attribute("durability") + get_buffed_attribute("endurance"))/5) #bully rating
 	ratings.sort()
 	ratings.reverse()
 	var bestRating = ratings[0]
@@ -1418,12 +1426,11 @@ func calculate_guard_overall():
 	return int(overall)
 	
 func calculate_keeper_overall():
-	var att = attributes
 	var ratings = []
-	ratings.append((att.power + att.balance + att.durability + att.speedRating)/4)
-	ratings.append((att.reactions + att.blocking + att.positioning)/3)
-	ratings.append((att.shooting + att.accuracy + att.speedRating + att.endurance)/4)
-	ratings.append((att.blocking + att.shooting + att.accuracy + att.power)/4)
+	ratings.append((get_buffed_attribute("power") + get_buffed_attribute("balance") + get_buffed_attribute("durability") + get_buffed_attribute("speedRating"))/4)
+	ratings.append((get_buffed_attribute("reactions") + get_buffed_attribute("blocking") + get_buffed_attribute("positioning"))/3)
+	ratings.append((get_buffed_attribute("shooting") + get_buffed_attribute("accuracy") + get_buffed_attribute("speedRating") + get_buffed_attribute("endurance"))/4)
+	ratings.append((get_buffed_attribute("blocking") + get_buffed_attribute("shooting") + get_buffed_attribute("accuracy") + get_buffed_attribute("power"))/4)
 	ratings.sort()
 	ratings.reverse()
 	var bestRating = ratings[0]
