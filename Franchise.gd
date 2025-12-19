@@ -5,6 +5,10 @@ var city: City
 var team: Team
 var neighborhood: String #N,S,E,W
 var travel_convoy: Convoy
+#players
+var contracts := { #0: [player Player, contract Contract]
+	
+}
 #staff
 var manager #player character on use team; makes strategic decisions and manages the players
 var staff_ass_coach #helps with practice, helps keep players in line
@@ -266,3 +270,8 @@ func get_contract_focus_value(focus):
 			pass
 	
 	return total_value
+
+func debug_default_contracts():
+	for player in team.roster:
+		pass
+	pass
