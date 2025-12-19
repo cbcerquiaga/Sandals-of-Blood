@@ -271,7 +271,6 @@ func create_contract_from_csv(row: PackedStringArray, column_indices: Dictionary
 	contract.current_food = get_csv_value(row, column_indices, "contract_food", "0").to_int()
 	contract.current_buyout = get_csv_value(row, column_indices, "contract_buyout", "free")
 	contract.current_housing = get_csv_value(row, column_indices, "contract_housing", "none")
-	contract.current_focus = get_csv_value(row, column_indices, "contract_focus", "value")
 	contract.current_promise = get_csv_value(row, column_indices, "contract_promise", "none")
 	contract.current_bonus_type = get_csv_value(row, column_indices, "contract_bonus_type", "gp")
 	contract.current_bonus_prize = get_csv_value(row, column_indices, "contract_bonus_prize", "salary_raise")

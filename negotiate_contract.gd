@@ -17,7 +17,7 @@ const min_food: int = 0
 const max_food: int = 42 #3 meals a day and double rations
 var player_contract_types = ["tryout", "standard", "tradeable", "franchise"]
 var staff_contract_types = ["coach", "scout", "security", "surgeon", "medic", "promoter", "grounds", "equipment", "cook", "accountant", "entourage"]
-var housing_types = ["none", "spot", "tent", "car", "shack", "trailer", "room", "cabin", "mansion"]
+var housing_types = ["none", "spot", "tent", "car", "shack", "trailer", "room", "cabin", "mansion", "compound"]
 var focus_types = ["value", "stability", "flexibility", "satiety", "hydration", "hometown", "housing", "gameday", "travel", "medical", "party", "chill", "win_now", "win_later", "loyalty", "opportunity", "community", "development", "safety", "education", "trade", "farming", "day_life", "night_life", "welfare"]
 var bonus_types = ["gp", "win", "goal", "assist", "point", "sack", "partner_sack", "team_sack", "KO", "5hits", "5returns", "5fow", "gf", "clean_sheet"]
 var bonus_prizes = ["salary_raise", "cash_payment", "feast"] #permanent raise in salary, one time cash payment, one time food payment
@@ -26,6 +26,7 @@ var bonus_values_cash = [1, 5, 10, 25, 100] #coin denominations
 var bonus_values_feast = [1, 2, 3, 4, 5] #5 meals in one sitting would be pretty crazy
 var buyout_types = ["free", "buy50", "buy100", "buy200", "nobuy"] #what it takes to cut the player: nothng, 50% of the money they're still owed, all of the money they're owed, double the money they're owed, or they can't be bought out at all
 var promise_types = ["none", "make_captain", "championship", "promotion", "no_relegate", "improve_front", "improve_back", "improve_training", "improve_amenity", "improve_party"]
+var sell_types = ["experience", "family", "winning", "future", "town", "kids", "fiesta", "adventure", "home", "quiet"]
 #no promise, make the player captain, win the league or win a special tournament, move up to the next league (top 2), not get sent down to the lower league, sign or trade for LF/P/RF, sign or trade for LG/K/RG, improve the team's training facilities or coaching staff, improve team's housing or game day, improve team's party situation
 var player_family: int = 2 #how many mouths the player has to feed
 var true_max_food: int #adjusts max food for family size
@@ -46,8 +47,8 @@ var current_share = 0
 var current_water = 0
 var current_food = 0
 var current_buyout: String = "free"
+var current_sell: String = ""
 var current_housing: String = "none"
-var current_focus: String = "value"
 var current_promise: String = "none"
 var current_bonus_type: String = "gp"
 var current_bonus_prize: String = "salary_raise"
@@ -395,7 +396,7 @@ func debug_default_player():
 	pass
 
 func _on_offer_button_pressed() -> void:
-	pass
+	offer_contract()
 
 func _on_cancel_button_pressed() -> void:
 	get_tree().change_scene_to_file("res://sign_players.tscn")
@@ -606,91 +607,48 @@ func update_housing_type_label() -> void:
 
 func change_pitch_offered() -> void:
 	var readable = {
-		"value": "Maximum Value",
-		"stability": "Job Stability",
-		"flexibility": "Flexibility",
-		"satiety": "Food Security",
-		"hydration": "Water Access",
-		"hometown": "Hometown Team",
-		"housing": "Quality Housing",
-		"gameday": "Game Day Experience",
-		"travel": "Travel",
-		"medical": "Medical Care",
-		"party": "Post-win Ragers",
-		"chill": "Chilling with Teammates",
-		"win_now": "Win Now",
-		"win_later": "Future Success",
-		"loyalty": "Team Loyalty",
-		"opportunity": "Career Opportunity",
-		"community": "Community",
-		"development": "Player Development",
-		"safety": "Safety",
-		"education": "Education",
-		"trade": "Trade Market",
-		"farming": "Farming Access",
-		"day_life": "Day Life",
-		"night_life": "Night Life",
-		"welfare": "Welfare Benefits"
+		"experience": "Great place to play", #gameday, travel, winning, chill
+		"family": "One big family", #loyalty, community, welfare,
+		"winning": "Winning culture", #win now, win later, development
+		"future": "Bright future", #win later, development, opportunity
+		"town": "Great place to live", #trade, farming, day life
+		"kids": "Great place to raise a family", #welfare, education, day life
+		"fiesta": "Party lifestyle", #party, night life, chill
+		"adventure": "It's an Adventure", #travel, good for anti-hometown, party
+		"home": "This is home", #hometown, loyalty, safety
+		"quiet": "You can relax here", #farming, chill, safety
 	}
 	
-	show_popup_menu(focus_types, "pitch", readable)
+	show_popup_menu(sell_types, "pitch", readable)
 
 func _on_pitch_selected(id: int) -> void:
-	if id >= 0 and id < focus_types.size():
-		current_focus = focus_types[id]
+	if id >= 0 and id < sell_types.size():
+		current_sell = sell_types[id]
 		update_pitch_label()
 
 func update_pitch_label() -> void:
 	var label = $VBoxContainer/Bottom/Right/HBoxContainer/PerkDetails/Pitch/Label
-	match current_focus:
-		"value":
-			label.text = "Maximum Value"
-		"stability":
-			label.text = "Job Stability"
-		"flexibility":
-			label.text = "Flexibility"
-		"satiety":
-			label.text = "Food Security"
-		"hydration":
-			label.text = "Water Access"
-		"hometown":
-			label.text = "Hometown Team"
-		"housing":
-			label.text = "Quality Housing"
-		"gameday":
-			label.text = "Game Day Experience"
-		"travel":
-			label.text = "Travel"
-		"medical":
-			label.text = "Medical Care"
-		"party":
-			label.text = "Post-win Ragers"
-		"win_now":
-			label.text = "Win Now"
-		"win_later":
-			label.text = "Future Success"
-		"loyalty":
-			label.text = "Team Loyalty"
-		"opportunity":
-			label.text = "Playing Time"
-		"community":
-			label.text = "Community"
-		"development":
-			label.text = "Player Development"
-		"safety":
-			label.text = "Safety"
-		"education":
-			label.text = "Education"
-		"trade":
-			label.text = "Trade Market"
-		"farming":
-			label.text = "Farming Access"
-		"day_life":
-			label.text = "Day Life"
-		"night_life":
-			label.text = "Night Life"
-		"welfare":
-			label.text = "Welfare Benefits"
+	match current_sell:
+		"experience":
+			label.text = "Great place to play" #gameday, travel, winning, chill
+		"family":
+			label.text = "One big family" #loyalty, community, welfare,
+		"winning":
+			label.text = "Winning culture" #win now, win later, development
+		"future":
+			label.text = "Bright future" #win later, development, opportunity
+		"town": 
+			label.text = "Great place to live"#trade, farming, day life
+		"kids":
+			label.text = "Great place to raise a family" #welfare, education, day life
+		"fiesta":
+			label.text = "Party lifestyle" #party, night life, chill
+		"adventure":
+			label.text = "It's an Adventure"#travel, good for anti-hometown, party
+		"home":
+			label.text = "This is home" #hometown, loyalty, safety
+		"quiet":
+			label.text = "You can relax here" #farming, chill, safety
 
 func change_promise_offered() -> void:
 	var readable = {
@@ -702,7 +660,7 @@ func change_promise_offered() -> void:
 		"improve_front": "Improve Frontcourt",
 		"improve_back": "Improve Backcourt",
 		"improve_training": "Improve Training",
-		"improve_amenity": "Improve Amenities",
+		"improve_amenity": "Improve the Town",
 		"improve_party": "Improve Party Scene"
 	}
 	
@@ -733,7 +691,7 @@ func update_promise_label() -> void:
 		"improve_training":
 			label.text = "Improve Training"
 		"improve_amenity":
-			label.text = "Improve Amenities"
+			label.text = "Improve the Town"
 		"improve_party":
 			label.text = "Improve Party Scene"
 
@@ -928,7 +886,7 @@ func open_with_character(new_character: Character, tokens: int, report: ScoutRep
 	offer_sheet_tokens = tokens
 	scouting_knowledge = report
 	comparables = comps
-	# Update family size for food calculations
+	#Update family size for food calculations
 	player_family = character.get_family_count()
 	true_max_food = max_food * (1 + player_family)
 	populate_imported_data(character)
@@ -1181,13 +1139,13 @@ func populate_comparables():
 	var string = "No Known Comparables"
 
 	if scouting_knowledge and scouting_knowledge.info.comparables and comparables.size() > 0:
-		# Group features by player
+		#Group features by player
 		var players_data = {}
 		
 		for feature in comparables:
-			var player_name = feature[4]  # Index 4 is player name
-			var similarity = feature[0]    # Index 0 is similarity score
-			var display_text = feature[3]  # Index 3 is display text
+			var player_name = feature[4]  #Index 4 is player name
+			var similarity = feature[0]    #Index 0 is similarity score
+			var display_text = feature[3]  #Index 3 is display text
 			
 			if not players_data.has(player_name):
 				players_data[player_name] = {
@@ -1197,7 +1155,7 @@ func populate_comparables():
 			
 			players_data[player_name]["features"].append(display_text)
 		
-		# Build the display string
+		#Build the display string
 		string = ""
 		var player_names = players_data.keys()
 		for i in range(player_names.size()):
@@ -1205,14 +1163,14 @@ func populate_comparables():
 			var player_info = players_data[player_name]
 			var similarity_percent = int(player_info["similarity"])
 			
-			# Add player line: Name [XX%] Feature1 Feature2
+			#Add player line: Name [XX%] Feature1 Feature2
 			string += player_name + " [" + str(similarity_percent) + "%]"
 			
-			# Add up to 2 features on the same line
+			#Add up to 2 features on the same line
 			for j in range(min(2, player_info["features"].size())):
 				string += " " + player_info["features"][j]
 			
-			# Add newline if not the last player
+			#Add newline if not the last player
 			if i < player_names.size() - 1:
 				string += "\n"
 	
@@ -1483,6 +1441,7 @@ func get_value_value():
 	max_bonus = get_max_bonus() * current_seasons
 	believed_bonus = max_bonus * player.get_buffed_attribute("confidence")/100
 	
+	
 	var salary_weight = float(salary_total)/float(salary_total + max_bonus + share_value)
 	var share_weight = float(share_value)/float(salary_total + max_bonus + share_value)
 	var bonus_weight = float(believed_bonus)/float(salary_total + max_bonus + share_value)
@@ -1543,22 +1502,71 @@ func get_value_value():
 		star_rating -= 0.5
 	elif current_buyout == "buy200":
 		star_rating += 0.5
+	if character.day_job_pay > current_salary:
+		star_rating = star_rating * 0.8
 	return star_rating
 	
-func get_flex_value():
-	var buyout_value #free ok, 50 ok, 100 ok, 200 bad, none awful
-	var franchise_tag #franchise tag bad
-	var tradeable #tradeable ok
-	var length #less length good
-	return 0
+func get_flex_value(): #0 to 5.5
+	var flex_value = 0
+	match current_seasons:
+		4:
+			flex_value = 1
+		3:
+			flex_value = 2
+		2:
+			flex_value = 3
+		1:
+			flex_value = 4
+	match current_bonus_type:
+		"free":
+			flex_value += 1
+		"buy50":
+			flex_value += 0.5
+		"buy100":
+			flex_value += 0.25
+		"buy200":
+			flex_value -= 0.5
+		"nobuy":
+			flex_value -= 1
+	
+	if current_contract_type == "franchise": #getting franchise tag makes it harder to move to a new team
+		flex_value = flex_value / 2
+	elif current_contract_type == "tradeable":
+		flex_value = flex_value + 0.5
+	elif current_contract_type == "tryout":
+		return 2 #technically flexible but not actually desirable
+	return flex_value
 
 func get_stability_value():
-	var length #more length good
-	var shares #more share good
-	var franchise_tag #franchise tag good
-	var tradeable #tradeable bad
-	var buyout_value #none is best, 200 better, 100 ok, 50 bad, free awful
-	return 0
+	var stability_value = 0
+	if current_contract_type != "tryout":
+		match current_seasons:
+			4:
+				stability_value = 4
+			3:
+				stability_value = 3
+			2:
+				stability_value = 2
+			1:
+				stability_value = 1
+	match current_bonus_type:
+		"free":
+			stability_value -= 1
+		"buy50":
+			stability_value -= 0.5
+		"buy100":
+			stability_value
+		"buy200":
+			stability_value += 0.5
+		"nobuy":
+			stability_value += 1
+	if current_share > 0:
+		stability_value += 1
+	if current_contract_type == "franchise":
+		stability_value += 0.5
+	elif current_contract_type == "tradeable":
+		stability_value = stability_value/2
+	return stability_value
 	
 func get_max_bonus():
 	var max_possible = 0
@@ -1708,17 +1716,95 @@ func get_player_progression_state():
 	return 0
 	
 func get_roster_equivalent():
-	var position_depth = [] #TODO: identify all players on the roster who can play this player's position
-	var next_above #TODO: find index the player who has the next highest overall
-	var next_below #TODO: find index of the player who has the next lowest overall
-	if next_above == -1: #this player is better than the best one
-		var overall_ratio #TODO: currennt player ovr / franchise's best at that position
-		return position_depth[0] * overall_ratio #TODO: use contract value
-	elif next_below > position_depth.size(): #this is the worst player on the team
-		var overall_ratio #TODO: currennt player ovr / franchise's best at that position
-		var last #last index
-		return position_depth[last] * overall_ratio #TODO: use contract value
+	if !CareerFranchise or !CareerFranchise.contracts:
+		return 0
+	var position_depth = []
+	var current_player_ovr = player.get_best_overall()
+	for contract_data in CareerFranchise.contracts.values():
+		if contract_data.size() < 2:
+			continue
+		var roster_character = contract_data[0] as Character
+		var roster_player = roster_character.player as Player
+		var roster_contract = contract_data[1] as Contract
+		var can_play_same_position = false
+		for pos in player.playable_positions:
+			if pos in roster_player.playable_positions:
+				can_play_same_position = true
+				break
+		if !can_play_same_position:
+			continue
+		var contract_value = 0
+		if roster_contract.type != "tryout":
+			contract_value = roster_contract.current_salary * roster_contract.original_seasons * season_length
+		else:
+			contract_value = roster_contract.current_salary * roster_contract.original_tryout
+		if roster_contract.current_share > 0:
+			contract_value += get_share_value(roster_contract.current_share)
+		var max_bonus = 0
+		if roster_contract.current_bonus_type == "gp":
+			max_bonus = season_length
+		elif roster_contract.current_bonus_type == "win":
+			max_bonus = season_length
+		elif roster_contract.current_bonus_type == "goal":
+			max_bonus = season_length * 4
+		elif roster_contract.current_bonus_type == "assist":
+			max_bonus = season_length * 3
+		elif roster_contract.current_bonus_type == "point":
+			max_bonus = season_length * 7
+		elif roster_contract.current_bonus_type == "sack":
+			max_bonus = season_length * 3
+		elif roster_contract.current_bonus_type == "partner_sack":
+			max_bonus = season_length * 3
+		elif roster_contract.current_bonus_type == "team_sack":
+			max_bonus = season_length * 6
+		elif roster_contract.current_bonus_type == "KO":
+			max_bonus = season_length * 2
+		elif roster_contract.current_bonus_type == "5hits":
+			max_bonus = int(season_length * 0.75)
+		elif roster_contract.current_bonus_type == "5returns":
+			max_bonus = int(season_length * 0.9) if "K" in roster_player.playable_positions else 0
+		elif roster_contract.current_bonus_type == "5fow":
+			max_bonus = 5 if "P" in roster_player.playable_positions else 0
+		elif roster_contract.current_bonus_type == "gf":
+			max_bonus = 7 * season_length
+		elif roster_contract.current_bonus_type == "clean_sheet":
+			max_bonus = season_length
+		if max_bonus > 0:
+			if roster_contract.current_bonus_prize == "salary_raise":
+				contract_value += (roster_contract.current_bonus_value * max_bonus * roster_contract.original_seasons * season_length)/2 #just assume a 50% hit rate on bonuses
+			elif roster_contract.current_bonus_prize == "cash_payment":
+				contract_value += (roster_contract.current_bonus_value * max_bonus)/2 #just assume a 50% hit rate on bonuses
+		var roster_ovr = roster_player.get_best_overall()
+		position_depth.append({
+			"player": roster_player,
+			"contract_value": contract_value,
+			"overall": roster_ovr
+		})
+	if position_depth.size() == 0:
+		return 0
+	position_depth.sort_custom(func(a, b): return a.overall > b.overall)
+	var next_above = -1
+	var next_below = -1
+	for i in range(position_depth.size()):
+		if position_depth[i].overall >= current_player_ovr:
+			next_above = i
+			break
+	if next_above == -1:
+		next_below = position_depth.size() - 1
+		var overall_ratio = float(current_player_ovr) / float(position_depth[0].overall)
+		return position_depth[0].contract_value * overall_ratio
+	elif next_above == 0:
+		next_below = 0
 	else:
+		next_below = next_above
+		next_above = next_above - 1
+	
+	if next_above == -1 and next_below < position_depth.size():
+		return position_depth[next_below].contract_value
+	elif next_below > position_depth.size() - 1 and next_above >= 0:
+		return position_depth[next_above].contract_value
+	else:
+		return (position_depth[next_above].contract_value + position_depth[next_below].contract_value) / 2
 		return (position_depth[next_above] + position_depth[next_below])/2 #TODO: use contract value
 	
 func get_share_value(share):
@@ -1731,7 +1817,8 @@ func get_share_value(share):
 		return 0
 
 func offer_contract():
-	var value_weight = character.contract_focuses.get("value", 0.0) #0 to 5.5
+	var total_value = 0
+	var value_weight = character.contract_focuses.get("value", 0.0) 
 	var flex_weight = character.contract_focuses.get("flexibility", 0.0)
 	var stability_weight = character.contract_focuses.get("stability", 0.0)
 	var weighted_value = value_weight * get_value_value() + flex_weight * get_flex_value() + stability_weight * get_stability_value()
@@ -1744,7 +1831,19 @@ func offer_contract():
 	var match7 = get_focus_match(character.get_nth_focus(6))
 	var housing_match = get_housing_match(character.contract_focuses.house_type, current_housing) #0 to 1.45
 	var promise_match = get_promise_match(current_promise)
-	var personal_wealth
+	var sell_match = check_sell_match()
+	total_value += weighted_value + match1 + match2 + match3 + match4 + match5 + match6 + match7 + housing_match + promise_match + sell_match
+	#theoretical max value is 68.55
+	var needed_value 
+	needed_value = 68.55 - (character.negotiation_willingness /4.5) #46 to 68.55
+	var sign_randomness = randf_range(0, 50)
+	if sign_randomness < total_value:
+		print("The player has signed!")
+	else:
+		if sign_randomness < character.last_contract_offer_value:
+			character.negotiation_willingness -= (68.55 - total_value)
+		print("not good enough. Had " + str(sign_randomness) + " with a value of " + str(total_value))
+	
 
 
 func get_housing_match(wanted: String, offered: String):
@@ -1772,7 +1871,7 @@ func get_house_sleep_val(house_type: String):
 		"motel": return 2
 		"bungalow": return 2
 		"stationary car": return 1
-		"apartment": return 2
+		"room": return 2
 		"bus": return 2
 		"farmhouse": return 2
 		"shanty": return 2
@@ -1793,7 +1892,7 @@ func get_house_family_val(house_type: String):
 		"motel": return 1
 		"bungalow": return 1
 		"stationary car": return 1
-		"apartment": return 1
+		"room": return 1
 		"bus": return 2
 		"farmhouse": return 1
 		"shanty": return 0
@@ -1814,7 +1913,7 @@ func get_house_community_val(house_type: String):
 		"motel": return 1
 		"bungalow": return 2
 		"stationary car": return 0
-		"apartment": return 2
+		"room": return 2
 		"bus": return 1
 		"farmhouse": return 0
 		"shanty": return 0
@@ -1835,7 +1934,7 @@ func get_house_food_val(house_type: String):
 		"motel": return 2 #kitchenette, grills, some land
 		"bungalow": return 2 #big yard
 		"stationary car": return 2 #engine block grill, small yard
-		"apartment": return 1
+		"room": return 1
 		"bus": return 1
 		"farmhouse": return 3
 		"shanty": return 0
@@ -1856,7 +1955,7 @@ func get_house_security_val(house_type: String):
 		"motel": return 2
 		"bungalow": return 2
 		"stationary car": return 2
-		"apartment": return 1
+		"room": return 1
 		"bus": return 2
 		"farmhouse": return 2
 		"shanty": return 1
@@ -1921,6 +2020,189 @@ func compare_house_type_to_focus(house_type: String) -> float:
 		housing_bonus_val = 0.25
 	return housing_bonus_val
 
+func check_sell_match():
+	var match_rating = 0.0
+	
+	match current_sell:
+		"experience":
+			#gameday, travel, winning, chill - up to 4.0
+			if character.contract_focuses.get("gameday", 0) > 0:
+				match_rating += 1.0
+			else:
+				match_rating -= 0.5
+				
+			if character.contract_focuses.get("travel", 0) > 0:
+				match_rating += 1.0
+			else:
+				match_rating -= 0.5
+				
+			if character.contract_focuses.get("win_now", 0) > 0:
+				match_rating += 1.0
+			else:
+				match_rating -= 0.5
+				
+			if character.contract_focuses.get("chill", 0) > 0:
+				match_rating += 1.0
+			else:
+				match_rating -= 0.5
+				
+		"family":
+			#loyalty, community, welfare
+			if character.contract_focuses.get("loyalty", 0) > 0:
+				match_rating += 1.0
+			else:
+				match_rating -= 0.5
+				
+			if character.contract_focuses.get("community", 0) > 0:
+				match_rating += 1.0
+			else:
+				match_rating -= 0.5
+				
+			if character.contract_focuses.get("welfare", 0) > 0:
+				match_rating += 1.0
+			else:
+				match_rating -= 0.5
+				
+		"winning":
+			#win now, win later, development
+			if character.contract_focuses.get("win_now", 0) > 0:
+				match_rating += 1.0
+			else:
+				match_rating -= 0.5
+				
+			if character.contract_focuses.get("win_later", 0) > 0:
+				match_rating += 1.0
+			else:
+				match_rating -= 0.5
+				
+			if character.contract_focuses.get("development", 0) > 0:
+				match_rating += 1.0
+			else:
+				match_rating -= 0.5
+				
+		"future":
+			#win later, development, opportunity
+			if character.contract_focuses.get("win_later", 0) > 0:
+				match_rating += 1.0
+			else:
+				match_rating -= 0.5
+				
+			if character.contract_focuses.get("development", 0) > 0:
+				match_rating += 1.0
+			else:
+				match_rating -= 0.5
+				
+			if character.contract_focuses.get("opportunity", 0) > 0:
+				match_rating += 1.0
+			else:
+				match_rating -= 0.5
+				
+		"town":
+			#trade, farming, day life
+			if character.contract_focuses.get("trade", 0) > 0:
+				match_rating += 1.0
+			else:
+				match_rating -= 0.5
+				
+			if character.contract_focuses.get("farming", 0) > 0:
+				match_rating += 1.0
+			else:
+				match_rating -= 0.5
+				
+			if character.contract_focuses.get("day_life", 0) > 0:
+				match_rating += 1.0
+			else:
+				match_rating -= 0.5
+				
+		"kids":
+			#welfare, education, day life
+			if character.contract_focuses.get("welfare", 0) > 0:
+				match_rating += 1.0
+			else:
+				match_rating -= 0.5
+				
+			if character.contract_focuses.get("education", 0) > 0:
+				match_rating += 1.0
+			else:
+				match_rating -= 0.5
+				
+			if character.contract_focuses.get("day_life", 0) > 0:
+				match_rating += 1.0
+			else:
+				match_rating -= 0.5
+				
+		"fiesta":
+			#party, night life, chill
+			if character.contract_focuses.get("party", 0) > 0:
+				match_rating += 1.0
+			else:
+				match_rating -= 0.5
+				
+			if character.contract_focuses.get("night_life", 0) > 0:
+				match_rating += 1.0
+			else:
+				match_rating -= 0.5
+				
+			if character.contract_focuses.get("chill", 0) > 0:
+				match_rating += 1.0
+			else:
+				match_rating -= 0.5
+				
+		"adventure":
+			#travel, anti-hometown (no hometown), party
+			if character.contract_focuses.get("travel", 0) > 0:
+				match_rating += 1.0
+			else:
+				match_rating -= 0.5
+				
+			#Add 1.0 if they don't have hometown focus, subtract 0.5 if they do
+			if character.contract_focuses.get("hometown", 0) <= 0:
+				match_rating += 1.0
+			else:
+				match_rating -= 0.5
+				
+			if character.contract_focuses.get("party", 0) > 0:
+				match_rating += 1.0
+			else:
+				match_rating -= 0.5
+				
+		"home":
+			#hometown, loyalty, safety
+			if character.contract_focuses.get("hometown", 0) > 0:
+				match_rating += 1.0
+			else:
+				match_rating -= 0.5
+				
+			if character.contract_focuses.get("loyalty", 0) > 0:
+				match_rating += 1.0
+			else:
+				match_rating -= 0.5
+				
+			if character.contract_focuses.get("safety", 0) > 0:
+				match_rating += 1.0
+			else:
+				match_rating -= 0.5
+				
+		"quiet":
+			#farming, chill, safety
+			if character.contract_focuses.get("farming", 0) > 0:
+				match_rating += 1.0
+			else:
+				match_rating -= 0.5
+				
+			if character.contract_focuses.get("chill", 0) > 0:
+				match_rating += 1.0
+			else:
+				match_rating -= 0.5
+				
+			if character.contract_focuses.get("safety", 0) > 0:
+				match_rating += 1.0
+			else:
+				match_rating -= 0.5
+	
+	match_rating = match_rating * (CareerCoach.charisma_attributes.inspiration/20)
+	return match_rating
+
 func get_focus_match(focus: String):
 	var match_value = 0.0
 	var team_value = CareerFranchise.get_contract_focus_value(focus)
@@ -1943,6 +2225,7 @@ func get_focus_match(focus: String):
 	return match_value
 	
 func get_promise_match(promise: String):
+	var promise_rating = 0
 	var relevant_focuses = {}
 	match promise:
 		"none":
@@ -1986,6 +2269,12 @@ func get_promise_match(promise: String):
 		"improve_party":
 			relevant_focuses = {"party": 3, "chill": 1, "win_now": -2}
 			pass
+	for focus in relevant_focuses:
+		var weight = relevant_focuses[focus]
+		if character.contract_focuses.get(focus, 0) > 0:
+			promise_rating += weight
+	
+	return promise_rating
 
 func is_front_strength():
 	#TODO: determine if the team's forwards and pitcehrs are a strength relative to the league or to the next league up

@@ -6,7 +6,7 @@ var team: Team
 var neighborhood: String #N,S,E,W
 var travel_convoy: Convoy
 #players
-var contracts := { #0: [player Player, contract Contract]
+var contracts := { #0: character Character
 	
 }
 #staff

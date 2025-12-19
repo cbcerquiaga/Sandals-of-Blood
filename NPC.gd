@@ -53,7 +53,7 @@ var off_attributes ={
 	"combat": 50, #chance of assisting in combat or winning a 1v1 to the death altercation
 }
 
-var contract_focuses = {
+var contract_focuses = { # 0 to 4
 	#primary focuses
 	"value": 0.0, #total earning in contract between wages, bonuses, buyouts, and length
 	"stability": 0.0, #contract length, franchise > standard > tradeable > tryout contract type, nobuyout > buy200 > buy100 > buy50 > buyfree buyout
@@ -139,7 +139,8 @@ var staff_skills= {#impacts a character's ability to handle a given staff role
 }
 
 var best_league = 0 #0 for never played, 1 for B, 2 for A, 3 for AA, 4 for AAA
-
+var last_contract_offer_value = 0 #used for negotiations
+var negotiation_willingness = 100 #0 to 100
 var liked_NPCs = [] #all players and staff which the character likes and is influenced by
 
 func get_family_count() -> int:

@@ -338,7 +338,6 @@ text = "Age is at Least"
 
 [node name="Min" type="OptionButton" parent="TraitsMenu/BioTraits/Age"]
 layout_mode = 2
-selected = 0
 
 [node name="Label3" type="Label" parent="TraitsMenu/BioTraits/Age"]
 layout_mode = 2

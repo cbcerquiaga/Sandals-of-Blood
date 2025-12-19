@@ -340,17 +340,6 @@ func get_contract_features_data(top_comparables: Array, target_player: Character
 				"Length: " + str(character.contract.seasons_left) + " seasons",
 				character.player.bio.last_name
 			])
-		
-		# Focus
-		if character.contract.current_focus != "none":
-			features_data.append([
-				similarity,
-				"focus",
-				character.contract.current_focus,
-				"Focus: " + character.contract.current_focus.capitalize(),
-				character.player.bio.last_name
-			])
-		
 		# Promise
 		if character.contract.current_promise != "none":
 			features_data.append([
