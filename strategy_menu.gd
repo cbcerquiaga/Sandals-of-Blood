@@ -659,26 +659,28 @@ func print_player_bio(player: Player):
 	
 func print_player_attributes(player: Player):
 	var string: String
-	string = string + "Speed: " + str(player.attributes.speedRating) + "\n"
-	string = string + "Endurance: " + str(player.attributes.endurance) + "\n"
-	string = string + "Striking: " + str(player.attributes.shooting) +  "\n"
-	string = string + "Blocking: " + str(player.attributes.blocking) +  "\n"
-	string = string + "Throwing: " + str(player.attributes.throwing) + "\n"
-	string = string + "Aggression: " + str(player.attributes.aggression)  + "\n"
-	string = string + "Toughness: " + str(player.attributes.toughness) + "\n"
-	string = string + "Durability: " + str(player.attributes.durability)
+	string = string + "Speed: " + str(player.get_buffed_attribute("speedRating")) + "\n"
+	string = string + "Endurance: " + str(player.get_buffed_attribute("endurance")) + "\n"
+	string = string + "Striking: " + str(player.get_buffed_attribute("shooting")) +  "\n"
+	string = string + "Blocking: " + str(player.get_buffed_attribute("blocking")) +  "\n"
+	string = string + "Throwing: " + str(player.get_buffed_attribute("throwing")) + "\n"
+	string = string + "Aggression: " + str(player.get_buffed_attribute("aggression"))  + "\n"
+	string = string + "Toughness: " + str(player.get_buffed_attribute("toughness")) + "\n"
+	string = string + "Durability: " + str(player.get_buffed_attribute("durability")) + "\n"
+	string = string + "Faceoffs: " + str(player.get_buffed_attribute("faceoffs"))
 	return string
 	
 func print_player_attributes2(player: Player):
 	var string: String
-	string = string + "Strength: " + str(player.attributes.power) + "\n"
-	string = string + "Balance: " + str(player.attributes.balance) + "\n"
-	string = string + "Accuracy: " + str(player.attributes.accuracy) + "\n"
-	string = string + "Reactions: " + str(player.attributes.reactions) + "\n"
-	string = string + "Curve: " + str(player.attributes.focus) + "\n"
-	string = string + "Positioning: " + str(player.attributes.positioning) + "\n"
-	string = string + "Confidence: " + str(player.attributes.confidence) + "\n"
-	string = string + "Agility: " + str(player.attributes.agility)
+	string = string + "Strength: " + str(player.get_buffed_attribute("power")) + "\n"
+	string = string + "Balance: " + str(player.get_buffed_attribute("balance")) + "\n"
+	string = string + "Accuracy: " + str(player.get_buffed_attribute("accuracy")) + "\n"
+	string = string + "Reactions: " + str(player.get_buffed_attribute("reactions")) + "\n"
+	string = string + "Curve: " + str(player.get_buffed_attribute("focus")) + "\n"
+	string = string + "Positioning: " + str(player.get_buffed_attribute("positioning")) + "\n"
+	string = string + "Confidence: " + str(player.get_buffed_attribute("confidence")) + "\n"
+	string = string + "Agility: " + str(player.get_buffed_attribute("agility")) + "\n"
+	string = string + "Discipline: " + str(player.get_buffed_attribute("durability"))
 	return string
 	
 func print_player_stats(player: Player):

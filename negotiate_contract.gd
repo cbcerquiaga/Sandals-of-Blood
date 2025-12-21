@@ -1821,6 +1821,15 @@ func offer_contract():
 	var value_weight = character.contract_focuses.get("value", 0.0) 
 	var flex_weight = character.contract_focuses.get("flexibility", 0.0)
 	var stability_weight = character.contract_focuses.get("stability", 0.0)
+	if (value_weight + flex_weight + stability_weight) == 0:
+		value_weight = 1
+		if player.bio.years > 23:
+			stability_weight = 2
+			flex_weight = 1
+		else:
+			stability_weight = 0
+			flex_weight = 3
+		
 	var weighted_value = value_weight * get_value_value() + flex_weight * get_flex_value() + stability_weight * get_stability_value()
 	var match1 = get_focus_match(character.get_key_focus()) #-2.9 to 2.3
 	var match2 = get_focus_match(character.get_nth_focus(1))
