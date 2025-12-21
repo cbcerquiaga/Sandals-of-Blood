@@ -188,3 +188,13 @@ func get_nth_focus(n: int) -> String:
 		return filtered_focuses[n - 1]
 	else:
 		return ""
+
+func sum_focus_values():
+	var sum = 0
+	var key = get_key_focus()
+	var key_value = contract_focuses[key]
+	sum += key_value
+	for i in range(1,8):
+		var focus = get_nth_focus(i)
+		sum += contract_focuses[focus]
+	return sum

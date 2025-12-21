@@ -34,7 +34,7 @@ var plague_rates := {
 }
 
 #amenities are storead NSEW
-@onready var amenities := {
+var amenities := {
 	"Library": [false, false, false, false], #day life, education, welfare
 	"Food Bank": [false, false, false, false], #welfare
 	"Friendly Society": [false, false, false, false], #welfare, finance

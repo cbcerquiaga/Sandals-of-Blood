@@ -1834,7 +1834,8 @@ func offer_contract():
 	var sell_match = check_sell_match()
 	total_value += weighted_value + match1 + match2 + match3 + match4 + match5 + match6 + match7 + housing_match + promise_match + sell_match
 	#theoretical max value is 68.55
-	var needed_value 
+	var needed_value
+	var sum_focuses = character.sum_focus_values()
 	needed_value = 68.55 - (character.negotiation_willingness /4.5) #46 to 68.55
 	var sign_randomness = randf_range(0, 50)
 	if sign_randomness < total_value:
@@ -1842,7 +1843,7 @@ func offer_contract():
 	else:
 		if sign_randomness < character.last_contract_offer_value:
 			character.negotiation_willingness -= (68.55 - total_value)
-		print("not good enough. Had " + str(sign_randomness) + " with a value of " + str(total_value))
+		print("not good enough. Had " + str(sign_randomness) + " with a value of " + str(total_value) + " and a sum of " + str(sum_focuses))
 	
 
 
