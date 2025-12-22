@@ -5,12 +5,13 @@ var item_name: String
 var description: String
 var img_path: String
 var hue: Color
-var isLeft: bool = false #only applies for gloves, must match character handedness
+var canLeft: bool = true #usually true, but if a glove is only for one hand, one of these will be false
+var canRight: bool = true
 enum GearType {
-	HELMET, #protects the head
+	LEG, #protects the knees or shins
+	ELBOW, #protects the arm
 	GLOVE, #worn on just one hand
 	SHOE, #can impact speed, balance, agility, durability  endurance, confidence, blocking, power, shooting
-	KEEPING_PAD, #assigned to team instead of player- active keeper gets the pads
 	ACCESSORY #random lucky bit of gear, can be anything or impact anything
 }
 var gear_type: GearType
@@ -26,3 +27,12 @@ enum BonusType {
 }
 var bonus_type: BonusType
 var bonus_buff: Dictionary = {}
+
+func get_title():
+	var string = ""
+	if canLeft and !canRight:
+		string += "Left Handed "
+	elif canRight and !canLeft:
+		string += "Right Handed "
+	string += item_name
+	return string

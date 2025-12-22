@@ -228,8 +228,10 @@ var celebrations_star: Player #when in team celebration, the team follows the st
 @onready var playStyle_texture: String
 
 #gear
-@onready var gear_helmet: Equipment
-@onready var gear_glove: Equipment
+@onready var gear_leg: Equipment
+@onready var gear_elbow: Equipment
+@onready var gear_glove_l: Equipment
+@onready var gear_glove_r: Equipment
 @onready var gear_shoe: Equipment
 @onready var gear_accessory1: Equipment
 @onready var gear_accessory2: Equipment
