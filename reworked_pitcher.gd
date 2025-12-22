@@ -23,12 +23,6 @@ var buddyRG
 var buddyLF
 var buddyRF
 
-# AI Target Range (relative to pitcher position)
-var target_x_min: float = -60.0
-var target_x_max: float = 60.0
-var target_y_min: float = -50.0
-var target_y_max: float = 75.0
-
 # Movement constants
 const MAX_DIRECTION_CHANGES := 3 #double juke and change
 const REACTION_CHECK_INTERVAL := 2.0
@@ -48,7 +42,8 @@ var is_aiming: bool = false
 var aim_direction: Vector2 = Vector2(0,1)
 var has_ball: bool = false
 var increasing := true
-var variance_factor = ((100 - get_buffed_attribute("accuracy"))/100 + 1)/4 #between 25% and 50% maximum error
+var pause_counter: int = 0
+var variance_factor = 0.5 * (100 - get_buffed_attribute("accuracy"))/200 #23.5% to 0.0025% effect
 var current_variance = 0 #ranges from -100 to 100, then multiplied by variance factor
 var variance_increment = 3
 var hand_offset: float = 5.0 #how far to move the ball in the X to keep it from colliding
@@ -654,6 +649,7 @@ func _on_pitch_phase_started():
 	is_chasing = false
 	is_fleeing = false
 	direction_changes = 0
+	pause_counter = 0
 	current_behavior = "waiting"
 	prepare_target_position()
 
@@ -774,16 +770,9 @@ func ai_select_target(pitch_type: String) -> Vector2:
 	if successful_targets.size() > 0 and randf() < 0.6:
 		return successful_targets[randi() % successful_targets.size()]
 	
-	var aggression_factor = get_buffed_attribute("aggression") / 100.0
 	
-	var x_coord: float
-	if randf() < aggression_factor:
-		var center_range = lerp(30.0, 10.0, aggression_factor)
-		x_coord = randf_range(-center_range, center_range)
-	else:
-		x_coord = randf_range(target_x_min, target_x_max)
-	
-	var y_coord = randf_range(target_y_min, target_y_max)
+	var x_coord: float = randf_range(left_wall.global_position.x, right_wall.global_position.x)
+	var y_coord: float = randf_range(global_position.y/2, oppGoal.y)
 	
 	return Vector2(x_coord, y_coord)
 
@@ -1072,15 +1061,23 @@ func get_closest_wall():
 		return left_wall
 
 func variance_timer():
+	var pause_time = status.groove * 2 #pause at 0 for this amount of frames
+	var slow_time = get_buffed_attribute("confidence")/2 #if variance is below this value, slow down the incrementing
+	if pause_counter < pause_time:
+		pause_counter += 1
+		return
+	var increment = variance_increment * GlobalSettings.game_speed
+	if abs(current_variance) < slow_time:
+		increment *= 0.25 
 	if increasing:
 		if current_variance < 100:
-			current_variance = current_variance + variance_increment * GlobalSettings.game_speed
+			current_variance = min(current_variance + increment, 100)
 		else:
 			current_variance = 100
 			increasing = false
 	else:
 		if current_variance > -100:
-			current_variance = current_variance - variance_increment * GlobalSettings.game_speed
+			current_variance = max(current_variance - increment, -100)
 		else:
 			current_variance = -100
 			increasing = true

@@ -74,7 +74,6 @@ func turn(direction):
 	rotation = aimDirection.angle()
 	#print("rotation: " + str(rotation))
 
-#TODO: graadually shift from orange to yellow to green based on variance
 func color(variance):
 	var shader = Shader.new()
 	shader.code = """
