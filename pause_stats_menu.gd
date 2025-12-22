@@ -58,6 +58,8 @@ func populate_team_stats():
 	home_aces_label.text = str(homeTeam.game_stats.aces)
 	var home_sacks_label = Label.new()
 	home_sacks_label.text = str(get_team_sacks(homeTeam))
+	var home_fo_label = Label.new()
+	home_fo_label.text = str(homeTeam.game_stats.faceoffs_won)
 	var home_time_label = Label.new()
 	home_time_label.text = homeTeam.get_time_in_half()
 	var home_starters_label = Label.new()
@@ -71,6 +73,7 @@ func populate_team_stats():
 	left_column.add_child(home_pitch_label)
 	left_column.add_child(home_aces_label)
 	left_column.add_child(home_sacks_label)
+	left_column.add_child(home_fo_label)
 	left_column.add_child(home_time_label)
 	left_column.add_child(home_starters_label)
 	left_column.add_child(home_bench_label)
@@ -91,6 +94,8 @@ func populate_team_stats():
 	aces_label.text = "Aces"
 	var sacks_label = Label.new()
 	sacks_label.text = "Sacks"
+	var fo_label = Label.new()
+	fo_label.text = "Faceoffs Won"
 	var time_label = Label.new()
 	time_label.text = "Ball in Half"
 	var starter_label = Label.new()
@@ -104,6 +109,7 @@ func populate_team_stats():
 	middle_cloumn.add_child(pitches_label)
 	middle_cloumn.add_child(aces_label)
 	middle_cloumn.add_child(sacks_label)
+	middle_cloumn.add_child(fo_label)
 	middle_cloumn.add_child(time_label)
 	middle_cloumn.add_child(starter_label)
 	middle_cloumn.add_child(bench_label)
@@ -132,6 +138,8 @@ func populate_team_stats():
 	road_aces_label.text = str(awayTeam.game_stats.aces)
 	var road_sacks_label = Label.new()
 	road_sacks_label.text = str(get_team_sacks(awayTeam))
+	var road_fo_label = Label.new()
+	road_fo_label.text = str(awayTeam.game_stats.faceoffs_won)
 	var road_time_label = Label.new()
 	road_time_label.text = awayTeam.get_time_in_half()
 	var road_starters_label = Label.new()
@@ -145,6 +153,7 @@ func populate_team_stats():
 	right_column.add_child(road_pitch_label)
 	right_column.add_child(road_aces_label)
 	right_column.add_child(road_sacks_label)
+	right_column.add_child(road_fo_label)
 	right_column.add_child(road_time_label)
 	right_column.add_child(road_starters_label)
 	right_column.add_child(road_bench_label)
@@ -302,7 +311,7 @@ func populate_rushing_stats():
 		var b_stats = b["player"].game_stats
 		#Sort by sacks descending
 		if a_stats.sacks != b_stats.sacks:
-			return a_stats.sackss > b_stats.sacks
+			return a_stats.sacks > b_stats.sacks
 		# Then by partner sacks descending
 		if a_stats.partner_sacks != b_stats.partner_sacks:
 			return a_stats.partner_sacks > b_stats.partner_sacks
@@ -507,11 +516,11 @@ func populate_pitching_stats():
 	var label2 = Label.new()
 	label2.text = "Team"
 	var label3 = Label.new()
-	label3.text = "Pitches at P"
+	label3.text = "Thrown (Played)"
 	var label4 = Label.new()
 	label4.text = "Knockouts"
 	var label5 = Label.new()
-	label5.text = "Thrown"
+	label5.text = "Faceoffs"
 	var label6 = Label.new()
 	label6.text = "Aces"
 	headerContainer.add_child(label1)
@@ -536,11 +545,11 @@ func populate_pitching_stats():
 		var plabel2 = Label.new()
 		plabel2.text = team.team_abbreviation
 		var plabel3 = Label.new()
-		plabel3.text = str(player.game_stats.pitches_p)
+		plabel3.text = str(player.game_stats.pitches_thrown) + " (" + str(player.game_stats.pitches_p) + ")"
 		var plabel4 = Label.new()
 		plabel4.text = str(player.game_stats.knockouts) + "-" + str(player.game_stats.got_kod)
 		var plabel5 = Label.new()
-		plabel5.text = str(player.game_stats.pitches_thrown)
+		plabel5.text = str(player.game_stats.faceoff_wins) + "/" + str(player.game_stats.faceoff_wins + player.game_stats.faceoff_losses)
 		var plabel6 = Label.new()
 		plabel6.text = str(player.game_stats.aces)
 		

@@ -316,8 +316,10 @@ func execute_faceoff():
 		winner_target = cpu_faceoff_target
 	if winner == aTeam.P:
 		print("And the " + aTeam.team_name + " come away with the ball")
+		aTeam.game_stats.faceoffs_won += 1
 	else:
 		print("And the " + pTeam.team_name + " come away with the ball")
+		pTeam.game_stats.faceoffs_won += 1
 	var accuracy = winner.get_buffed_attribute("accuracy") / 100.0
 	var accuracy_variance = (1.0 - accuracy) * 0.3
 	var angle_offset = randf_range(-accuracy_variance, accuracy_variance)

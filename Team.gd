@@ -62,7 +62,8 @@ var game_stats: Dictionary = {
 	"bench_goals" = 0, #goals from substitutes
 	"ball_in_half" = 0, #time the ball has spent in our half
 	"touches" = 0, #number of times our players touch the ball, not including pitches
-	"sacks" = 0
+	"sacks" = 0,
+	"faceoffs_won" = 0
 }
 
 @export var K: Keeper
