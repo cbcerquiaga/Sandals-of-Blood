@@ -1,0 +1,370 @@
+[gd_scene load_steps=6 format=3 uid="uid://cjr6jha71t8t7"]
+
+[ext_resource type="Texture2D" uid="uid://cmtuklr40143j" path="res://UI/GearUI/Assign_button_base.png" id="1_a83l8"]
+[ext_resource type="Script" path="res://inventory_manager.gd" id="1_r18u4"]
+[ext_resource type="Texture2D" uid="uid://b0yfpl8j8wb42" path="res://UI/GearUI/Assign_button_highlighted.png" id="2_bggrp"]
+[ext_resource type="Texture2D" uid="uid://cnaka4nr4k31r" path="res://UI/GearUI/page_1_base.png" id="2_iyeg1"]
+[ext_resource type="Texture2D" uid="uid://beemxqrodl3w0" path="res://UI/GearUI/page_1_highlighted.png" id="3_tmckb"]
+
+[node name="Control" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_r18u4")
+
+[node name="V-MainContainer" type="VBoxContainer" parent="."]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="H-PagesContainer" type="HBoxContainer" parent="V-MainContainer"]
+layout_mode = 2
+
+[node name="Page1Button" type="TextureButton" parent="V-MainContainer/H-PagesContainer"]
+layout_mode = 2
+texture_normal = ExtResource("2_iyeg1")
+texture_hover = ExtResource("3_tmckb")
+texture_focused = ExtResource("3_tmckb")
+
+[node name="Page2Button" type="TextureButton" parent="V-MainContainer/H-PagesContainer"]
+layout_mode = 2
+
+[node name="Page3Button" type="TextureButton" parent="V-MainContainer/H-PagesContainer"]
+layout_mode = 2
+
+[node name="Page4Button" type="TextureButton" parent="V-MainContainer/H-PagesContainer"]
+layout_mode = 2
+
+[node name="Page5Button" type="TextureButton" parent="V-MainContainer/H-PagesContainer"]
+layout_mode = 2
+
+[node name="Page6Button" type="TextureButton" parent="V-MainContainer/H-PagesContainer"]
+layout_mode = 2
+
+[node name="Page7Button" type="TextureButton" parent="V-MainContainer/H-PagesContainer"]
+layout_mode = 2
+
+[node name="Page8Button" type="TextureButton" parent="V-MainContainer/H-PagesContainer"]
+layout_mode = 2
+
+[node name="Page9Button" type="TextureButton" parent="V-MainContainer/H-PagesContainer"]
+layout_mode = 2
+
+[node name="Page10Button" type="TextureButton" parent="V-MainContainer/H-PagesContainer"]
+layout_mode = 2
+
+[node name="V-GearContainer" type="VBoxContainer" parent="V-MainContainer"]
+layout_mode = 2
+
+[node name="H-GearContainer1" type="HBoxContainer" parent="V-MainContainer/V-GearContainer"]
+layout_mode = 2
+
+[node name="TextureRect" type="TextureRect" parent="V-MainContainer/V-GearContainer/H-GearContainer1"]
+layout_mode = 2
+
+[node name="TextureLabel" type="Label" parent="V-MainContainer/V-GearContainer/H-GearContainer1/TextureRect"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0
+
+[node name="TypeLabel" type="Label" parent="V-MainContainer/V-GearContainer/H-GearContainer1"]
+layout_mode = 2
+text = "Left Handed Puncher's Glove"
+
+[node name="EffectLabel" type="Label" parent="V-MainContainer/V-GearContainer/H-GearContainer1"]
+layout_mode = 2
+text = "+5 Striking
++10 Toughness
+-20 Throwing (Strong)"
+
+[node name="AssignedLabel" type="Label" parent="V-MainContainer/V-GearContainer/H-GearContainer1"]
+layout_mode = 2
+text = "Kicky McKickface"
+
+[node name="AssignButton" type="TextureButton" parent="V-MainContainer/V-GearContainer/H-GearContainer1"]
+layout_mode = 2
+texture_normal = ExtResource("1_a83l8")
+texture_hover = ExtResource("2_bggrp")
+texture_focused = ExtResource("2_bggrp")
+
+[node name="H-GearContainer2" type="HBoxContainer" parent="V-MainContainer/V-GearContainer"]
+layout_mode = 2
+
+[node name="TextureRect" type="TextureRect" parent="V-MainContainer/V-GearContainer/H-GearContainer2"]
+layout_mode = 2
+
+[node name="TextureLabel" type="Label" parent="V-MainContainer/V-GearContainer/H-GearContainer2/TextureRect"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0
+
+[node name="TypeLabel" type="Label" parent="V-MainContainer/V-GearContainer/H-GearContainer2"]
+layout_mode = 2
+text = "Left Handed Puncher's Glove"
+
+[node name="EffectLabel" type="Label" parent="V-MainContainer/V-GearContainer/H-GearContainer2"]
+layout_mode = 2
+text = "+5 Striking
++10 Toughness
+-20 Throwing (Strong)"
+
+[node name="AssignedLabel" type="Label" parent="V-MainContainer/V-GearContainer/H-GearContainer2"]
+layout_mode = 2
+text = "Kicky McKickface"
+
+[node name="AssignButton" type="TextureButton" parent="V-MainContainer/V-GearContainer/H-GearContainer2"]
+layout_mode = 2
+texture_normal = ExtResource("1_a83l8")
+texture_hover = ExtResource("2_bggrp")
+texture_focused = ExtResource("2_bggrp")
+
+[node name="H-GearContainer3" type="HBoxContainer" parent="V-MainContainer/V-GearContainer"]
+layout_mode = 2
+
+[node name="TextureRect" type="TextureRect" parent="V-MainContainer/V-GearContainer/H-GearContainer3"]
+layout_mode = 2
+
+[node name="TextureLabel" type="Label" parent="V-MainContainer/V-GearContainer/H-GearContainer3/TextureRect"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0
+
+[node name="TypeLabel" type="Label" parent="V-MainContainer/V-GearContainer/H-GearContainer3"]
+layout_mode = 2
+text = "Left Handed Puncher's Glove"
+
+[node name="EffectLabel" type="Label" parent="V-MainContainer/V-GearContainer/H-GearContainer3"]
+layout_mode = 2
+text = "+5 Striking
++10 Toughness
+-20 Throwing (Strong)"
+
+[node name="AssignedLabel" type="Label" parent="V-MainContainer/V-GearContainer/H-GearContainer3"]
+layout_mode = 2
+text = "Kicky McKickface"
+
+[node name="AssignButton" type="TextureButton" parent="V-MainContainer/V-GearContainer/H-GearContainer3"]
+layout_mode = 2
+texture_normal = ExtResource("1_a83l8")
+texture_hover = ExtResource("2_bggrp")
+texture_focused = ExtResource("2_bggrp")
+
+[node name="H-GearContainer4" type="HBoxContainer" parent="V-MainContainer/V-GearContainer"]
+layout_mode = 2
+
+[node name="TextureRect" type="TextureRect" parent="V-MainContainer/V-GearContainer/H-GearContainer4"]
+layout_mode = 2
+
+[node name="TextureLabel" type="Label" parent="V-MainContainer/V-GearContainer/H-GearContainer4/TextureRect"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0
+
+[node name="TypeLabel" type="Label" parent="V-MainContainer/V-GearContainer/H-GearContainer4"]
+layout_mode = 2
+text = "Left Handed Puncher's Glove"
+
+[node name="EffectLabel" type="Label" parent="V-MainContainer/V-GearContainer/H-GearContainer4"]
+layout_mode = 2
+text = "+5 Striking
++10 Toughness
+-20 Throwing (Strong)"
+
+[node name="AssignedLabel" type="Label" parent="V-MainContainer/V-GearContainer/H-GearContainer4"]
+layout_mode = 2
+text = "Kicky McKickface"
+
+[node name="AssignButton" type="TextureButton" parent="V-MainContainer/V-GearContainer/H-GearContainer4"]
+layout_mode = 2
+texture_normal = ExtResource("1_a83l8")
+texture_hover = ExtResource("2_bggrp")
+texture_focused = ExtResource("2_bggrp")
+
+[node name="H-GearContainer5" type="HBoxContainer" parent="V-MainContainer/V-GearContainer"]
+layout_mode = 2
+
+[node name="TextureRect" type="TextureRect" parent="V-MainContainer/V-GearContainer/H-GearContainer5"]
+layout_mode = 2
+
+[node name="TextureLabel" type="Label" parent="V-MainContainer/V-GearContainer/H-GearContainer5/TextureRect"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0
+
+[node name="TypeLabel" type="Label" parent="V-MainContainer/V-GearContainer/H-GearContainer5"]
+layout_mode = 2
+text = "Left Handed Puncher's Glove"
+
+[node name="EffectLabel" type="Label" parent="V-MainContainer/V-GearContainer/H-GearContainer5"]
+layout_mode = 2
+text = "+5 Striking
++10 Toughness
+-20 Throwing (Strong)"
+
+[node name="AssignedLabel" type="Label" parent="V-MainContainer/V-GearContainer/H-GearContainer5"]
+layout_mode = 2
+text = "Kicky McKickface"
+
+[node name="AssignButton" type="TextureButton" parent="V-MainContainer/V-GearContainer/H-GearContainer5"]
+layout_mode = 2
+texture_normal = ExtResource("1_a83l8")
+texture_hover = ExtResource("2_bggrp")
+texture_focused = ExtResource("2_bggrp")
+
+[node name="H-GearContainer6" type="HBoxContainer" parent="V-MainContainer/V-GearContainer"]
+layout_mode = 2
+
+[node name="TextureRect" type="TextureRect" parent="V-MainContainer/V-GearContainer/H-GearContainer6"]
+layout_mode = 2
+
+[node name="TextureLabel" type="Label" parent="V-MainContainer/V-GearContainer/H-GearContainer6/TextureRect"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0
+
+[node name="TypeLabel" type="Label" parent="V-MainContainer/V-GearContainer/H-GearContainer6"]
+layout_mode = 2
+text = "Left Handed Puncher's Glove"
+
+[node name="EffectLabel" type="Label" parent="V-MainContainer/V-GearContainer/H-GearContainer6"]
+layout_mode = 2
+text = "+5 Striking
++10 Toughness
+-20 Throwing (Strong)"
+
+[node name="AssignedLabel" type="Label" parent="V-MainContainer/V-GearContainer/H-GearContainer6"]
+layout_mode = 2
+text = "Kicky McKickface"
+
+[node name="AssignButton" type="TextureButton" parent="V-MainContainer/V-GearContainer/H-GearContainer6"]
+layout_mode = 2
+texture_normal = ExtResource("1_a83l8")
+texture_hover = ExtResource("2_bggrp")
+texture_focused = ExtResource("2_bggrp")
+
+[node name="H-GearContainer7" type="HBoxContainer" parent="V-MainContainer/V-GearContainer"]
+layout_mode = 2
+
+[node name="TextureRect" type="TextureRect" parent="V-MainContainer/V-GearContainer/H-GearContainer7"]
+layout_mode = 2
+
+[node name="TextureLabel" type="Label" parent="V-MainContainer/V-GearContainer/H-GearContainer7/TextureRect"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0
+
+[node name="TypeLabel" type="Label" parent="V-MainContainer/V-GearContainer/H-GearContainer7"]
+layout_mode = 2
+text = "Left Handed Puncher's Glove"
+
+[node name="EffectLabel" type="Label" parent="V-MainContainer/V-GearContainer/H-GearContainer7"]
+layout_mode = 2
+text = "+5 Striking
++10 Toughness
+-20 Throwing (Strong)"
+
+[node name="AssignedLabel" type="Label" parent="V-MainContainer/V-GearContainer/H-GearContainer7"]
+layout_mode = 2
+text = "Kicky McKickface"
+
+[node name="AssignButton" type="TextureButton" parent="V-MainContainer/V-GearContainer/H-GearContainer7"]
+layout_mode = 2
+texture_normal = ExtResource("1_a83l8")
+texture_hover = ExtResource("2_bggrp")
+texture_focused = ExtResource("2_bggrp")
+
+[node name="H-GearContainer8" type="HBoxContainer" parent="V-MainContainer/V-GearContainer"]
+layout_mode = 2
+
+[node name="TextureRect" type="TextureRect" parent="V-MainContainer/V-GearContainer/H-GearContainer8"]
+layout_mode = 2
+
+[node name="TextureLabel" type="Label" parent="V-MainContainer/V-GearContainer/H-GearContainer8/TextureRect"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0
+
+[node name="TypeLabel" type="Label" parent="V-MainContainer/V-GearContainer/H-GearContainer8"]
+layout_mode = 2
+text = "Left Handed Puncher's Glove"
+
+[node name="EffectLabel" type="Label" parent="V-MainContainer/V-GearContainer/H-GearContainer8"]
+layout_mode = 2
+text = "+5 Striking
++10 Toughness
+-20 Throwing (Strong)"
+
+[node name="AssignedLabel" type="Label" parent="V-MainContainer/V-GearContainer/H-GearContainer8"]
+layout_mode = 2
+text = "Kicky McKickface"
+
+[node name="AssignButton" type="TextureButton" parent="V-MainContainer/V-GearContainer/H-GearContainer8"]
+layout_mode = 2
+texture_normal = ExtResource("1_a83l8")
+texture_hover = ExtResource("2_bggrp")
+texture_focused = ExtResource("2_bggrp")
+
+[node name="H-GearContainer9" type="HBoxContainer" parent="V-MainContainer/V-GearContainer"]
+layout_mode = 2
+
+[node name="TextureRect" type="TextureRect" parent="V-MainContainer/V-GearContainer/H-GearContainer9"]
+layout_mode = 2
+
+[node name="TextureLabel" type="Label" parent="V-MainContainer/V-GearContainer/H-GearContainer9/TextureRect"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0
+
+[node name="TypeLabel" type="Label" parent="V-MainContainer/V-GearContainer/H-GearContainer9"]
+layout_mode = 2
+text = "Left Handed Puncher's Glove"
+
+[node name="EffectLabel" type="Label" parent="V-MainContainer/V-GearContainer/H-GearContainer9"]
+layout_mode = 2
+text = "+5 Striking
++10 Toughness
+-20 Throwing (Strong)"
+
+[node name="AssignedLabel" type="Label" parent="V-MainContainer/V-GearContainer/H-GearContainer9"]
+layout_mode = 2
+text = "Kicky McKickface"
+
+[node name="AssignButton" type="TextureButton" parent="V-MainContainer/V-GearContainer/H-GearContainer9"]
+layout_mode = 2
+texture_normal = ExtResource("1_a83l8")
+texture_hover = ExtResource("2_bggrp")
+texture_focused = ExtResource("2_bggrp")
+
+[node name="H-GearContainer10" type="HBoxContainer" parent="V-MainContainer/V-GearContainer"]
+layout_mode = 2
+
+[node name="TextureRect" type="TextureRect" parent="V-MainContainer/V-GearContainer/H-GearContainer10"]
+layout_mode = 2
+
+[node name="TextureLabel" type="Label" parent="V-MainContainer/V-GearContainer/H-GearContainer10/TextureRect"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0
+
+[node name="TypeLabel" type="Label" parent="V-MainContainer/V-GearContainer/H-GearContainer10"]
+layout_mode = 2
+text = "Left Handed Puncher's Glove"
+
+[node name="EffectLabel" type="Label" parent="V-MainContainer/V-GearContainer/H-GearContainer10"]
+layout_mode = 2
+text = "+5 Striking
++10 Toughness
+-20 Throwing (Strong)"
+
+[node name="AssignedLabel" type="Label" parent="V-MainContainer/V-GearContainer/H-GearContainer10"]
+layout_mode = 2
+text = "Kicky McKickface"
+
+[node name="AssignButton" type="TextureButton" parent="V-MainContainer/V-GearContainer/H-GearContainer10"]
+layout_mode = 2
+texture_normal = ExtResource("1_a83l8")
+texture_hover = ExtResource("2_bggrp")
+texture_focused = ExtResource("2_bggrp")

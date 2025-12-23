@@ -72,6 +72,7 @@ var housing = { #each stored as an array of [owned, available]
 var team_type: String = "Professional" #casual, competitive, semi-amateur, semi-pro, pro, high level pro, top level pro; impacts level of free agent interest, sponsor interest, and available training time
 var reputation 
 var sponsors = [] #array of sponsors signed to the team
+var carry_capacity = 120 #goes up based on carrying ability of the equipment manager; encompasses food and gear carrying ability; going over carry capacity is ok but eats up player energy
 #standings
 var current_league
 var games_played
