@@ -1,10 +1,14 @@
-[gd_scene load_steps=6 format=3 uid="uid://cjr6jha71t8t7"]
+[gd_scene load_steps=10 format=3 uid="uid://cjr6jha71t8t7"]
 
 [ext_resource type="Texture2D" uid="uid://cmtuklr40143j" path="res://UI/GearUI/Assign_button_base.png" id="1_a83l8"]
 [ext_resource type="Script" path="res://inventory_manager.gd" id="1_r18u4"]
 [ext_resource type="Texture2D" uid="uid://b0yfpl8j8wb42" path="res://UI/GearUI/Assign_button_highlighted.png" id="2_bggrp"]
 [ext_resource type="Texture2D" uid="uid://cnaka4nr4k31r" path="res://UI/GearUI/page_1_base.png" id="2_iyeg1"]
 [ext_resource type="Texture2D" uid="uid://beemxqrodl3w0" path="res://UI/GearUI/page_1_highlighted.png" id="3_tmckb"]
+[ext_resource type="Texture2D" uid="uid://be0cf872cevh3" path="res://UI/FreeAgencyUI/filter_button_base.png" id="6_304s1"]
+[ext_resource type="Texture2D" uid="uid://rdusopvpyvlw" path="res://UI/FreeAgencyUI/filter_button_highlighted.png" id="7_vhtfa"]
+[ext_resource type="Texture2D" uid="uid://ct6vtfmxy8eoo" path="res://UI/MenuUI/back_button_base.png" id="8_sw7mi"]
+[ext_resource type="Texture2D" uid="uid://cl6f7cs2xrbn7" path="res://UI/MenuUI/back_button_highlighted.png" id="9_y8ask"]
 
 [node name="Control" type="Control"]
 layout_mode = 3
@@ -19,9 +23,15 @@ script = ExtResource("1_r18u4")
 layout_mode = 0
 offset_right = 40.0
 offset_bottom = 40.0
+theme_override_constants/separation = 30
 
 [node name="H-PagesContainer" type="HBoxContainer" parent="V-MainContainer"]
 layout_mode = 2
+theme_override_constants/separation = 30
+
+[node name="Label" type="Label" parent="V-MainContainer/H-PagesContainer"]
+layout_mode = 2
+text = "Page 1 of 10"
 
 [node name="Page1Button" type="TextureButton" parent="V-MainContainer/H-PagesContainer"]
 layout_mode = 2
@@ -368,3 +378,31 @@ layout_mode = 2
 texture_normal = ExtResource("1_a83l8")
 texture_hover = ExtResource("2_bggrp")
 texture_focused = ExtResource("2_bggrp")
+
+[node name="H-UtilitiesContainer" type="HBoxContainer" parent="V-MainContainer"]
+layout_mode = 2
+
+[node name="FilterButton" type="TextureButton" parent="V-MainContainer/H-UtilitiesContainer"]
+layout_mode = 2
+texture_normal = ExtResource("6_304s1")
+texture_hover = ExtResource("7_vhtfa")
+texture_focused = ExtResource("7_vhtfa")
+
+[node name="BackButton" type="TextureButton" parent="V-MainContainer/H-UtilitiesContainer"]
+layout_mode = 2
+texture_normal = ExtResource("8_sw7mi")
+texture_hover = ExtResource("9_y8ask")
+texture_focused = ExtResource("9_y8ask")
+
+[connection signal="pressed" from="V-MainContainer/H-PagesContainer/Page1Button" to="." method="_on_page_button_pressed" binds= [1]]
+[connection signal="pressed" from="V-MainContainer/H-PagesContainer/Page2Button" to="." method="_on_page_button_pressed" binds= [2]]
+[connection signal="pressed" from="V-MainContainer/H-PagesContainer/Page3Button" to="." method="_on_page_button_pressed" binds= [3]]
+[connection signal="pressed" from="V-MainContainer/H-PagesContainer/Page4Button" to="." method="_on_page_button_pressed" binds= [4]]
+[connection signal="pressed" from="V-MainContainer/H-PagesContainer/Page5Button" to="." method="_on_page_button_pressed" binds= [5]]
+[connection signal="pressed" from="V-MainContainer/H-PagesContainer/Page6Button" to="." method="_on_page_button_pressed" binds= [6]]
+[connection signal="pressed" from="V-MainContainer/H-PagesContainer/Page7Button" to="." method="_on_page_button_pressed" binds= [7]]
+[connection signal="pressed" from="V-MainContainer/H-PagesContainer/Page8Button" to="." method="_on_page_button_pressed" binds= [8]]
+[connection signal="pressed" from="V-MainContainer/H-PagesContainer/Page9Button" to="." method="_on_page_button_pressed" binds= [9]]
+[connection signal="pressed" from="V-MainContainer/H-PagesContainer/Page10Button" to="." method="_on_page_button_pressed" binds= [10]]
+[connection signal="pressed" from="V-MainContainer/H-UtilitiesContainer/FilterButton" to="." method="_on_filter_button_pressed"]
+[connection signal="pressed" from="V-MainContainer/H-UtilitiesContainer/BackButton" to="." method="_on_back_button_pressed"]

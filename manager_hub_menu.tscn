@@ -1,4 +1,4 @@
-[gd_scene load_steps=36 format=3 uid="uid://cxtkbe8aypqef"]
+[gd_scene load_steps=46 format=3 uid="uid://cxtkbe8aypqef"]
 
 [ext_resource type="Script" path="res://manager_hub_menu.gd" id="1_anhhw"]
 [ext_resource type="Texture2D" uid="uid://crrgi3afo3d6k" path="res://UI/HubUI/TeamButton_base.png" id="2_chcud"]
@@ -22,13 +22,23 @@
 [ext_resource type="Texture2D" uid="uid://ct6vtfmxy8eoo" path="res://UI/MenuUI/back_button_base.png" id="20_glte1"]
 [ext_resource type="Texture2D" uid="uid://cl6f7cs2xrbn7" path="res://UI/MenuUI/back_button_highlighted.png" id="21_m5lb2"]
 [ext_resource type="Texture2D" uid="uid://cgrsosdj62s6i" path="res://UI/ManagementUI/a_button_base.png" id="22_osnk5"]
+[ext_resource type="Texture2D" uid="uid://deexyf8acjky2" path="res://UI/TeamManagementUI/logistics_button_base.png" id="22_rv50k"]
+[ext_resource type="Texture2D" uid="uid://obdscscke0ge" path="res://UI/TeamManagementUI/finances_button_base.png" id="22_t3r5m"]
+[ext_resource type="Texture2D" uid="uid://blslujg6rqxfr" path="res://UI/TeamManagementUI/finances_button_highlighted.png" id="23_dswlh"]
 [ext_resource type="Texture2D" uid="uid://ck65k2pmpr6xv" path="res://UI/ManagementUI/a_button_highlighted.png" id="23_gdhtg"]
+[ext_resource type="Texture2D" uid="uid://d3mp8leg3cich" path="res://UI/TeamManagementUI/logistics_button_highlighted.png" id="23_v855f"]
+[ext_resource type="Texture2D" uid="uid://ingpmcyab3k3" path="res://UI/TeamManagementUI/contracts_button_base.png" id="24_11rkd"]
 [ext_resource type="Texture2D" uid="uid://cdasu3iwcgk75" path="res://UI/ManagementUI/b_button_base.png" id="24_iewc4"]
 [ext_resource type="Texture2D" uid="uid://djmnrvav2tvmn" path="res://UI/ManagementUI/b_button_highlighted.png" id="25_0qgtm"]
+[ext_resource type="Texture2D" uid="uid://bkxsxeyo7sxhm" path="res://UI/TeamManagementUI/contracts_button_highlighted.png" id="25_v8x8b"]
+[ext_resource type="Texture2D" uid="uid://b14gclthfuye8" path="res://UI/TeamManagementUI/facilities_button_base.png" id="26_5p8ex"]
 [ext_resource type="Texture2D" uid="uid://bxp8id45n577f" path="res://UI/ManagementUI/c_button_base.png" id="26_ygyiu"]
 [ext_resource type="Texture2D" uid="uid://c0rimiuksboub" path="res://UI/ManagementUI/c_button_highlighted.png" id="27_ae56d"]
+[ext_resource type="Texture2D" uid="uid://pyx6k8obtu7y" path="res://UI/TeamManagementUI/facilities_button_highlighted.png" id="27_hk2eh"]
+[ext_resource type="Texture2D" uid="uid://crvcpu22vcu5e" path="res://UI/TeamManagementUI/travel_button_base.png" id="28_fgvl7"]
 [ext_resource type="Texture2D" uid="uid://c3kevjhh72lek" path="res://UI/ManagementUI/Fans_button_base.png" id="28_xh6iq"]
 [ext_resource type="Texture2D" uid="uid://cn4il7egc6333" path="res://UI/ManagementUI/Fans_button_highlighted.png" id="29_4yf3m"]
+[ext_resource type="Texture2D" uid="uid://cdd4fkxgs78qf" path="res://UI/TeamManagementUI/travel_button_highlighted.png" id="29_wkvbb"]
 [ext_resource type="Texture2D" uid="uid://dy6wl483ov7gu" path="res://UI/ManagementUI/Players_button_base.png" id="30_1r17k"]
 [ext_resource type="Texture2D" uid="uid://dhqse3xl3mhr3" path="res://UI/ManagementUI/Players_button_highlighted.png" id="31_nhur1"]
 [ext_resource type="Texture2D" uid="uid://dllna1g4ir3fq" path="res://UI/ManagementUI/Gangs_button_base.png" id="32_jelsw"]
@@ -175,20 +185,39 @@ texture_focused = ExtResource("21_m5lb2")
 [node name="ManageContainer" type="HBoxContainer" parent="."]
 visible = false
 layout_mode = 0
-offset_right = 40.0
-offset_bottom = 40.0
+offset_top = 3400.0
+offset_right = 6500.0
+offset_bottom = 3723.0
 
-[node name="GearButton" type="TextureButton" parent="ManageContainer"]
+[node name="FinancesButton" type="TextureButton" parent="ManageContainer"]
 layout_mode = 2
+texture_normal = ExtResource("22_t3r5m")
+texture_hover = ExtResource("23_dswlh")
+texture_focused = ExtResource("23_dswlh")
 
 [node name="ContractsButton" type="TextureButton" parent="ManageContainer"]
 layout_mode = 2
+texture_normal = ExtResource("24_11rkd")
+texture_hover = ExtResource("25_v8x8b")
+texture_focused = ExtResource("25_v8x8b")
 
 [node name="FacilitiesButton" type="TextureButton" parent="ManageContainer"]
 layout_mode = 2
+texture_normal = ExtResource("26_5p8ex")
+texture_hover = ExtResource("27_hk2eh")
+texture_focused = ExtResource("27_hk2eh")
 
 [node name="TravelButton" type="TextureButton" parent="ManageContainer"]
 layout_mode = 2
+texture_normal = ExtResource("28_fgvl7")
+texture_hover = ExtResource("29_wkvbb")
+texture_focused = ExtResource("29_wkvbb")
+
+[node name="LogisticsButton" type="TextureButton" parent="ManageContainer"]
+layout_mode = 2
+texture_normal = ExtResource("22_rv50k")
+texture_hover = ExtResource("23_v855f")
+texture_focused = ExtResource("23_v855f")
 
 [node name="BackButton" type="TextureButton" parent="ManageContainer"]
 layout_mode = 2
@@ -317,6 +346,7 @@ texture_focused = ExtResource("21_m5lb2")
 [connection signal="pressed" from="ImproveContainer/RemoveButton" to="." method="_on_improve_remove_button_pressed"]
 [connection signal="focus_entered" from="ImproveContainer/BackButton" to="." method="_on_improve_back_button_focus_entered"]
 [connection signal="pressed" from="ImproveContainer/BackButton" to="." method="_on_improve_back_button_pressed"]
+[connection signal="pressed" from="ManageContainer/BackButton" to="." method="_return_to_main_menu_from_manage"]
 [connection signal="pressed" from="EventPopup/VBoxContainer/HBoxContainer/AButton" to="." method="_on_a_button_pressed"]
 [connection signal="pressed" from="EventPopup/VBoxContainer/HBoxContainer/BButton" to="." method="_on_b_button_pressed"]
 [connection signal="pressed" from="EventPopup/VBoxContainer/HBoxContainer/CButton" to="." method="_on_c_button_pressed"]

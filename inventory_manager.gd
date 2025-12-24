@@ -1,9 +1,12 @@
 extends Control
-
+var current_page = 1
+var max_pages = 10
 
 func _ready():
 	arrange_page_buttons()
 	arrange_gear_buttons()
+	arrange_other_stuff()
+	populate_team_gear()
 	
 
 func arrange_page_buttons():
@@ -38,7 +41,6 @@ func arrange_gear_buttons():
 		var main_labels = [type_label, effect_label, assigned_label]
 		for label in main_labels:
 			label.add_theme_font_size_override("font_size", 28)
-			#TODO: scale text up to 28
 			pass
 		var texture_properties = ["texture_normal", "texture_pressed", "texture_hover", "texture_disabled", "texture_focused"]
 		for prop in texture_properties:
@@ -49,3 +51,52 @@ func arrange_gear_buttons():
 				assign_button.set(prop, ImageTexture.create_from_image(image))
 		
 	pass
+
+func arrange_other_stuff():
+	pages_label()
+	$"V-MainContainer/H-PagesContainer/Label".add_theme_font_size_override("font_size", 28)
+	var buttons = [$"V-MainContainer/H-UtilitiesContainer/FilterButton", $"V-MainContainer/H-UtilitiesContainer/BackButton"]
+	var texture_properties = ["texture_normal", "texture_pressed", "texture_hover", "texture_disabled", "texture_focused"]
+	var utility_button_size = Vector2(534, 140)
+	for button in buttons:
+		
+		for prop in texture_properties:
+			var texture = button.get(prop)
+			if texture:
+				var image = texture.get_image()
+				image.resize(int(utility_button_size.x), int(utility_button_size.y))
+				button.set(prop, ImageTexture.create_from_image(image))
+
+func populate_team_gear():
+	pass
+
+func pages_label():
+	$"V-MainContainer/H-PagesContainer/Label".text = "Page " + str(current_page) + " of " + str(max_pages)
+
+
+func _on_back_button_pressed() -> void:
+	get_tree().change_scene_to_file("res://manager_hub_menu.tscn")
+
+func _on_filter_button_pressed() -> void:
+	calculate_num_pages()
+	pass # Replace with function body.
+
+func calculate_num_pages():
+	max_pages = 10
+
+func show_page(page: int):
+	if page <= 0:
+		current_page = 1
+	elif page > max_pages:
+		current_page = max_pages
+	else:
+		current_page = page
+	#TODO: get the gear from the current page
+
+
+
+func _on_page_button_pressed(page: int) -> void:
+	print("Page pressed: " + str(page))
+	show_page(page)
+	pages_label()
+	pass # Replace with function body.

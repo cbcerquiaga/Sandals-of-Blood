@@ -454,8 +454,12 @@ func _on_popup_item_selected(id: int):
 		"management":
 			match id:
 				0:  #Manage Team
+					$HBoxContainer.hide()
+					$ManageContainer.show()
+					$ManageContainer/FinancesButton.grab_focus()
 					pass
 				1:  #Inventory
+					get_tree().change_scene_to_file("res://inventory_manager.tscn")
 					pass
 				2:  #Relationships
 					popup.hide()
@@ -544,4 +548,11 @@ func _on_b_button_pressed() -> void:
 
 
 func _on_c_button_pressed() -> void:
+	pass # Replace with function body.
+
+
+func _return_to_main_menu_from_manage() -> void:
+	$ManageContainer.hide()
+	$HBoxContainer.show()
+	today_button.grab_focus()
 	pass # Replace with function body.
