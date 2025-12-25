@@ -1,0 +1,84 @@
+[gd_scene load_steps=3 format=3 uid="uid://uncm7hukkkw6"]
+
+[ext_resource type="Script" path="res://referee.gd" id="1_j2fm1"]
+[ext_resource type="PackedScene" uid="uid://dn6ldpemxhwv7" path="res://powerbar.tscn" id="2_6x5bh"]
+
+[node name="CharacterBody2D" type="CharacterBody2D"]
+script = ExtResource("1_j2fm1")
+
+[node name="Polygon2D" type="Polygon2D" parent="."]
+scale = Vector2(2, 2)
+polygon = PackedVector2Array(-1, -1, 1, -1, 2, 0, 1, 1, -1, 1, -2, 0)
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="."]
+polygon = PackedVector2Array(-1, -1, 1, -1, 2, 0, 1, 1, -1, 1, -2, 0)
+
+[node name="NavigationAgent2D" type="NavigationAgent2D" parent="."]
+
+[node name="Hitbox" type="Area2D" parent="."]
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="Hitbox"]
+polygon = PackedVector2Array(-1, -1, 1, -1, 2, 0, 1, 1, -1, 1, -2, 0)
+
+[node name="AttackArea" type="Area2D" parent="."]
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="AttackArea"]
+polygon = PackedVector2Array(-1, -2, 1, -2, 3, 0, 1, 2, -1, 2, -3, 0)
+
+[node name="Particles" type="Node" parent="."]
+
+[node name="Footsteps-Dust" type="GPUParticles2D" parent="Particles"]
+
+[node name="Fall-Dust" type="GPUParticles2D" parent="Particles"]
+
+[node name="Blood" type="GPUParticles2D" parent="Particles"]
+
+[node name="UI" type="Node2D" parent="."]
+
+[node name="Info" type="RichTextLabel" parent="UI"]
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="Boost" type="TextureProgressBar" parent="UI"]
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="Status" type="Sprite2D" parent="UI"]
+
+[node name="PowerBar" parent="UI" instance=ExtResource("2_6x5bh")]
+scale = Vector2(0.01, 0.01)
+
+[node name="Audio" type="Node2D" parent="."]
+
+[node name="Step" type="AudioStreamPlayer2D" parent="Audio"]
+
+[node name="Breath" type="AudioStreamPlayer2D" parent="Audio"]
+
+[node name="Grunt" type="AudioStreamPlayer2D" parent="Audio"]
+
+[node name="Pain" type="AudioStreamPlayer2D" parent="Audio"]
+
+[node name="Contact-Human" type="AudioStreamPlayer2D" parent="Audio"]
+
+[node name="Contact-Ground" type="AudioStreamPlayer2D" parent="Audio"]
+
+[node name="Warn" type="AudioStreamPlayer2D" parent="Audio"]
+
+[node name="Whistle" type="AudioStreamPlayer2D" parent="Audio"]
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+
+[node name="StunTimer" type="Timer" parent="."]
+
+[node name="SpinCooldown" type="Timer" parent="."]
+
+[node name="RichTextLabel" type="RichTextLabel" parent="."]
+offset_right = 40.0
+offset_bottom = 40.0
+theme_override_font_sizes/bold_italics_font_size = 10
+theme_override_font_sizes/italics_font_size = 10
+theme_override_font_sizes/mono_font_size = 10
+theme_override_font_sizes/normal_font_size = 10
+theme_override_font_sizes/bold_font_size = 10
