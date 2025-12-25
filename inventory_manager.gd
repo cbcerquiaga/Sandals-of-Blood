@@ -100,3 +100,27 @@ func _on_page_button_pressed(page: int) -> void:
 	show_page(page)
 	pages_label()
 	pass # Replace with function body.
+
+func populate_gear_container(container: int, equipment: Equipment):
+	var base_path = "V-MainContainer/V-GearContainer/H-GearContainer" + str(container)
+	var rect: TextureRect = get_node(base_path + "/TextureRect")
+	var rect_label: Label = get_node(base_path + "/TextureRect/TextureLabel")
+	var type_label: Label = get_node(base_path + "/TypeLabel")
+	var effect_label: Label = get_node(base_path + "/EffectLabel")
+	var assigned_label: Label = get_node(base_path + "/AssignedLabel")
+	var assign_button: TextureButton = get_node(base_path + "/AssignButton")
+	var main_labels = [type_label, effect_label, assigned_label]
+	
+	if equipment != null:
+		assign_button.show()
+		rect.texture = load(equipment.img_path)
+		rect_label.text = equipment.item_name
+		type_label.text = equipment.get_type()
+		effect_label.text = equipment.get_effect()
+		assigned_label.text = equipment.get_assigned()
+	else:
+		assign_button.hide()
+		rect.texture = load("")#TODO: find a proper way to clear this
+		rect_label.text = ""
+		effect_label.text = ""
+		assigned_label.text = ""

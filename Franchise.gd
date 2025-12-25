@@ -36,6 +36,7 @@ var capacity_basic: int #how many people can sit in the arena
 var capacity_nice: int #how many people have comfortable seats at the arena
 var capacity_vip: int #how many people get luxury treatment at the arena
 #resources
+var gear: Array = [] #array of Equipment
 var money_bank
 var money_in_weekly
 var money_out_weekly
@@ -275,4 +276,7 @@ func get_contract_focus_value(focus):
 func debug_default_contracts():
 	for player in team.roster:
 		pass
+	pass
+
+func debug_default_gear():
 	pass

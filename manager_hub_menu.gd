@@ -25,13 +25,19 @@ var menu_items = {
 	"relations_fans": ["Fan Relations", "Fan Request", "City"],
 	"relations_players": ["Morale", "Plans", "Friends"],
 	"relations_gangs": ["Metalheads", "Holy Rollers", "The Family", "Banana Republicans", "The Posse"],
-	"relations_sponsors": ["View", "New"]
+	"relations_sponsors": ["View", "New"],
+	"manage_finances": ["Expenses", "Revenues", "Report"],
+	"manage_logistics": ["Policies", "Side Operations"],
+	"manage_travel": ["Next Trip", "Upcoming Trips", "Convoy", "Map"],
+	"manage_facilities": ["Arena", "Housing", "City"],
+	"manage_contracts": ["Players", "Staff", "Outlook"]
 }
 
 var main_containers = []
 var improve_buttons = []
 var relationships_buttons = []
 var all_main_buttons = []
+var manage_team_buttons = []
 
 func _ready():
 	bringUp()
@@ -62,6 +68,8 @@ func _process(_delta):
 		_navigate_buttons(improve_buttons, direction)
 	elif $RelationshipsContainer.visible:
 		_navigate_buttons(relationships_buttons, -1 * direction)
+	elif $ManageContainer.visible:
+		_navigate_buttons(manage_team_buttons, direction)
 	elif popup_is_open:
 		_navigate_buttons(main_containers, direction)
 
@@ -90,6 +98,16 @@ func _setup_button_arrays():
 		$RelationshipsContainer/SponsorsButton
 	]
 	
+	manage_team_buttons = [
+		$ManageContainer/BackButton,
+		$ManageContainer/FinancesButton,
+		$ManageContainer/ContractsButton,
+		$ManageContainer/LogisticsButton,
+		$ManageContainer/FacilitiesButton,
+		$ManageContainer/TravelButton
+		
+	]
+	
 	for container in main_containers:
 		var button = container.get_node("TextureButton")
 		if button:
@@ -99,6 +117,7 @@ func _connect_all_buttons():
 	_connect_button_group(main_containers, true)
 	_connect_button_group(improve_buttons, false)
 	_connect_button_group(relationships_buttons, false)
+	_connect_button_group(manage_team_buttons, false)
 	for button in all_main_buttons:
 		if button is TextureButton:
 			button.focus_mode = Control.FOCUS_ALL
@@ -127,7 +146,6 @@ func _connect_button_group(containers_or_buttons, is_container_group: bool):
 						button.focus_entered.disconnect(_on_improve_button_focused)
 					if button.pressed.is_connected(_on_improve_button_pressed):
 						button.pressed.disconnect(_on_improve_button_pressed)
-					
 					button.focus_entered.connect(_on_improve_button_focused.bind(button))
 					button.pressed.connect(_on_improve_button_pressed.bind(button))
 				elif item in relationships_buttons:
@@ -135,9 +153,15 @@ func _connect_button_group(containers_or_buttons, is_container_group: bool):
 						button.focus_entered.disconnect(_on_relationships_button_focused)
 					if button.pressed.is_connected(_on_relationships_button_pressed):
 						button.pressed.disconnect(_on_relationships_button_pressed)
-					
 					button.focus_entered.connect(_on_relationships_button_focused.bind(button))
 					button.pressed.connect(_on_relationships_button_pressed.bind(button))
+				elif item in manage_team_buttons:
+					if button.focus_entered.is_connected(_on_manage_team_button_focused):
+						button.focus_entered.disconnect(_on_manage_team_button_focused)
+					if button.pressed.is_connected(_on_manage_team_button_pressed):
+						button.pressed.disconnect(_on_manage_team_button_pressed)
+					button.focus_entered.connect(_on_manage_team_button_focused.bind(button))
+					button.pressed.connect(_on_manage_team_button_pressed.bind(button))
 	
 	_setup_focus_neighbors(buttons)
 
@@ -228,6 +252,17 @@ func _on_relationships_button_pressed(button: Control):
 		popup.hide()
 	else:
 		_show_popup_for_relationships_button(button)
+		
+func _on_manage_team_button_pressed(button: Control):
+	button.grab_focus()
+	current_main_button = button
+	if button.name == "BackButton":
+		_return_to_main_menu_from_manage()
+		popup.hide()
+	elif popup_is_open and current_main_button == button:
+		popup.hide()
+	else:
+		_show_popup_for_manage_button(button)
 		
 func _return_to_main_menu_from_relationships():
 	$RelationshipsContainer.hide()
@@ -456,7 +491,8 @@ func _on_popup_item_selected(id: int):
 				0:  #Manage Team
 					$HBoxContainer.hide()
 					$ManageContainer.show()
-					$ManageContainer/FinancesButton.grab_focus()
+					await get_tree().process_frame
+					$ManageContainer/TravelButton.grab_focus()
 					pass
 				1:  #Inventory
 					get_tree().change_scene_to_file("res://inventory_manager.tscn")
@@ -535,7 +571,46 @@ func _on_popup_item_selected(id: int):
 					pass
 				1: #New
 					pass
-
+		"manage_finances":
+			match id:
+				0: #Expenses
+					pass
+				1: #Revenues
+					pass
+				2: #Report
+					pass
+		"manage_logistics":
+			match id:
+				0: #policies
+					pass
+				1: #side businesses
+					pass
+		"manage_facilities":
+			match id:
+				0: #Arena (and training)
+					pass
+				1: #Housing
+					pass
+				2: #City
+					pass
+		"manage_contracts":
+			match id:
+				0: #Players
+					pass
+				1: #Staff
+					pass
+				2: #Long-Term Outlook
+					pass
+		"manage_travel":
+			match id:
+				0: #Next Trip
+					pass
+				1: #Upcoming Trips
+					pass
+				2: #Convoy
+					pass
+				3: #World Map
+					pass
 
 
 
@@ -556,3 +631,28 @@ func _return_to_main_menu_from_manage() -> void:
 	$HBoxContainer.show()
 	today_button.grab_focus()
 	pass # Replace with function body.
+
+func _on_manage_team_button_focused(button: Control):
+	print("Manage button focused: ", button.name)
+	current_main_button = button
+	
+	if $ManageContainer.visible:
+		if button.name == "BackButton":
+			var button_rect = button.get_global_rect()
+			popup.position = Vector2(button_rect.position.x, -10000)
+		else:
+			_show_popup_for_manage_button(button)
+
+func _show_popup_for_manage_button(button: TextureButton):
+	var section_map = {
+		"FinancesButton": "manage_finances",
+		"ContractsButton": "manage_contracts",
+		"FacilitiesButton": "manage_facilities",
+		"TravelButton": "manage_travel",
+		"LogisticsButton": "manage_logistics"
+	}
+	
+	var section = section_map.get(button.name, "")
+	if section:
+		_show_popup(section, button)
+	pass

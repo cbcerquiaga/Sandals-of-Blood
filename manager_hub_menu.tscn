@@ -189,17 +189,11 @@ offset_top = 3400.0
 offset_right = 6500.0
 offset_bottom = 3723.0
 
-[node name="FinancesButton" type="TextureButton" parent="ManageContainer"]
+[node name="TravelButton" type="TextureButton" parent="ManageContainer"]
 layout_mode = 2
-texture_normal = ExtResource("22_t3r5m")
-texture_hover = ExtResource("23_dswlh")
-texture_focused = ExtResource("23_dswlh")
-
-[node name="ContractsButton" type="TextureButton" parent="ManageContainer"]
-layout_mode = 2
-texture_normal = ExtResource("24_11rkd")
-texture_hover = ExtResource("25_v8x8b")
-texture_focused = ExtResource("25_v8x8b")
+texture_normal = ExtResource("28_fgvl7")
+texture_hover = ExtResource("29_wkvbb")
+texture_focused = ExtResource("29_wkvbb")
 
 [node name="FacilitiesButton" type="TextureButton" parent="ManageContainer"]
 layout_mode = 2
@@ -207,17 +201,23 @@ texture_normal = ExtResource("26_5p8ex")
 texture_hover = ExtResource("27_hk2eh")
 texture_focused = ExtResource("27_hk2eh")
 
-[node name="TravelButton" type="TextureButton" parent="ManageContainer"]
-layout_mode = 2
-texture_normal = ExtResource("28_fgvl7")
-texture_hover = ExtResource("29_wkvbb")
-texture_focused = ExtResource("29_wkvbb")
-
 [node name="LogisticsButton" type="TextureButton" parent="ManageContainer"]
 layout_mode = 2
 texture_normal = ExtResource("22_rv50k")
 texture_hover = ExtResource("23_v855f")
 texture_focused = ExtResource("23_v855f")
+
+[node name="ContractsButton" type="TextureButton" parent="ManageContainer"]
+layout_mode = 2
+texture_normal = ExtResource("24_11rkd")
+texture_hover = ExtResource("25_v8x8b")
+texture_focused = ExtResource("25_v8x8b")
+
+[node name="FinancesButton" type="TextureButton" parent="ManageContainer"]
+layout_mode = 2
+texture_normal = ExtResource("22_t3r5m")
+texture_hover = ExtResource("23_dswlh")
+texture_focused = ExtResource("23_dswlh")
 
 [node name="BackButton" type="TextureButton" parent="ManageContainer"]
 layout_mode = 2
