@@ -629,12 +629,32 @@ func set_behavior(new_behavior: String):
 		emit_signal("behavior_changed", current_behavior)
 
 func human_pass_control():
+	if Input.is_action_pressed("LF_pass") and Input.is_action_pressed("RF_pass"):
+		var closest_guard = get_closest_open_guard()
+		if closest_guard and has_clear_path_to(closest_guard.global_position):
+			aim_point = closest_guard.global_position
+		is_in_pass_mode = true
 	if Input.is_action_pressed("LF_pass") and plays_left_side:
 		is_in_pass_mode = true
 	elif Input.is_action_pressed("RF_pass") and !plays_left_side:
 		is_in_pass_mode = true
 	else:
 		is_in_pass_mode = false
+		
+func get_closest_open_guard() -> Guard:
+	if not buddy_left_guard and not buddy_right_guard:
+		return null
+	var closest_guard: Guard = null
+	var min_distance = INF
+	for guard in [buddy_left_guard, buddy_right_guard]:
+		if guard and is_instance_valid(guard) and not guard.is_incapacitated:
+			# Check if guard is open (no longer requiring is_countering)
+			if has_clear_path_to(guard.global_position):
+				var distance = global_position.distance_to(guard.global_position)
+				if distance < min_distance:
+					min_distance = distance
+					closest_guard = guard
+	return closest_guard
 
 func find_scoring_position():
 	var ideal_position = goal_position + Vector2(
@@ -666,6 +686,24 @@ func check_pass_opportunity():
 			randf() < pass_tendency * (get_buffed_attribute("confidence") / 100.0) and
 			global_position.distance_to(forward_partner.global_position) < 600
 		)
+		if !should_pass:
+			var guard_to_check = buddy_left_guard if plays_left_side else buddy_right_guard
+			if guard_to_check and has_clear_path_to(guard_to_check.global_position):
+				should_pass = (
+					randf() < pass_tendency * (get_buffed_attribute("confidence") / 100.0) and
+					global_position.distance_to(guard_to_check.global_position) < 600
+				)
+				if should_pass:
+					aim_point = guard_to_check.global_position
+			if not should_pass:
+				guard_to_check = buddy_right_guard if plays_left_side else buddy_left_guard
+				if guard_to_check and has_clear_path_to(guard_to_check.global_position):
+					should_pass = (
+						randf() < pass_tendency * (get_buffed_attribute("confidence") / 100.0) and
+						global_position.distance_to(guard_to_check.global_position) < 600
+					)
+					if should_pass:
+						aim_point = guard_to_check.global_position
 	
 	is_in_pass_mode = should_pass
 
