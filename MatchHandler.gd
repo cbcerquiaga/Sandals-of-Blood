@@ -25,6 +25,7 @@ var max_fighting_frame = 15 #TODO: update based on refresh rate
 var most_recent_scorer: Player
 # References
 @onready var ball= $Ball as Ball
+@onready var eventpopup = $UI/MatchEventPopup as MatchPopup
 var pTeam : Team
 var aTeam : Team
 @onready var faceoff_signal = $UI/FaceoffSignal #TODO: make this prettier
@@ -157,6 +158,7 @@ func _on_ball_exited_field():
 		# Determine where the ball went out
 		var went_out_sideline = false
 		var went_out_endline = false
+		var out_team = null
 		
 		#TODO: field types
 		#check if it went out the sides (x boundaries)
@@ -167,6 +169,7 @@ func _on_ball_exited_field():
 			went_out_endline = true
 		
 		if went_out_sideline:
+			eventpopup.show_side_faceoff()
 			GlobalSettings.record_event(str(current_pitch) + ", " + str(time_remaining) + ", Ball Out at Sideline - Face-off")
 			print("and the ball goes out of bounds at the sideline, we'll re-set with a face-off")
 			lineup_faceoff()
@@ -181,15 +184,20 @@ func _on_ball_exited_field():
 			if !ball or !ball.last_hit_by:
 				#not clear who put it out - base on which goal it went out closer to
 				player_team_attacks = ball.global_position.distance_squared_to(field.cpuGoal.global_position) < ball.global_position.distance_squared_to(field.playerGoal.global_position)
+				out_team = pTeam if player_team_attacks else aTeam
 			elif ball.last_hit_by.team == 2:  # AI team put it out
 				player_team_attacks = true  #player team gets attacking face-off
+				out_team = aTeam
 			else:  #player team put it out
 				player_team_attacks = false  #CPU team gets attacking face-off
+				out_team = pTeam
+			
 			if player_team_attacks:
 				faceoff_ball_position = p_att_fo
 			else:
 				faceoff_ball_position = c_att_fo
 			
+			eventpopup.show_end_faceoff(out_team)
 			GlobalSettings.record_event(str(current_pitch) + ", " + str(time_remaining) + ", Ball Out at Endline - Face-off")
 			print("and the ball goes out of bounds over the endline, this face-off could lead to a goal!")
 			ball.global_position = faceoff_ball_position
@@ -367,17 +375,24 @@ func _on_player_goal():
 	var scorer = ball.last_hit_by
 	var passer = ball.assist_by
 	var event_text = ""
+	var is_own_goal = false
 	
 	if scorer == null or (scorer and scorer.team == 2 and passer and passer.team == 2):
 		event_text = "Goal scored by " + pTeam.team_abbreviation + " uncredited"
+		is_own_goal = (scorer and scorer.team == 2)
 	elif (scorer and scorer.team == 1 and (passer == null or passer.team == 2)) or (scorer and scorer.team == 2 and passer and passer.team == 1):
 		var goal_scorer = scorer if scorer.team == 1 else passer
 		event_text = "Goal scored by " + pTeam.team_abbreviation + " " + goal_scorer.bio.last_name + " unassisted"
+		is_own_goal = (scorer and scorer.team == 2)
 	elif scorer and passer and scorer.team == 1 and passer.team == 1:
 		event_text = "Goal scored by " + pTeam.team_abbreviation + " " + scorer.bio.last_name + " Assisted by " + passer.bio.last_name
 	else:
 		event_text = "Goal scored by " + pTeam.team_abbreviation + " uncredited"
-		
+		is_own_goal = (scorer and scorer.team == 2)
+	
+	var pitchTeam = pTeam if is_human_team_pitching else aTeam
+	eventpopup.show_goal(current_pitch, pTeam, scorer, passer, pitchTeam, is_own_goal)
+	
 	GlobalSettings.record_event(str(current_pitch) + ", " + str(int(max_play_time - current_play_time)) + ", " + event_text)
 	var anger_change = 3
 	if team_scores[0] - team_scores[1] > 3: #runaway game
@@ -438,8 +453,6 @@ func _on_player_goal():
 	else:
 		pTeam.game_stats.aces += 1
 	pTeam.game_stats.goals += 1
-		
-	
 	
 	# If it was an ace, human team keeps pitching, otherwise switch
 	if !was_ace:
@@ -464,17 +477,24 @@ func _on_cpu_goal():
 	var scorer = ball.last_hit_by
 	var passer
 	var event_text = ""
+	var is_own_goal = false
 	
 	if scorer == null or (scorer and scorer.team == 1 and passer and passer.team == 1):
 		event_text = "Goal scored by " + aTeam.team_abbreviation + " uncredited"
+		is_own_goal = (scorer and scorer.team == 1)
 	elif (scorer and scorer.team == 2 and (passer == null or passer.team == 1)) or (scorer and scorer.team == 1 and passer and passer.team == 2):
 		var goal_scorer = scorer if scorer.team == 2 else passer
 		event_text = "Goal scored by " + aTeam.team_abbreviation + " " + goal_scorer.bio.last_name + " unassisted"
+		is_own_goal = (scorer and scorer.team == 1)
 	elif scorer and passer and scorer.team == 2 and passer.team == 2:
 		event_text = "Goal scored by " + aTeam.team_abbreviation + " " + scorer.bio.last_name + " Assisted by " + passer.bio.last_name
 	else:
 		event_text = "Goal scored by " + aTeam.team_abbreviation + " uncredited"
 		
+		is_own_goal = (scorer and scorer.team == 1)
+	var pitchTeam = pTeam if is_human_team_pitching else aTeam
+	eventpopup.show_goal(current_pitch, aTeam, scorer, passer, pitchTeam, is_own_goal)
+	
 	GlobalSettings.record_event(str(current_pitch) + ", " + str(int(max_play_time - current_play_time)) + ", " + event_text)
 	var anger_change = 3
 	if team_scores[1] - team_scores[0] > 3: #blowout

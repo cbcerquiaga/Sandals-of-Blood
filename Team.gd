@@ -23,7 +23,6 @@ var roster: Array[Player]= [] #every player on the team
 var starters: Array[Player]= [] #used for stats, the players on the field when the game starts
 var bench: Array[Player]= []
 var buffs: Array[Dictionary] = []
-@onready var gear_keeper: Equipment #assigned to whoever is the keeper
 @onready var pending_substitutions = []
 var strategy: Dictionary = {
 	"base_aggression": 1.0,
