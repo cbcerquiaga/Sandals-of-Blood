@@ -1247,7 +1247,7 @@ func human_team_wins_fight():
 	#aTeam.P. injury chance
 	pTeam.fire_up_bench()
 	aTeam.P.current_behavior = "fallen"
-	pTeam.P.current_behavior = ""
+	pTeam.P.current_behavior = "chilling"
 	pTeam.P.overall_state = Player.PlayerState.SOLO_CELEBRATION
 	
 func cpu_team_wins_fight():
@@ -1262,7 +1262,7 @@ func cpu_team_wins_fight():
 	#pTeam.P. injury chance
 	aTeam.fire_up_bench()
 	pTeam.P.current_behavior = "fallen"
-	aTeam.P.current_behavior = ""
+	aTeam.P.current_behavior = "chilling"
 	aTeam.P.overall_state = Player.PlayerState.SOLO_CELEBRATION
 	
 func fight_fall_over():
