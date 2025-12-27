@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3 uid="uid://cgfb6numfby87"]
+[gd_scene load_steps=12 format=3 uid="uid://cgfb6numfby87"]
 
 [ext_resource type="Script" path="res://MatchHandler.gd" id="1_v8xhv"]
 [ext_resource type="PackedScene" uid="uid://bje6o4s6rvh85" path="res://road_field.tscn" id="1_wmjeh"]
@@ -7,6 +7,7 @@
 [ext_resource type="PackedScene" uid="uid://cetfl640qv42t" path="res://ball.tscn" id="4_uyrol"]
 [ext_resource type="PackedScene" uid="uid://c5gldnftsuhcm" path="res://aim_target.tscn" id="6_mpo6o"]
 [ext_resource type="PackedScene" uid="uid://2e4rsr57cdf" path="res://match_status_ui.tscn" id="7_46orc"]
+[ext_resource type="PackedScene" uid="uid://uncm7hukkkw6" path="res://referee.tscn" id="7_ojri0"]
 [ext_resource type="PackedScene" uid="uid://csyirpbcdrnoo" path="res://pause_menu.tscn" id="8_h76e2"]
 [ext_resource type="PackedScene" uid="uid://byf4dctuakt63" path="res://game_end_sceeen.tscn" id="9_vmgvg"]
 [ext_resource type="PackedScene" uid="uid://dnjohcaco3rms" path="res://match_event_popup.tscn" id="10_jopst"]
@@ -29,6 +30,8 @@ script = ExtResource("2_w1g4r")
 [node name="PlayTimer" type="Timer" parent="."]
 
 [node name="Aim_Target" parent="." instance=ExtResource("6_mpo6o")]
+
+[node name="Referee" parent="." instance=ExtResource("7_ojri0")]
 
 [node name="UI" type="Node2D" parent="."]
 

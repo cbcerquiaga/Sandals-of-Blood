@@ -24,7 +24,8 @@ var fighting_frame = 0
 var max_fighting_frame = 15 #TODO: update based on refresh rate
 var most_recent_scorer: Player
 # References
-@onready var ball= $Ball as Ball
+@onready var ball = $Ball as Ball
+@onready var ref = $Referee as Referee
 @onready var eventpopup = $UI/MatchEventPopup as MatchPopup
 var pTeam : Team
 var aTeam : Team
@@ -279,9 +280,9 @@ func lineup_faceoff(already_set_position: bool = false):
 func execute_faceoff():
 	var cpu_faceoff_target = aTeam.P.faceoff()
 	var human_input_time = 0.0
-	var max_input_time = 1.5
+	var max_input_time = randf_range(1.1, 1.9)
 	
-	# Use a timer that respects pause state
+	#TODO: make the referee position for the faceoff
 	var timer = Timer.new()
 	timer.wait_time = max_input_time
 	timer.one_shot = true
@@ -290,12 +291,10 @@ func execute_faceoff():
 	add_child(timer)
 	timer.start()
 	
-	# Wait for the timer to complete
+	#TODO: just before the timer finishes, call referee.jitter()
 	await timer.timeout
-	
-	# Clean up the timer
 	timer.queue_free()
-	
+	#TODO: make it whoever is closer to the end of the timer instead of whoever is first
 	if pTeam.P.is_aiming and pTeam.P.target != Vector2.ZERO:
 		human_faceoff_target = pTeam.P.target
 	else:
@@ -359,6 +358,7 @@ func execute_faceoff():
 	aTeam.allow_movement()
 	is_play_live = true
 	is_faceoff = false
+	ref.current_behavior = "faceoff-evade"
 
 func determine_tie_faceoff(human_target: Vector2, cpu_target: Vector2) -> Vector2:
 	var human_faceoff_rating = pTeam.P.get_buffed_attribute("faceoff")
@@ -596,6 +596,7 @@ func reset_match(p_offense):
 	pTeam.default_grooves()
 	aTeam.default_grooves()
 	enlighten_players()
+	enlighten_referee()
 	statusUI.assign_team(self)
 	await get_tree().process_frame
 	next_play()
@@ -781,6 +782,7 @@ func next_play():
 	aTeam.update_field()
 	reposition_players()
 	setup_pitching_team()
+	ref.position_for_pitch()
 
 	statusUI.assign_team(self)
 	play_timer.start(GlobalSettings.play_time if GlobalSettings.play_time > 0 else 9999)
@@ -1058,6 +1060,31 @@ func enlighten_players():
 	ball.shot_at_goal.connect(aTeam.LG.on_shot_at_goal)
 	ball.shot_at_goal.connect(aTeam.RG.on_shot_at_goal)
 	ball.pitch_side.connect(aTeam.K.save_pitch_from_ball)
+
+func enlighten_referee():
+	ref.ball = ball
+	ref.north_point = field.ref_n
+	ref.south_point = field.ref_s
+	ref.gauntletN = field.g_n
+	ref.gauntletNE = field.g_ne
+	ref.gauntletSE = field.g_se
+	ref.gauntletS = field.g_s
+	ref.gauntletSW = field.g_sw
+	ref.gauntletNW = field.g_nw
+	ref.gauntlet_start = field.r_fo
+	ref.gauntlet_start = field.l_fo
+	ref.memory.p_p =  [pTeam.P, 0, 0] #player team pitcher. Player object, minor violations, foul plays
+	ref.memory.p_lf = [pTeam.LF, 0, 0]
+	ref.memory.p_rf = [pTeam.RF, 0, 0]
+	ref.memory.p_k = [pTeam.K, 0, 0]
+	ref.memory.p_lg = [pTeam.LG, 0, 0]
+	ref.memory.p_rg = [pTeam.RG, 0, 0]
+	ref.memory.c_p =  [aTeam.P, 0, 0]
+	ref.memory.c_lf = [aTeam.LF, 0, 0]
+	ref.memory.c_rf = [aTeam.RF, 0, 0]
+	ref.memory.c_k = [aTeam.K, 0, 0]
+	ref.memory.c_lg = [aTeam.LG, 0, 0]
+	ref.memory.c_rg = [aTeam.RG, 0, 0]
 
 #passing IDs didn't actually work, but as long as we get both signals we're good
 func on_team_ready_signal(id: int) -> void:

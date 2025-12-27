@@ -12,6 +12,7 @@ var acceleration_timer: float = 0.0
 var turn_debuff_timer: float = 0.0
 var current_speed_multiplier: float = 1.0
 var sharp_turn_threshold: float
+var preferred_foul: String = "trip" #trip, elbow, gouge, crotch, collar, bite, hold
 
 # Player Attributes
 @export var attributes := {

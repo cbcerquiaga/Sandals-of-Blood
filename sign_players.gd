@@ -37,7 +37,7 @@ var filters = {
 	"positions": ["LF", "P", "RF", "LG", "K", "RG"],
 	"min_positions": 1,
 	"max_positions": 6,
-	"styles": ["Goal Scorer", "Anti-Keeper", "Skull Cracker", "Support Forward", "Defender", "Bully", "Ball Hound", "Machine", "Workhorse", "Maestro", "Spin Doctor", "Ace", "Hatchet Man", "Track Hog"], #TODO: make sure these are all true
+	"styles": ["Goal Scorer", "Anti-Keeper", "Skull Cracker", "Support Forward", "Defender", "Bully", "Ball Hound", "Acrobatic", "Crouching", "Kneeling", "Standing", "Ace", "Hatchet Man", "Track Hog", "Workhorse"],
 	"min_age": 0,
 	"max_age": 120,
 	"lefty": true,
@@ -53,6 +53,7 @@ var sort_ascending: bool = true
 var current_view: String = "default"
 var has_initialized_filters: bool
 var comparables
+var is_populating: bool = false
 
 func _ready():
 	var importer = CharacterImporter.new()
@@ -63,6 +64,8 @@ func _ready():
 	apply_filters()
 	populate_scrollbar()
 	initialize_filter_ui()
+	connect_style_checkboxes()
+	update_all_filter_checkboxes()  # Initialize checkboxes to current filter state
 	popup.size = Vector2(800, 400)
 	has_initialized_filters = false
 	filter_position_button.grab_focus()
@@ -201,7 +204,7 @@ func get_positions_for_style(style: String) -> Array:
 			return ["LG", "RG"]
 		"Hatchet Man", "Track Hog", "Ace", "Spin Doctor":
 			return ["P"]
-		"Machine", "Workhorse", "Maestro":
+		"Acrobatic", "Crouching", "Kneeling", "Standing":
 			return ["K"]
 	return []
 
@@ -416,6 +419,7 @@ func _on_filter_position_pressed() -> void:
 	$PositionsMenu.position = Vector2(1000,500)
 	$ColorRect.show()
 	$ColorRect.size = Vector2(1200, 1000)
+	update_all_filter_checkboxes()
 
 func _on_filter_style_pressed() -> void:
 	$StylesMenu.show()
@@ -427,6 +431,7 @@ func _on_filter_style_pressed() -> void:
 	$main.hide()
 	$ColorRect.global_position = $StylesMenu.global_position - Vector2(200, 0)
 	$ColorRect.size = Vector2(1800, 1200)
+	update_all_filter_checkboxes()
 
 func _on_filter_traits_pressed(looking_for_players: bool = true) -> void:
 	$TraitsMenu.show()
@@ -443,6 +448,7 @@ func _on_filter_traits_pressed(looking_for_players: bool = true) -> void:
 	$PositionsMenu.hide()
 	$StylesMenu.hide()
 	$ViewMenu.hide()
+	update_all_filter_checkboxes()
 
 func _on_sort_pressed() -> void:
 	popup.clear()
@@ -700,7 +706,7 @@ func _on_reset_pressed() -> void:
 		"positions": ["LF", "P", "RF", "LG", "K", "RG"],
 		"min_positions": 1,
 		"max_positions": 6,
-		"styles": ["Goal Scorer", "Anti-Keeper", "Skull Cracker", "Support Forward", "Defender", "Bully", "Ball Hound", "Machine", "Workhorse", "Maestro", "Spin Doctor", "Ace", "Hatchet Man", "Track Hog"],
+		"styles": ["Goal Scorer", "Anti-Keeper", "Skull Cracker", "Support Forward", "Defender", "Bully", "Ball Hound", "Acrobatic", "Crouching", "Kneeling", "Standing", "Ace", "Hatchet Man", "Track Hog", "Workhorse"],
 		"min_age": 0,
 		"max_age": 120,
 		"lefty": true,
@@ -709,6 +715,7 @@ func _on_reset_pressed() -> void:
 		"attribute_filters": [],
 	}
 	apply_filters()
+	update_all_filter_checkboxes()  # Update checkboxes to match reset state
 	populate_scrollbar()
 
 func _on_back_pressed() -> void:
@@ -913,7 +920,7 @@ func format_page():
 		setup_button($ViewMenu/BackButton, button_size)
 		setup_button($StylesMenu/BackButton, button_size)
 		setup_button($PositionsMenu/BackButton, button_size)
-		setup_button($TraitsMenu/BackButton, button_size)
+	setup_button($TraitsMenu/BackButton, button_size)
 	var icon_size = Vector2(200, 200)
 	scale_icon_group("StylesMenu/Forwards", icon_size)
 	scale_icon_group("StylesMenu/Guards", icon_size)
@@ -977,23 +984,50 @@ func create_header_row() -> PanelContainer:
 	return header
 	
 func populate_scrollbar():
+	if is_populating:
+		print("Already populating, skipping...")
+		return
+	
+	is_populating = true
+	
 	print("All characters size: " + str(all_characters.size()))
 	print("Filtered characters size: " + str(filtered_characters.size()))
+	
+	# Clear existing children more robustly
 	for child in scrolling_area.get_children():
 		child.queue_free()
+	
+	# Wait for all children to be removed
 	await get_tree().process_frame
+	await get_tree().process_frame  # Double frame wait for safety
+	
+	# Check if scrolling_area still has children
+	if scrolling_area.get_child_count() > 0:
+		print("Warning: scrolling_area still has " + str(scrolling_area.get_child_count()) + " children after cleanup")
+		# Force remove any remaining children
+		for child in scrolling_area.get_children():
+			scrolling_area.remove_child(child)
+			child.queue_free()
+		await get_tree().process_frame
+	
 	var header = create_header_row()
 	scrolling_area.add_child(header)
+	
 	if filtered_characters.size() == 0:
 		no_results()
+		is_populating = false
 		return
+	
 	var alternate_color = false
 	for character in filtered_characters:
 		print("Adding character: " + character.player.bio.last_name)
 		var row = create_row(character, alternate_color)
 		scrolling_area.add_child(row)
 		alternate_color = !alternate_color
-	print("Total rows added: " + str(scrolling_area.get_child_count()))
+	
+	print("Total rows added: " + str(scrolling_area.get_child_count() - 1))  # -1 for header
+	
+	is_populating = false
 
 func create_row(character: Character, dark_row: bool) -> PanelContainer:
 	var row = PanelContainer.new()
@@ -1298,13 +1332,18 @@ func initialize_filter_ui():
 		get_node_or_null("PositionsMenu/Positions/K"),
 		get_node_or_null("PositionsMenu/Positions/RG")
 	]
+	
 	for node in nodes_to_set:
 		if node:
 			node.set_block_signals(true)
+	
+	# Set option button selections
 	$TraitsMenu/BioTraits/Age/Min.selected = filters.min_age
 	$TraitsMenu/BioTraits/Age/Max.selected = filters.max_age
 	$PositionsMenu/NumPositions/Min.selected = filters.min_positions - 1
 	$PositionsMenu/NumPositions/Max.selected = filters.max_positions - 1
+	
+	# Set checkbox states to match filters (all should be checked by default)
 	$TraitsMenu/ContractType/FreeAgents.button_pressed = filters.free_agents
 	$TraitsMenu/ContractType/Standard.button_pressed = filters.standard
 	$TraitsMenu/ContractType/Tradeable.button_pressed = filters.tradeable
@@ -1358,6 +1397,7 @@ func initialize_filter_ui():
 		rg_node.button_pressed = "RG" in filters.positions
 	else:
 		success = false
+	
 	for node in nodes_to_set:
 		if node:
 			node.set_block_signals(false)
@@ -1432,3 +1472,228 @@ func get_top_3_focuses(character: Character) -> String:
 	for i in range(min(3, sorted_focuses.size())):
 		top_focuses.append(sorted_focuses[i])
 	return ", ".join(top_focuses)
+
+func update_all_filter_checkboxes():
+	# Block signals temporarily to prevent triggering filter changes
+	var checkboxes_to_block = [
+		$TraitsMenu/ContractType/FreeAgents,
+		$TraitsMenu/ContractType/Standard,
+		$TraitsMenu/ContractType/Tradeable,
+		$TraitsMenu/ContractType/Franchise,
+		$TraitsMenu/ContractType/Staff,
+		get_node_or_null("TraitsMenu/BioTraits/Handedness/Lefty"),
+		get_node_or_null("TraitsMenu/BioTraits/Handedness/Righty"),
+		get_node_or_null("PositionsMenu/Positions/LF"),
+		get_node_or_null("PositionsMenu/Positions/P"),
+		get_node_or_null("PositionsMenu/Positions/RF"),
+		get_node_or_null("PositionsMenu/Positions/LG"),
+		get_node_or_null("PositionsMenu/Positions/K"),
+		get_node_or_null("PositionsMenu/Positions/RG")
+	]
+	
+	for checkbox in checkboxes_to_block:
+		if checkbox:
+			checkbox.set_block_signals(true)
+	
+	# Update position checkboxes
+	if has_node("PositionsMenu/Positions/LF"):
+		$PositionsMenu/Positions/LF.button_pressed = "LF" in filters.positions
+	if has_node("PositionsMenu/Positions/P"):
+		$PositionsMenu/Positions/P.button_pressed = "P" in filters.positions
+	if has_node("PositionsMenu/Positions/RF"):
+		$PositionsMenu/Positions/RF.button_pressed = "RF" in filters.positions
+	if has_node("PositionsMenu/Positions/LG"):
+		$PositionsMenu/Positions/LG.button_pressed = "LG" in filters.positions
+	if has_node("PositionsMenu/Positions/K"):
+		$PositionsMenu/Positions/K.button_pressed = "K" in filters.positions
+	if has_node("PositionsMenu/Positions/RG"):
+		$PositionsMenu/Positions/RG.button_pressed = "RG" in filters.positions
+	
+	# Update style checkboxes
+	update_style_checkboxes()
+	
+	# Update other filter checkboxes
+	if has_node("TraitsMenu/BioTraits/Handedness/Lefty"):
+		$TraitsMenu/BioTraits/Handedness/Lefty.button_pressed = filters.lefty
+	if has_node("TraitsMenu/BioTraits/Handedness/Righty"):
+		$TraitsMenu/BioTraits/Handedness/Righty.button_pressed = filters.righty
+	
+	# Update contract type checkboxes
+	if has_node("TraitsMenu/ContractType/FreeAgents"):
+		$TraitsMenu/ContractType/FreeAgents.button_pressed = filters.free_agents
+	if has_node("TraitsMenu/ContractType/Standard"):
+		$TraitsMenu/ContractType/Standard.button_pressed = filters.standard
+	if has_node("TraitsMenu/ContractType/Tradeable"):
+		$TraitsMenu/ContractType/Tradeable.button_pressed = filters.tradeable
+	if has_node("TraitsMenu/ContractType/Franchise"):
+		$TraitsMenu/ContractType/Franchise.button_pressed = filters.franchise
+	if has_node("TraitsMenu/ContractType/Staff"):
+		$TraitsMenu/ContractType/Staff.button_pressed = filters.staff
+	
+	# Re-enable signals
+	for checkbox in checkboxes_to_block:
+		if checkbox:
+			checkbox.set_block_signals(false)
+
+func update_style_checkboxes():
+	# Map checkbox names to style names
+	var style_mapping = {
+		"Anti": "Anti-Keeper",
+		"Scorer": "Goal Scorer",
+		"Skull": "Skull Cracker",
+		"Support": "Support Forward",
+		"Defender": "Defender",
+		"BallHound": "Ball Hound",
+		"Bully": "Bully",
+		"Ace": "Ace",
+		"Hatchet": "Hatchet Man",
+		"Hog": "Track Hog",
+		"Acrobatic": "Acrobatic",
+		"Standing": "Standing",
+		"Crouching": "Crouching",
+		"Kneeling": "Kneeling"
+	}
+	
+	# Block signals for style checkboxes
+	var style_containers = [
+		"StylesMenu/Forwards",
+		"StylesMenu/Guards",
+		"StylesMenu/Pitchers",
+		"StylesMenu/Goalies"
+	]
+	
+	var style_checkboxes = []
+	for container_path in style_containers:
+		if has_node(container_path):
+			var container = get_node(container_path)
+			for child in container.get_children():
+				if child is CheckButton:
+					child.set_block_signals(true)
+					style_checkboxes.append(child)
+	
+	# Update forward style checkboxes
+	if has_node("StylesMenu/Forwards"):
+		var forwards_container = $StylesMenu/Forwards
+		for child in forwards_container.get_children():
+			if child is CheckButton:
+				var checkbox_name = child.name
+				if style_mapping.has(checkbox_name):
+					var style_name = style_mapping[checkbox_name]
+					child.button_pressed = style_name in filters.styles
+	
+	# Update guard style checkboxes
+	if has_node("StylesMenu/Guards"):
+		var guards_container = $StylesMenu/Guards
+		for child in guards_container.get_children():
+			if child is CheckButton:
+				var checkbox_name = child.name
+				if style_mapping.has(checkbox_name):
+					var style_name = style_mapping[checkbox_name]
+					child.button_pressed = style_name in filters.styles
+	
+	# Update pitcher style checkboxes
+	if has_node("StylesMenu/Pitchers"):
+		var pitchers_container = $StylesMenu/Pitchers
+		for child in pitchers_container.get_children():
+			if child is CheckButton:
+				var checkbox_name = child.name
+				if style_mapping.has(checkbox_name):
+					var style_name = style_mapping[checkbox_name]
+					child.button_pressed = style_name in filters.styles
+	
+	# Update goalie style checkboxes
+	if has_node("StylesMenu/Goalies"):
+		var goalies_container = $StylesMenu/Goalies
+		for child in goalies_container.get_children():
+			if child is CheckButton:
+				var checkbox_name = child.name
+				if style_mapping.has(checkbox_name):
+					var style_name = style_mapping[checkbox_name]
+					child.button_pressed = style_name in filters.styles
+	
+	# Re-enable signals for style checkboxes
+	for checkbox in style_checkboxes:
+		checkbox.set_block_signals(false)
+
+func connect_style_checkboxes():
+	# Map checkbox names to function names
+	var style_mapping = {
+		"Anti": "_on_anti_toggled",
+		"Scorer": "_on_scorer_toggled",
+		"Skull": "_on_skull_toggled",
+		"Support": "_on_support_toggled",
+		"Defender": "_on_defender_toggled",
+		"BallHound": "_on_ball_hound_toggled",
+		"Bully": "_on_bully_toggled",
+		"Ace": "_on_ace_toggled",
+		"Hatchet": "_on_hatchet_toggled",
+		"Hog": "_on_hog_toggled",
+		"Acrobatic": "_on_acrobatic_toggled",
+		"Standing": "_on_standing_toggled",
+		"Crouching": "_on_crouching_toggled",
+		"Kneeling": "_on_kneeling_toggled"
+	}
+	
+	# Connect all checkbuttons in the style containers
+	var containers = ["StylesMenu/Forwards", "StylesMenu/Guards", "StylesMenu/Pitchers", "StylesMenu/Goalies"]
+	for container_path in containers:
+		if has_node(container_path):
+			var container = get_node(container_path)
+			for child in container.get_children():
+				if child is CheckButton:
+					var checkbox_name = child.name
+					if style_mapping.has(checkbox_name):
+						var func_name = style_mapping[checkbox_name]
+						if has_method(func_name):
+							child.toggled.connect(Callable(self, func_name))
+
+# Style toggle functions
+func _on_anti_toggled(toggled_on: bool):
+	toggle_style_in_filter("Anti-Keeper", toggled_on)
+
+func _on_scorer_toggled(toggled_on: bool):
+	toggle_style_in_filter("Goal Scorer", toggled_on)
+
+func _on_skull_toggled(toggled_on: bool):
+	toggle_style_in_filter("Skull Cracker", toggled_on)
+
+func _on_support_toggled(toggled_on: bool):
+	toggle_style_in_filter("Support Forward", toggled_on)
+
+func _on_defender_toggled(toggled_on: bool):
+	toggle_style_in_filter("Defender", toggled_on)
+
+func _on_ball_hound_toggled(toggled_on: bool):
+	toggle_style_in_filter("Ball Hound", toggled_on)
+
+func _on_bully_toggled(toggled_on: bool):
+	toggle_style_in_filter("Bully", toggled_on)
+
+func _on_ace_toggled(toggled_on: bool):
+	toggle_style_in_filter("Ace", toggled_on)
+
+func _on_hatchet_toggled(toggled_on: bool):
+	toggle_style_in_filter("Hatchet Man", toggled_on)
+
+func _on_hog_toggled(toggled_on: bool):
+	toggle_style_in_filter("Track Hog", toggled_on)
+
+func _on_acrobatic_toggled(toggled_on: bool):
+	toggle_style_in_filter("Acrobatic", toggled_on)
+
+func _on_standing_toggled(toggled_on: bool):
+	toggle_style_in_filter("Standing", toggled_on)
+
+func _on_crouching_toggled(toggled_on: bool):
+	toggle_style_in_filter("Crouching", toggled_on)
+
+func _on_kneeling_toggled(toggled_on: bool):
+	toggle_style_in_filter("Kneeling", toggled_on)
+
+func toggle_style_in_filter(style: String, toggled_on: bool):
+	if toggled_on:
+		if not style in filters.styles:
+			filters.styles.append(style)
+	else:
+		filters.styles.erase(style)
+	_on_filter_changed()

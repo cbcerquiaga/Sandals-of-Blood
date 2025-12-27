@@ -209,6 +209,30 @@ position = Vector2(-80, 140)
 [node name="P_SE" type="Node2D" parent="PositioningGuides"]
 position = Vector2(80, 140)
 
+[node name="Gaunt_NW" type="Node2D" parent="PositioningGuides"]
+position = Vector2(-15, -5)
+
+[node name="Gaunt_N" type="Node2D" parent="PositioningGuides"]
+position = Vector2(0, -5)
+
+[node name="Gaunt_NE" type="Node2D" parent="PositioningGuides"]
+position = Vector2(15, -5)
+
+[node name="Gaunt_SW" type="Node2D" parent="PositioningGuides"]
+position = Vector2(-15, 5)
+
+[node name="Gaunt_S" type="Node2D" parent="PositioningGuides"]
+position = Vector2(0, 5)
+
+[node name="Gaunt_SE" type="Node2D" parent="PositioningGuides"]
+position = Vector2(15, 5)
+
+[node name="Ref_N" type="Node2D" parent="PositioningGuides"]
+position = Vector2(-110, -100)
+
+[node name="Ref_S" type="Node2D" parent="PositioningGuides"]
+position = Vector2(-110, 100)
+
 [node name="Walls" type="Node2D" parent="."]
 
 [node name="Left" type="StaticBody2D" parent="Walls"]

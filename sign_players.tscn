@@ -1,4 +1,4 @@
-[gd_scene load_steps=31 format=3 uid="uid://dkxpvx0n1a0o7"]
+[gd_scene load_steps=30 format=3 uid="uid://dkxpvx0n1a0o7"]
 
 [ext_resource type="Script" path="res://sign_players.gd" id="1_qfm87"]
 [ext_resource type="Texture2D" uid="uid://ct6vtfmxy8eoo" path="res://UI/MenuUI/back_button_base.png" id="2_hr1iq"]
@@ -24,12 +24,11 @@
 [ext_resource type="Texture2D" uid="uid://birtlssk75m6u" path="res://UI/PlayerTypeSymbols/playerType_hatchet_man.png" id="10_w27qo"]
 [ext_resource type="Texture2D" uid="uid://b3np7la2kgigh" path="res://UI/FreeAgencyUI/view_button_base.png" id="11_h7l5r"]
 [ext_resource type="Texture2D" uid="uid://80tsc0fgb1bf" path="res://UI/PlayerTypeSymbols/playerType_track_hog.png" id="11_laaa6"]
-[ext_resource type="Texture2D" uid="uid://s0afhs6d5wep" path="res://UI/PlayerTypeSymbols/playerType_music.png" id="12_b52fq"]
 [ext_resource type="Texture2D" uid="uid://dg2wrt5n4yqhd" path="res://UI/FreeAgencyUI/view_button_highlighted.png" id="12_s6m0f"]
-[ext_resource type="Texture2D" uid="uid://dobxcf4t2o6fs" path="res://UI/PlayerTypeSymbols/playerType_machine.png" id="13_6u115"]
-[ext_resource type="Texture2D" uid="uid://dsh7n56wr6o5i" path="res://UI/PlayerTypeSymbols/playerType_spindoctor.png" id="14_mtstt"]
-[ext_resource type="Texture2D" uid="uid://bxd5ixm2gbmmi" path="res://UI/PlayerTypeSymbols/playerType_horseShoe.png" id="15_ivsyf"]
-[ext_resource type="Texture2D" uid="uid://dxdxoovmjfda0" path="res://UI/PlayerTypeSymbols/playerType_prospectKeeper.png" id="16_84oia"]
+[ext_resource type="Texture2D" uid="uid://im2ef17647mw" path="res://UI/PlayerTypeSymbols/playerType_acro.png" id="26_kqb1k"]
+[ext_resource type="Texture2D" uid="uid://dvs4dw1ivq75x" path="res://UI/PlayerTypeSymbols/playerType_stand.png" id="27_stog0"]
+[ext_resource type="Texture2D" uid="uid://b8vm8xekcvaiy" path="res://UI/PlayerTypeSymbols/playerType_crouch.png" id="28_m2e23"]
+[ext_resource type="Texture2D" uid="uid://hoguj6wx5bcu" path="res://UI/PlayerTypeSymbols/playerType_kneel.png" id="29_4e32w"]
 
 [node name="Control" type="Control"]
 layout_mode = 3
@@ -542,45 +541,37 @@ text = "Keeper Types"
 [node name="Goalies" type="HBoxContainer" parent="StylesMenu"]
 layout_mode = 2
 
-[node name="Maestro" type="CheckBox" parent="StylesMenu/Goalies"]
+[node name="Acrobatic" type="CheckBox" parent="StylesMenu/Goalies"]
 layout_mode = 2
-text = "Maestro"
+text = "Acrobatic"
 
 [node name="TextureRect" type="TextureRect" parent="StylesMenu/Goalies"]
 layout_mode = 2
-texture = ExtResource("12_b52fq")
+texture = ExtResource("26_kqb1k")
 
-[node name="Machine" type="CheckBox" parent="StylesMenu/Goalies"]
+[node name="Standing" type="CheckBox" parent="StylesMenu/Goalies"]
 layout_mode = 2
-text = "Machine"
+text = "Standing"
 
 [node name="TextureRect2" type="TextureRect" parent="StylesMenu/Goalies"]
 layout_mode = 2
-texture = ExtResource("13_6u115")
+texture = ExtResource("27_stog0")
 
-[node name="SpinDr" type="CheckBox" parent="StylesMenu/Goalies"]
+[node name="Crouching" type="CheckBox" parent="StylesMenu/Goalies"]
 layout_mode = 2
 text = "Spin Doctor"
 
 [node name="TextureRect3" type="TextureRect" parent="StylesMenu/Goalies"]
 layout_mode = 2
-texture = ExtResource("14_mtstt")
+texture = ExtResource("28_m2e23")
 
-[node name="Workhorse" type="CheckBox" parent="StylesMenu/Goalies"]
+[node name="Kneeling" type="CheckBox" parent="StylesMenu/Goalies"]
 layout_mode = 2
-text = "Workhorse"
+text = "Kneeling"
 
 [node name="TextureRect4" type="TextureRect" parent="StylesMenu/Goalies"]
 layout_mode = 2
-texture = ExtResource("15_ivsyf")
-
-[node name="Prospect" type="CheckBox" parent="StylesMenu/Goalies"]
-layout_mode = 2
-text = "Prospect"
-
-[node name="TextureRect5" type="TextureRect" parent="StylesMenu/Goalies"]
-layout_mode = 2
-texture = ExtResource("16_84oia")
+texture = ExtResource("29_4e32w")
 
 [node name="BackButton" type="TextureButton" parent="StylesMenu"]
 layout_mode = 2
@@ -688,11 +679,10 @@ texture_focused = ExtResource("3_f08fc")
 [connection signal="toggled" from="StylesMenu/Pitchers/Ace" to="." method="_on_ace_toggled"]
 [connection signal="toggled" from="StylesMenu/Pitchers/Hatchet" to="." method="_on_hatchet_toggled"]
 [connection signal="toggled" from="StylesMenu/Pitchers/Hog" to="." method="_on_hog_toggled"]
-[connection signal="toggled" from="StylesMenu/Goalies/Maestro" to="." method="_on_maestro_toggled"]
-[connection signal="toggled" from="StylesMenu/Goalies/Machine" to="." method="_on_machine_toggled"]
-[connection signal="toggled" from="StylesMenu/Goalies/SpinDr" to="." method="_on_spin_dr_toggled"]
-[connection signal="toggled" from="StylesMenu/Goalies/Workhorse" to="." method="_on_workhorse_toggled"]
-[connection signal="toggled" from="StylesMenu/Goalies/Prospect" to="." method="_on_prospect_toggled"]
+[connection signal="toggled" from="StylesMenu/Goalies/Acrobatic" to="." method="_on_maestro_toggled"]
+[connection signal="toggled" from="StylesMenu/Goalies/Standing" to="." method="_on_machine_toggled"]
+[connection signal="toggled" from="StylesMenu/Goalies/Crouching" to="." method="_on_spin_dr_toggled"]
+[connection signal="toggled" from="StylesMenu/Goalies/Kneeling" to="." method="_on_workhorse_toggled"]
 [connection signal="pressed" from="StylesMenu/BackButton" to="." method="_on_back_button_pressed"]
 [connection signal="toggled" from="ViewMenu/HBoxContainer/DefaultView" to="." method="_on_default_view_toggled"]
 [connection signal="toggled" from="ViewMenu/HBoxContainer/RelativeView" to="." method="_on_relative_view_toggled"]

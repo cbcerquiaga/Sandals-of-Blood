@@ -33,6 +33,7 @@ func _input(event):
 		get_viewport().set_input_as_handled()
 		if event.is_action("pitch"):
 			Input.action_release("pitch")
+		await get_tree().process_frame
 		close_and_resume()
 		
 func is_any_input_pressed(event: InputEvent) -> bool:

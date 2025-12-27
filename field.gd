@@ -57,6 +57,14 @@ var p_att_fo
 var c_att_fo
 var l_fo
 var r_fo
+var g_nw
+var g_n
+var g_ne
+var g_sw
+var g_s
+var g_se
+var ref_n
+var ref_s
 
 #collision areas
 var playerHalf
@@ -179,6 +187,14 @@ func _ready():
 	c_att_fo = $FaceoffSpots/CPU.global_position
 	l_fo = $FaceoffSpots/Left.global_position
 	r_fo = $FaceoffSpots/Right.global_position
+	g_nw = $PositioningGuides/Gaunt_NW.global_position
+	g_n = $PositioningGuides/Gaunt_N.global_position
+	g_ne = $PositioningGuides/Gaunt_NE.global_position
+	g_sw = $PositioningGuides/Gaunt_SW.global_position
+	g_s = $PositioningGuides/Gaunt_S.global_position
+	g_se = $PositioningGuides/Gaunt_SE.global_position
+	ref_n = $PositioningGuides/Ref_N.global_position
+	ref_s = $PositioningGuides/Ref_S.global_position
 	
 func _process(delta) -> void:
 	if ball:
