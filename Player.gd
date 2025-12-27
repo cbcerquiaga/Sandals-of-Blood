@@ -1030,10 +1030,11 @@ func take_hit(attacker: Player, power: float):
 		
 		if field_position == "K":
 			attacker.game_stats.sacks +=1
-			if attacker.assigned_guard:
-				attacker.assigned_guard.game_stats.sacks_allowed += 1
-			if attacker.forward_partner:
-				attacker.forward_partner.game_stats.partner_sacks += 1
+			if attacker.field_position in ["LF", "RF", "F"]:
+				if attacker.assigned_guard:
+					attacker.assigned_guard.game_stats.sacks_allowed += 1
+				if attacker.forward_partner:
+					attacker.forward_partner.game_stats.partner_sacks += 1
 	elif knockback_power > status.stability: #hefty bump
 		#print("bump-", units, ", ", 150)
 		status.stability -= knockback_power/2
@@ -1042,10 +1043,11 @@ func take_hit(attacker: Player, power: float):
 				attacker.game_stats.hits += 1
 				if field_position == "K":
 					attacker.game_stats.sacks +=1
-					if attacker.assigned_guard:
-						attacker.assigned_guard.game_stats.sacks_allowed += 1
-					if attacker.forward_partner:
-						attacker.forward_partner.game_stats.partner_sacks += 1
+					if attacker.field_position in ["LF", "RF", "F"]:
+						if attacker.assigned_guard:
+							attacker.assigned_guard.game_stats.sacks_allowed += 1
+						if attacker.forward_partner:
+							attacker.forward_partner.game_stats.partner_sacks += 1
 			status.stability = 0
 			var stun_time = (445 - 4 * get_buffed_attribute("toughness")) / 49 * 0.75
 			enter_stunned_state(stun_time)
@@ -1060,10 +1062,11 @@ func take_hit(attacker: Player, power: float):
 				attacker.game_stats.hits += 1
 				if field_position == "K":
 					attacker.game_stats.sacks +=1
-					if attacker.assigned_guard:
-						attacker.assigned_guard.game_stats.sacks_allowed += 1
-					if attacker.forward_partner:
-						attacker.forward_partner.game_stats.partner_sacks += 1
+					if attacker.field_position in ["LF", "RF", "F"]:
+						if attacker.assigned_guard:
+							attacker.assigned_guard.game_stats.sacks_allowed += 1
+						if attacker.forward_partner:
+							attacker.forward_partner.game_stats.partner_sacks += 1
 			status.stability = 0
 		else:
 			status.anger = status.anger + 5
@@ -1594,140 +1597,215 @@ func encode_player_type(type: String):
 			playStyle = "Workhorse"
 		"TP":
 			playStyle = "Track Hog"
-		"OK":
-			playStyle = "Maestro"
+		"AK":
+			playStyle = "Acrobatic"
+			special_ability = "machine"
+			if goalkeeping_preferences.is_empty():
+				goalkeeping_preferences = {
+					"dives_backwards": false,
+					"challenge_depth": 10,
+					"charges_out": true,
+					"sweeper_keeper": true,
+					"likes_contact": false
+				}
+		"CK":
+			playStyle = "Crouching"
+			special_ability = "workhorse"
+			if goalkeeping_preferences.is_empty():
+				goalkeeping_preferences = {
+					"dives_backwards": false,
+					"challenge_depth": 1,
+					"charges_out": false,
+					"sweeper_keeper": false,
+					"likes_contact": false
+				}
+		"KK":
+			playStyle = "Kneeling"
+			special_ability = "maestro"
+			if goalkeeping_preferences.is_empty():
+				goalkeeping_preferences = {
+					"dives_backwards": false,
+					"challenge_depth": 15,
+					"charges_out": true,
+					"sweeper_keeper": false,
+					"likes_contact": false
+				}
 		"SK":
-			playStyle = "Spin Doctor"
+			playStyle = "Standing"
+			special_ability = "spin_doctor"
+			if goalkeeping_preferences.is_empty():
+				goalkeeping_preferences = {
+					"dives_backwards": false,
+					"challenge_depth": 10,
+					"charges_out": false,
+					"sweeper_keeper": true,
+					"likes_contact": true
+				}
+		# Old keeper styles for compatibility
+		"OK":
+			playStyle = "Kneeling"  # Map old Maestro to Kneeling
+			special_ability = "maestro"
 		"MK":
-			playStyle = "Machine"
+			playStyle = "Acrobatic"  # Map old Machine to Acrobatic
+			special_ability = "machine"
+		"SD":
+			playStyle = "Standing"  # Map old Spin Doctor to Standing
+			special_ability = "spin_doctor"
 		"PK":
-			playStyle = "Prospect Goalkeeper"
+			playStyle = "Standing"  # Map old Prospect to Standing
+			special_ability = "spin_doctor"
 	match_type_icon()
-			
+
 func match_type_icon():
 	match playStyle:
 		"Goal Scorer":
 			playStyle_texture = "res://UI/PlayerTypeSymbols/playerType_cannon.png"
 			brawl_preferences = {
-		"lurk": 0.5, #wait outside the brawl
-		"join": 0.5, #join the big brawl
-		"partner": 0.5, #fight a random uninvolved person
-		"game": 0.5, #find a ball-focused task
-		"cower": 0.5 #run away
-		}
+				"lurk": 0.5,
+				"join": 0.5,
+				"partner": 0.5,
+				"game": 0.5,
+				"cower": 0.5
+			}
 		"Anti-Keeper":
 			playStyle_texture = "res://UI/PlayerTypeSymbols/playerType_anti_keeper.png"
 			brawl_preferences = {
-		"lurk": 0.1, #wait outside the brawl
-		"join": 0.6, #join the big brawl
-		"partner": 0.6, #fight a random uninvolved person
-		"game": 0.8, #find a ball-focused task
-		"cower": 0.1 #run away
-		}
+				"lurk": 0.1,
+				"join": 0.6,
+				"partner": 0.6,
+				"game": 0.8,
+				"cower": 0.1
+			}
 		"Support Forward":
 			playStyle_texture = "res://UI/PlayerTypeSymbols/playerType_support.png"
 			brawl_preferences = {
-		"lurk": 0.5, #wait outside the brawl
-		"join": 0.8, #join the big brawl
-		"partner": 0.2, #fight a random uninvolved person
-		"game": 0.5, #find a ball-focused task
-		"cower": 0.1 #run away
-		}
+				"lurk": 0.5,
+				"join": 0.8,
+				"partner": 0.2,
+				"game": 0.5,
+				"cower": 0.1
+			}
 		"Skull Cracker":
 			playStyle_texture = "res://UI/PlayerTypeSymbols/playerType_skull.png"
 			brawl_preferences = {
-		"lurk": 0.1, #wait outside the brawl
-		"join": 0.8, #join the big brawl
-		"partner": 0.8, #fight a random uninvolved person
-		"game": 0.1, #find a ball-focused task
-		"cower": 0.001 #run away
-		}
+				"lurk": 0.1,
+				"join": 0.8,
+				"partner": 0.8,
+				"game": 0.1,
+				"cower": 0.001
+			}
 		"Ball Hound":
 			playStyle_texture = "res://UI/PlayerTypeSymbols/playerType_ballhound.png"
 			brawl_preferences = {
-		"lurk": 0.5, #wait outside the brawl
-		"join": 0.5, #join the big brawl
-		"partner": 0.5, #fight a random uninvolved person
-		"game": 0.5, #find a ball-focused task
-		"cower": 0.1 #run away
-		}
+				"lurk": 0.5,
+				"join": 0.5,
+				"partner": 0.5,
+				"game": 0.5,
+				"cower": 0.1
+			}
 		"Bully":
 			playStyle_texture = "res://UI/PlayerTypeSymbols/playerType_fist.png"
 			brawl_preferences = {
-		"lurk": 0.1, #wait outside the brawl
-		"join": 0.8, #join the big brawl
-		"partner": 0.8, #fight a random uninvolved person
-		"game": 0.1, #find a ball-focused task
-		"cower": 0.001 #run away
-		}
+				"lurk": 0.1,
+				"join": 0.8,
+				"partner": 0.8,
+				"game": 0.1,
+				"cower": 0.001
+			}
 		"Defender":
 			playStyle_texture = "res://UI/PlayerTypeSymbols/playerType_brickwall.png"
 			brawl_preferences = {
-		"lurk": 0.5, #wait outside the brawl
-		"join": 0.6, #join the big brawl
-		"partner": 0.4, #fight a random uninvolved person
-		"game": 0.5, #find a ball-focused task
-		"cower": 0.1 #run away
-		}
+				"lurk": 0.5,
+				"join": 0.6,
+				"partner": 0.4,
+				"game": 0.5,
+				"cower": 0.1
+			}
 		"Hatchet Man":
 			playStyle_texture = "res://UI/PlayerTypeSymbols/playerType_hatchet_man.png"
 			brawl_preferences = {
-		"lurk": 0.0, #wait outside the brawl
-		"join": 0.2, #join the big brawl
-		"partner": 0.9, #fight a random uninvolved person
-		"game": 0.01, #find a ball-focused task
-		"cower": 0.01 #run away
-		}
+				"lurk": 0.0,
+				"join": 0.2,
+				"partner": 0.9,
+				"game": 0.01,
+				"cower": 0.01
+			}
 		"Ace":
 			playStyle_texture = "res://UI/PlayerTypeSymbols/playerType_ace.png"
 			brawl_preferences = {
-		"lurk": 0.0, #wait outside the brawl
-		"join": 0.2, #join the big brawl
-		"partner": 0.01, #fight a random uninvolved person
-		"game": 0.01, #find a ball-focused task
-		"cower": 0.6 #run away
-		}
+				"lurk": 0.0,
+				"join": 0.2,
+				"partner": 0.01,
+				"game": 0.01,
+				"cower": 0.6
+			}
 		"Track Hog":
 			playStyle_texture = "res://UI/PlayerTypeSymbols/playerType_track_hog.png"
 			brawl_preferences = {
-		"lurk": 0.0, #wait outside the brawl
-		"join": 0.2, #join the big brawl
-		"partner": 0.9, #fight a random uninvolved person
-		"game": 0.01, #find a ball-focused task
-		"cower": 0.01 #run away
-		}
+				"lurk": 0.0,
+				"join": 0.2,
+				"partner": 0.9,
+				"game": 0.01,
+				"cower": 0.01
+			}
 		"Workhorse":
 			playStyle_texture = "res://UI/PlayerTypeSymbols/playerType_horseShoe.png"
 			brawl_preferences = {
-		"lurk": 0.0, #wait outside the brawl
-		"join": 0.2, #join the big brawl
-		"partner": 0.5, #fight a random uninvolved person
-		"game": 0.01, #find a ball-focused task
-		"cower": 0.5 #run away
-		}
+				"lurk": 0.0,
+				"join": 0.2,
+				"partner": 0.5,
+				"game": 0.01,
+				"cower": 0.5
+			}
+		"Acrobatic":
+			playStyle_texture = "res://UI/PlayerTypeSymbols/playerType_acro.png"
+			brawl_preferences = {
+				"lurk": 0.2,
+				"join": 0.3,
+				"partner": 0.1,
+				"game": 10.0,
+				"cower": 0.1
+			}
+		"Crouching":
+			playStyle_texture = "res://UI/PlayerTypeSymbols/playerType_crouch.png"
+			brawl_preferences = {
+				"lurk": 0.2,
+				"join": 0.3,
+				"partner": 0.1,
+				"game": 10.0,
+				"cower": 0.1
+			}
+		"Kneeling":
+			playStyle_texture = "res://UI/PlayerTypeSymbols/playerType_kneel.png"
+			brawl_preferences = {
+				"lurk": 0.2,
+				"join": 0.3,
+				"partner": 0.1,
+				"game": 10.0,
+				"cower": 0.1
+			}
+		"Standing":
+			playStyle_texture = "res://UI/PlayerTypeSymbols/playerType_stand.png"
+			brawl_preferences = {
+				"lurk": 0.2,
+				"join": 0.3,
+				"partner": 0.1,
+				"game": 10.0,
+				"cower": 0.1
+			}
 		_:
-			match special_ability:
-				"maestro":
-					playStyle = "Meastro"
-					playStyle_texture = "res://UI/PlayerTypeSymbols/playerType_music.png"
-				"machine":
-					playStyle = "Machine"
-					playStyle_texture = "res://UI/PlayerTypeSymbols/playerType_machine.png"
-				"spin_doctor":
-					playStyle = "Spin Doctor"
-					playStyle_texture = "res://UI/PlayerTypeSymbols/playerType_spindoctor.png"
-				_:
-					playStyle = "Prospect Goalkeeper"
-					playStyle_texture = "res://UI/PlayerTypeSymbols/playerType_prospectKeeper.png"
-			brawl_preferences = { #universal for keepers
-					"lurk": 0.2,
-					"join": 0.3,
-					"partner": 0.1,
-					"game": 10.0, #most likely outcome
-					"cower": 0.1
-				}
-		
-
+			playStyle = "Standing"
+			playStyle_texture = "res://UI/PlayerTypeSymbols/playerType_stand.png"
+			brawl_preferences = {
+				"lurk": 0.2,
+				"join": 0.3,
+				"partner": 0.1,
+				"game": 10.0,
+				"cower": 0.1
+			}
+			if not special_ability:
+				special_ability = "spin_doctor"
+				
 func find_forward_style():
 	var shooter = (attributes.shooting + attributes.accuracy + attributes.speedRating + attributes.positioning + attributes.agility)/5
 	var antiKeeper = (attributes.power + attributes.speedRating + attributes.endurance + attributes.balance + attributes.aggression)/5
@@ -1811,26 +1889,81 @@ func find_guard_style():
 		}
 
 func find_keeper_style():
-	match special_ability:
-		"maestro":
-			playStyle = "Meastro"
-			playStyle_texture = "res://UI/PlayerTypeSymbols/playerType_music.png"
-		"machine":
-			playStyle = "Machine"
-			playStyle_texture = "res://UI/PlayerTypeSymbols/playerType_machine.png"
-		"spin_doctor":
-			playStyle = "Spin Doctor"
-			playStyle_texture = "res://UI/PlayerTypeSymbols/playerType_spindoctor.png"
-		_:
-			playStyle = "Prospect Goalkeeper"
-			playStyle_texture = "res://UI/PlayerTypeSymbols/playerType_prospectKeeper.png"
-	brawl_preferences = {
-			"lurk": 0.2,
-			"join": 0.3,
-			"partner": 0.1,
-			"game": 10.0, #most likely outcome
-			"cower": 0.1
-		}
+	var acro_score = (attributes.agility + attributes.reactions + attributes.positioning + attributes.blocking) / 4.0
+	var crouch_score = (attributes.endurance + attributes.balance + attributes.durability + attributes.power) / 4.0
+	var kneel_score = (attributes.focus + attributes.confidence + attributes.accuracy + attributes.reactions) / 4.0
+	var stand_score = (attributes.power + attributes.blocking + attributes.aggression + attributes.positioning) / 4.0
+	
+	var scores = {
+		"Acrobatic": acro_score,
+		"Crouching": crouch_score,
+		"Kneeling": kneel_score,
+		"Standing": stand_score
+	}
+	
+	var best_style = "Standing"
+	var best_score = 0.0
+	
+	for style in scores:
+		if scores[style] > best_score:
+			best_score = scores[style]
+			best_style = style
+	
+	playStyle = best_style
+	
+	match best_style:
+		"Acrobatic":
+			special_ability = "machine"
+			playStyle_texture = "res://UI/PlayerTypeSymbols/playerType_acro.png"
+			if goalkeeping_preferences.is_empty():
+				goalkeeping_preferences = {
+					"dives_backwards": false,
+					"challenge_depth": 10,
+					"charges_out": true,
+					"sweeper_keeper": true,
+					"likes_contact": false
+				}
+		"Crouching":
+			special_ability = "workhorse"
+			playStyle_texture = "res://UI/PlayerTypeSymbols/playerType_crouch.png"
+			if goalkeeping_preferences.is_empty():
+				goalkeeping_preferences = {
+					"dives_backwards": false,
+					"challenge_depth": 1,
+					"charges_out": false,
+					"sweeper_keeper": false,
+					"likes_contact": false
+				}
+		"Kneeling":
+			special_ability = "maestro"
+			playStyle_texture = "res://UI/PlayerTypeSymbols/playerType_kneel.png"
+			if goalkeeping_preferences.is_empty():
+				goalkeeping_preferences = {
+					"dives_backwards": false,
+					"challenge_depth": 15,
+					"charges_out": true,
+					"sweeper_keeper": false,
+					"likes_contact": false
+				}
+		"Standing":
+			special_ability = "spin_doctor"
+			playStyle_texture = "res://UI/PlayerTypeSymbols/playerType_stand.png"
+			if goalkeeping_preferences.is_empty():
+				goalkeeping_preferences = {
+					"dives_backwards": false,
+					"challenge_depth": 10,
+					"charges_out": false,
+					"sweeper_keeper": true,
+					"likes_contact": true
+				}
+	
+	brawl_preferences = { #universal for keepers
+		"lurk": 0.2,
+		"join": 0.3,
+		"partner": 0.1,
+		"game": 10.0, #most likely outcome
+		"cower": 0.1
+	}
 	return
 
 func find_pitcher_style():

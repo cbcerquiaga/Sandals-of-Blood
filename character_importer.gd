@@ -254,6 +254,11 @@ func create_player_from_csv(row: PackedStringArray, column_indices: Dictionary) 
 		"baseline_anger": 0,
 		"starter": false
 	}
+	var style_abbr = get_csv_value(row, column_indices, "playStyle", "")
+	if style_abbr != "":
+		player.encode_player_type(style_abbr)
+	else:
+		player.calculate_player_type()
 	player.reset_game_stats()
 	player.calculate_player_type()
 	return player

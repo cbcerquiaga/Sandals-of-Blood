@@ -4,8 +4,12 @@ class_name MatchPopup
 var remaining_frames := 0
 var is_paused := false
 
+signal closed
+
 func _ready():
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	var stylebox = StyleBoxEmpty.new()
+	add_theme_stylebox_override("panel", stylebox)
 
 func pop(time: int):
 	show()
@@ -27,6 +31,8 @@ func _input(event):
 	if not is_paused: return
 	if is_any_input_pressed(event):
 		get_viewport().set_input_as_handled()
+		if event.is_action("pitch"):
+			Input.action_release("pitch")
 		close_and_resume()
 		
 func is_any_input_pressed(event: InputEvent) -> bool:
@@ -43,6 +49,8 @@ func close_and_resume():
 	set_process_input(false)
 	set_process(false)
 	$TextureProgressBar.value = 0
+	emit_signal("closed")
+	
 func _on_gui_input(event):
 	if event is InputEventMouseButton and event.pressed and is_paused:
 		close_and_resume()
@@ -64,7 +72,11 @@ func show_goal(pitch: int, scoreTeam: Team, scorer: Player, assist: Player, pitc
 	$MainLabel.text = "GOAL"
 	set_pitch_label(pitch)
 	var team_string = "Goal For " + scoreTeam.team_name
-	var goal_string = "Scorer: " + scorer.bio.first_name[0] + ". " + scorer.bio.last_name
+	var goal_string = ""
+	if scorer == null:
+		goal_string = ""
+	else:
+		goal_string = "Scorer: " + scorer.bio.first_name[0] + ". " + scorer.bio.last_name
 	var assist_string = ""
 	if isOwnGoal:
 		assist_string = "Own Goal: "

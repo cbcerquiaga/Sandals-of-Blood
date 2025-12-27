@@ -1070,6 +1070,12 @@ func win_celebrate():
 	for player in onfield_players:
 		player.team_celebrate()
 		
+func goal_celebrate(scorer: Player):
+	if randf() < 0.5:
+		gwg_celebrate(scorer)
+	else:
+		win_celebrate()
+		
 func lose_anti_celebrate():
 	for player in onfield_players:
 		player.lose()
