@@ -20,9 +20,9 @@ var attributes := { #range from 0-99, typical range is 50-90
 	"intervention": 90, #how likely the referee is to break up a brawl or take off an injured player
 	"strictness": 90, #how likely the referee is to call a violation that they see
 	"harshness": 90, #how likely the referee is to call a foul to the harshest extent
-	"speedRating": 90,#how fast the referee moves
+	"speed": 90,#how fast the referee moves
 	"agility": 90, #chance of dodging the ball
-	"strengthRating": 90, #percentage of speed the referee has when pulling an injured player, power when breaking up brawls
+	"strength": 90, #percentage of speed the referee has when pulling an injured player, power when breaking up brawls
 	"honesty": 90, #chance to avoid being bribed
 	"bravery": 90 #chance to avoid being intimidated
 }
@@ -66,6 +66,8 @@ var focused_player: Player
 var rescuing_player: Player
 #behaviors
 var current_behavior: String
+var target_position: Vector2
+var wait_timer: int = 0
 """
 watch-normal; looks at the ball, but also scans to the other side
 watch-focus; moving and fixates on a particular player
@@ -97,16 +99,17 @@ func _physics_process(delta):
 	match current_behavior:
 		"watch_ball":
 			pass
-		"watch-pitchside":
-			pass
-		"watch-recside":
-			pass
 		"watch-focus":
 			pass
 		"faceoff-toss":
 			pass
 		"faceoff-evade":
-			pass
+			if wait_timer > 0:
+				wait_timer -= 1
+				watch_normal()
+				target_position = global_position
+			else:
+				faceoff_evade()
 		"grab-njured":
 			pass
 		"injured-evade":
@@ -115,21 +118,37 @@ func _physics_process(delta):
 			pass
 		"hand-signal":
 			pass
+	var direction = (target_position - global_position).normalized()
+	var distance = global_position.distance_to(target_position)
+	var speed_multiplier = 1.0
+	if distance < 30:
+		speed_multiplier = 0.33
+	elif distance < 20:
+		speed_multiplier = 0.25
+	elif distance < 10:
+		speed_multiplier = 0.01
+	velocity = direction * attributes.speed * speed_multiplier
+	
+	if move_and_slide():
+		# Handle collisions
+		pass
 
 func police_falst_start(player: Player):
 	var offense = 0
 	#TODO: if a player is not at their starting position and the ball isn't pitched, add offense
-	#TODO: once the ball is pitched, stop counting offense
+	#TODO: once the ball is pitched, stop counting offense and decide how bad it is
 	#TODO: decide if the player moved far enough to be worth penalizing
 	pass
 
 func police_offside(player: Player):
 	#TODO: trigger when a player is on the wrong side of the field; guards/keepers in offensive half or forwards in defensive half
+	#TODO: correct for the player's assigned side- human defensive half y < 0, cpu defensive half y > 0
 	var offense = 0
 	#TODO: offense goes up depending on how long the player is offside
 	#it goes way up if the player touches the ball or an opponent, bigger contact is a bigger deal than little contact
 	#it goes down when the player moves towards on-side
-	if offense > attributes.strictness:
+	#offense doesn't go up if the player is incapacitated
+	if offense > 100 - attributes.strictness:
 		#that's offside
 		pass
 	pass
@@ -139,7 +158,7 @@ func police_interference(player: Reworked_Pitcher):
 	var offense = 0
 	#TODO: offense goes up if the pitcher touches any non-pitchers or the ball
 	#TODO: bigger contact is more of a big deal
-	if offense > attributes.strictness:
+	if offense > 100 - attributes.strictness:
 		#that's interference
 		pass
 	pass
@@ -151,21 +170,74 @@ func police_foul(player: Player):
 	#TODO: see if the position is in the vision cone
 	#TODO: the more off-angle the fould is, and the farther away it is, make it less likely to be called
 	#TODO: rougher fouls morelikely to get called
+	var foul_type = player.preferred_foul
+	var foul_offensiveness = 0
+	match foul_type:
+		"trip":
+			foul_offensiveness = 50
+		"elbow":
+			foul_offensiveness = 50
+		"gouge":
+			foul_offensiveness = 90
+		"crotch":
+			foul_offensiveness = 60
+		"collar":
+			foul_offensiveness = 80
+		"bite":
+			foul_offensiveness = 100
+		"hold":
+			foul_offensiveness = 25
+	
 
 func look(direction: Vector2):
-	look_direction = direction
-	vision_left = look_direction.rotated(0 - deg_to_rad(attributes.awareness/2))
-	vision_right = look_direction.rotated(deg_to_rad(attributes.awareness/2))
+	look_direction = direction.normalized()
+	vision_left = look_direction.rotated(deg_to_rad(-attributes.awareness / 2.0))
+	vision_right = look_direction.rotated(deg_to_rad(attributes.awareness / 2.0))
 
 func see():
-	#TODO: create an area which is made of 2 triangles
-	var left_point = vision_left * attributes.vision * 2
-	var straight_point = look_direction * attributes.vision * 2
-	var right_point = vision_right * attributes.vision * 2
-	#TODO: left triangle made of left_point, straight_point, and global_position
-	#TODO: right triangle made of right_point, straight_point, and global_position
-	#TODO: look for players inside the vision area
-	pass
+	# Create vision polygon
+	var vision_distance = attributes.vision * 2
+	var left_point = global_position + (vision_left * vision_distance)
+	var right_point = global_position + (vision_right * vision_distance)
+	
+	# Create polygon for vision area
+	var vision_poly = PackedVector2Array([
+		global_position,
+		left_point,
+		right_point
+	])
+	
+	# Check for players in vision area
+	spotted_players.clear()
+	var all_players = [memory.p_p[0], memory.p_lf[0], memory.p_rf[0], memory.p_k[0], memory.p_lg[0], memory.p_rg[0], memory.c_p[0], memory.c_lf[0], memory.c_rf[0], memory.c_k[0], memory.c_lg[0], memory.c_rg[0]]
+	
+	for player in all_players:
+		if is_point_in_triangle(player.global_position, global_position, left_point, right_point):
+			spotted_players.append(player)
+			
+			# Add to memory if not already there
+			var memory_key = player.team[0] + "_" + player.player_type
+			if not player in memory[memory_key]:
+				memory[memory_key].append(player)
+
+func is_point_in_triangle(point: Vector2, a: Vector2, b: Vector2, c: Vector2) -> bool:
+	#Barycentric coordinate method
+	var s = a.y * c.x - a.x * c.y + (c.y - a.y) * point.x + (a.x - c.x) * point.y
+	var t = a.x * b.y - a.y * b.x + (a.y - b.y) * point.x + (b.x - a.x) * point.y
+	
+	if (s < 0) != (t < 0):
+		return false
+	
+	var area = -b.y * c.x + a.y * (c.x - b.x) + a.x * (b.y - c.y) + b.x * c.y
+	if area > 0:
+		return s > 0 and t > 0 and (s + t) < area
+	else:
+		return s < 0 and t < 0 and (s + t) > area
+
+func is_point_in_vision_cone(point: Vector2) -> bool:
+	return is_point_in_triangle(point, global_position, 
+		global_position + (vision_left * attributes.vision * 2),
+		global_position + (vision_right * attributes.vision * 2))
 
 func officiate():
 	for player in spotted_players:
@@ -206,17 +278,39 @@ func scan_right():
 	#TODO: look to the right
 	pass
 
-func calculate_visibility(place: Vector2):
-	#TODO: determine how obstructed the path is from global position to place
-	return 0
+func calculate_visibility(place: Vector2) -> float:
+	var space_state = get_world_2d().direct_space_state
+	var query = PhysicsRayQueryParameters2D.create(global_position, place)
+	query.exclude = [self]
+	
+	var result = space_state.intersect_ray(query)
+	
+	if result:
+		var distance_to_obstacle = global_position.distance_to(result.position)
+		var total_distance = global_position.distance_to(place)
+		return distance_to_obstacle / total_distance
+	return 1.0
 
 func move_open():
-	#TODO: find a position between north and south point with better visibility
-	#TODO: move there at speed
-	#TODO: if the distance there is smaller than 30, move there at speed/3
-	#TODO: if the distance there is smaller than 20, move there at speed/4
-	#TODO: if the distance there is smaller than 10, move there at speed/5
-	move_and_slide()
+	var best_position = global_position
+	var best_visibility = -INF
+	var current_visibility = calculate_visibility(ball.global_position)
+	for i in range(10):
+		var t = i / 9.0
+		var test_point = north_point.lerp(south_point, t)
+		var test_visibility = calculate_visibility_from_point(test_point, ball.global_position)
+		if test_visibility > best_visibility:
+			best_visibility = test_visibility
+			best_position = test_point
+	if best_position != global_position and best_visibility > current_visibility * 2 :
+		target_position = best_position
+
+func calculate_visibility_from_point(from: Vector2, to: Vector2) -> float:
+	var original_position = global_position
+	global_position = from
+	var visibility = calculate_visibility(to)
+	global_position = original_position
+	return visibility
 
 func save_player(player: Player):
 	#TODO: figure out when to collect player and when to drag them
@@ -235,9 +329,10 @@ func drag_player(player: Player):
 
 func triage_save(injured_players: Array):
 	var worst_injured: Player
-	var worst_damage: int
+	var lowest_health: int = INF
 	for player in injured_players:
-		pass
+		if player.status.health < lowest_health:
+			worst_injured = player
 	return worst_injured
 
 func faceoff_toss():
@@ -250,15 +345,16 @@ func faceoff_toss():
 	pass
 	
 func faceoff_evade():
+	if wait_timer > 0:
+		return
 	var bias = 0.5 + biases.run_look/20.0
-	if randf() < bias:
+	if randf() < bias: #run away!
 		#TODO: run away!
 		#TODO: find an open position between north and south points and go there
 		
 		pass
-	else:
-		#TODO: stay a minute and look
-		pass
+	else: #stay a minute and look
+		wait_timer = randi_range(30, 90)
 	pass
 
 func jitter():

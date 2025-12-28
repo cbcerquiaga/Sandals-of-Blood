@@ -27,6 +27,7 @@ var buddyRF
 const MAX_DIRECTION_CHANGES := 3 #double juke and change
 const REACTION_CHECK_INTERVAL := 2.0
 const CLOSE_DISTANCE_THRESHOLD := 0.45
+const CHASE_DIRECT_DISTANCE = 20
 
 var oppGoal: Vector2 #center of opposing goal
 var left_wall
@@ -69,7 +70,6 @@ var can_pitch:bool = false
 	"chill": 25,
 	"track": 5
 	}
-var current_path_index: int = 0
 var current_waypoint: Vector2
 var next_waypoint: Vector2
 var has_attacked = false
@@ -78,7 +78,7 @@ var opp_pitcher: Reworked_Pitcher
 var running_positions: Array
 var moving_clockwise: bool
 var direction_changes: int = 0
-var direction_changes_this_pitch: int = 0  # Tracks direction changes for the current pitch
+var pending_behavior_change: String = ""  #store player input for after faceoff
 #chill specific
 var chill_area_min: Vector2 = Vector2(-10, -5)
 var chill_area_max: Vector2 = Vector2(10, 5)
@@ -94,12 +94,14 @@ var legal_first_moves: Array
 var is_faceoff_recover: bool = false
 var faceoff_waiting_for_ball: bool = false
 var must_go_to_rest_first: bool = true
-
-var current_move_axis: String = "x" # or "y" - tracks which axis we're currently moving on
-var move_sequence: Array[Vector2] = [] # Stores sequence of straight moves to reach waypoint
-var current_move_index: int = 0 # Current move in sequence
-var using_grid_movement: bool = true # Whether to use grid-based movement
-var last_grid_position: Vector2 = Vector2.ZERO
+# Cheating behavior
+var cheating_start_time: float = 0.0
+var cheating_give_up_time: float = 3.0#seconds
+var cheating_predicted_ball_path: Array = []
+var cheating_current_intercept_point: Vector2 = Vector2.ZERO
+var cheating_rebound_projection_accuracy: float = 1.0
+#
+var current_path_index: int = 0
 
 var discipline_failures: int = 0
 var is_cutting_corner: bool = false
@@ -121,10 +123,9 @@ func _ready():
 	powerbar.maxPower = true_max_power
 	if bio.leftHanded:
 		hand_offset = hand_offset * -1
-	last_grid_position = global_position
 		
 func restore_behaviors():
-	behaviors = ["pitching", "going_away", "going_to_track", "deciding", "waiting", "chilling", "chasing", "fleeing", "fighting", "faceoff", "faceoff_recover"]
+	behaviors = ["pitching", "going_away", "going_to_track", "deciding", "waiting", "chilling", "chasing", "fleeing", "fighting", "faceoff", "faceoff_recover", "cheating"]
 
 func _physics_process(delta):
 	super._physics_process(delta)
@@ -144,6 +145,10 @@ func _physics_process(delta):
 	update_special_pitch_availability()
 	powerbar.visible = false
 	
+	if current_behavior == "waiting" and opp_pitcher and opp_pitcher.has_pitched and !has_checked_false_start:
+		check_discipline_for_early_movement()
+	if global_position.distance_squared_to(rest_position) < 100:
+		has_arrived = true
 	# Safety check - if pitcher has pitched but hasn't transitioned to going_away
 	if has_pitched and current_behavior != "going_away" and current_behavior != "going_to_track" and current_behavior != "deciding" and current_behavior != "fighting" and current_behavior != "chasing" and current_behavior != "fleeing" and current_behavior != "chilling" and current_behavior != "tracking" and current_behavior != "faceoff_recover" and current_behavior != "faceoff":
 		print(bio.last_name + " forgot to go away! Forcing transition.")
@@ -159,7 +164,6 @@ func _physics_process(delta):
 	elif current_behavior == "faceoff":
 		velocity = Vector2.ZERO
 		can_move = false
-		move_sequence = []
 	elif current_behavior == "deciding":
 		handle_deciding()
 	elif current_behavior == "fallen":
@@ -184,6 +188,8 @@ func _physics_process(delta):
 		go_to_track()
 	elif current_behavior == "faceoff_recover":
 		faceoff_recover()
+	elif current_behavior == "cheating":
+		handle_cheating()
 	
 	# Handle pitching states
 	if is_controlling_player and is_aiming and current_behavior != "faceoff" and current_behavior != "faceoff_recover":
@@ -192,7 +198,6 @@ func _physics_process(delta):
 		powerbar.visible = true
 		current_waypoint = Vector2.ZERO
 		velocity = Vector2.ZERO
-		move_sequence = []
 		_handle_pitch_controls()
 		variance_timer()
 		handle_powerbar()
@@ -207,16 +212,13 @@ func handle_waiting():
 	has_arrived = false
 	has_attacked = false
 	current_waypoint = Vector2.ZERO
-	move_sequence = []
 	# Non-throwing pitcher waits for throwing pitcher to reach track
-	if opp_pitcher and opp_pitcher.current_behavior == "deciding" and !has_made_first_move:
-		# Opponent has reached the track, now it's our turn
-		current_behavior = "going_to_track"
-		go_to_track_start()
+	if opp_pitcher and (opp_pitcher.has_arrived or opp_pitcher.current_behavior == "chilling" or opp_pitcher.current_behavior == "fleeing" or opp_pitcher.current_behavior == "chasing" or opp_pitcher.current_behavior == "deciding"):
+		current_behavior = "deciding"
+		handle_deciding()
 
 func handle_deciding():
 	current_waypoint = Vector2.ZERO
-	move_sequence = []
 	if !opp_pitcher or opp_pitcher.has_arrived == false:
 		can_move = false
 		return
@@ -228,33 +230,37 @@ func handle_deciding():
 		
 func check_human_input():
 	if team == 1:
-		if Input.is_action_just_pressed("pitcher_chill"):
-			current_behavior = "chilling"
-		elif Input.is_action_just_pressed("pitcher_chase"):
-			current_behavior = "chasing"
-		elif Input.is_action_just_pressed("pitcher_flee"):
-			current_behavior = "tracking"
-		elif Input.is_action_just_pressed("pitcher_turn"):
-			# UNLIMITED DIRECTION CHANGES FOR HUMAN PLAYERS - BUG FIX #1
-			moving_clockwise = !moving_clockwise
-			direction_changes_this_pitch += 1
-			if current_behavior == "chilling":
+		if current_behavior != "faceoff_recover" and current_behavior != "going_to_track":
+			if Input.is_action_just_pressed("pitcher_chill"):
+				current_behavior = "chilling"
+			elif Input.is_action_just_pressed("pitcher_chase"):
 				current_behavior = "chasing"
-			change_directions()
+			elif Input.is_action_just_pressed("pitcher_flee"):
+				current_behavior = "tracking"
+			elif Input.is_action_just_pressed("pitcher_turn"):
+				moving_clockwise = !moving_clockwise
+				if current_behavior == "chilling":
+					current_behavior = "chasing"
+				change_directions()
+		else:
+			if Input.is_action_just_pressed("pitcher_chill"):
+				pending_behavior_change = "chilling"
+			elif Input.is_action_just_pressed("pitcher_chase"):
+				pending_behavior_change = "chasing"
+			elif Input.is_action_just_pressed("pitcher_flee"):
+				pending_behavior_change = "tracking"
+			elif Input.is_action_just_pressed("pitcher_turn"):
+				moving_clockwise = !moving_clockwise
+				if pending_behavior_change == "chilling":
+					pending_behavior_change = "chasing"
 
 func change_directions():
-	var next_index = current_path_index
 	if moving_clockwise:
-		next_index = next_index + 1
-		if next_index > running_positions.size() - 1:
-			next_index = 0
+		current_path_index = (current_path_index + 1) % running_positions.size()
 	else:
-		next_index = next_index - 1
-		if next_index < 0:
-			next_index = running_positions.size() - 1
-	current_path_index = next_index
-	current_waypoint = running_positions[current_path_index].global_position
-	generate_horizontal_first_path(current_waypoint)
+		current_path_index = (current_path_index - 1 + running_positions.size()) % running_positions.size()
+	
+	set_next_waypoint()
 
 func increment_pitch_time():
 	current_frame = current_frame + 1
@@ -386,36 +392,7 @@ func faceoff_recover():
 			
 			if aggression_check > aggression_threshold: #we go ball
 				print(bio.last_name + " failed discipline twice! Going for the ball")
-				if ball and global_position.distance_to(ball.global_position) < 30:
-					target = select_shooting_target() #shoot at the goal
-					aim_direction = global_position.direction_to(target).normalized()
-					var ball_direction = global_position.direction_to(ball.global_position).normalized()
-					var sprint_speed = get_buffed_attribute("sprint_speed")
-					var speed = get_buffed_attribute("speed")
-					if status.boost > 0:
-						status.boost = max(0, status.boost - 1.0)
-						speed = get_buffed_attribute("sprint_speed")
-					velocity = ball_direction * speed
-					move_and_slide()
-					if global_position.distance_to(ball.global_position) < 20:
-						print(bio.last_name + " touched the ball, now exiting the field")
-						var left_distance = abs(global_position.x - left_wall.global_position.x)
-						var right_distance = abs(global_position.x - right_wall.global_position.x)
-						var exit_target: Vector2
-						if left_distance < right_distance:
-							exit_target = Vector2(left_wall.global_position.x - 100, global_position.y - 100)
-							print(bio.last_name + " exiting left (closest sideline)")
-						else:
-							exit_target = Vector2(right_wall.global_position.x + 100, global_position.y - 100)
-							print(bio.last_name + " exiting right (closest sideline)")
-						current_behavior = "going_away"
-						current_waypoint = exit_target
-						velocity = global_position.direction_to(exit_target) * get_buffed_attribute("sprint_speed")
-						move_and_slide()
-						return
-				else:
-					print(bio.last_name + " can't reach ball, exiting to closest sideline")
-					
+				start_cheating()
 			else: #we're grumpy so we go man
 				if opp_pitcher and global_position.distance_to(opp_pitcher.global_position) < 100:
 					print(bio.last_name + " failed discipline twice! Attacking opposing pitcher!")
@@ -527,7 +504,6 @@ func faceoff_recover():
 				is_fleeing = true
 				is_chasing = false
 				direction_changes = 0
-				direction_changes_this_pitch = 0
 				initialize_waypoints()
 			elif chosen_behavior == "chilling":
 				current_behavior = "chilling"
@@ -536,171 +512,115 @@ func faceoff_recover():
 				current_behavior = "chasing"
 				initialize_chase()
 				direction_changes = 0
-				direction_changes_this_pitch = 0
 				initialize_waypoints()
 			else:  # tracking
 				current_behavior = "tracking"
 				initialize_waypoints()
 
-func generate_grid_path_to_waypoint():
-	move_sequence = []
-	current_move_index = 0
+func set_next_waypoint():
+	"""Set the current and next waypoints based on direction"""
+	if moving_clockwise:
+		var next_index = (current_path_index + 1) % running_positions.size()
+		current_waypoint = running_positions[current_path_index].global_position
+		next_waypoint = running_positions[next_index].global_position
+	else:
+		var next_index = (current_path_index - 1 + running_positions.size()) % running_positions.size()
+		current_waypoint = running_positions[current_path_index].global_position
+		next_waypoint = running_positions[next_index].global_position
+
+func move_toward_waypoint_constrained(speed: float = -1.0, allow_intercept: bool = false) -> bool:
+	"""Move toward waypoint while staying within 5 units of the line between waypoints.
+	Returns true if waypoint reached."""
 	
 	if current_waypoint == Vector2.ZERO:
-		return
+		var closest_index = find_closest_position_index(global_position)
+		current_path_index = closest_index
+		set_next_waypoint()
 	
-	var start = global_position
-	var target = current_waypoint
+	var actual_speed = speed
+	if actual_speed == -1.0:
+		actual_speed = get_buffed_attribute("sprint_speed") if status.boost > 0 else get_buffed_attribute("speed")
+		if status.boost > 0:
+			status.boost = max(0, status.boost - 0.25)
 	
-	# Calculate differences
-	var dx = target.x - start.x
-	var dy = target.y - start.y
+	# Determine target position
+	var target_pos = current_waypoint
+	var chasing_opponent = false
 	
-	# Determine movement order (random or based on largest difference)
-	var move_x_first = abs(dx) > abs(dy) if randf() > 0.5 else randf() < 0.5
+	# For chase behavior, try to intercept opponent directly when close
+	if allow_intercept and opp_pitcher and current_behavior == "chasing":
+		var dist_to_opp_squared = global_position.distance_squared_to(opp_pitcher.global_position)
+		if dist_to_opp_squared <= 400:
+			target_pos = opp_pitcher.global_position
+			chasing_opponent = true
 	
-	if move_x_first:
-		# Move horizontally first
-		if abs(dx) > 5:  # Only move if significant distance
-			var x_move = Vector2(target.x, start.y)
-			move_sequence.append(x_move)
+	# Calculate direction to target
+	var direction = global_position.direction_to(target_pos).normalized()
+	
+	# For flee behavior, adjust direction to avoid opponent
+	if current_behavior == "fleeing" and opp_pitcher and !chasing_opponent:
+		var opp_direction = global_position.direction_to(opp_pitcher.global_position)
+		var avoidance = -opp_direction.normalized() * 0.3
+		direction = (direction + avoidance).normalized()
+	
+	# Constrain movement to stay within 5 units of the line (but NOT when chasing opponent directly)
+	if !chasing_opponent:
+		# Check for corner cutting opportunity
+		var distance_to_waypoint = global_position.distance_to(current_waypoint)
+		var cut_threshold = 100 - get_buffed_attribute("discipline")
 		
-		# Then move vertically
-		if abs(dy) > 5:  # Only move if significant distance
-			var y_move = Vector2(target.x, target.y)
-			move_sequence.append(y_move)
-	else:
-		# Move vertically first
-		if abs(dy) > 5:  # Only move if significant distance
-			var y_move = Vector2(start.x, target.y)
-			move_sequence.append(y_move)
+		if distance_to_waypoint < cut_threshold and !is_cutting_corner:
+			var discipline_check = randi_range(0, 100)
+			if discipline_check > get_buffed_attribute("discipline"):
+				start_corner_cut()
+				return false
 		
-		# Then move horizontally
-		if abs(dx) > 5:  # Only move if significant distance
-			var x_move = Vector2(target.x, target.y)
-			move_sequence.append(x_move)
+		var prev_index = (current_path_index - 1 + running_positions.size()) % running_positions.size()
+		var line_start = running_positions[prev_index].global_position
+		var line_end = current_waypoint
+		var line_direction = line_start.direction_to(line_end).normalized()
+		var to_position = line_start.direction_to(global_position)
+		var projection = to_position.dot(line_direction)
+		var closest_point = line_start + line_direction * projection
+		var distance_from_line = global_position.distance_to(closest_point)
+		
+		# If too far from line, steer back
+		if distance_from_line > 2:
+			var correction = global_position.direction_to(closest_point)
+			direction = (direction * 0.7 + correction * 0.3).normalized()
 	
-	# If no movement needed (already at target), clear sequence
-	if move_sequence.size() == 0:
-		move_sequence = []
-
-func generate_horizontal_first_path(target_position: Vector2):
-	move_sequence = []
-	current_move_index = 0
-	
-	if target_position == Vector2.ZERO:
-		return
-	
-	var start = global_position
-	
-	# Always move horizontally first for initial track movement
-	var horizontal_target = Vector2(target_position.x, start.y)
-	var vertical_target = Vector2(target_position.x, target_position.y)
-	
-	# Only add moves if we actually need to move
-	if abs(start.x - target_position.x) > 5:
-		move_sequence.append(horizontal_target)
-	
-	if abs(start.y - target_position.y) > 5:
-		move_sequence.append(vertical_target)
-	
-	# If we don't need to move at all, clear the sequence
-	if move_sequence.size() == 0:
-		move_sequence = []
-
-func move_along_grid():
-	if move_sequence.size() == 0 or current_move_index >= move_sequence.size():
-		return true  # Path completed
-	
-	var target_point = move_sequence[current_move_index]
-	var direction = target_point - global_position
-	
-	# Only move in cardinal directions
-	if abs(direction.x) > abs(direction.y):
-		# Move horizontally
-		direction = Vector2(1 if direction.x > 0 else -1, 0)
-	else:
-		# Move vertically
-		direction = Vector2(0, 1 if direction.y > 0 else -1)
-	
-	var speed = get_buffed_attribute("sprint_speed") if status.boost > 0 else get_buffed_attribute("speed")
-	velocity = direction * speed
+	velocity = direction * actual_speed
 	move_and_slide()
 	
-	# Check if we've reached the current grid point with better precision
-	var distance_to_target = global_position.distance_to(target_point)
-	if distance_to_target < 15:
-		current_move_index += 1
-		return false
+	# Check if reached waypoint (unless we're chasing opponent directly)
+	if !chasing_opponent and global_position.distance_to(current_waypoint) < 20:
+		return true
 	
-	# Also check if we overshot the target
-	var original_distance = last_grid_position.distance_to(target_point)
-	var current_distance = global_position.distance_to(target_point)
-	
-	if current_distance > original_distance and distance_to_target < 30:
-		# We overshot, but we're close enough
-		current_move_index += 1
-		return false
-	
-	# Update last grid position
-	last_grid_position = global_position
-	
-	return false  # Path not completed
+	return false
 
-func predict_opponent_exit() -> Vector2:
-	if !opp_pitcher or !running_positions or running_positions.size() == 0:
-		return Vector2.ZERO
+func start_corner_cut():
+	"""Start cutting the corner by calculating a point along the next leg"""
+	is_cutting_corner = true
+	discipline_failures = 0
 	
-	var opp_closest = find_closest_position_index(opp_pitcher.global_position)
+	# Get current distance from waypoint
+	var distance_from_current = global_position.distance_to(current_waypoint)
 	
-	# Predict which direction they'll go based on their position and velocity
-	var opp_vel = opp_pitcher.velocity
-	if opp_vel.length() > 10:
-		# They're moving, predict based on velocity
-		var next_clock_pos = running_positions[(opp_closest + 1) % running_positions.size()].global_position
-		var next_counter_pos = running_positions[(opp_closest - 1 + running_positions.size()) % running_positions.size()].global_position
-		
-		var clock_alignment = opp_vel.normalized().dot((next_clock_pos - opp_pitcher.global_position).normalized())
-		var counter_alignment = opp_vel.normalized().dot((next_counter_pos - opp_pitcher.global_position).normalized())
-		
-		if clock_alignment > counter_alignment:
-			return next_clock_pos
-		else:
-			return next_counter_pos
-	else:
-		# They're not moving yet, guess based on distance
-		var clockwise_dist = calculate_clockwise_distance(opp_closest, find_closest_position_index(global_position))
-		var counter_dist = calculate_counter_distance(opp_closest, find_closest_position_index(global_position))
-		
-		if clockwise_dist < counter_dist:
-			return running_positions[(opp_closest + 1) % running_positions.size()].global_position
-		else:
-			return running_positions[(opp_closest - 1 + running_positions.size()) % running_positions.size()].global_position
-
-func move_toward_waypoint():
-	if current_waypoint == Vector2.ZERO:
-		# Find the nearest track waypoint and go there horizontally first
-		var closest_index = find_closest_position_index(global_position)
-		current_waypoint = running_positions[closest_index].global_position
-		generate_horizontal_first_path(current_waypoint)
+	# Get next waypoint and the one after
+	var next_index = (current_path_index + 1) % running_positions.size() if moving_clockwise else (current_path_index - 1 + running_positions.size()) % running_positions.size()
+	var after_next_index = (next_index + 1) % running_positions.size() if moving_clockwise else (next_index - 1 + running_positions.size()) % running_positions.size()
 	
-	if current_behavior in ["chasing", "fleeing", "tracking"] and using_grid_movement:
-		if move_sequence.size() == 0 or current_move_index >= move_sequence.size():
-			# Generate new path to waypoint
-			generate_horizontal_first_path(current_waypoint)
-		
-		# Move along grid
-		var path_completed = move_along_grid()
-		if path_completed:
-			# Reached waypoint, advance to next
-			advance_waypoints()
-	else:
-		# Old movement for non-grid behaviors
-		var speed = get_buffed_attribute("sprint_speed") if status.boost > 0 else get_buffed_attribute("speed")
-		status.boost = max(0, status.boost - 0.25)
-		var direction = global_position.direction_to(current_waypoint)
-		velocity = direction * speed 
-		move_and_slide()
+	var next_pos = running_positions[next_index].global_position
+	var after_next_pos = running_positions[after_next_index].global_position
+	
+	# Calculate cut point: same distance along next leg
+	var next_leg_direction = next_pos.direction_to(after_next_pos).normalized()
+	var cut_point = next_pos + next_leg_direction * distance_from_current
+	
+	print(bio.last_name + " is cutting the corner from " + str(current_waypoint) + " to " + str(cut_point))
+	
+	current_waypoint = cut_point
+	# Don't update current_path_index yet - we'll do that when we reach the cut point
 
 func is_off_field() -> bool:
 	var field_bounds = Rect2(left_wall.global_position.x, right_wall.global_position.x, oppGoal.y, 0 - oppGoal.y)
@@ -711,6 +631,7 @@ func is_off_field_at_position(pos: Vector2) -> bool:
 	return !field_bounds.has_point(pos)
 
 func _on_pitch_phase_started():
+	has_checked_false_start = false
 	status.boost = max(status.boost, 10) 
 	has_made_first_move = false
 	max_power = true_max_power * status.energy
@@ -720,7 +641,6 @@ func _on_pitch_phase_started():
 	is_chasing = false
 	is_fleeing = false
 	direction_changes = 0
-	direction_changes_this_pitch = 0  # Reset direction changes for new pitch
 	pause_counter = 0
 	current_behavior = "waiting"
 	prepare_target_position()
@@ -1176,65 +1096,40 @@ func go_away():
 	has_arrived = false
 	has_made_first_move = false
 	current_waypoint = rest_position
-	move_sequence = []
 
 func prepare_target_position():
 	target = Vector2(0,0)
 
 func chase():
 	if current_waypoint == Vector2.ZERO:
-		# Find the nearest track waypoint and go there horizontally first
 		var closest_index = find_closest_position_index(global_position)
-		current_waypoint = running_positions[closest_index].global_position
-		generate_horizontal_first_path(current_waypoint)
+		current_path_index = closest_index
+		set_next_waypoint()
 		initialize_chase()
 	
 	if !is_chasing:
 		initialize_chase()
 	
-	if using_grid_movement:
-		if move_sequence.size() == 0 or current_move_index >= move_sequence.size():
-			generate_horizontal_first_path(current_waypoint)
-		
-		var path_completed = move_along_grid()
-		if path_completed:
-			# Check if we should advance waypoints
-			var myIndex = find_closest_position_index(global_position)
-			var oppIndex = find_closest_position_index(opp_pitcher.global_position)
-			if myIndex == oppIndex:
-				if global_position.distance_to(opp_pitcher.global_position) < chase_threshold:
-					# Go directly after opponent
-					current_behavior = "fighting"
-					return
+	# Move with intercept allowed
+	var reached = move_toward_waypoint_constrained(-1.0, true)
+	
+	if reached:
+		if is_cutting_corner:
+			is_cutting_corner = false
+			# Now advance to the waypoint we cut toward
 			advance_waypoints()
-	else:
-		# Old movement logic
-		var myIndex = find_closest_position_index(global_position)
-		var oppIndex = find_closest_position_index(opp_pitcher.global_position)
-		if myIndex == oppIndex:
-			# If we're closer than chase threshold, go directly after opponent
-			if global_position.distance_to(opp_pitcher.global_position) < chase_threshold:
-				var direction = global_position.direction_to(opp_pitcher.global_position).normalized()
-				var speed = get_buffed_attribute("sprint_speed") if status.boost > 0 else get_buffed_attribute("speed")
-				velocity = direction * speed
-				move_and_slide()
-				return
-			else:
-				# If on same index but not close enough, force move to next waypoint
-				if current_waypoint != Vector2.ZERO:
-					if global_position.distance_to(current_waypoint) < 10:  # If close to current waypoint
-						advance_waypoints()  # Move to next waypoint immediately
-					else:
-						# Move toward current waypoint but prepare for next
-						var direction = global_position.direction_to(current_waypoint).normalized()
-						var speed = get_buffed_attribute("sprint_speed") if status.boost > 0 else get_buffed_attribute("speed")
-						velocity = direction * speed
-						move_and_slide()
-						return
-		move_around()
+		else:
+			advance_waypoints()
+	
+	if opp_pitcher:
+		var distance_to_opp = global_position.distance_to(opp_pitcher.global_position)
+		if distance_to_opp < 2:
+			current_behavior = "fighting"
+			print(bio.last_name + " caught opponent! Fighting!")
+			return
 	
 	last_reaction_check += get_process_delta_time()
-	if last_reaction_check >= REACTION_CHECK_INTERVAL && direction_changes_this_pitch < MAX_DIRECTION_CHANGES:
+	if last_reaction_check >= REACTION_CHECK_INTERVAL && direction_changes < MAX_DIRECTION_CHANGES:
 		last_reaction_check = 0.0
 		reconsider_chase_direction()
 
@@ -1254,14 +1149,13 @@ func reconsider_chase_direction():
 		return
 		
 	# Check if we've already used all our direction changes for this pitch
-	if direction_changes_this_pitch >= MAX_DIRECTION_CHANGES:
+	if direction_changes >= MAX_DIRECTION_CHANGES:
 		return
 	
 	# Check if opponent is chasing in same direction
 	if opp_pitcher.current_behavior == "chasing" && moving_clockwise == opp_pitcher.moving_clockwise:
-		if direction_changes_this_pitch < MAX_DIRECTION_CHANGES:
+		if direction_changes < MAX_DIRECTION_CHANGES:
 			moving_clockwise = !moving_clockwise
-			direction_changes_this_pitch += 1
 			direction_changes += 1
 		return
 	
@@ -1274,42 +1168,33 @@ func reconsider_chase_direction():
 	var should_change = (moving_clockwise && counter_distance < clockwise_distance * 0.8) || \
 					   (!moving_clockwise && clockwise_distance < counter_distance * 0.8)
 	
-	if should_change && direction_changes_this_pitch < MAX_DIRECTION_CHANGES:
-		direction_changes_this_pitch += 1
+	if should_change && direction_changes < MAX_DIRECTION_CHANGES:
 		direction_changes += 1
 		moving_clockwise = !moving_clockwise
 
 func flee():
 	if current_waypoint == Vector2.ZERO:
-		# Find the nearest track waypoint and go there horizontally first
 		var closest_index = find_closest_position_index(global_position)
-		current_waypoint = running_positions[closest_index].global_position
-		generate_horizontal_first_path(current_waypoint)
+		current_path_index = closest_index
+		set_next_waypoint()
 		initialize_flee()
 	
 	if !is_fleeing:
 		initialize_flee()
 	
-	if using_grid_movement:
-		if move_sequence.size() == 0 or current_move_index >= move_sequence.size():
-			generate_horizontal_first_path(current_waypoint)
-		
-		var path_completed = move_along_grid()
-		if path_completed:
+	# Move with avoidance enabled
+	var speed = calculate_flee_speed()
+	var reached = move_toward_waypoint_constrained(speed, false)
+	
+	if reached:
+		if is_cutting_corner:
+			is_cutting_corner = false
 			advance_waypoints()
-	else:
-		# Old movement logic
-		var speed = calculate_flee_speed()
-		move_around(speed)
-		if current_waypoint != Vector2.ZERO && global_position.distance_to(current_waypoint) < 5.0:
-			# Reset direction changes when reaching waypoint (but keep track of pitch limit)
-			direction_changes = 0
-			if randf_range(0,100) < get_buffed_attribute("reactions") and direction_changes_this_pitch < MAX_DIRECTION_CHANGES:
-				reconsider_flee_direction()
+		else:
 			advance_waypoints()
 	
 	last_reaction_check += get_process_delta_time()
-	if last_reaction_check >= REACTION_CHECK_INTERVAL && direction_changes_this_pitch < MAX_DIRECTION_CHANGES:
+	if last_reaction_check >= REACTION_CHECK_INTERVAL && direction_changes < MAX_DIRECTION_CHANGES:
 		last_reaction_check = 0.0
 		if randf_range(0,100) < get_buffed_attribute("reactions"):
 			if opp_pitcher.current_behavior == "chilling":
@@ -1349,7 +1234,7 @@ func reconsider_flee_direction():
 		return
 	
 	# Check if we've already used all our direction changes for this pitch
-	if direction_changes_this_pitch >= MAX_DIRECTION_CHANGES:
+	if direction_changes >= MAX_DIRECTION_CHANGES:
 		return
 	
 	var my_index = find_closest_position_index(global_position)
@@ -1361,8 +1246,7 @@ func reconsider_flee_direction():
 	var should_change = (moving_clockwise && clockwise_distance < counter_distance * 0.8) || \
 					   (!moving_clockwise && counter_distance < clockwise_distance * 0.8)
 	
-	if should_change && direction_changes_this_pitch < MAX_DIRECTION_CHANGES:
-		direction_changes_this_pitch += 1
+	if should_change && direction_changes < MAX_DIRECTION_CHANGES:
 		direction_changes += 1
 		moving_clockwise = !moving_clockwise
 
@@ -1376,7 +1260,7 @@ func should_stop_fleeing() -> bool:
 	
 	var safe_distance = running_positions.size() * 0.4
 	if current_distance >= safe_distance:
-		if randf() < 0.6 or direction_changes_this_pitch >= MAX_DIRECTION_CHANGES:
+		if randf() < 0.6 or direction_changes >= MAX_DIRECTION_CHANGES:
 			return true
 		else:
 			reconsider_flee_direction()
@@ -1392,12 +1276,12 @@ func chill():
 	
 	# Move very slowly toward chill target
 	var move_direction = global_position.direction_to(current_chill_target)
-	velocity = move_direction * (get_buffed_attribute("speed") * 0.05)  # Much slower movement
+	velocity = move_direction * (get_buffed_attribute("speed") * 0.1)
 	move_and_slide()
 	
 	# Reset velocity if we're moving too fast for chilling
 	if velocity.length() > get_buffed_attribute("speed") * 0.1:
-		velocity = velocity.normalized() * (get_buffed_attribute("speed") * 0.05)
+		velocity = velocity.normalized() * (get_buffed_attribute("speed") * 0.1)
 	
 	last_reaction_check += get_process_delta_time()
 	if last_reaction_check >= REACTION_CHECK_INTERVAL:
@@ -1479,123 +1363,33 @@ func fight_or_flight():
 func track():
 	if current_waypoint == Vector2.ZERO:
 		moving_clockwise = randf() < 0.5
-		# Find the nearest track waypoint and go there horizontally first
 		var closest_index = find_closest_position_index(global_position)
-		current_waypoint = running_positions[closest_index].global_position
-		generate_horizontal_first_path(current_waypoint)
+		current_path_index = closest_index
+		set_next_waypoint()
 		has_made_first_move = false
-	else:
-		move_around()
+	
+	var reached = move_toward_waypoint_constrained()
+	
+	if reached:
+		if is_cutting_corner:
+			is_cutting_corner = false
+			advance_waypoints()
+		else:
+			advance_waypoints()
 	
 func move_around(input_speed: float = -1.0):
-	if current_waypoint == Vector2.ZERO:
-		# Find the nearest track waypoint and go there horizontally first
-		var closest_index = find_closest_position_index(global_position)
-		current_waypoint = running_positions[closest_index].global_position
-		generate_horizontal_first_path(current_waypoint)
+	var reached = move_toward_waypoint_constrained(input_speed, false)
 	
-	var is_vertical_movement = false
-	if running_positions.size() > current_path_index:
-		var next_index = current_path_index + 1 if moving_clockwise else current_path_index - 1
-		if next_index >= running_positions.size():
-			next_index = 0
-		elif next_index < 0:
-			next_index = running_positions.size() - 1
-		var current_pos = running_positions[current_path_index].global_position
-		var next_pos = running_positions[next_index].global_position
-		if abs(current_pos.y - next_pos.y) > abs(current_pos.x - next_pos.x):
-			is_vertical_movement = true
-	if is_vertical_movement and current_behavior in ["chasing", "fleeing", "tracking"]:
-		var distance_factor = 1.0
-		if opp_pitcher:
-			var distance_to_opp = global_position.distance_to(opp_pitcher.global_position)
-			var max_track_distance = 1000.0  # Adjust based on your track size
-			distance_factor = clamp(distance_to_opp / max_track_distance, 0.1, 1.0)
-		var discipline_check = randi_range(0, 100)
-		var discipline_threshold = get_buffed_attribute("discipline") * distance_factor
-		if discipline_check > discipline_threshold:
-			discipline_check = randi_range(0, 100)
-			if discipline_check > discipline_threshold:
-				print(bio.last_name + " is cutting the corner!")
-				is_cutting_corner = true
-				discipline_failures = 0
-				
-				# Skip to team-appropriate rest position
-				if team == 1:  # Human team - go to South
-					current_waypoint = south_position
-				else:  # CPU team - go to North
-					current_waypoint = north_position
-				
-				generate_horizontal_first_path(current_waypoint)
-				return
-	if !is_vertical_movement:
-		discipline_failures = 0
-	
-	if current_behavior == "tracking" and using_grid_movement:
-		if move_sequence.size() == 0 or current_move_index >= move_sequence.size():
-			generate_horizontal_first_path(current_waypoint)
-		
-		var path_completed = move_along_grid()
-		if path_completed:
+	if reached:
+		if is_cutting_corner:
+			is_cutting_corner = false
 			advance_waypoints()
-	else:
-		# Check if we've reached the current waypoint with better precision
-		var distance_to_waypoint = global_position.distance_to(current_waypoint)
-		if distance_to_waypoint < 20:  # Increased tolerance for waypoint reaching
-			if is_cutting_corner:
-				var target_position = south_position if team == 1 else north_position
-				if global_position.distance_to(target_position) < 20:
-					is_cutting_corner = false
-					advance_waypoints()  # Continue to next waypoint after rest position
-				else:
-					var speed
-					if input_speed == -1:
-						if status.boost > 0:
-							speed = get_buffed_attribute("sprint_speed")
-						else:
-							speed = get_buffed_attribute("speed")
-					else:
-						speed = input_speed
-					
-					var base_direction = global_position.direction_to(current_waypoint)
-					velocity = base_direction * speed
-					move_and_slide()
-					
-					if status.boost > 0 and speed == get_buffed_attribute("sprint_speed"):
-						status.boost = max(0, status.boost - 0.25)
-					return
-			else:
-				advance_waypoints()
-		
-		var speed
-		if input_speed == -1:
-			if status.boost > 0:
-				speed = get_buffed_attribute("sprint_speed")
-			else:
-				speed = get_buffed_attribute("speed")
 		else:
-			speed = input_speed
-		
-		# Get direction to waypoint
-		var direction = global_position.direction_to(current_waypoint)
-		
-		# Normalize the direction to prevent diagonal movement preference
-		if abs(direction.x) > abs(direction.y):
-			direction = Vector2(1 if direction.x > 0 else -1, 0)
-		else:
-			direction = Vector2(0, 1 if direction.y > 0 else -1)
-		
-		velocity = direction * speed
-		move_and_slide()
-		
-		if status.boost > 0 and speed == get_buffed_attribute("sprint_speed"):
-			status.boost = max(0, status.boost - 0.25)
+			advance_waypoints()
 
 func initialize_waypoints():
 	if !has_made_first_move:
-		# For non-throwing pitcher - wait until opponent is at track
 		if current_behavior == "waiting":
-			# We should not initialize waypoints while waiting
 			return
 		
 		if current_behavior == "faceoff_recover" and legal_first_moves.size() == 2 and is_faceoff_recover:
@@ -1608,90 +1402,59 @@ func initialize_waypoints():
 		else:
 			var closest_index = find_closest_position_index(global_position)
 			current_path_index = closest_index
-			current_waypoint = running_positions[current_path_index].global_position
+			if !has_made_first_move:
+				decide_initial_direction()
+			
+			set_next_waypoint()
+		
 		has_made_first_move = true
-		generate_horizontal_first_path(current_waypoint)
 	else:
-		if moving_clockwise:
-			current_path_index = (current_path_index + 1) % running_positions.size()
-		else:
-			current_path_index = (current_path_index - 1 + running_positions.size()) % running_positions.size()
-		current_waypoint = running_positions[current_path_index].global_position
-		generate_horizontal_first_path(current_waypoint)
+		advance_waypoints()
 
 func advance_waypoints():
-	var next_index = current_path_index
 	if moving_clockwise:
-		next_index = next_index + 1
-		if next_index > running_positions.size() - 1:
-			next_index = 0
+		current_path_index = (current_path_index + 1) % running_positions.size()
 	else:
-		next_index = next_index - 1
-		if next_index < 0:
-			next_index = running_positions.size() - 1
-	current_path_index = next_index
-	if !is_cutting_corner:
-		current_waypoint = running_positions[current_path_index].global_position
-		generate_horizontal_first_path(current_waypoint)
+		current_path_index = (current_path_index - 1 + running_positions.size()) % running_positions.size()
+	
+	set_next_waypoint()
 
 func handle_going_away():
-	current_waypoint = rest_position
-	var speed
+	var speed = get_buffed_attribute("sprint_speed") if status.boost > 0 else get_buffed_attribute("speed")
 	if status.boost > 0:
-		speed = get_buffed_attribute("sprint_speed")
-		status.boost = status.boost - 0.25
-	else:
-		speed = get_buffed_attribute("speed")
+		status.boost = max(0, status.boost - 0.25)
 	
-	# Move toward rest position
-	var move_direction = global_position.direction_to(rest_position)
-	
-	# Normalize movement to prevent diagonal drift
-	if abs(move_direction.x) > abs(move_direction.y):
-		move_direction = Vector2(1 if move_direction.x > 0 else -1, 0)
-	else:
-		move_direction = Vector2(0, 1 if move_direction.y > 0 else -1)
-	
+	var move_direction = global_position.direction_to(rest_position).normalized()
 	velocity = move_direction * speed
 	move_and_slide()
 	
-	if global_position.distance_to(rest_position) <= 10:  # Increased tolerance
-		# At rest position, now go to the track horizontally
+	if global_position.distance_to(rest_position) <= 10:
 		current_behavior = "going_to_track"
 		going_to_track = true
-		# Find the closest track corner from the rest position
+		
+		decide_initial_direction()
+		
 		var closest_index = find_closest_position_index(rest_position)
-		track_target_corner = running_positions[closest_index].global_position
-		# Clear any existing path and generate horizontal-first path
-		move_sequence = []
-		current_move_index = 0
-		generate_horizontal_first_path(track_target_corner)
-
-func go_to_track_start():
-	# For non-throwing pitcher - start moving to track
-	going_to_track = true
-	# Find the closest track corner from current position (not rest position!)
-	var closest_index = find_closest_position_index(global_position)
-	track_target_corner = running_positions[closest_index].global_position
-	# Clear any existing path and generate horizontal-first path
-	move_sequence = []
-	current_move_index = 0
-	generate_horizontal_first_path(track_target_corner)
+		current_path_index = closest_index
+		set_next_waypoint()
 
 func go_to_track():
 	if !going_to_track:
 		return
+
+	if current_waypoint == Vector2.ZERO:
+		var closest_index = find_closest_position_index(global_position)
+		current_path_index = closest_index
+		set_next_waypoint()
 	
-	# Move along the grid path
-	var path_completed = move_along_grid()
-	if path_completed and current_move_index >= move_sequence.size():
-		# Successfully reached the track corner
+	var reached = move_toward_waypoint_constrained()
+	
+	if reached:
 		going_to_track = false
 		current_behavior = "deciding"
-		current_waypoint = Vector2.ZERO
 		has_arrived = true
+		has_made_first_move = true
 		velocity = Vector2.ZERO
-		move_sequence = []
 
 func find_closest_position_index(position: Vector2) -> int:
 	var closest_index = 0
@@ -1758,3 +1521,201 @@ func handle_powerbar():
 	powerbar.bend(current_curve)
 	powerbar.stretch(current_power)
 	powerbar.color(current_variance)
+
+func check_faceoff_input():
+	if team == 1:
+		if Input.is_action_just_pressed("pitcher_chill"):
+			pending_behavior_change = "chilling"
+		elif Input.is_action_just_pressed("pitcher_chase"):
+			pending_behavior_change = "chasing"
+		elif Input.is_action_just_pressed("pitcher_flee"):
+			pending_behavior_change = "tracking"
+		elif Input.is_action_just_pressed("pitcher_turn"):
+			if pending_behavior_change == "":
+				pending_behavior_change = "turn"
+
+func decide_initial_direction():
+	"""Decide which direction to go around the track based on opponent position and behavior"""
+	
+	if !opp_pitcher:
+		moving_clockwise = randf() < 0.5
+		print(bio.last_name + ": No opponent, random direction")
+		return
+	var my_rest = rest_position
+	var opp_pos = opp_pitcher.global_position
+	var my_closest = find_closest_position_index(my_rest)
+	var opp_closest = find_closest_position_index(opp_pos)
+	var clockwise_dist = calculate_clockwise_distance(my_closest, opp_closest)
+	var counter_dist = calculate_counter_distance(my_closest, opp_closest)
+	var random_factor = randf_range(0.8, 1.2)
+	var wants_to_chase = false
+	var wants_to_flee = false
+	if pending_behavior_change == "chasing":
+		wants_to_chase = true
+	elif pending_behavior_change == "tracking" or pending_behavior_change == "fleeing":
+		wants_to_flee = true
+	else:
+		var chase_weight = scrapping["fight"]
+		var flee_weight = scrapping["flee"]
+		var total = chase_weight + flee_weight + scrapping["chill"] + scrapping["track"]
+		var chase_chance = chase_weight / total
+		var flee_chance = flee_weight / total
+		var roll = randf()
+		if roll < chase_chance:
+			wants_to_chase = true
+		elif roll < (chase_chance + flee_chance):
+			wants_to_flee = true
+	
+	if wants_to_chase:
+		moving_clockwise = (clockwise_dist * random_factor) < counter_dist
+	elif wants_to_flee:
+		moving_clockwise = (clockwise_dist * random_factor) > counter_dist
+	else:
+		moving_clockwise = randf() < 0.5
+
+
+func check_discipline_for_early_movement():
+	has_checked_false_start = true
+	var discipline_check = randi_range(0, 100)
+	var discipline_threshold = get_buffed_attribute("discipline")
+	if discipline_check > discipline_threshold:
+		discipline_check = randi_range(0, 100)
+		if discipline_check > discipline_threshold:
+			print(bio.last_name + " failed both discipline checks! Moving early!")
+			current_behavior = "going_to_track"
+			go_to_track_start()
+			return true
+	return false
+
+func start_cheating():
+	current_behavior = "cheating"
+	cheating_start_time = Time.get_ticks_msec() / 1000.0
+	cheating_rebound_projection_accuracy = 0.5 + (get_buffed_attribute("positioning") / 200.0)
+	collision_mask = 0b0101 #just be sure we collide with players and the ball
+
+func handle_cheating():
+	# Check if we should give up
+	var current_time = Time.get_ticks_msec() / 1000.0
+	if current_time - cheating_start_time > cheating_give_up_time:
+		print(bio.last_name + " gave up cheating after 3 seconds. Getting off field.")
+		go_away()
+		return
+	
+	# Predict ball path and move to intercept
+	if !ball:
+		print(bio.last_name + " can't find the ball, exiting field.")
+		go_away()
+		return
+	
+	predict_ball_path_for_cheating()
+	var intercept = find_intercept_point_for_cheating()
+	
+	if intercept == Vector2.ZERO:
+		# If no intercept point, just chase the ball directly
+		var direction = global_position.direction_to(ball.global_position).normalized()
+		var speed = get_buffed_attribute("sprint_speed") if status.boost > 0 else get_buffed_attribute("speed")
+		if status.boost > 0:
+			status.boost = max(0, status.boost - 0.5)
+		velocity = direction * speed
+	else:
+		# Move to intercept point
+		var direction = global_position.direction_to(intercept).normalized()
+		var speed = get_buffed_attribute("sprint_speed") if status.boost > 0 else get_buffed_attribute("speed")
+		if status.boost > 0:
+			status.boost = max(0, status.boost - 0.5)
+		velocity = direction * speed
+
+func predict_ball_path_for_cheating():
+	if !ball:
+		cheating_predicted_ball_path = []
+		return
+	
+	cheating_predicted_ball_path = []
+	var current_pos = ball.global_position
+	var current_vel = ball.linear_velocity
+	var current_spin = ball.current_spin
+	var remaining_speed = current_vel.length()
+	var time_step = 0.1
+	var max_time = 3.0
+	var field_bounds = Rect2(Vector2(left_wall.global_position.x, -abs(oppGoal.y)), 
+							Vector2(right_wall.global_position.x - left_wall.global_position.x, 
+									abs(oppGoal.y) * 2))
+	var projection_error = (1.0 - cheating_rebound_projection_accuracy) * 0.5
+	var elapsed_time = 0.0
+	var steps = 0
+	var max_steps = int(max_time / time_step)
+	
+	while remaining_speed > 50 and steps < max_steps and elapsed_time < max_time:
+		var next_pos = current_pos + current_vel * time_step
+		var collision = false
+		var wall_normal = Vector2.ZERO
+		
+		# Check for wall collisions
+		if next_pos.x < field_bounds.position.x:
+			wall_normal = Vector2.RIGHT
+			collision = true
+		elif next_pos.x > field_bounds.end.x:
+			wall_normal = Vector2.LEFT
+			collision = true
+		elif next_pos.y < field_bounds.position.y:
+			wall_normal = Vector2.UP
+			collision = true
+		elif next_pos.y > field_bounds.end.y:
+			wall_normal = Vector2.DOWN
+			collision = true
+		
+		if collision:
+			# Simplified bounce logic
+			var bounce_vel = current_vel.bounce(wall_normal)
+			bounce_vel = bounce_vel * ball.bounce_drag
+			current_vel = bounce_vel
+			current_spin *= 0.8
+			
+			# Adjust position to be at wall
+			if wall_normal.x != 0:
+				next_pos.x = field_bounds.position.x if wall_normal.x > 0 else field_bounds.end.x
+			else:
+				next_pos.y = field_bounds.position.y if wall_normal.y > 0 else field_bounds.end.y
+		else:
+			# Simple drag
+			current_vel = current_vel * 0.98
+		
+		cheating_predicted_ball_path.append({
+			"position": next_pos,
+			"time": elapsed_time,
+			"velocity": current_vel
+		})
+		
+		current_pos = next_pos
+		remaining_speed = current_vel.length()
+		elapsed_time += time_step
+		steps += 1
+
+func find_intercept_point_for_cheating() -> Vector2:
+	if cheating_predicted_ball_path.is_empty():
+		return Vector2.ZERO
+	
+	var best_intercept = Vector2.ZERO
+	var best_time = INF
+	
+	for point in cheating_predicted_ball_path:
+		var point_pos = point["position"]
+		var point_time = point["time"]
+		
+		var distance_to_point = global_position.distance_to(point_pos)
+		var speed = get_buffed_attribute("sprint_speed") if status.boost > 0 else get_buffed_attribute("speed")
+		var time_to_reach = distance_to_point / speed
+		
+		if time_to_reach <= point_time * 1.1:  #can reach within 10% of ball's arrival time
+			if point_time < best_time:
+				best_time = point_time
+				best_intercept = point_pos
+	
+	return best_intercept
+
+func go_to_track_start():
+	going_to_track = true
+	decide_initial_direction()
+	var closest_index = find_closest_position_index(global_position)
+	current_path_index = closest_index
+	set_next_waypoint()
