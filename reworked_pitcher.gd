@@ -102,13 +102,11 @@ var cheating_current_intercept_point: Vector2 = Vector2.ZERO
 var cheating_rebound_projection_accuracy: float = 1.0
 #
 var current_path_index: int = 0
-
+var wants_to_cheat: bool = false
 var discipline_failures: int = 0
 var is_cutting_corner: bool = false
 var north_position: Vector2 = Vector2.ZERO
 var south_position: Vector2 = Vector2.ZERO
-
-# New state for transitioning to track
 var going_to_track: bool = false
 var track_target_corner: Vector2 = Vector2.ZERO
 
@@ -129,6 +127,11 @@ func restore_behaviors():
 
 func _physics_process(delta):
 	super._physics_process(delta)
+	if overall_state == PlayerState.SOLO_CELEBRATION:
+		add_buff("strutting", ["speed", "sprint_speed"], [-98, -98])
+	else:
+		if has_buff("strutting"):
+			remove_buff("strutting")
 	if north_position == Vector2.ZERO:
 		if team == 2:
 			north_position = rest_position
@@ -236,23 +239,27 @@ func check_human_input():
 			elif Input.is_action_just_pressed("pitcher_chase"):
 				current_behavior = "chasing"
 			elif Input.is_action_just_pressed("pitcher_flee"):
-				current_behavior = "tracking"
+				current_behavior = "fleeing"
 			elif Input.is_action_just_pressed("pitcher_turn"):
 				moving_clockwise = !moving_clockwise
 				if current_behavior == "chilling":
 					current_behavior = "chasing"
 				change_directions()
+			elif Input.is_action_just_pressed("pitcher_cheat"):
+				wants_to_cheat = true
 		else:
 			if Input.is_action_just_pressed("pitcher_chill"):
 				pending_behavior_change = "chilling"
 			elif Input.is_action_just_pressed("pitcher_chase"):
 				pending_behavior_change = "chasing"
 			elif Input.is_action_just_pressed("pitcher_flee"):
-				pending_behavior_change = "tracking"
+				pending_behavior_change = "fleeing"
 			elif Input.is_action_just_pressed("pitcher_turn"):
 				moving_clockwise = !moving_clockwise
 				if pending_behavior_change == "chilling":
 					pending_behavior_change = "chasing"
+			elif Input.is_action_just_pressed("pitcher_cheat"):
+				wants_to_cheat = true
 
 func change_directions():
 	if moving_clockwise:
@@ -381,18 +388,18 @@ func faceoff_recover():
 	can_move = true
 	
 	#check discipline for immediate fighting or ball chasing
-	var discipline_check_1 = randi_range(0, 100)
+	var discipline_check = randi_range(0, 100)
 	var discipline_threshold = get_buffed_attribute("discipline")
 	
-	if discipline_check_1 > discipline_threshold:
-		var discipline_check_2 = randi_range(0, 100)
-		if discipline_check_2 > discipline_threshold:
+	if discipline_check > discipline_threshold:
+		discipline_check = randi_range(0, 100)
+		if discipline_check > discipline_threshold:
 			var aggression_check = randi_range(0, 100)
 			var aggression_threshold = get_buffed_attribute("aggression")
 			
 			if aggression_check > aggression_threshold: #we go ball
-				print(bio.last_name + " failed discipline twice! Going for the ball")
-				start_cheating()
+				print(bio.last_name + " failed discipline twice! Going for the ball later")
+				#start_cheating()
 			else: #we're grumpy so we go man
 				if opp_pitcher and global_position.distance_to(opp_pitcher.global_position) < 100:
 					print(bio.last_name + " failed discipline twice! Attacking opposing pitcher!")
@@ -549,19 +556,14 @@ func move_toward_waypoint_constrained(speed: float = -1.0, allow_intercept: bool
 	
 	# For chase behavior, try to intercept opponent directly when close
 	if allow_intercept and opp_pitcher and current_behavior == "chasing":
-		var dist_to_opp_squared = global_position.distance_squared_to(opp_pitcher.global_position)
-		if dist_to_opp_squared <= 400:
+		var dist_to_opp = global_position.distance_to(opp_pitcher.global_position)
+		if dist_to_opp <= 100:
 			target_pos = opp_pitcher.global_position
 			chasing_opponent = true
+			print(bio.last_name + " is directly chasing " + opp_pitcher.bio.last_name + " at distance: " + str(dist_to_opp))
 	
 	# Calculate direction to target
 	var direction = global_position.direction_to(target_pos).normalized()
-	
-	# For flee behavior, adjust direction to avoid opponent
-	if current_behavior == "fleeing" and opp_pitcher and !chasing_opponent:
-		var opp_direction = global_position.direction_to(opp_pitcher.global_position)
-		var avoidance = -opp_direction.normalized() * 0.3
-		direction = (direction + avoidance).normalized()
 	
 	# Constrain movement to stay within 5 units of the line (but NOT when chasing opponent directly)
 	if !chasing_opponent:
@@ -584,8 +586,15 @@ func move_toward_waypoint_constrained(speed: float = -1.0, allow_intercept: bool
 		var closest_point = line_start + line_direction * projection
 		var distance_from_line = global_position.distance_to(closest_point)
 		
+		# Apply corrections to direction
+		# For flee behavior, adjust direction to avoid opponent
+		if current_behavior == "fleeing" and opp_pitcher:
+			var opp_direction = global_position.direction_to(opp_pitcher.global_position)
+			var avoidance = -opp_direction.normalized() * 0.2
+			direction = (direction + avoidance).normalized()
+		
 		# If too far from line, steer back
-		if distance_from_line > 2:
+		if distance_from_line > 5:
 			var correction = global_position.direction_to(closest_point)
 			direction = (direction * 0.7 + correction * 0.3).normalized()
 	
