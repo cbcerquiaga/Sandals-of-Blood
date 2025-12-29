@@ -42,6 +42,7 @@ var manage_team_buttons = []
 func _ready():
 	bringUp()
 	gameDay()
+	populate_statusbar()
 	
 	if is_inside_tree():
 		set_process(true)
@@ -656,3 +657,41 @@ func _show_popup_for_manage_button(button: TextureButton):
 	if section:
 		_show_popup(section, button)
 	pass
+
+func populate_statusbar():
+	#TODO: make the symbols have text size of 180, except for water, which has 200; then make the rest of the label have text size of 100
+	var money = CareerFranchise.money_bank
+	var moneyWeekly = CareerFranchise.money_in_weekly - CareerFranchise.money_out_weekly
+	var moneyDiffString = ""
+	if moneyWeekly < 0:
+		moneyDiffString = "(-" + str(moneyWeekly) + ")"
+	else:
+		moneyDiffString = "(+" + str(moneyWeekly) + ")"
+	$StatusBar/MoneySymbol.text = "¢"
+	$StatusBar/MoneyLabel.text =  str(money) + " " + moneyDiffString + "      "
+	var food = CareerFranchise.food_bank
+	var foodWeekly = CareerFranchise.food_in_weekly - CareerFranchise.food_out_weekly
+	var foodDiffString = ""
+	if foodWeekly < 0:
+		foodDiffString = "(-" + str(foodWeekly) + ")"
+	else:
+		foodDiffString = "(+" + str(foodWeekly) + ")"
+	$StatusBar/FoodSymbol.text = "𐂐"
+	$StatusBar/FoodLabel.text =  str(food) + " " +  foodDiffString + "      "
+	var h2o = CareerFranchise.water_bank
+	var h20Weekly = CareerFranchise.water_in_weekly - CareerFranchise.water_out_weekly
+	var waterDiffString = ""
+	if h20Weekly < 0:
+		waterDiffString = "(-" + str(h20Weekly) + ")"
+	else:
+		waterDiffString = "(+" + str(h20Weekly) + ")"
+	$StatusBar/WaterSymbol.text = "\n≋"
+	$StatusBar/WaterLabel.text =  str(h2o) + " " + waterDiffString + "      "
+	$StatusBar/FanCreditSymbol.text = "\n⨐"
+	$StatusBar/FanCreditLabel.text =  str(CareerFranchise.fan_rep) + "      "
+	$StatusBar/TokensSymbol.text = "\n⧭"
+	$StatusBar/TokensLabel.text =  str(CareerFranchise.offer_tokens) + "      "
+	$StatusBar/MoraleSymbol.text = "\n☺︎"
+	$StatusBar/MoraleLabel.text =  str(CareerFranchise.morale) + "      "
+	$StatusBar/XPSymbol.text = "\n✭"
+	$StatusBar/XPLabel.text = str(CareerCoach.xp) + "/100 Level " + str(CareerCoach.level)

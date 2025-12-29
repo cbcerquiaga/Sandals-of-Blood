@@ -5,11 +5,13 @@ class_name CharacterImporter
 @export var csv_file_path: String = "res://Assets/Rosters/debug_roster.csv"
 
 var imported_npcs: Array[Character] = []
+var name_counters: Dictionary = {}  #track counts for each initial combination
 
 func _ready():
 	import_npcs_from_csv(csv_file_path)
 
 func import_npcs_from_csv(path: String) -> void:
+	name_counters.clear()
 	var file = FileAccess.open(path, FileAccess.READ)
 	if not file:
 		push_error("Could not open CSV file: " + path)
@@ -29,8 +31,12 @@ func import_npcs_from_csv(path: String) -> void:
 		if row.size() != header.size():
 			push_error("Row " + str(line_number) + " has incorrect number of columns. Expected: " + str(header.size()) + ", Got: " + str(row.size()))
 			continue
+		var first_name = get_csv_value(row, column_indices, "first_name", "Unknown")
+		var last_name = get_csv_value(row, column_indices, "last_name", "Unknown")
+		var id = generate_character_id(first_name, last_name)
 			
 		var npc = Character.new()
+		npc.id = id
 		set_npc_properties(npc, row, column_indices)
 		var player = create_player_from_csv(row, column_indices)
 		var contract = create_contract_from_csv(row, column_indices)
@@ -38,10 +44,20 @@ func import_npcs_from_csv(path: String) -> void:
 		npc.contract = contract
 		npc.scout_report = ScoutReport.new()
 		imported_npcs.append(npc)
-		print("Imported NPC: " + npc.player.bio.first_name + " " + npc.player.bio.last_name)
+		print("Imported NPC: " + npc.player.bio.first_name + " " + npc.player.bio.last_name + " (ID: " + id + ")")
 	
 	file.close()
 	print("Import complete. Loaded " + str(imported_npcs.size()) + " NPCs")
+
+func generate_character_id(first_name: String, last_name: String) -> String:
+	var first_initial = first_name.left(1).to_upper() if first_name.length() > 0 else "X"
+	var last_initial = last_name.left(1).to_upper() if last_name.length() > 0 else "X"
+	
+	var key = first_initial + last_initial
+	var count = name_counters.get(key, 0)
+	var id = key + str(count)
+	name_counters[key] = count + 1
+	return id
 
 func set_npc_properties(npc: Character, row: PackedStringArray, column_indices: Dictionary) -> void:
 	npc.preferred_job = get_csv_value(row, column_indices, "preferred_job", "player")

@@ -44,6 +44,7 @@ var gauntletNE: Vector2
 var gauntletSW: Vector2
 var gauntletS: Vector2
 var gauntletSE: Vector2
+var field: Field
 var memory :={
 	"p_p": [], #player team pitcher. Player object, minor violations, foul plays
 	"p_lf": [],
@@ -64,6 +65,8 @@ var vision_right: Vector2
 var spotted_players: Array = []
 var focused_player: Player
 var rescuing_player: Player
+var is_play_live: bool = false
+var has_checked_start: bool = false #if the character has enforced a false start on the pitch already
 #behaviors
 var current_behavior: String
 var target_position: Vector2
@@ -133,12 +136,61 @@ func _physics_process(delta):
 		# Handle collisions
 		pass
 
-func police_falst_start(player: Player):
-	var offense = 0
-	#TODO: if a player is not at their starting position and the ball isn't pitched, add offense
-	#TODO: once the ball is pitched, stop counting offense and decide how bad it is
-	#TODO: decide if the player moved far enough to be worth penalizing
-	pass
+func police_false_start(player: Player):
+	var player_key = null
+	for key in memory:
+		if memory[key][0] == player:
+			player_key = key
+			break
+	
+	if not player_key:
+		push_error("Who the hell is that? Referee.police_false_start: Player not found in memory")
+		return
+	
+	var player_record = memory[player_key]
+	var minor_violations = player_record[1] #used for focusing later
+	
+	if is_play_live:
+	#TODO: enforce
+		return
+	
+	var assigned_position = get_assigned_position(player)
+	var current_position = player.global_position
+	var distance = current_position.distance_to(assigned_position)
+	
+ 
+	var distance_factor = distance * 0.1  # 0.1 offense per unit distance
+	
+	# Visibility affects how quickly offense accumulates
+	var visibility = 1.0
+	#TODO: visibility = get_visibility() and reduce visibility based on distance and number of obstructions
+	
+	minor_violations += distance_factor * visibility
+	player_record[1] = minor_violations
+	
+	if not player in spotted_players:
+		spotted_players.append(player)
+
+func get_assigned_position(player: Player) -> Vector2: #get spawn point based on team and position
+	match player.player_type:
+		"P":
+			if player.team == 1: #TODO: only look at the non-pitching pitcher
+		#TODO: rest point, not spawn point
+				return field.human_rhp_spawn if !player.bio.leftHanded else field.human_lhp_spawn
+			else:
+				return field.cpu_rhp_spawn if !player.bio.leftHanded else field.cpu_lhp_spawn
+		"K":
+			return field.human_k_spawn if player.team == 1 else field.cpu_k_spawn
+		"LG":
+			return field.human_lg_spawn if player.team == 1 else field.cpu_lg_spawn
+		"RG":
+			return field.human_rg_spawn if player.team == 1 else field.cpu_rg_spawn
+		"LF":
+			return field.human_lf_spawn if player.team == 1 else field.cpu_lf_spawn
+		"RF":  # Right Forward
+			return field.human_rf_spawn if player.team == 1 else field.cpu_rf_spawn
+	
+	return Vector2.ZERO
 
 func police_offside(player: Player):
 	#TODO: trigger when a player is on the wrong side of the field; guards/keepers in offensive half or forwards in defensive half

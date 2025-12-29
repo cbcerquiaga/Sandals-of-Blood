@@ -37,22 +37,29 @@ var capacity_nice: int #how many people have comfortable seats at the arena
 var capacity_vip: int #how many people get luxury treatment at the arena
 #resources
 var gear: Array = [] #array of Equipment
-var money_bank
-var money_in_weekly
-var money_out_weekly
-var water_bank
-var water_in_weekly
-var water_out_weekly
-var food_bank
-var food_in_weekly
-var food_out_weekly
-var fan_rep
+var offer_tokens = 0 #used for signing players away from other teams
+var money_bank = 0
+var money_in_weekly = 0
+var money_out_weekly = 0
+var water_bank = 0
+var water_in_weekly = 0
+var water_out_weekly = 0
+var food_bank = 0
+var food_in_weekly = 0
+var food_out_weekly = 0
+var fan_rep = 0
+var bana_rep = 0 #rep with banana republicans
+var holy_rep = 0 #rep with holy rollers
+var fam_rep = 0 #rep with the family
+var poss_rep = 0 #rep with the posse
+var punk_rep = 0 #rep with metalheads
 var weekly_expenses :={
 	"Player Wages": 0,
 	"Staff Wages": 0,
 	"Debts": 0
 }
 #club
+var morale = 50 #0 to 100
 var housing = { #each stored as an array of [owned, available]
 	"tent spot": [99999, 99999], #"yeah you can camp over there"
 	"encampment": [0,0], #team provides a tent and some rudimentary cooking and washing

@@ -1,6 +1,7 @@
 extends Node
 class_name Character
 
+var id #LetterLetterNumber, made of first initial, last initial, and number of people with those initials in the roster import file
 var player: Player #has all of the bio and the relevant playing attributes
 var contract: Contract
 var previous_contract: Contract

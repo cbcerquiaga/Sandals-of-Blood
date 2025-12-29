@@ -56,6 +56,101 @@ grow_vertical = 2
 scale = Vector2(0.5, 0.5)
 script = ExtResource("1_anhhw")
 
+[node name="StatusBar" type="HBoxContainer" parent="."]
+layout_mode = 0
+offset_left = 100.0
+offset_right = 166.0
+offset_bottom = 395.0
+
+[node name="MoneySymbol" type="Label" parent="StatusBar"]
+layout_mode = 2
+tooltip_text = "Money can be exchanged for goods and services. This shows how much you have (and how much it will change each week)"
+mouse_filter = 1
+theme_override_font_sizes/font_size = 180
+
+[node name="MoneyLabel" type="Label" parent="StatusBar"]
+layout_mode = 2
+tooltip_text = "Money can be exchanged for goods and services. This shows how much you have (and how much it will change each week)"
+mouse_filter = 1
+theme_override_font_sizes/font_size = 100
+
+[node name="FoodSymbol" type="Label" parent="StatusBar"]
+layout_mode = 2
+tooltip_text = "Food is given to players as part of contracts, and it helps players get bigger and stronger. This shows how much you have (and how much it will change each week)"
+mouse_filter = 1
+theme_override_font_sizes/font_size = 180
+
+[node name="FoodLabel" type="Label" parent="StatusBar"]
+layout_mode = 2
+tooltip_text = "Food is given to players as part of contracts, and it helps players get bigger and stronger. This shows how much you have (and how much it will change each week)"
+mouse_filter = 1
+theme_override_font_sizes/font_size = 100
+
+[node name="WaterSymbol" type="Label" parent="StatusBar"]
+layout_mode = 2
+tooltip_text = "Water is important for keeping your players alive, clean, and energized. This shows how much you have (and how much it will change each week)"
+mouse_filter = 1
+theme_override_constants/line_spacing = -310
+theme_override_font_sizes/font_size = 290
+
+[node name="WaterLabel" type="Label" parent="StatusBar"]
+layout_mode = 2
+tooltip_text = "Water is important for keeping your players alive, clean, and energized. This shows how much you have (and how much it will change each week)"
+mouse_filter = 1
+theme_override_font_sizes/font_size = 100
+
+[node name="FanCreditSymbol" type="Label" parent="StatusBar"]
+layout_mode = 2
+tooltip_text = "When you do nice things for your fans, you get credit. You can trade fan credit to get things from your fans."
+mouse_filter = 1
+theme_override_constants/line_spacing = -210
+theme_override_font_sizes/font_size = 180
+
+[node name="FanCreditLabel" type="Label" parent="StatusBar"]
+layout_mode = 2
+tooltip_text = "When you do nice things for your fans, you get credit. You can trade fan credit to get things from your fans."
+mouse_filter = 1
+theme_override_font_sizes/font_size = 100
+
+[node name="TokensSymbol" type="Label" parent="StatusBar"]
+layout_mode = 2
+tooltip_text = "In order to sign a player away from another team, you need offer sheet tokens. To get more, you can trade for them."
+mouse_filter = 1
+theme_override_constants/line_spacing = -160
+theme_override_font_sizes/font_size = 140
+
+[node name="TokensLabel" type="Label" parent="StatusBar"]
+layout_mode = 2
+tooltip_text = "In order to sign a player away from another team, you need offer sheet tokens. To get more, you can trade for them."
+mouse_filter = 1
+theme_override_font_sizes/font_size = 100
+
+[node name="MoraleSymbol" type="Label" parent="StatusBar"]
+layout_mode = 2
+tooltip_text = "This shows roughly how happy your players and staff are"
+mouse_filter = 1
+theme_override_constants/line_spacing = -280
+theme_override_font_sizes/font_size = 220
+
+[node name="MoraleLabel" type="Label" parent="StatusBar"]
+layout_mode = 2
+tooltip_text = "This shows roughly how happy your players and staff are"
+mouse_filter = 1
+theme_override_font_sizes/font_size = 100
+
+[node name="XPSymbol" type="Label" parent="StatusBar"]
+layout_mode = 2
+tooltip_text = "Progress towards leveling up your manager"
+mouse_filter = 1
+theme_override_constants/line_spacing = -250
+theme_override_font_sizes/font_size = 200
+
+[node name="XPLabel" type="Label" parent="StatusBar"]
+layout_mode = 2
+tooltip_text = "Progress towards leveling up your manager"
+mouse_filter = 1
+theme_override_font_sizes/font_size = 100
+
 [node name="HBoxContainer" type="HBoxContainer" parent="."]
 layout_mode = 1
 anchors_preset = 2
