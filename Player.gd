@@ -2012,3 +2012,14 @@ func find_preferred_position():
 					preferred_position = "LG"
 				else:
 					preferred_position = "RG"
+
+func calculate_overall():
+	var g = calculate_guard_overall()
+	var k = calculate_keeper_overall()
+	var p = calculate_pitcher_overall()
+	var f = calculate_forward_overall()
+	var best = -1
+	for ovr in [g,k,p,f]:
+		if ovr > best:
+			best = ovr
+	return best

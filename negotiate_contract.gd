@@ -28,7 +28,7 @@ var buyout_types = ["free", "buy50", "buy100", "buy200", "nobuy"] #what it takes
 var promise_types = ["none", "make_captain", "championship", "promotion", "no_relegate", "improve_front", "improve_back", "improve_training", "improve_amenity", "improve_party"]
 var sell_types = ["experience", "family", "winning", "future", "town", "kids", "fiesta", "adventure", "home", "quiet"]
 #no promise, make the player captain, win the league or win a special tournament, move up to the next league (top 2), not get sent down to the lower league, sign or trade for LF/P/RF, sign or trade for LG/K/RG, improve the team's training facilities or coaching staff, improve team's housing or game day, improve team's party situation
-var player_family: int = 2 #how many mouths the player has to feed
+var total_family: int = 2 #how many mouths the player has to feed
 var true_max_food: int #adjusts max food for family size
 var offer_sheet_tokens: int = 0 #0 for free agent, 1 for standard offer sheet, 2 for franchise
 var scouting_knowledge: ScoutReport
@@ -58,7 +58,7 @@ var current_popup_type: String = ""
 
 func _ready():
 	debug_default_player()#TODO: Debug only
-	true_max_food = max_food * (1 + player_family)
+	true_max_food = max_food * (1 + total_family)
 	base_offer()
 	arrange()
 	setup_popup_theme()
@@ -335,11 +335,11 @@ func fill_knowledge_values():
 	
 	if scouting_knowledge.info.family:
 		var family = character.get_family_count()
-		player_family = family
+		total_family = family
 		$VBoxContainer/Top/Knowledge/Family_player.text = str(family)
 	else:
 		$VBoxContainer/Top/Knowledge/Family_player.text = "?"
-		player_family = 1
+		total_family = 1
 		
 	if scouting_knowledge.info.gang:
 		$VBoxContainer/Top/Knowledge/Gang_player.text = character.gang_affiliation
@@ -458,14 +458,14 @@ func more_water_pressed() -> void:
 
 func less_meals_pressed() -> void:
 	if current_food > 0:
-		current_food -= 1 * (1 + player_family)
+		current_food -= 1 * (1 + total_family)
 	if current_food < 0:
 		current_food = 0
 	$VBoxContainer/Bottom/ContractDetails/Meals/Label.text = str(current_food) + " Meals / Week"
 
 func more_meals_pressed() -> void:
 	if current_food < (true_max_food):
-		current_food += 1 * (1 + player_family)
+		current_food += 1 * (1 + total_family)
 	if current_food > (true_max_food):
 		current_food = 0
 	$VBoxContainer/Bottom/ContractDetails/Meals/Label.text = str(current_food) + " Meals / Week"
@@ -887,8 +887,8 @@ func open_with_character(new_character: Character, tokens: int, report: ScoutRep
 	scouting_knowledge = report
 	comparables = comps
 	#Update family size for food calculations
-	player_family = character.get_family_count()
-	true_max_food = max_food * (1 + player_family)
+	total_family = character.get_family_count()
+	true_max_food = max_food * (1 + total_family)
 	populate_imported_data(character)
 	#base_offer()
 
@@ -1843,16 +1843,27 @@ func offer_contract():
 	var sell_match = check_sell_match()
 	total_value += weighted_value + match1 + match2 + match3 + match4 + match5 + match6 + match7 + housing_match + promise_match + sell_match
 	#theoretical max value is 68.55
+	var econ_value = 0 #even if a player doesn't care about things, adding to the contract has value
+	econ_value += current_salary * 0.1
+	if character.family > 0:
+		econ_value += (current_food / (character.total_family)) * 0.05 #got mouths to feed
+	econ_value += current_food/(400 - player.bio.pounds) #big boi bonus for food
+	econ_value += (current_water / (character.family+ 1)) * 0.07
+	
 	var needed_value
 	var sum_focuses = character.sum_focus_values()
-	needed_value = 68.55 - (character.negotiation_willingness /4.5) #46 to 68.55
-	var sign_randomness = randf_range(0, 50)
-	if sign_randomness < total_value:
+	needed_value = player.calculate_overall() - (character.negotiation_willingness /4.5) #27.78 to 99
+	var charisma_min = - 10 + CareerCoach.charisma_attributes.likeability #-10 to 10
+	var charisma_max = charisma_min + CareerCoach.charisma_attributes.negotiation #equal to or up to +20
+	var sign_randomness = randf_range(charisma_min, charisma_max)
+	print("Offer: " + str(total_value) + " random: " + str(sign_randomness) + " econ: " + str(econ_value) + " needed: " + str(needed_value))
+	if sign_randomness + total_value + econ_value >= needed_value:
 		print("The player has signed!")
 	else:
 		if sign_randomness < character.last_contract_offer_value:
 			character.negotiation_willingness -= (68.55 - total_value)
-		print("not good enough. Had " + str(sign_randomness) + " with a value of " + str(total_value) + " and a sum of " + str(sum_focuses))
+			print("offended")
+		print("not good enough.")
 	
 
 
