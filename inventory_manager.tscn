@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3 uid="uid://cjr6jha71t8t7"]
+[gd_scene load_steps=19 format=3 uid="uid://cjr6jha71t8t7"]
 
 [ext_resource type="Texture2D" uid="uid://cmtuklr40143j" path="res://UI/GearUI/Assign_button_base.png" id="1_a83l8"]
 [ext_resource type="Script" path="res://inventory_manager.gd" id="1_r18u4"]
@@ -9,12 +9,23 @@
 [ext_resource type="Texture2D" uid="uid://rdusopvpyvlw" path="res://UI/FreeAgencyUI/filter_button_highlighted.png" id="7_vhtfa"]
 [ext_resource type="Texture2D" uid="uid://ct6vtfmxy8eoo" path="res://UI/MenuUI/back_button_base.png" id="8_sw7mi"]
 [ext_resource type="Texture2D" uid="uid://cl6f7cs2xrbn7" path="res://UI/MenuUI/back_button_highlighted.png" id="9_y8ask"]
+[ext_resource type="Texture2D" uid="uid://bnhily4fahqd6" path="res://UI/GearUI/mannequin_base.png" id="10_oqfcd"]
+[ext_resource type="Texture2D" uid="uid://cl7ko2hur3oi8" path="res://UI/GearUI/mannequin_highlighted.png" id="11_d16w6"]
+[ext_resource type="Texture2D" uid="uid://dvqrpa01x2mam" path="res://UI/GearUI/mannequin_shoe.png" id="12_3ydng"]
+[ext_resource type="Texture2D" uid="uid://doo0yieax5vfd" path="res://UI/GearUI/mannequin_leg.png" id="13_x2pml"]
+[ext_resource type="Texture2D" uid="uid://df7fymkkcglp7" path="res://UI/GearUI/mannequin_left.png" id="14_2oa6y"]
+[ext_resource type="Texture2D" uid="uid://bowh16hmkdca0" path="res://UI/GearUI/mannequin_right.png" id="15_jjm4u"]
+[ext_resource type="Texture2D" uid="uid://bqie3v1jm0lxw" path="res://UI/GearUI/mannequin_elbows.png" id="16_qf4u8"]
+[ext_resource type="Texture2D" uid="uid://c4vbfdsvhu8xr" path="res://UI/PauseUI/cancel_button_base.png" id="17_x7c70"]
+[ext_resource type="Texture2D" uid="uid://bjqn6vv5mdrcv" path="res://UI/PauseUI/cancel_button_highlighted.png" id="18_khjjo"]
 
 [node name="Control" type="Control"]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_left = 100.0
+offset_right = 100.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_r18u4")
@@ -393,6 +404,705 @@ layout_mode = 2
 texture_normal = ExtResource("8_sw7mi")
 texture_hover = ExtResource("9_y8ask")
 texture_focused = ExtResource("9_y8ask")
+
+[node name="H-PlayersContainer" type="HBoxContainer" parent="."]
+layout_mode = 0
+offset_left = 1800.0
+offset_right = 3792.0
+offset_bottom = 8046.0
+
+[node name="V-Column1" type="VBoxContainer" parent="H-PlayersContainer"]
+layout_mode = 2
+
+[node name="H-Player1" type="HBoxContainer" parent="H-PlayersContainer/V-Column1"]
+layout_mode = 2
+
+[node name="NameLabel" type="Label" parent="H-PlayersContainer/V-Column1/H-Player1"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "Kick \"Boot\" Footpherson"
+
+[node name="TextureButton" type="TextureButton" parent="H-PlayersContainer/V-Column1/H-Player1"]
+layout_mode = 2
+texture_normal = ExtResource("10_oqfcd")
+texture_hover = ExtResource("11_d16w6")
+texture_focused = ExtResource("11_d16w6")
+
+[node name="ShoeTexture" type="TextureRect" parent="H-PlayersContainer/V-Column1/H-Player1/TextureButton"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+texture = ExtResource("12_3ydng")
+
+[node name="LegTexture" type="TextureRect" parent="H-PlayersContainer/V-Column1/H-Player1/TextureButton"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+texture = ExtResource("13_x2pml")
+
+[node name="LeftTexture" type="TextureRect" parent="H-PlayersContainer/V-Column1/H-Player1/TextureButton"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+texture = ExtResource("14_2oa6y")
+
+[node name="RightTexture" type="TextureRect" parent="H-PlayersContainer/V-Column1/H-Player1/TextureButton"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+texture = ExtResource("15_jjm4u")
+
+[node name="ElbowTexture" type="TextureRect" parent="H-PlayersContainer/V-Column1/H-Player1/TextureButton"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+texture = ExtResource("16_qf4u8")
+
+[node name="H-Player2" type="HBoxContainer" parent="H-PlayersContainer/V-Column1"]
+layout_mode = 2
+
+[node name="NameLabel" type="Label" parent="H-PlayersContainer/V-Column1/H-Player2"]
+layout_mode = 2
+text = "Kick \"Boot\" Footpherson"
+
+[node name="TextureButton" type="TextureButton" parent="H-PlayersContainer/V-Column1/H-Player2"]
+layout_mode = 2
+texture_normal = ExtResource("10_oqfcd")
+texture_hover = ExtResource("11_d16w6")
+texture_focused = ExtResource("11_d16w6")
+
+[node name="ShoeTexture" type="TextureRect" parent="H-PlayersContainer/V-Column1/H-Player2/TextureButton"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+texture = ExtResource("12_3ydng")
+
+[node name="LegTexture" type="TextureRect" parent="H-PlayersContainer/V-Column1/H-Player2/TextureButton"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+texture = ExtResource("13_x2pml")
+
+[node name="LeftTexture" type="TextureRect" parent="H-PlayersContainer/V-Column1/H-Player2/TextureButton"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+texture = ExtResource("14_2oa6y")
+
+[node name="RightTexture" type="TextureRect" parent="H-PlayersContainer/V-Column1/H-Player2/TextureButton"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+texture = ExtResource("15_jjm4u")
+
+[node name="ElbowTezture" type="TextureRect" parent="H-PlayersContainer/V-Column1/H-Player2/TextureButton"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+texture = ExtResource("16_qf4u8")
+
+[node name="H-Player3" type="HBoxContainer" parent="H-PlayersContainer/V-Column1"]
+layout_mode = 2
+
+[node name="NameLabel" type="Label" parent="H-PlayersContainer/V-Column1/H-Player3"]
+layout_mode = 2
+text = "Kick \"Boot\" Footpherson"
+
+[node name="TextureButton" type="TextureButton" parent="H-PlayersContainer/V-Column1/H-Player3"]
+layout_mode = 2
+texture_normal = ExtResource("10_oqfcd")
+texture_hover = ExtResource("11_d16w6")
+texture_focused = ExtResource("11_d16w6")
+
+[node name="ShoeTexture" type="TextureRect" parent="H-PlayersContainer/V-Column1/H-Player3/TextureButton"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+texture = ExtResource("12_3ydng")
+
+[node name="LegTexture" type="TextureRect" parent="H-PlayersContainer/V-Column1/H-Player3/TextureButton"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+texture = ExtResource("13_x2pml")
+
+[node name="LeftTexture" type="TextureRect" parent="H-PlayersContainer/V-Column1/H-Player3/TextureButton"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+texture = ExtResource("14_2oa6y")
+
+[node name="RightTexture" type="TextureRect" parent="H-PlayersContainer/V-Column1/H-Player3/TextureButton"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+texture = ExtResource("15_jjm4u")
+
+[node name="ElbowTezture" type="TextureRect" parent="H-PlayersContainer/V-Column1/H-Player3/TextureButton"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+texture = ExtResource("16_qf4u8")
+
+[node name="H-Player4" type="HBoxContainer" parent="H-PlayersContainer/V-Column1"]
+layout_mode = 2
+
+[node name="NameLabel" type="Label" parent="H-PlayersContainer/V-Column1/H-Player4"]
+layout_mode = 2
+text = "Kick \"Boot\" Footpherson"
+
+[node name="TextureButton" type="TextureButton" parent="H-PlayersContainer/V-Column1/H-Player4"]
+layout_mode = 2
+texture_normal = ExtResource("10_oqfcd")
+texture_hover = ExtResource("11_d16w6")
+texture_focused = ExtResource("11_d16w6")
+
+[node name="ShoeTexture" type="TextureRect" parent="H-PlayersContainer/V-Column1/H-Player4/TextureButton"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+texture = ExtResource("12_3ydng")
+
+[node name="LegTexture" type="TextureRect" parent="H-PlayersContainer/V-Column1/H-Player4/TextureButton"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+texture = ExtResource("13_x2pml")
+
+[node name="LeftTexture" type="TextureRect" parent="H-PlayersContainer/V-Column1/H-Player4/TextureButton"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+texture = ExtResource("14_2oa6y")
+
+[node name="RightTexture" type="TextureRect" parent="H-PlayersContainer/V-Column1/H-Player4/TextureButton"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+texture = ExtResource("15_jjm4u")
+
+[node name="ElbowTezture" type="TextureRect" parent="H-PlayersContainer/V-Column1/H-Player4/TextureButton"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+texture = ExtResource("16_qf4u8")
+
+[node name="H-Player5" type="HBoxContainer" parent="H-PlayersContainer/V-Column1"]
+layout_mode = 2
+
+[node name="NameLabel" type="Label" parent="H-PlayersContainer/V-Column1/H-Player5"]
+layout_mode = 2
+text = "Kick \"Boot\" Footpherson"
+
+[node name="TextureButton" type="TextureButton" parent="H-PlayersContainer/V-Column1/H-Player5"]
+layout_mode = 2
+texture_normal = ExtResource("10_oqfcd")
+texture_hover = ExtResource("11_d16w6")
+texture_focused = ExtResource("11_d16w6")
+
+[node name="ShoeTexture" type="TextureRect" parent="H-PlayersContainer/V-Column1/H-Player5/TextureButton"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+texture = ExtResource("12_3ydng")
+
+[node name="LegTexture" type="TextureRect" parent="H-PlayersContainer/V-Column1/H-Player5/TextureButton"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+texture = ExtResource("13_x2pml")
+
+[node name="LeftTexture" type="TextureRect" parent="H-PlayersContainer/V-Column1/H-Player5/TextureButton"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+texture = ExtResource("14_2oa6y")
+
+[node name="RightTexture" type="TextureRect" parent="H-PlayersContainer/V-Column1/H-Player5/TextureButton"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+texture = ExtResource("15_jjm4u")
+
+[node name="ElbowTezture" type="TextureRect" parent="H-PlayersContainer/V-Column1/H-Player5/TextureButton"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+texture = ExtResource("16_qf4u8")
+
+[node name="V-Column2" type="VBoxContainer" parent="H-PlayersContainer"]
+layout_mode = 2
+
+[node name="H-Player1" type="HBoxContainer" parent="H-PlayersContainer/V-Column2"]
+layout_mode = 2
+
+[node name="NameLabel" type="Label" parent="H-PlayersContainer/V-Column2/H-Player1"]
+layout_mode = 2
+text = "Kick \"Boot\" Footpherson"
+
+[node name="TextureButton" type="TextureButton" parent="H-PlayersContainer/V-Column2/H-Player1"]
+layout_mode = 2
+texture_normal = ExtResource("10_oqfcd")
+texture_hover = ExtResource("11_d16w6")
+texture_focused = ExtResource("11_d16w6")
+
+[node name="ShoeTexture" type="TextureRect" parent="H-PlayersContainer/V-Column2/H-Player1/TextureButton"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+texture = ExtResource("12_3ydng")
+
+[node name="LegTexture" type="TextureRect" parent="H-PlayersContainer/V-Column2/H-Player1/TextureButton"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+texture = ExtResource("13_x2pml")
+
+[node name="LeftTexture" type="TextureRect" parent="H-PlayersContainer/V-Column2/H-Player1/TextureButton"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+texture = ExtResource("14_2oa6y")
+
+[node name="RightTexture" type="TextureRect" parent="H-PlayersContainer/V-Column2/H-Player1/TextureButton"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+texture = ExtResource("15_jjm4u")
+
+[node name="ElbowTezture" type="TextureRect" parent="H-PlayersContainer/V-Column2/H-Player1/TextureButton"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+texture = ExtResource("16_qf4u8")
+
+[node name="H-Player2" type="HBoxContainer" parent="H-PlayersContainer/V-Column2"]
+layout_mode = 2
+
+[node name="NameLabel" type="Label" parent="H-PlayersContainer/V-Column2/H-Player2"]
+layout_mode = 2
+text = "Kick \"Boot\" Footpherson"
+
+[node name="TextureButton" type="TextureButton" parent="H-PlayersContainer/V-Column2/H-Player2"]
+layout_mode = 2
+texture_normal = ExtResource("10_oqfcd")
+texture_hover = ExtResource("11_d16w6")
+texture_focused = ExtResource("11_d16w6")
+
+[node name="ShoeTexture" type="TextureRect" parent="H-PlayersContainer/V-Column2/H-Player2/TextureButton"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+texture = ExtResource("12_3ydng")
+
+[node name="LegTexture" type="TextureRect" parent="H-PlayersContainer/V-Column2/H-Player2/TextureButton"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+texture = ExtResource("13_x2pml")
+
+[node name="LeftTexture" type="TextureRect" parent="H-PlayersContainer/V-Column2/H-Player2/TextureButton"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+texture = ExtResource("14_2oa6y")
+
+[node name="RightTexture" type="TextureRect" parent="H-PlayersContainer/V-Column2/H-Player2/TextureButton"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+texture = ExtResource("15_jjm4u")
+
+[node name="ElbowTezture" type="TextureRect" parent="H-PlayersContainer/V-Column2/H-Player2/TextureButton"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+texture = ExtResource("16_qf4u8")
+
+[node name="H-Player3" type="HBoxContainer" parent="H-PlayersContainer/V-Column2"]
+layout_mode = 2
+
+[node name="NameLabel" type="Label" parent="H-PlayersContainer/V-Column2/H-Player3"]
+layout_mode = 2
+text = "Kick \"Boot\" Footpherson"
+
+[node name="TextureButton" type="TextureButton" parent="H-PlayersContainer/V-Column2/H-Player3"]
+layout_mode = 2
+texture_normal = ExtResource("10_oqfcd")
+texture_hover = ExtResource("11_d16w6")
+texture_focused = ExtResource("11_d16w6")
+
+[node name="ShoeTexture" type="TextureRect" parent="H-PlayersContainer/V-Column2/H-Player3/TextureButton"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+texture = ExtResource("12_3ydng")
+
+[node name="LegTexture" type="TextureRect" parent="H-PlayersContainer/V-Column2/H-Player3/TextureButton"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+texture = ExtResource("13_x2pml")
+
+[node name="LeftTexture" type="TextureRect" parent="H-PlayersContainer/V-Column2/H-Player3/TextureButton"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+texture = ExtResource("14_2oa6y")
+
+[node name="RightTexture" type="TextureRect" parent="H-PlayersContainer/V-Column2/H-Player3/TextureButton"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+texture = ExtResource("15_jjm4u")
+
+[node name="ElbowTezture" type="TextureRect" parent="H-PlayersContainer/V-Column2/H-Player3/TextureButton"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+texture = ExtResource("16_qf4u8")
+
+[node name="H-Player4" type="HBoxContainer" parent="H-PlayersContainer/V-Column2"]
+layout_mode = 2
+
+[node name="NameLabel" type="Label" parent="H-PlayersContainer/V-Column2/H-Player4"]
+layout_mode = 2
+text = "Kick \"Boot\" Footpherson"
+
+[node name="TextureButton" type="TextureButton" parent="H-PlayersContainer/V-Column2/H-Player4"]
+layout_mode = 2
+texture_normal = ExtResource("10_oqfcd")
+texture_hover = ExtResource("11_d16w6")
+texture_focused = ExtResource("11_d16w6")
+
+[node name="ShoeTexture" type="TextureRect" parent="H-PlayersContainer/V-Column2/H-Player4/TextureButton"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+texture = ExtResource("12_3ydng")
+
+[node name="LegTexture" type="TextureRect" parent="H-PlayersContainer/V-Column2/H-Player4/TextureButton"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+texture = ExtResource("13_x2pml")
+
+[node name="LeftTexture" type="TextureRect" parent="H-PlayersContainer/V-Column2/H-Player4/TextureButton"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+texture = ExtResource("14_2oa6y")
+
+[node name="RightTexture" type="TextureRect" parent="H-PlayersContainer/V-Column2/H-Player4/TextureButton"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+texture = ExtResource("15_jjm4u")
+
+[node name="ElbowTezture" type="TextureRect" parent="H-PlayersContainer/V-Column2/H-Player4/TextureButton"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+texture = ExtResource("16_qf4u8")
+
+[node name="H-Player5" type="HBoxContainer" parent="H-PlayersContainer/V-Column2"]
+layout_mode = 2
+
+[node name="NameLabel" type="Label" parent="H-PlayersContainer/V-Column2/H-Player5"]
+layout_mode = 2
+text = "Kick \"Boot\" Footpherson"
+
+[node name="TextureButton" type="TextureButton" parent="H-PlayersContainer/V-Column2/H-Player5"]
+layout_mode = 2
+texture_normal = ExtResource("10_oqfcd")
+texture_hover = ExtResource("11_d16w6")
+texture_focused = ExtResource("11_d16w6")
+
+[node name="ShoeTexture" type="TextureRect" parent="H-PlayersContainer/V-Column2/H-Player5/TextureButton"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+texture = ExtResource("12_3ydng")
+
+[node name="LegTexture" type="TextureRect" parent="H-PlayersContainer/V-Column2/H-Player5/TextureButton"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+texture = ExtResource("13_x2pml")
+
+[node name="LeftTexture" type="TextureRect" parent="H-PlayersContainer/V-Column2/H-Player5/TextureButton"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+texture = ExtResource("14_2oa6y")
+
+[node name="RightTexture" type="TextureRect" parent="H-PlayersContainer/V-Column2/H-Player5/TextureButton"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+texture = ExtResource("15_jjm4u")
+
+[node name="ElbowTezture" type="TextureRect" parent="H-PlayersContainer/V-Column2/H-Player5/TextureButton"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+texture = ExtResource("16_qf4u8")
+
+[node name="V-Column3" type="VBoxContainer" parent="H-PlayersContainer"]
+layout_mode = 2
+
+[node name="H-Player1" type="HBoxContainer" parent="H-PlayersContainer/V-Column3"]
+layout_mode = 2
+
+[node name="NameLabel" type="Label" parent="H-PlayersContainer/V-Column3/H-Player1"]
+layout_mode = 2
+text = "Kick \"Boot\" Footpherson"
+
+[node name="TextureButton" type="TextureButton" parent="H-PlayersContainer/V-Column3/H-Player1"]
+layout_mode = 2
+texture_normal = ExtResource("10_oqfcd")
+texture_hover = ExtResource("11_d16w6")
+texture_focused = ExtResource("11_d16w6")
+
+[node name="ShoeTexture" type="TextureRect" parent="H-PlayersContainer/V-Column3/H-Player1/TextureButton"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+texture = ExtResource("12_3ydng")
+
+[node name="LegTexture" type="TextureRect" parent="H-PlayersContainer/V-Column3/H-Player1/TextureButton"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+texture = ExtResource("13_x2pml")
+
+[node name="LeftTexture" type="TextureRect" parent="H-PlayersContainer/V-Column3/H-Player1/TextureButton"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+texture = ExtResource("14_2oa6y")
+
+[node name="RightTexture" type="TextureRect" parent="H-PlayersContainer/V-Column3/H-Player1/TextureButton"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+texture = ExtResource("15_jjm4u")
+
+[node name="ElbowTezture" type="TextureRect" parent="H-PlayersContainer/V-Column3/H-Player1/TextureButton"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+texture = ExtResource("16_qf4u8")
+
+[node name="H-Player2" type="HBoxContainer" parent="H-PlayersContainer/V-Column3"]
+layout_mode = 2
+
+[node name="NameLabel" type="Label" parent="H-PlayersContainer/V-Column3/H-Player2"]
+layout_mode = 2
+text = "Kick \"Boot\" Footpherson"
+
+[node name="TextureButton" type="TextureButton" parent="H-PlayersContainer/V-Column3/H-Player2"]
+layout_mode = 2
+texture_normal = ExtResource("10_oqfcd")
+texture_hover = ExtResource("11_d16w6")
+texture_focused = ExtResource("11_d16w6")
+
+[node name="ShoeTexture" type="TextureRect" parent="H-PlayersContainer/V-Column3/H-Player2/TextureButton"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+texture = ExtResource("12_3ydng")
+
+[node name="LegTexture" type="TextureRect" parent="H-PlayersContainer/V-Column3/H-Player2/TextureButton"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+texture = ExtResource("13_x2pml")
+
+[node name="LeftTexture" type="TextureRect" parent="H-PlayersContainer/V-Column3/H-Player2/TextureButton"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+texture = ExtResource("14_2oa6y")
+
+[node name="RightTexture" type="TextureRect" parent="H-PlayersContainer/V-Column3/H-Player2/TextureButton"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+texture = ExtResource("15_jjm4u")
+
+[node name="ElbowTezture" type="TextureRect" parent="H-PlayersContainer/V-Column3/H-Player2/TextureButton"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+texture = ExtResource("16_qf4u8")
+
+[node name="H-Player3" type="HBoxContainer" parent="H-PlayersContainer/V-Column3"]
+layout_mode = 2
+
+[node name="NameLabel" type="Label" parent="H-PlayersContainer/V-Column3/H-Player3"]
+layout_mode = 2
+text = "Kick \"Boot\" Footpherson"
+
+[node name="TextureButton" type="TextureButton" parent="H-PlayersContainer/V-Column3/H-Player3"]
+layout_mode = 2
+texture_normal = ExtResource("10_oqfcd")
+texture_hover = ExtResource("11_d16w6")
+texture_focused = ExtResource("11_d16w6")
+
+[node name="ShoeTexture" type="TextureRect" parent="H-PlayersContainer/V-Column3/H-Player3/TextureButton"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+texture = ExtResource("12_3ydng")
+
+[node name="LegTexture" type="TextureRect" parent="H-PlayersContainer/V-Column3/H-Player3/TextureButton"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+texture = ExtResource("13_x2pml")
+
+[node name="LeftTexture" type="TextureRect" parent="H-PlayersContainer/V-Column3/H-Player3/TextureButton"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+texture = ExtResource("14_2oa6y")
+
+[node name="RightTexture" type="TextureRect" parent="H-PlayersContainer/V-Column3/H-Player3/TextureButton"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+texture = ExtResource("15_jjm4u")
+
+[node name="ElbowTezture" type="TextureRect" parent="H-PlayersContainer/V-Column3/H-Player3/TextureButton"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+texture = ExtResource("16_qf4u8")
+
+[node name="H-Player4" type="HBoxContainer" parent="H-PlayersContainer/V-Column3"]
+layout_mode = 2
+
+[node name="NameLabel" type="Label" parent="H-PlayersContainer/V-Column3/H-Player4"]
+layout_mode = 2
+text = "Kick \"Boot\" Footpherson"
+
+[node name="TextureButton" type="TextureButton" parent="H-PlayersContainer/V-Column3/H-Player4"]
+layout_mode = 2
+texture_normal = ExtResource("10_oqfcd")
+texture_hover = ExtResource("11_d16w6")
+texture_focused = ExtResource("11_d16w6")
+
+[node name="ShoeTexture" type="TextureRect" parent="H-PlayersContainer/V-Column3/H-Player4/TextureButton"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+texture = ExtResource("12_3ydng")
+
+[node name="LegTexture" type="TextureRect" parent="H-PlayersContainer/V-Column3/H-Player4/TextureButton"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+texture = ExtResource("13_x2pml")
+
+[node name="LeftTexture" type="TextureRect" parent="H-PlayersContainer/V-Column3/H-Player4/TextureButton"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+texture = ExtResource("14_2oa6y")
+
+[node name="RightTexture" type="TextureRect" parent="H-PlayersContainer/V-Column3/H-Player4/TextureButton"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+texture = ExtResource("15_jjm4u")
+
+[node name="ElbowTezture" type="TextureRect" parent="H-PlayersContainer/V-Column3/H-Player4/TextureButton"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+texture = ExtResource("16_qf4u8")
+
+[node name="H-Player5" type="HBoxContainer" parent="H-PlayersContainer/V-Column3"]
+layout_mode = 2
+
+[node name="NameLabel" type="Label" parent="H-PlayersContainer/V-Column3/H-Player5"]
+layout_mode = 2
+text = "Kick \"Boot\" Footpherson"
+
+[node name="TextureButton" type="TextureButton" parent="H-PlayersContainer/V-Column3/H-Player5"]
+layout_mode = 2
+texture_normal = ExtResource("10_oqfcd")
+texture_hover = ExtResource("11_d16w6")
+texture_focused = ExtResource("11_d16w6")
+
+[node name="ShoeTexture" type="TextureRect" parent="H-PlayersContainer/V-Column3/H-Player5/TextureButton"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+texture = ExtResource("12_3ydng")
+
+[node name="LegTexture" type="TextureRect" parent="H-PlayersContainer/V-Column3/H-Player5/TextureButton"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+texture = ExtResource("13_x2pml")
+
+[node name="LeftTexture" type="TextureRect" parent="H-PlayersContainer/V-Column3/H-Player5/TextureButton"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+texture = ExtResource("14_2oa6y")
+
+[node name="RightTexture" type="TextureRect" parent="H-PlayersContainer/V-Column3/H-Player5/TextureButton"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+texture = ExtResource("15_jjm4u")
+
+[node name="ElbowTezture" type="TextureRect" parent="H-PlayersContainer/V-Column3/H-Player5/TextureButton"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+texture = ExtResource("16_qf4u8")
+
+[node name="PopupMenu" type="PopupMenu" parent="."]
+size = Vector2i(1000, 1000)
+
+[node name="V-Mannequin" type="VBoxContainer" parent="PopupMenu"]
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="Elbows" type="OptionButton" parent="PopupMenu/V-Mannequin"]
+layout_mode = 2
+
+[node name="H-Gloves" type="HBoxContainer" parent="PopupMenu/V-Mannequin"]
+layout_mode = 2
+
+[node name="RightGloves" type="OptionButton" parent="PopupMenu/V-Mannequin/H-Gloves"]
+layout_mode = 2
+
+[node name="LeftGloves" type="OptionButton" parent="PopupMenu/V-Mannequin/H-Gloves"]
+layout_mode = 2
+
+[node name="Legs" type="OptionButton" parent="PopupMenu/V-Mannequin"]
+layout_mode = 2
+
+[node name="Shoes" type="OptionButton" parent="PopupMenu/V-Mannequin"]
+layout_mode = 2
+
+[node name="H-Decision" type="HBoxContainer" parent="PopupMenu"]
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="ApplyButton" type="TextureButton" parent="PopupMenu/H-Decision"]
+layout_mode = 2
+
+[node name="CancelButton" type="TextureButton" parent="PopupMenu/H-Decision"]
+layout_mode = 2
+texture_normal = ExtResource("17_x7c70")
+texture_hover = ExtResource("18_khjjo")
+texture_focused = ExtResource("18_khjjo")
 
 [connection signal="pressed" from="V-MainContainer/H-PagesContainer/Page1Button" to="." method="_on_page_button_pressed" binds= [1]]
 [connection signal="pressed" from="V-MainContainer/H-PagesContainer/Page2Button" to="." method="_on_page_button_pressed" binds= [2]]
