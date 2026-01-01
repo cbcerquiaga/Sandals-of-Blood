@@ -771,6 +771,8 @@ func reposition(player1, player2):
 	var temp2 = Player.new()
 	temp1.set_all_properties(pending_field[index1])
 	temp2.set_all_properties(pending_field[index2])
+	temp1.status.starter = pending_field[index1]
+	temp2.status.starter = pending_field[index2]
 	pending_field[index1].set_all_properties(temp2)
 	pending_field[index2].set_all_properties(temp1)
 	apply_team_to_field()

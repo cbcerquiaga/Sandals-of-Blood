@@ -411,7 +411,7 @@ func faceoff_recover():
 					
 					velocity = attack_direction * speed
 					move_and_slide()
-					if global_position.distance_to(opp_pitcher.global_position) < 10:
+					if global_position.distance_to(opp_pitcher.global_position) < 5:
 						current_behavior = "fighting"
 						has_arrived = true
 						is_faceoff_recover = false
@@ -1129,13 +1129,6 @@ func chase():
 			advance_waypoints()
 		else:
 			advance_waypoints()
-	
-	if opp_pitcher:
-		var distance_to_opp = global_position.distance_to(opp_pitcher.global_position)
-		if distance_to_opp < 2:
-			current_behavior = "fighting"
-			print(bio.last_name + " caught opponent! Fighting!")
-			return
 	
 	last_reaction_check += get_process_delta_time()
 	if last_reaction_check >= REACTION_CHECK_INTERVAL && direction_changes < MAX_DIRECTION_CHANGES:

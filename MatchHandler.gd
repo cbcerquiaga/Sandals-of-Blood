@@ -423,9 +423,13 @@ func _on_player_goal():
 		if scorer is Forward:
 			if scorer.assigned_guard:
 				scorer.assigned_guard.game_stats.mark_points += 1
-	elif passer and passer.team == 2 and passer.team == 1:
+	elif passer and passer.team == 1:
 		passer.game_stats.goals += 1
 		most_recent_scorer = passer
+		if passer.status.starter:
+			pTeam.game_stats.starter_goals += 1
+		else:
+			pTeam.game_stats.bench_goals += 1
 	if passer and passer.team == scorer.team and scorer.team == 1:
 		passer.game_stats.assists += 1
 		if passer is Forward:
@@ -521,7 +525,7 @@ func _on_cpu_goal():
 		if scorer.status.starter:
 			aTeam.game_stats.starter_goals+= 1
 		else:
-			pTeam.game_stats.bench_goals += 1
+			aTeam.game_stats.bench_goals += 1
 		if scorer is Forward:
 			if scorer.assigned_guard:
 				scorer.assigned_guard.game_stats.mark_points += 1
@@ -531,6 +535,10 @@ func _on_cpu_goal():
 			if passer.team == 1 and passer.team == 2:
 				passer.game_stats.goals += 1
 				most_recent_scorer = passer
+				if passer.status.starter:
+					aTeam.game_stats.starter_goals += 1
+				else:
+					aTeam.game_stats.bench_goals += 1
 			
 	if passer and passer.team == scorer.team and scorer.team == 2:
 		passer.game_stats.assists += 1
