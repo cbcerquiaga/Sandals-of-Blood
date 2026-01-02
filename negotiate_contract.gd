@@ -25,7 +25,7 @@ var bonus_values_raise = [1, 2, 3, 4, 5]
 var bonus_values_cash = [1, 5, 10, 25, 100] #coin denominations
 var bonus_values_feast = [1, 2, 3, 4, 5] #5 meals in one sitting would be pretty crazy
 var buyout_types = ["free", "buy50", "buy100", "buy200", "nobuy"] #what it takes to cut the player: nothng, 50% of the money they're still owed, all of the money they're owed, double the money they're owed, or they can't be bought out at all
-var promise_types = ["none", "make_captain", "championship", "promotion", "no_relegate", "improve_front", "improve_back", "improve_training", "improve_amenity", "improve_party"]
+var promise_types = ["none", "make_captain", "championship", "promotion", "promo_playoff", "no_relegate", "improve_front", "improve_back", "improve_training", "improve_amenity", "improve_party"]
 var sell_types = ["experience", "family", "winning", "future", "town", "kids", "fiesta", "adventure", "home", "quiet"]
 #no promise, make the player captain, win the league or win a special tournament, move up to the next league (top 2), not get sent down to the lower league, sign or trade for LF/P/RF, sign or trade for LG/K/RG, improve the team's training facilities or coaching staff, improve team's housing or game day, improve team's party situation
 var total_family: int = 2 #how many mouths the player has to feed
@@ -74,7 +74,8 @@ func base_offer():
 	current_food = 10
 	current_share = 1
 	current_seasons = 3
-	current_contract_type = "franchise"
+	current_contract_type = "standard"
+	initial_offer()
 	base_offer_ui()
 	
 func base_offer_ui():
@@ -682,6 +683,8 @@ func update_promise_label() -> void:
 			label.text = "Win Championship"
 		"promotion":
 			label.text = "League Promotion"
+		"promo_playoff":
+			label.text = "Challenge for Promotion"
 		"no_relegate":
 			label.text = "Avoid Relegation"
 		"improve_front":
@@ -2266,6 +2269,9 @@ func get_promise_match(promise: String):
 		"promotion":
 			relevant_focuses = {"win_now": 3, "win_later": 1, "party": 1, "opportunity": 2}
 			pass
+		"promo_playoff":
+			relevant_focuses = {"win_now": 2, "win_later": 1, "party": 1, "opportunity": 2}
+			pass
 		"no_relegate":
 			relevant_focuses = {"chill": 1, "win_later": 1, "party": 1, "opportunity": 1}
 			pass
@@ -2304,3 +2310,9 @@ func is_front_strength():
 func is_back_strength():
 	#TODO: determine if the team's guards and keepers are a strength relative to the league or to the next league up
 	return false
+
+func initial_offer():
+	current_buyout = "buy100"; current_bonus_type = "goal"; current_bonus_prize = "cash_payment"
+	current_bonus_value = 1; current_sell = "experience"; current_promise = "none"; current_housing = "none"
+	update_buyout_value_label(); update_bonus_clause_label(); update_bonus_prize_label()
+	update_bonus_value_label(); update_pitch_label(); update_promise_label(); update_housing_type_label()
