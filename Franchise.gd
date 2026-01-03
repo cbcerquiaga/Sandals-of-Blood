@@ -5,6 +5,10 @@ var city: City
 var team: Team
 var neighborhood: String #N,S,E,W
 var travel_convoy: Convoy
+#current stuff
+var current_city: City
+var is_traveling: bool = false
+var travel_danger: float = 1.0
 #players
 var contracts := { #0: character Character
 	
@@ -286,4 +290,26 @@ func debug_default_contracts():
 	pass
 
 func debug_default_gear():
+	pass
+
+func determine_random_events():
+	#TODO: loop through every possible player
+	if current_city != null:
+		#TODO: determine what sellers are available if in a city
+		#TODO: city-based random events
+		pass
+	elif is_traveling:
+		#TODO: different events based on travel danger
+		if randf() > travel_danger:
+			#TODO: find a good travel random event
+			pass
+		else:
+			#TODO: get attacked by something
+			#determine whose territory we are ine
+			#based on their disposition, determine if that gang would raid us
+			#if they wouldn't, be attacked by a nearby gang who would
+			#if there aren't any, have the team attacked by a lone psycho or a group of kids
+			pass
+		pass
+	
 	pass

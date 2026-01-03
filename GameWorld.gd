@@ -1,6 +1,8 @@
 extends Node
 
 var leagues= [] #TODO: create League objects
+var year: int = 2245
+var week: int = 40 #after 52, advance one year
 
 var max_world_contract_value = 110000 #the contract value of the highest paid player in the world now
 
@@ -9,3 +11,9 @@ var records_career #TODO: create a dictionary of stats and store the character o
 var records_season
 
 var records_game
+
+
+func advance_week():
+	for league in leagues:
+		league.advance_week(week)
+	CareerFranchise.determine_random_events()
