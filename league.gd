@@ -100,11 +100,30 @@ var records_game := {
 
 
 func generate_season_plan():
-	#TODO: randomly generate a season
-	#each team plays each other team 4 times: 2 at home and 2 away
-	#every team gets a break at week 15 (after playing each team 2x)
-	#assign values into season_plan
-	pass
+	var schedule = []
+	var team_count = teams.size()
+	var weeks = season_length
+	var games_per_week = team_count / 2
+	
+	for week in range(1, weeks + 1):
+		for i in range(0, team_count, 2):
+			var home_idx = i
+			var away_idx = i + 1
+			if week <= 14:
+				if week % 2 == 0:
+					schedule.append([week, teams[home_idx], teams[away_idx]])
+				else:
+					schedule.append([week, teams[away_idx], teams[home_idx]])
+			else:
+				if week % 2 == 0:
+					schedule.append([week, teams[away_idx], teams[home_idx]])
+				else:
+					schedule.append([week, teams[home_idx], teams[away_idx]])
+		
+		var last = teams.pop_back()
+		teams.insert(1, last)
+	
+	season_plan = schedule
 
 func advance_week(week: int):
 	referees_used_today = []
@@ -148,45 +167,60 @@ func sim_cpu_tryouts():
 func determine_champ_seeding():
 	sort_standings()
 	if num_playoff_champ == 1:
-		var top_team = standings[1]
+		var top_team = standings[0]
 		champion = top_team
 		promotion_playoff_team = top_team
 	else: #always 2
-		var top_seed = standings[1]
-		var two_seed = standings[2]
+		var top_seed = standings[0]
+		var two_seed = standings[1]
 		pass
 
 func assign_relegation_teams():
 	sort_standings()
 	if num_demoted_auto == 2:
-		demotion_teams.append(standings[8])
+		demotion_teams.append(standings[6])
+		demotion_teams.append(standings[7])
+		demotion_playoff_team = standings[5]
+	elif num_demoted_auto == 1:
 		demotion_teams.append(standings[7])
 		demotion_playoff_team = standings[6]
-	elif num_demoted_auto == 1:
-		demotion_teams.append(standings[8])
-		demotion_playoff_team = standings[7]
 	else: #no teams demoted automatically
-		demotion_playoff_team = standings[8]
+		demotion_playoff_team = standings[7]
 	
 func pick_referee():
-	var available_referees
+	var available_referees = []
 	if referees_used_today.size() == 0:
 		available_referees = referees
 	else:
 		for referee in referees:
 			if referees_used_today.find(referee) == -1:
 				available_referees.append(referee)
-	var rand = randi_range(0, available_referees.size())
+	var rand = randi_range(0, available_referees.size() - 1)
 	return available_referees[rand]
 	
 func sort_standings():
+	var team_data = []
 	for team in teams:
-		var points = team.get_standings_points() #2 points for a win, 1 for a tiw, 0 for a loss
-		var wins = team.wins #if two teams had the same points but one had more wins, they go higher
-		var goal_diff = team.goal_diff #if two teams are otherwise tied, goal differential decides
-		var last_year = team.last_season_position #between 1 and 10 (1-8 this legue, 9 and 10 promoted from lower league), tie goes to team with worse position last year
-	standings #TODO: fill with teams and sort
-	pass
+		var points = team.get_standings_points()
+		var wins = team.wins
+		var goal_diff = team.goal_diff
+		var last_year = team.last_season_position
+		team_data.append({"team": team, "points": points, "wins": wins, "goal_diff": goal_diff, "last_year": last_year})
+	
+	team_data.sort_custom(func(a, b):
+		if a.points != b.points:
+			return a.points > b.points
+		elif a.wins != b.wins:
+			return a.wins > b.wins
+		elif a.goal_diff != b.goal_diff:
+			return a.goal_diff > b.goal_diff
+		else:
+			return a.last_year > b.last_year
+	)
+	
+	standings = []
+	for data in team_data:
+		standings.append(data.team)
 	
 func replace_team(old_team: Franchise, new_team: Franchise):
 	var teams_index = teams.find(old_team)
