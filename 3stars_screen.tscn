@@ -64,8 +64,6 @@ offset_left = 600.0
 offset_top = 300.0
 offset_right = 643.0
 offset_bottom = 349.0
-text = "Sacks
-2"
 
 [node name="StatLabel3" type="Label" parent="P1"]
 layout_mode = 0

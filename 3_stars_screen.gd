@@ -47,20 +47,20 @@ func position_Ps():
 	$P1/NameLabel.position = Vector2(600,0)
 	$P1/TeamLabel.position = Vector2(600, 40)
 	$P1/StatLabel1.position = Vector2(400, 300)
-	$P1/StatLabel2.position = Vector2(600, 300)
-	$P1/StatLabel3.position = Vector2(800,300)
+	$P1/StatLabel2.position = Vector2(750, 300)
+	$P1/StatLabel3.position = Vector2(1000,300)
 	P2.global_position = Vector2(0,550)
 	$P2/NameLabel.position = Vector2(600,0)
 	$P2/TeamLabel.position = Vector2(600, 40)
 	$P2/StatLabel1.position = Vector2(400, 300)
-	$P2/StatLabel2.position = Vector2(600, 300)
-	$P2/StatLabel3.position = Vector2(800,300)
+	$P2/StatLabel2.position = Vector2(750, 300)
+	$P2/StatLabel3.position = Vector2(1100,300)
 	P3.global_position = Vector2(0,1100)
 	$P3/NameLabel.position = Vector2(600,0)
 	$P3/TeamLabel.position = Vector2(600, 40)
 	$P3/StatLabel1.position = Vector2(400, 300)
-	$P3/StatLabel2.position = Vector2(600, 300)
-	$P3/StatLabel3.position = Vector2(800,300)
+	$P3/StatLabel2.position = Vector2(750, 300)
+	$P3/StatLabel3.position = Vector2(1100,300)
 
 func assign_three_stars():
 	print("=== ASSIGN THREE STARS DEBUG ===")
@@ -271,13 +271,8 @@ func fill_star_info():
 
 func get_interesting_stats(player: Player) -> Array:
 	var stats = ["", "", ""]
-	var stat_candidates = []
 	
-	# Always include goals as the first stat
-	if player.game_stats.goals == 1:
-		stat_candidates.append(str(player.game_stats.goals) + " Goal"+ "\n")
-	else:
-		stat_candidates.append(str(player.game_stats.goals) + " Goals"+ "\n")
+	var stat_candidates = []
 	
 	if player.game_stats.pitches_f > 0 && player.game_stats.pitches_g > 0 && player.game_stats.pitches_p > 0 && player.game_stats.pitches_k > 0:
 		stat_candidates.append("Played Every Position"+ "\n")
@@ -286,74 +281,119 @@ func get_interesting_stats(player: Player) -> Array:
 		var gaa = (player.game_stats.goals_against / float(player.game_stats.pitches_played)) * GlobalSettings.pitch_limit
 		if player.game_stats.pitches_g > 0 || player.game_stats.pitches_k > 0:
 			if gaa <= 1.0:
-				stat_candidates.append("Amazing Goals Against Average: " + str(round(gaa * 10) / 10) + "\n")
+				stat_candidates.append("Amazing Goals Against Average:\n" + str(round(gaa * 10) / 10))
 			elif gaa <= 4.0:
-				stat_candidates.append("Goals Against Average: " + str(round(gaa * 10) / 10)+ "\n")
+				stat_candidates.append("Goals Against Average:\n" + str(round(gaa * 10) / 10))
 	# Calculate goals for average (GFA) - relevant for all positions
 	if player.game_stats.pitches_played > 0:
 		var gfa = (player.game_stats.goals_for / float(player.game_stats.pitches_played)) * GlobalSettings.pitch_limit
 		if gfa >= 8.0:
-			stat_candidates.append("Elite Goals For Average: " + str(round(gfa * 10) / 10)+ "\n")
+			stat_candidates.append("Elite Goals For Average:\n" + str(round(gfa * 10) / 10))
 		elif gfa >= 3.0:
-			stat_candidates.append("Goals For Average: " + str(round(gfa * 10) / 10)+ "\n")
+			stat_candidates.append("Goals For Average:\n" + str(round(gfa * 10) / 10))
 	# Calculate touch efficiency - relevant for all positions
 	if player.game_stats.touches > 0:
 		var productive_touches = player.game_stats.returns + player.game_stats.assists + player.game_stats.goals
 		var touch_efficiency = (productive_touches / float(player.game_stats.touches)) * 100
 		if touch_efficiency >= 50.0:
-			stat_candidates.append(str(round(touch_efficiency)) + "% Touch Efficiency"+ "\n")
+			stat_candidates.append("Touch Efficiency\n" + str(round(touch_efficiency)) + "%")
 	# Position-specific stat priorities
 	if player.game_stats.pitches_k > 0:  # Keeper stats
 		if player.game_stats.returns > 1:
-			stat_candidates.append(str(player.game_stats.returns) + " Returns"+ "\n")
+			stat_candidates.append(" Returns\n"+ str(player.game_stats.returns))
 		if player.game_stats.pitches_k >= GlobalSettings.pitch_limit && player.game_stats.goals_against == 0:
 			stat_candidates.append("Shutout"+ "\n")
-		if player.game_stats.aces_allowed == 0 && player.game_stats.pitches_k > 5:
-			stat_candidates.append("No Aces Allowed"+ "\n")
+		elif player.game_stats.aces_allowed == 0 && player.game_stats.pitches_k > 5: #not as important as a shutout
+			stat_candidates.append("No Aces Allowed"+ "\n" + "0 Goals Allowed")
 	if player.game_stats.pitches_g > 0:  # Guard stats
-		if player.game_stats.sacks_allowed == 0 && player.game_stats.pitches_g > 10:
-			stat_candidates.append("Perfect Protection: No sacks allowed on " + str(player.game_stats.pitches_g) + " pitches"+ "\n")
-		elif player.game_stats.sacks_allowed <= 2 && player.game_stats.pitches_g > 15:
-			var sack_rate = player.game_stats.pitches_g / player.game_stats.sacks_allowed
-			stat_candidates.append("Strong Protection: "  + str(sack_rate) + " pitches per sack allowed"+ "\n")
-		if player.game_stats.mark_points <= 1 && player.game_stats.pitches_g > 15:
-			stat_candidates.append("Elite Marking"+ "\n")
-		elif player.game_stats.mark_points <= 3 && player.game_stats.pitches_g > 10:
-			stat_candidates.append("Good Marking"+ "\n")
+		if player.game_stats.sacks_allowed == 0 && player.game_stats.pitches_g >= 10:
+			stat_candidates.append("Perfect Protection\n" + "0 Sacks Allowed on" + str(player.game_stats.pitches_g) + " pitches")
+		elif player.game_stats.sacks_allowed <= 2 && player.game_stats.pitches_g >= 7:
+			var sack_rate = round(player.game_stats.pitches_g / player.game_stats.sacks_allowed)
+			stat_candidates.append("Strong Protection\n"  + str(sack_rate) + " pitches per sack allowed")
+		if player.game_stats.mark_points <= 1 && player.game_stats.pitches_g >= 10:
+			var point_str = " points"
+			if  player.game_stats.mark_points == 1:
+				point_str = " point"
+			stat_candidates.append("Shutdown Marking"+ "\n" + str(player.game_stats.mark_points) + point_str + " allowed")
+		elif player.game_stats.mark_points <= 3 && player.game_stats.pitches_g >= 7:
+			stat_candidates.append("Good Marking\n"+ str(player.game_stats.mark_points)  + " points allowed")
 	if player.game_stats.pitches_p > 0:  # Pitcher stats
 		if player.game_stats.aces > 0:
 			var faceoff_percentage = (player.game_stats.faceoff_wins / float(player.game_stats.faceoff_wins + player.game_stats.faceoff_losses))
 			if faceoff_percentage > 0.5 and player.game_stats.faceoff_wins >= 5:
-				stat_candidates.append(str(round(faceoff_percentage)) + "% Jump Ball Wins"+ "\n")
+				stat_candidates.append("Jump Ball Percentage\n" + str(round(faceoff_percentage)) +"%")
+			if faceoff_percentage > 0.4 and player.game_stats.faceoff_wins >= 8:
+				stat_candidates.append("Jump Ball Wins\n"+ str(player.game_stats.faceoff_wins))
 			var ace_percentage = (player.game_stats.aces / float(player.game_stats.pitches_thrown)) * 100
 			if ace_percentage >= 30.0:
-				stat_candidates.append(str(round(ace_percentage)) + "% Ace Rate"+ "\n")
-			else:
-				stat_candidates.append(str(player.game_stats.aces) + " Aces"+ "\n")
+				stat_candidates.append(str(round(ace_percentage)) + "Ace Rate\n"+ str(round(ace_percentage)) + "%")
+			stat_candidates.append("Aces\n"+ str(player.game_stats.aces))
 		# Pitcher durability - throwing many pitches without getting KO'd
 		if player.game_stats.pitches_thrown > 10 && player.game_stats.got_kod == 0:
-			stat_candidates.append("Durable Pitcher: " + str(player.game_stats.pitches_thrown)+ "\n")
+			stat_candidates.append("Pitches Thrown\n" + str(player.game_stats.pitches_thrown))
 	if player.game_stats.pitches_f > 0:  # Forward stats
 		if player.game_stats.sacks > 1:
-			stat_candidates.append(str(player.game_stats.sacks) + " Sacks"+ "\n")
+			stat_candidates.append("Sacks\n" + str(player.game_stats.sacks))
 		if player.game_stats.partner_sacks > 3:
 			stat_candidates.append(str(player.game_stats.partner_sacks) + " Partner Sacks"+ "\n")
+		var pressure_rate = round((player.game_stats.sacks + player.game_stats.partner_sacks)/ player.game_stats.pitches_f)
+		if pressure_rate >= 1:
+			stat_candidates.append("Pressure Rate\n" + "100%")
+		else:
+			pressure_rate = pressure_rate * 100
+			stat_candidates.append("Pressure Rate\n" + str(pressure_rate) + "%")
 	#violence is for everyone
 	if player.game_stats.hits > 5:
-			stat_candidates.append(str(player.game_stats.hits) + " Hits"+ "\n")
+			stat_candidates.append("Hits\n"+ str(player.game_stats.hits))
+	elif player.game_stats.hits > 0 and player.game_stats.pitches_played <= 10:
+		if player.game_stats.hits == 1:
+			stat_candidates.append("Hit\n"+ str(player.game_stats.hits))
+		else:
+			stat_candidates.append("Hits\n"+ str(player.game_stats.hits))
 	if player.game_stats.knockouts > 0:
 		stat_candidates.append(str(player.game_stats.knockouts) + " KOs"+ "\n")
 	
 	# General valuable stats for all positions
 	if player.game_stats.assists == 1:
-		stat_candidates.append(str(player.game_stats.assists) + " Assist"+ "\n")
+		stat_candidates.append("Assist"+ "\n" + str(player.game_stats.assists))
 	elif player.game_stats.assists > 1:
-		stat_candidates.append(str(player.game_stats.assists) + " Assists"+ "\n")
+		stat_candidates.append("Assists"+ "\n" + str(player.game_stats.assists))
 	if player.game_stats.pitches_played >= GlobalSettings.pitch_limit:
-		stat_candidates.append("Ironman"+ "\n")
+		stat_candidates.append("Ironman"+ "\n" + "Played Full Game")
 
-	# Take the first 3 stats from the list (goals is always first)
-	for i in range(3):
+	var goal_string = ""
+	# Always include goals as the first stat
+	if player.game_stats.goals == 1:
+		goal_string = ("Goal"+ "\n" + str(player.game_stats.goals))
+	else:
+		goal_string = ("Goals"+ "\n" + str(player.game_stats.goals))
+	stats[0] = goal_string
+	if stat_candidates.size() < 3: #tack on some stuff if the player didn't do anything interesting
+		stat_candidates.append("Pitches Played" + "\n" + str(player.game_stats.pitches_played))
+		var most_played_position = ""
+		var most_played_pitches = -1
+		if player.game_stats.pitches_p >= most_played_pitches:
+			most_played_pitches = player.game_stats.pitches_p
+			most_played_position = "Pitcher"
+		if player.game_stats.pitches_g >= most_played_pitches:
+			player.game_stats.pitches_g
+			most_played_position = "Guard"
+		if player.game_stats.pitches_f >= most_played_pitches:
+			player.game_stats.pitches_f
+			most_played_position = "Forward"
+		if player.game_stats.pitches_k >= most_played_pitches:
+			player.game_stats.pitches_k
+			most_played_position = "Keeper"
+		stat_candidates.append("Most played position\n" + most_played_position)
+		stat_candidates.append("Ball Touches\n" + str(player.game_stats.touches))
+		if player.game_stats.got_kod > 0:
+			if player.game_stats.got_kod == 1:
+				stat_candidates.append("Knocked Out\n" + player.game_stats.got_kod + " Time")
+			else:
+				stat_candidates.append("Knocked Out\n" + player.game_stats.got_kod + " Times")
+	stat_candidates.shuffle()
+	for i in range(1,3):
 		if i < stat_candidates.size():
 			stats[i] = stat_candidates[i]
 	
