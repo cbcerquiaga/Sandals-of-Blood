@@ -387,63 +387,27 @@ func faceoff_recover():
 	is_faceoff_recover = true
 	can_move = true
 	
-	#check discipline for immediate fighting or ball chasing
+	#check discipline to decide if the player will cheat after the faceoff
 	var discipline_check = randi_range(0, 100)
 	var discipline_threshold = get_buffed_attribute("discipline")
 	
 	if discipline_check > discipline_threshold:
 		discipline_check = randi_range(0, 100)
 		if discipline_check > discipline_threshold:
-			var aggression_check = randi_range(0, 100)
-			var aggression_threshold = get_buffed_attribute("aggression")
-			
-			if aggression_check > aggression_threshold: #we go ball
-				print(bio.last_name + " failed discipline twice! Going for the ball later")
+			print(bio.last_name + " failed discipline twice! Going for the ball later")
 				#start_cheating()
-			else: #we're grumpy so we go man
-				if opp_pitcher and global_position.distance_to(opp_pitcher.global_position) < 100:
-					print(bio.last_name + " failed discipline twice! Attacking opposing pitcher!")
-					var attack_direction = global_position.direction_to(opp_pitcher.global_position).normalized()
-					var speed = get_buffed_attribute("speed")
-					if status.boost > 0:
-						speed =get_buffed_attribute("sprint_speed")
-						status.boost = max(0, status.boost - 1.0)
-					
-					velocity = attack_direction * speed
-					move_and_slide()
-					if global_position.distance_to(opp_pitcher.global_position) < 5:
-						current_behavior = "fighting"
-						has_arrived = true
-						is_faceoff_recover = false
-						print(bio.last_name + " is fighting on the field, what a psycho")
-						return
-				else:
-					print(bio.last_name + " opponent too far, exiting normally")
 	var faceoff_pos = ball.global_position if ball else global_position
 	var exit_direction: Vector2 = Vector2.ZERO
 	
 	# Check if it's a side faceoff or centered offensive faceoff
 	var is_left_faceoff = faceoff_pos.x < 0  # Near left sideline
-	var is_right_faceoff = faceoff_pos.x > 0  # Near right sideline
 	var rand_y = randi_range(-0.2, 0.2) #some variance instead of just going straight left or right
 	if randi_range(0,100) < get_buffed_attribute("positioning"):
 		rand_y = 0 #if we have good positioning, just get the hell off
 	if is_left_faceoff:
 		exit_direction = Vector2(-1, rand_y)
-	elif is_right_faceoff:
+	else: # is_right_faceoff:
 		exit_direction = Vector2(1, rand_y)
-	else:
-		if randf() < 0.5:
-			exit_direction = Vector2(-1, rand_y)
-		else:
-			exit_direction = Vector2(1, rand_y)
-		if current_behavior == "chasing": 
-			# Small chance to switch direction based on opponent position
-			if opp_pitcher and randi_range(0,100) < get_buffed_attribute("reactions"):
-				var opp_direction = (opp_pitcher.global_position - global_position).normalized()
-				if opp_direction.dot(exit_direction) < 0:
-					exit_direction = -exit_direction
-					print(bio.last_name + ": Switching direction to chase opponent")
 	var speed = get_buffed_attribute("sprint_speed") if status.boost > 0 else get_buffed_attribute("speed")
 	if status.boost > 0:
 		speed = get_buffed_attribute("sprint_speed")
@@ -468,61 +432,35 @@ func faceoff_recover():
 			chosen_behavior = "chasing"
 		else:
 			chosen_behavior = "tracking"
-		if chosen_behavior == "chasing" and opp_pitcher and !is_off_field_at_position(opp_pitcher.global_position):
-			var my_closest = find_closest_position_index(global_position)
-			var opp_closest = find_closest_position_index(opp_pitcher.global_position)
-			var clockwise_dist = calculate_clockwise_distance(my_closest, opp_closest)
-			var counter_dist = calculate_counter_distance(my_closest, opp_closest)
+		
+		# AFTER getting off field, always go to track first before fighting
+		# Store the intended behavior for later
+		if chosen_behavior == "chasing":
+			# Set a flag to chase after reaching track
+			wants_to_cheat = false
+			current_behavior = "going_to_track"
+			going_to_track = true
 			
-			moving_clockwise = clockwise_dist < counter_dist
+			# Store chase intent
+			pending_behavior_change = "chasing"
 			
-			if moving_clockwise:
-				var next_clock = (my_closest + 1) % running_positions.size()
-				var next_counter = (my_closest - 1 + running_positions.size()) % running_positions.size()
-				legal_first_moves = [next_clock, next_counter]
-			else:
-				var next_counter = (my_closest - 1 + running_positions.size()) % running_positions.size()
-				var next_clock = (my_closest + 1) % running_positions.size()
-				legal_first_moves = [next_counter, next_clock]
-			
-			current_waypoint = running_positions[my_closest].global_position
-			current_path_index = my_closest
-			velocity = Vector2.ZERO
-			
-			# Start with chilling to get oriented, then transition to chase
+			# Initialize track movement
+			decide_initial_direction()
+			var closest_index = find_closest_position_index(global_position)
+			current_path_index = closest_index
+			set_next_waypoint()
+		elif chosen_behavior == "fleeing":
+			current_behavior = "fleeing"
+			is_fleeing = true
+			is_chasing = false
+			direction_changes = 0
+			initialize_waypoints()
+		elif chosen_behavior == "chilling":
 			current_behavior = "chilling"
 			current_chill_target = get_random_chill_target()
-			
-			# After a brief chill, start chasing
-			var chill_timer = Timer.new()
-			chill_timer.wait_time = 1.0  # Chill for 1 second
-			chill_timer.one_shot = true
-			chill_timer.timeout.connect(func():
-				if current_behavior == "chilling":
-					current_behavior = "chasing"
-					initialize_chase()
-				chill_timer.queue_free()
-			)
-			add_child(chill_timer)
-			chill_timer.start()
-		else:
-			if chosen_behavior == "fleeing":
-				current_behavior = "fleeing"
-				is_fleeing = true
-				is_chasing = false
-				direction_changes = 0
-				initialize_waypoints()
-			elif chosen_behavior == "chilling":
-				current_behavior = "chilling"
-				current_chill_target = get_random_chill_target()
-			elif chosen_behavior == "chasing":
-				current_behavior = "chasing"
-				initialize_chase()
-				direction_changes = 0
-				initialize_waypoints()
-			else:  # tracking
-				current_behavior = "tracking"
-				initialize_waypoints()
+		elif chosen_behavior == "tracking":
+			current_behavior = "tracking"
+			initialize_waypoints()
 
 func set_next_waypoint():
 	"""Set the current and next waypoints based on direction"""
@@ -1453,10 +1391,29 @@ func go_to_track():
 	
 	if reached:
 		going_to_track = false
-		current_behavior = "deciding"
 		has_arrived = true
 		has_made_first_move = true
 		velocity = Vector2.ZERO
+		
+		# Check if we have a pending behavior change (like chasing after faceoff)
+		if pending_behavior_change != "":
+			if pending_behavior_change == "chasing":
+				current_behavior = "chasing"
+				initialize_chase()
+			elif pending_behavior_change == "fleeing":
+				current_behavior = "fleeing"
+				initialize_flee()
+			elif pending_behavior_change == "chilling":
+				current_behavior = "chilling"
+				current_chill_target = get_random_chill_target()
+			elif pending_behavior_change == "tracking":
+				current_behavior = "tracking"
+				initialize_waypoints()
+			
+			# Clear the pending behavior
+			pending_behavior_change = ""
+		else:
+			current_behavior = "deciding"
 
 func find_closest_position_index(position: Vector2) -> int:
 	var closest_index = 0
@@ -1652,7 +1609,7 @@ func predict_ball_path_for_cheating():
 		var collision = false
 		var wall_normal = Vector2.ZERO
 		
-		# Check for wall collisions
+	# Check for wall collisions
 		if next_pos.x < field_bounds.position.x:
 			wall_normal = Vector2.RIGHT
 			collision = true

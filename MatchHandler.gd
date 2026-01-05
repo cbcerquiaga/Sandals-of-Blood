@@ -170,57 +170,29 @@ func _on_ball_exited_field():
 			went_out_endline = true
 		
 		if went_out_sideline:
-			eventpopup.show_side_faceoff()
+			eventpopup.show_side_faceoff() #TODO: not appearing
 			GlobalSettings.record_event(str(current_pitch) + ", " + str(time_remaining) + ", Ball Out at Sideline - Face-off")
 			print("and the ball goes out of bounds at the sideline, we'll re-set with a face-off")
 			lineup_faceoff()
 			out_of_bounds_frames = 0
 			return
 		elif went_out_endline: # traditional pitch restart at endline
-			var c_att_fo = field.c_att_fo
-			var p_att_fo = field.p_att_fo
-			
-			var player_team_attacks = false
-	
-			if !ball or !ball.last_hit_by:
-				#not clear who put it out - base on which goal it went out closer to
-				player_team_attacks = ball.global_position.distance_squared_to(field.cpuGoal.global_position) < ball.global_position.distance_squared_to(field.playerGoal.global_position)
-				out_team = pTeam if player_team_attacks else aTeam
-			elif ball.last_hit_by.team == 2:  # AI team put it out
-				player_team_attacks = true  #player team gets attacking face-off
-				out_team = aTeam
-			else:  #player team put it out
-				player_team_attacks = false  #CPU team gets attacking face-off
-				out_team = pTeam
-			
-			if player_team_attacks:
-				faceoff_ball_position = p_att_fo
-			else:
-				faceoff_ball_position = c_att_fo
-			
-			eventpopup.show_end_faceoff(out_team)
-			GlobalSettings.record_event(str(current_pitch) + ", " + str(time_remaining) + ", Ball Out at Endline - Face-off")
-			print("and the ball goes out of bounds over the endline, this face-off could lead to a goal!")
-			ball.global_position = faceoff_ball_position
-			lineup_faceoff(true)
-			out_of_bounds_frames = 0
-			return
-		else: #something has gone wrong, we'll do a pitch
 			GlobalSettings.record_event(str(current_pitch) + ", " + str(time_remaining) + ", Ball Out of Play)")
-			print("Ball went out of bounds")
+			print("Ball went out of bounds at the end line- pitch")
 			
+			var throw_team
 			if GlobalSettings.human_always_pitch:
 				is_human_team_pitching = true
-			elif !ball or !ball.last_hit_by:
+			else: #use the possession arrow!
 				is_human_team_pitching = !is_human_team_pitching
-			elif ball.last_hit_by.team == 1:
-				is_human_team_pitching = false
+			if is_human_team_pitching:
+				throw_team = pTeam
 			else:
-				is_human_team_pitching = true
-			
+				throw_team = aTeam
+			eventpopup.show_out_pitch(throw_team)
 			pTeam.is_on_offense = is_human_team_pitching
 			aTeam.is_on_offense = !is_human_team_pitching
-			pitches_remaining -= 1
+			#pitches_remaining -= 1 #reducing pitches on an out would incentivize negative play
 			out_of_bounds_frames = 0
 			next_play()
 	else:
