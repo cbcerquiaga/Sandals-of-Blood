@@ -467,6 +467,8 @@ func _on_player_goal():
 	pTeam.is_on_offense = is_human_team_pitching
 	aTeam.is_on_offense = !is_human_team_pitching
 	
+	aTeam.sync_field_to_roster()
+	pTeam.sync_field_to_roster()
 	#TODO: goal celebrations
 	pauseMenu.clear_subs()
 	reset_players_for_next_play()
@@ -579,6 +581,8 @@ func _on_cpu_goal():
 	pTeam.is_on_offense = is_human_team_pitching
 	aTeam.is_on_offense = !is_human_team_pitching
 	
+	aTeam.sync_field_to_roster()
+	pTeam.sync_field_to_roster()
 	#TODO: goal celebrations
 	reset_players_for_next_play()
 	reposition_players()

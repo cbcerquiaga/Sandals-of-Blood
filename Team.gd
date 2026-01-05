@@ -1099,3 +1099,22 @@ func apply_settings_buff(isHuman: bool):
 	RG.add_buff("settings", buff_stats, buff_vals)
 	K.add_buff("settings", buff_stats, buff_vals)
 	print("Got buffed: " + str(buff_val) + " Human team: " + str(isHuman))
+
+func sync_field_to_roster():
+	var field_players_list = [P, K, LG, RG, LF, RF]
+	if onfield_players:
+		for player in onfield_players:
+			if player and player not in field_players_list:
+				field_players_list.append(player)
+	for field_player in field_players_list:
+		if not field_player:
+			continue
+		var roster_match = null
+		for roster_player in roster:
+			if roster_player and roster_player.bio.first_name == field_player.bio.first_name and roster_player.bio.last_name == field_player.bio.last_name:
+				roster_match = roster_player
+				break
+		if roster_match:
+			roster_match.set_all_properties(field_player)
+		else:
+			push_warning("Could not find roster match for field player: ", field_player.bio.last_name)

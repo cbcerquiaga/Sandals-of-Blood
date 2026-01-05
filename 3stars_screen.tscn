@@ -37,6 +37,7 @@ layout_mode = 0
 offset_left = 600.0
 offset_right = 815.0
 offset_bottom = 23.0
+theme_override_font_sizes/font_size = 30
 text = "First Star: Jaques Letterman"
 
 [node name="TeamLabel" type="Label" parent="P1"]
@@ -45,6 +46,7 @@ offset_left = 600.0
 offset_top = 40.0
 offset_right = 815.0
 offset_bottom = 63.0
+theme_override_font_sizes/font_size = 20
 text = "Overpassville Fumes"
 
 [node name="StatLabel1" type="Label" parent="P1"]
@@ -74,6 +76,11 @@ offset_bottom = 349.0
 pivot_offset = Vector2(3154, 923)
 text = "Pitches Played
 20"
+
+[node name="HBoxContainer" type="HBoxContainer" parent="P1"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
 
 [node name="P2" type="Control" parent="."]
 anchors_preset = 0

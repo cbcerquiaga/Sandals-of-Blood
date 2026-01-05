@@ -102,6 +102,8 @@ func _on_stats_button_pressed():
 
 func _on_stars_button_pressed() -> void:
 	submenu = "stars"
+	three_stars_screen.set_teams(matchHandler.pTeam, matchHandler.aTeam)
+	three_stars_screen.set_score(matchHandler.pTeam.game_stats.goals, matchHandler.aTeam.game_stats.goals)
 	three_stars_screen.bring_up()
 	starsButton.hide()
 	statsButton.hide()
