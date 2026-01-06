@@ -57,7 +57,6 @@ texture = ExtResource("1_u1rbh")
 
 [node name="PopupPanel" type="PopupPanel" parent="."]
 size = Vector2i(2788, 2994)
-visible = true
 
 [node name="V-PopupMain" type="VBoxContainer" parent="PopupPanel"]
 offset_left = 4.0

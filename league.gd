@@ -153,9 +153,12 @@ func advance_week(week: int):
 func human_match(cpu_team: Franchise, isHomeTeam: bool, isPlayoffs: bool = false):
 	var ref = pick_referee()
 	referees_used_today.append(ref)
+	#TODO: make this match the upcoming one in the career hub
+	#TODO: if the match is away, require a travel first
 	pass
 	
-func sim_match(homeTeam: Franchise, awayTeam: Franchise):
+func sim_match(homeTeam: Franchise, awayTeam: Franchise, isPlayoffs: bool = false):
+	#TODO: simulate this match right now
 	pass
 
 func sim_cpu_signings():
@@ -173,7 +176,12 @@ func determine_champ_seeding():
 	else: #always 2
 		var top_seed = standings[0]
 		var two_seed = standings[1]
-		pass
+		if top_seed == CareerFranchise:
+			human_match(two_seed, true, true)
+		elif two_seed == CareerFranchise:
+			human_match(top_seed, false, true)
+		else:
+			sim_match(top_seed, two_seed, true)
 
 func assign_relegation_teams():
 	sort_standings()
