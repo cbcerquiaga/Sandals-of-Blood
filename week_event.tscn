@@ -1,0 +1,126 @@
+[gd_scene load_steps=15 format=3 uid="uid://buut4nie501dx"]
+
+[ext_resource type="Script" path="res://week_event.gd" id="1_p551q"]
+[ext_resource type="Texture2D" uid="uid://cn36mb1myupyl" path="res://UI/HubUI/Important.png" id="1_u1rbh"]
+[ext_resource type="Texture2D" uid="uid://dn0cwaqbqteey" path="res://UI/HubUI/Event_base.png" id="2_gts1g"]
+[ext_resource type="Texture2D" uid="uid://dq8d60w83x4wb" path="res://UI/HubUI/Event_highlighted.png" id="3_750xe"]
+[ext_resource type="Texture2D" uid="uid://dm2w10ku3swo2" path="res://UI/HubUI/EventIcons/Pregame.png" id="3_rrvkw"]
+[ext_resource type="Texture2D" uid="uid://c4swsxg0fpxyg" path="res://UI/ConversationUI/OptionA_base.png" id="5_8h7ms"]
+[ext_resource type="Texture2D" uid="uid://cxijc3y543pqg" path="res://Assets/Random Events/AddressTeam.png" id="5_voqws"]
+[ext_resource type="Texture2D" uid="uid://c7s1meh0s6yw8" path="res://UI/ConversationUI/OptionA_highlighted.png" id="6_ghrlu"]
+[ext_resource type="Texture2D" uid="uid://chnb78sc2hcny" path="res://UI/ConversationUI/OptionB_base.png" id="7_v1ii0"]
+[ext_resource type="Texture2D" uid="uid://cvkmgu43v5qu3" path="res://UI/ConversationUI/OptionB_highlighted.png" id="8_2yapk"]
+[ext_resource type="Texture2D" uid="uid://bbjad1e5nnvtq" path="res://UI/ConversationUI/OptionC_base.png" id="9_gdfax"]
+[ext_resource type="Texture2D" uid="uid://8xblkg1sqeoo" path="res://UI/ConversationUI/OptionC_highlighted.png" id="10_hv5vi"]
+[ext_resource type="Texture2D" uid="uid://bog2o1fm80x1g" path="res://UI/ConversationUI/OptionD_base.png" id="11_a60hb"]
+[ext_resource type="Texture2D" uid="uid://c6aco8rc5rx0j" path="res://UI/ConversationUI/OptionD_highlighted.png" id="12_nu7ot"]
+
+[node name="Control" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_p551q")
+
+[node name="TextureButton" type="TextureButton" parent="."]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+texture_normal = ExtResource("2_gts1g")
+texture_hover = ExtResource("3_750xe")
+texture_focused = ExtResource("3_750xe")
+
+[node name="TextureRect" type="TextureRect" parent="TextureButton"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -57.5
+offset_top = -57.5
+offset_right = 57.5
+offset_bottom = 57.5
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("3_rrvkw")
+
+[node name="ImportantIndicator" type="TextureRect" parent="."]
+layout_mode = 0
+offset_left = -60.0
+offset_top = -60.0
+offset_right = 75.0
+offset_bottom = 75.0
+texture = ExtResource("1_u1rbh")
+
+[node name="PopupPanel" type="PopupPanel" parent="."]
+size = Vector2i(2788, 2994)
+visible = true
+
+[node name="V-PopupMain" type="VBoxContainer" parent="PopupPanel"]
+offset_left = 4.0
+offset_top = 4.0
+offset_right = 2784.0
+offset_bottom = 2990.0
+
+[node name="TitleLabel" type="Label" parent="PopupPanel/V-PopupMain"]
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 100
+text = "Address the Team"
+
+[node name="EventTexture" type="TextureRect" parent="PopupPanel/V-PopupMain"]
+layout_mode = 2
+size_flags_horizontal = 4
+texture = ExtResource("5_voqws")
+
+[node name="DescriptionLabel" type="Label" parent="PopupPanel/V-PopupMain"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 29
+text = "The players anxiously await instructions from their manager. Looking around, you are certain. All eyes are on you. What shall you tell the players?
+
+A: \"Show no mercy! This is a physical game and I want you to destroy these punks. I want them to regret ever stepping on the court with us!\" (buff aggression and toughness)
+
+B: We've trained for this moment. Play smart. Play your role, and trust your teammates to do the same thing. (buff to positioning, reduced aggression)
+
+C: You guys look nervous. Why are you nervous? I've seen you play. You know you can ball with anybody. Take a deep breath, relax, and play your game. (buff to confidence and discipline)
+
+D: You guys look stiff. Make sure you stretch and warm up properly. If you fail to prepare, you prepare to fail! (buff do durability and endurance)"
+
+[node name="H-TopChoices" type="HBoxContainer" parent="PopupPanel/V-PopupMain"]
+layout_mode = 2
+
+[node name="ChoiceA" type="TextureButton" parent="PopupPanel/V-PopupMain/H-TopChoices"]
+layout_mode = 2
+texture_normal = ExtResource("5_8h7ms")
+texture_hover = ExtResource("6_ghrlu")
+texture_focused = ExtResource("6_ghrlu")
+
+[node name="ChoiceB" type="TextureButton" parent="PopupPanel/V-PopupMain/H-TopChoices"]
+layout_mode = 2
+texture_normal = ExtResource("7_v1ii0")
+texture_hover = ExtResource("8_2yapk")
+texture_focused = ExtResource("8_2yapk")
+
+[node name="H-BottomChoices" type="HBoxContainer" parent="PopupPanel/V-PopupMain"]
+layout_mode = 2
+
+[node name="ChoiceC" type="TextureButton" parent="PopupPanel/V-PopupMain/H-BottomChoices"]
+layout_mode = 2
+texture_normal = ExtResource("9_gdfax")
+texture_hover = ExtResource("10_hv5vi")
+texture_focused = ExtResource("10_hv5vi")
+
+[node name="ChoiceD" type="TextureButton" parent="PopupPanel/V-PopupMain/H-BottomChoices"]
+layout_mode = 2
+texture_normal = ExtResource("11_a60hb")
+texture_hover = ExtResource("12_nu7ot")
+texture_focused = ExtResource("12_nu7ot")
+
+[connection signal="pressed" from="TextureButton" to="." method="_on_hub_button_pressed"]
+[connection signal="pressed" from="PopupPanel/V-PopupMain/H-TopChoices/ChoiceA" to="." method="_on_choice_a_pressed"]
+[connection signal="pressed" from="PopupPanel/V-PopupMain/H-TopChoices/ChoiceB" to="." method="_on_choice_b_pressed"]
+[connection signal="pressed" from="PopupPanel/V-PopupMain/H-BottomChoices/ChoiceC" to="." method="_on_choice_c_pressed"]
+[connection signal="pressed" from="PopupPanel/V-PopupMain/H-BottomChoices/ChoiceD" to="." method="_on_choice_d_pressed"]
