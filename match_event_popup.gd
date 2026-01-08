@@ -114,14 +114,16 @@ func show_substitutions(pitch: int, playerTeam: Team, playerOn: Array, playerOff
 func show_side_faceoff():
 	$MainLabel.text = "JUMP BALL"
 	$PitchLabel.text = ""
-	$DetailLabel.text = "Ball went over the sideline and out of play"
+	$DetailLabel.text = "Ball oout of play at sideline"
 	$FollowupLabel.text = "Jump ball to re-start play"
+	pop(100)
 	
 func show_out_pitch(throwTeam: Team):
 	$MainLabel.text = "OUT OF PLAY"
 	$PitchLabel.text = ""
-	$DetailLabel.text = "Ball went over the end line"
-	$FollowupLabel.text = "Play resumes with pitch for " + throwTeam.team_name
+	$DetailLabel.text = "Ball out of play end line"
+	$FollowupLabel.text = throwTeam.team_name + " to pitch"
+	pop(100)
 	
 #func show_end_faceoff(outTeam: Team):
 	#$MainLabel.text = "FACE-OFF"

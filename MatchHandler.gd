@@ -170,9 +170,10 @@ func _on_ball_exited_field():
 			went_out_endline = true
 		
 		if went_out_sideline:
-			eventpopup.show_side_faceoff() #TODO: not appearing
+			eventpopup.show_side_faceoff()
 			GlobalSettings.record_event(str(current_pitch) + ", " + str(time_remaining) + ", Ball Out at Sideline - Face-off")
-			print("and the ball goes out of bounds at the sideline, we'll re-set with a face-off")
+			print("and the ball goes out of bounds at the sideline, we'll re-set with a jump ball")
+			await eventpopup.closed
 			lineup_faceoff()
 			out_of_bounds_frames = 0
 			return
@@ -190,6 +191,7 @@ func _on_ball_exited_field():
 			else:
 				throw_team = aTeam
 			eventpopup.show_out_pitch(throw_team)
+			await eventpopup.closed
 			pTeam.is_on_offense = is_human_team_pitching
 			aTeam.is_on_offense = !is_human_team_pitching
 			#pitches_remaining -= 1 #reducing pitches on an out would incentivize negative play
