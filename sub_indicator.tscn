@@ -1,0 +1,41 @@
+[gd_scene load_steps=3 format=3 uid="uid://cty6jcv6hlsu3"]
+
+[ext_resource type="Texture2D" uid="uid://dmw88shm5pdd" path="res://UI/ScorebugUI/pendingSub.png" id="1_hqm2e"]
+[ext_resource type="Texture2D" uid="uid://b5cguqex3gnqd" path="res://Assets/Teams/PowerFalcons/mark.png" id="2_cx1mu"]
+
+[node name="Node2D" type="Node2D"]
+
+[node name="Marker" type="TextureRect" parent="."]
+offset_right = 40.0
+offset_bottom = 40.0
+texture = ExtResource("1_hqm2e")
+
+[node name="Logo" type="TextureRect" parent="Marker"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.297118
+anchor_top = 0.288189
+anchor_right = 1.13969
+anchor_bottom = 0.973228
+offset_left = -5.99997
+offset_top = 18.0
+offset_right = 34.0
+offset_bottom = 58.0
+scale = Vector2(0.479999, 0.479999)
+texture = ExtResource("2_cx1mu")
+
+[node name="OnLabel" type="Label" parent="."]
+offset_left = 403.0
+offset_top = 53.0
+offset_right = 772.0
+offset_bottom = 149.0
+theme_override_font_sizes/font_size = 70
+text = "Gorbuchev"
+
+[node name="OffLabel" type="Label" parent="."]
+offset_left = 130.0
+offset_top = 482.0
+offset_right = 499.0
+offset_bottom = 578.0
+theme_override_font_sizes/font_size = 70
+text = "Brezhnev"
