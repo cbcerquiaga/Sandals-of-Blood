@@ -1266,7 +1266,7 @@ func perform_defending():
 			desired_position = Vector2((opp_aim.x+temp.x)/2, temp.y)
 	else:
 		desired_position = (own_goal + assigned_guard.global_position + opposing_keeper.global_position*2) / 4
-	if ball.global_position.distance_to(global_position) < (get_buffed_attribute("speed_rating") + get_buffed_attribute("reactions"))/8: #12.5 to 24.75
+	if ball.global_position.distance_to(global_position) < (get_buffed_attribute("speedRating") + get_buffed_attribute("reactions"))/8: #12.5 to 24.75
 		execute_rebound()
 		return
 	navigation_agent.target_position = desired_position

@@ -30,6 +30,7 @@ var rg
 @onready var pitcher_pitch3: TextureRect = $"PitchType3"
 
 var pending_substitutions : Array
+const Substitution = preload("res://substitution.gd")
 
 var is_in_match:bool = true #false if we got here from the team management menu, true if we got here from pausing a match
 #the "original" values are populated from team's next_<variable> fields, and are used for revertiyn
@@ -367,22 +368,27 @@ func ui_update():
 	var lg_overall = lg_player.calculate_guard_overall()
 	var rg_overall = rg_player.calculate_guard_overall()
 	var k_overall = k_player.calculate_keeper_overall()
-	if p_player.special_pitch_names.size() > 0:
-		if p_player.special_pitch_names[0]:
-			pitcher_pitch1.show()
-			pitcher_pitch1.texture = load(get_pitch_texture(p_player.special_pitch_names[0]))
-		else:
-			pitcher_pitch1.hide()
-		if p_player.special_pitch_names[1]:
-			pitcher_pitch2.show()
-			pitcher_pitch2.texture = load(get_pitch_texture(p_player.special_pitch_names[1]))
-		else:
-			pitcher_pitch2.hide()
-		if p_player.special_pitch_names[2]:
-			pitcher_pitch3.show()
-			pitcher_pitch3.texture = load(get_pitch_texture(p_player.special_pitch_names[2]))
+	if p_player.can_play_position("P"):
+		if p_player.special_pitch_names.size() > 0:
+			if p_player.special_pitch_names[0]:
+				pitcher_pitch1.show()
+				pitcher_pitch1.texture = load(get_pitch_texture(p_player.special_pitch_names[0]))
+			else:
+				pitcher_pitch1.hide()
+			if p_player.special_pitch_names[1]:
+				pitcher_pitch2.show()
+				pitcher_pitch2.texture = load(get_pitch_texture(p_player.special_pitch_names[1]))
+			else:
+				pitcher_pitch2.hide()
+			if p_player.special_pitch_names[2]:
+				pitcher_pitch3.show()
+				pitcher_pitch3.texture = load(get_pitch_texture(p_player.special_pitch_names[2]))
+			else:
+				pitcher_pitch3.hide()
 		else:
 			pitcher_pitch3.hide()
+			pitcher_pitch2.hide()
+			pitcher_pitch1.hide()
 	$SubstitutionSection/FieldGrid/LF_Button/Label.text = "LF: " + lf_player.bio.first_name + " " +  lf_player.bio.last_name + "\n" + str(lf_overall) + " Rating " + str(int(lf_player.status.energy)) + "% Energy"
 	$SubstitutionSection/FieldGrid/P_Button/Label.text = "P: " + p_player.bio.first_name+ " "  + p_player.bio.last_name + "\n" + str(p_overall) + " Rating " + str(int(p_player.status.energy)) + "% Energy"
 	$SubstitutionSection/FieldGrid/RF_Button/Label.text = "RF: " + rf_player.bio.first_name + " " + rf_player.bio.last_name + "\n" + str(rf_overall) + " Rating " + str(int(rf_player.status.energy)) + "% Energy"
@@ -748,6 +754,11 @@ func substitute(playerOff, playerOn):
 	pending_bench[off_index].set_all_properties(playerOff)
 	pending_field[on_index].set_all_properties(temp)
 	pending_subs -= 1
+	var sub = Substitution.new()
+	sub.playerOff = playerOff
+	sub.playerOn = playerOn
+	sub.sub_position = get_position_by_index(on_index)
+	current_team.add_pending_substitution(sub)
 	apply_team_to_field()
 	subsPopup.hide()
 	movePopup.hide()

@@ -159,6 +159,7 @@ func update_substitute_info(temp_player: Player, other: Player):
 	
 func add_pending_substitution(sub: Substitution):
 	pending_substitutions.append(sub)
+	print("pending sub signal emitted")
 	emit_signal("pending_sub_added", sub)
 
 func export_to_dict() -> Dictionary:

@@ -5,6 +5,7 @@
 [ext_resource type="Texture2D" uid="uid://b5cguqex3gnqd" path="res://Assets/Teams/PowerFalcons/mark.png" id="2_cx1mu"]
 
 [node name="Node2D" type="Node2D"]
+scale = Vector2(0.1, 0.1)
 script = ExtResource("1_i8fuc")
 
 [node name="Marker" type="TextureRect" parent="."]

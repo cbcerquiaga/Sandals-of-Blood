@@ -981,9 +981,10 @@ func perform_yoyo_pitch():
 	release_ball()
 
 func update_special_pitch_availability():
-	for i in special_pitch_available.size():
-		if status.groove >= special_pitch_groove[i]:
-			special_pitch_available[i] = true
+	if special_pitch_available.size() > 0:
+		for i in special_pitch_available.size():
+			if status.groove >= special_pitch_groove[i]:
+				special_pitch_available[i] = true
 
 func _on_goal_aced():
 	game_stats.aces += 1

@@ -28,7 +28,8 @@ var most_recent_scorer: Player
 @onready var ref = $Referee as Referee
 @onready var eventpopup = $UI/MatchEventPopup as MatchPopup
 @onready var sub_indicators_container = $UI/SubIndicatorsContainer
-var sub_indicators: Array[SubIndicator] = []
+var just_executed_substitutions: Array[Dictionary] = []  #{Team, on Player, off Player}
+var pending_substitution_indicators: Dictionary = {}  # Key: "team_id_on_off", Value: SubIndicator
 var pTeam : Team
 var aTeam : Team
 @onready var faceoff_signal = $UI/FaceoffSignal #TODO: make this prettier
@@ -85,7 +86,7 @@ func _ready():
 	pTeam.set_starters()
 	aTeam.set_starters()
 	pTeam.pending_sub_added.connect(_on_pending_sub_added)
-	aTeam.pending_sub_added.connect(_on_pending_sub_added)
+	aTeam.pending_sub_added.connect(_on_pending_sub_added) #TODO: make this use the A Team instead of just the P Team
 	if faceoff_signal:
 		faceoff_signal.visible = false
 	
@@ -775,11 +776,42 @@ func next_play():
 	ref.position_for_pitch()
 
 	statusUI.assign_team(self)
+	set_sub_icons()
 	play_timer.start(GlobalSettings.play_time if GlobalSettings.play_time > 0 else 9999)
 	fighting_frame = 0
 	check_matchups()
 	emit_signal("play_ended", "next_play")
 	clear_all_sub_indicators()
+
+func set_sub_icons():
+	just_executed_substitutions.clear()
+	for sub in pTeam.pending_substitutions.duplicate():
+		var sub_data = {
+			"team": pTeam,
+			"on": sub.playerOn,
+			"off": sub.playerOff
+		}
+		just_executed_substitutions.append(sub_data)
+	for sub in aTeam.pending_substitutions.duplicate():
+		var sub_data = {
+			"team": aTeam,
+			"on": sub.playerOn,
+			"off": sub.playerOff
+		}
+		just_executed_substitutions.append(sub_data)
+		update_substitution_indicator_to_executed(aTeam, sub.playerOn, sub.playerOff)
+	rearrange_sub_indicators()
+	
+func update_substitution_indicator_to_executed(team: Team, on: Player, off: Player):
+	var key = str(team.team_id) + "_" + on.bio.last_name + "_" + off.bio.last_name
+	for child in sub_indicators_container.get_children():
+		if child is SubIndicator:
+			if child.on_player == on and child.off_player == off and child.team == team:
+				child.substitution(team, on, off, true) #flip it
+				if pending_substitution_indicators.has(key):
+					pending_substitution_indicators.erase(key)
+				break
+
 
 func reset_players_for_next_play():
 	is_play_live = false
@@ -1390,40 +1422,80 @@ func check_matchup_pair(guard: Guard, forward: Forward): #TODO: Balance
 		guard.add_buff("matchup", buff_attributes, buff_impacts)
 
 func _on_pending_sub_added(sub: Substitution):
-	create_substitution_indicator(pTeam, sub.playerOn, sub.playerOff, false)
+	var team = pTeam if sub.playerOn.team == 1 or sub.playerOff.team == 1 else aTeam
+	create_substitution_indicator(team, sub.playerOn, sub.playerOff, false)
 
-func create_substitution_indicator(team: Team, on: Player, off: Player, is_flipped: bool = false):
-	var sub_indicator_scene = preload("res://sub_indicator.tscn")
-	var sub_indicator = sub_indicator_scene.instantiate()
-	sub_indicators_container.add_child(sub_indicator)
-	var screen_size = get_viewport().get_visible_rect().size
-	var position_x = screen_size.x - 200
-	var position_y = 150 + (sub_indicators_container.get_child_count() - 1) * 100  #stack vertically
-	sub_indicator.substitution(team, on, off, is_flipped, Vector2(position_x, position_y))
-	sub_indicators.append(sub_indicator)
-	print("pending sub indicator at " + str(Vector2(position_x, position_y)))
-	reorganize_sub_indicators()
-
-func reorganize_sub_indicators():
-	var screen_size = get_viewport().get_visible_rect().size
-	var position_x = screen_size.x - 200
-	var children = sub_indicators_container.get_children()
-	for i in range(children.size()):
-		if is_instance_valid(children[i]):
-			var position_y = 150 + i * 100
-			children[i].global_position = Vector2(position_x, position_y)
+func create_substitution_indicator(team: Team, on: Player, off: Player, is_flipped: bool):
+	var key = str(team.team_id) + "_" + on.bio.last_name + "_" + off.bio.last_name
+	if not is_flipped:
+		pending_substitution_indicators[key] = {
+			"team": team,
+			"on": on,
+			"off": off
+		}
+	var available_indicator = null
+	for i in range(1, 9):
+		var indicator_name = "Indicator" + str(i)
+		var indicator = sub_indicators_container.get_node(indicator_name) as SubIndicator
+		if indicator and not indicator.visible:
+			available_indicator = indicator
+			break
+	if not available_indicator:
+		for child in sub_indicators_container.get_children():
+			if child is SubIndicator:
+				if child.on_player == on and child.off_player == off and child.team == team:
+					available_indicator = child
+					break
+	if available_indicator:
+		available_indicator.substitution(team, on, off, is_flipped)
+		available_indicator.visible = true
+	else: #use the first indicator if all are taken
+		var first_indicator = sub_indicators_container.get_node("Indicator1") as SubIndicator
+		if first_indicator:
+			first_indicator.substitution(team, on, off, is_flipped)
+			first_indicator.visible = true
 
 func remove_substitution_indicator(on: Player, off: Player):
-	for i in range(sub_indicators.size() - 1, -1, -1):
-		var indicator = sub_indicators[i]
-		if is_instance_valid(indicator) and indicator.on_player == on and indicator.off_player == off:
-			indicator.queue_free()
-			sub_indicators.remove_at(i)
-			break
-	reorganize_sub_indicators()
+	for child in sub_indicators_container.get_children():
+		if child is SubIndicator:
+			if child.on_player == on and child.off_player == off:
+				child.hide()
+				var key = str(child.team.team_id) + "_" + on.bio.last_name + "_" + off.bio.last_name
+				if pending_substitution_indicators.has(key):
+					pending_substitution_indicators.erase(key)
+				break
 
 func clear_all_sub_indicators():
-	for indicator in sub_indicators:
-		if is_instance_valid(indicator):
-			indicator.queue_free()
-	sub_indicators.clear()
+	for child in sub_indicators_container.get_children():
+		if child is SubIndicator:
+			child.hide()
+	just_executed_substitutions.clear()
+	pending_substitution_indicators.clear()
+
+func rearrange_sub_indicators():
+	for child in sub_indicators_container.get_children():
+		if child is SubIndicator:
+			child.hide()
+	
+	var current_index = 0
+	for key in pending_substitution_indicators:
+		var sub_data = pending_substitution_indicators[key]
+		var indicator = get_available_indicator(current_index)
+		if indicator:
+			indicator.substitution(sub_data.team, sub_data.on, sub_data.off, false)
+			indicator.visible = true
+			current_index += 1
+	for sub_data in just_executed_substitutions:
+		var indicator = get_available_indicator(current_index)
+		if indicator:
+			indicator.substitution(sub_data.team, sub_data.on, sub_data.off, true)
+			indicator.visible = true
+			current_index += 1
+
+func get_available_indicator(start_index: int) -> SubIndicator:
+	for i in range(start_index + 1, 9):
+		var indicator_name = "Indicator" + str(i)
+		var indicator = sub_indicators_container.get_node(indicator_name) as SubIndicator
+		if indicator:
+			return indicator
+	return null

@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3 uid="uid://cgfb6numfby87"]
+[gd_scene load_steps=13 format=3 uid="uid://cgfb6numfby87"]
 
 [ext_resource type="Script" path="res://MatchHandler.gd" id="1_v8xhv"]
 [ext_resource type="PackedScene" uid="uid://bje6o4s6rvh85" path="res://road_field.tscn" id="1_wmjeh"]
@@ -11,6 +11,7 @@
 [ext_resource type="PackedScene" uid="uid://csyirpbcdrnoo" path="res://pause_menu.tscn" id="8_h76e2"]
 [ext_resource type="PackedScene" uid="uid://byf4dctuakt63" path="res://game_end_sceeen.tscn" id="9_vmgvg"]
 [ext_resource type="PackedScene" uid="uid://dnjohcaco3rms" path="res://match_event_popup.tscn" id="10_jopst"]
+[ext_resource type="PackedScene" uid="uid://cty6jcv6hlsu3" path="res://sub_indicator.tscn" id="12_qs5dg"]
 
 [node name="Node2D" type="Node2D"]
 script = ExtResource("1_v8xhv")
@@ -56,6 +57,39 @@ offset_bottom = 40.0
 visible = false
 
 [node name="SubIndicatorsContainer" type="Node2D" parent="UI"]
+scale = Vector2(0.05, 0.05)
+
+[node name="Indicator1" parent="UI/SubIndicatorsContainer" instance=ExtResource("12_qs5dg")]
+position = Vector2(1500, -1800)
+scale = Vector2(1, 1)
+
+[node name="Indicator2" parent="UI/SubIndicatorsContainer" instance=ExtResource("12_qs5dg")]
+position = Vector2(2400, -1800)
+scale = Vector2(1, 1)
+
+[node name="Indicator3" parent="UI/SubIndicatorsContainer" instance=ExtResource("12_qs5dg")]
+position = Vector2(1500, -900)
+scale = Vector2(1, 1)
+
+[node name="Indicator4" parent="UI/SubIndicatorsContainer" instance=ExtResource("12_qs5dg")]
+position = Vector2(2400, -900)
+scale = Vector2(1, 1)
+
+[node name="Indicator5" parent="UI/SubIndicatorsContainer" instance=ExtResource("12_qs5dg")]
+position = Vector2(1500, 0)
+scale = Vector2(1, 1)
+
+[node name="Indicator6" parent="UI/SubIndicatorsContainer" instance=ExtResource("12_qs5dg")]
+position = Vector2(2400, 0)
+scale = Vector2(1, 1)
+
+[node name="Indicator7" parent="UI/SubIndicatorsContainer" instance=ExtResource("12_qs5dg")]
+position = Vector2(1500, 900)
+scale = Vector2(1, 1)
+
+[node name="Indicator8" parent="UI/SubIndicatorsContainer" instance=ExtResource("12_qs5dg")]
+position = Vector2(2400, 900)
+scale = Vector2(1, 1)
 
 [connection signal="on_team_ready" from="AITeam" to="." method="on_team_ready_signal"]
 [connection signal="on_team_ready" from="PlayerTeam" to="." method="on_team_ready_signal"]
