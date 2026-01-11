@@ -27,6 +27,8 @@ var most_recent_scorer: Player
 @onready var ball = $Ball as Ball
 @onready var ref = $Referee as Referee
 @onready var eventpopup = $UI/MatchEventPopup as MatchPopup
+@onready var sub_indicators_container = $UI/SubIndicatorsContainer
+var sub_indicators: Array[SubIndicator] = []
 var pTeam : Team
 var aTeam : Team
 @onready var faceoff_signal = $UI/FaceoffSignal #TODO: make this prettier
@@ -82,6 +84,8 @@ func _ready():
 	aTeam.reset_player_stats()
 	pTeam.set_starters()
 	aTeam.set_starters()
+	pTeam.pending_sub_added.connect(_on_pending_sub_added)
+	aTeam.pending_sub_added.connect(_on_pending_sub_added)
 	if faceoff_signal:
 		faceoff_signal.visible = false
 	
@@ -775,6 +779,7 @@ func next_play():
 	fighting_frame = 0
 	check_matchups()
 	emit_signal("play_ended", "next_play")
+	clear_all_sub_indicators()
 
 func reset_players_for_next_play():
 	is_play_live = false
@@ -997,6 +1002,7 @@ func check_match_end():
 		return
 
 func end_match(winning_team: int):
+	clear_all_sub_indicators()
 	match_ended = true
 	#emit_signal("match_ended", winning_team)
 	
@@ -1321,7 +1327,10 @@ func update_team_buffs():
 
 func _on_pause_menu_new_sub() -> void:
 	if !is_play_live and !is_ball_pitched and current_play_time == 0:
+		var subs_to_execute = pTeam.pending_substitutions.duplicate()
 		pTeam.execute_pending_substitutions()
+		for sub in subs_to_execute:
+			remove_substitution_indicator(sub.playerOn, sub.playerOff)
 		pauseMenu.perform_substitution()
 		pTeam.update_field()
 		statusUI.assign_team(self)
@@ -1379,3 +1388,42 @@ func check_matchup_pair(guard: Guard, forward: Forward): #TODO: Balance
 		print(guard.bio.last_name + " is being buffed by " + str(buff_effect) + " for matchup reasons")
 		buff_impacts = [buff_effect, buff_effect, buff_effect, buff_effect, buff_effect, buff_effect, buff_effect, buff_effect * 2 - 5, buff_effect]
 		guard.add_buff("matchup", buff_attributes, buff_impacts)
+
+func _on_pending_sub_added(sub: Substitution):
+	create_substitution_indicator(pTeam, sub.playerOn, sub.playerOff, false)
+
+func create_substitution_indicator(team: Team, on: Player, off: Player, is_flipped: bool = false):
+	var sub_indicator_scene = preload("res://sub_indicator.tscn")
+	var sub_indicator = sub_indicator_scene.instantiate()
+	sub_indicators_container.add_child(sub_indicator)
+	var screen_size = get_viewport().get_visible_rect().size
+	var position_x = screen_size.x - 200
+	var position_y = 150 + (sub_indicators_container.get_child_count() - 1) * 100  #stack vertically
+	sub_indicator.substitution(team, on, off, is_flipped, Vector2(position_x, position_y))
+	sub_indicators.append(sub_indicator)
+	print("pending sub indicator at " + str(Vector2(position_x, position_y)))
+	reorganize_sub_indicators()
+
+func reorganize_sub_indicators():
+	var screen_size = get_viewport().get_visible_rect().size
+	var position_x = screen_size.x - 200
+	var children = sub_indicators_container.get_children()
+	for i in range(children.size()):
+		if is_instance_valid(children[i]):
+			var position_y = 150 + i * 100
+			children[i].global_position = Vector2(position_x, position_y)
+
+func remove_substitution_indicator(on: Player, off: Player):
+	for i in range(sub_indicators.size() - 1, -1, -1):
+		var indicator = sub_indicators[i]
+		if is_instance_valid(indicator) and indicator.on_player == on and indicator.off_player == off:
+			indicator.queue_free()
+			sub_indicators.remove_at(i)
+			break
+	reorganize_sub_indicators()
+
+func clear_all_sub_indicators():
+	for indicator in sub_indicators:
+		if is_instance_valid(indicator):
+			indicator.queue_free()
+	sub_indicators.clear()

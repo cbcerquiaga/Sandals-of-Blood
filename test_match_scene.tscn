@@ -55,5 +55,7 @@ offset_bottom = 40.0
 [node name="MatchEventPopup" parent="UI" instance=ExtResource("10_jopst")]
 visible = false
 
+[node name="SubIndicatorsContainer" type="Node2D" parent="UI"]
+
 [connection signal="on_team_ready" from="AITeam" to="." method="on_team_ready_signal"]
 [connection signal="on_team_ready" from="PlayerTeam" to="." method="on_team_ready_signal"]

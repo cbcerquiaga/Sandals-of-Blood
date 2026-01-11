@@ -1,5 +1,5 @@
-# ai_coach.gd
-extends Node
+extends Character
+class_name AICoach
 
 var eccentricity: float #0-1, impacts chance of making random decisions
 var flexibility: float #0-1, impacts how likely the coach is to change strategies to accommodate the best players

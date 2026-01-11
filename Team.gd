@@ -5,6 +5,7 @@ var team_name: String
 var team_city: String
 var team_logo: String #path to the logo
 var team_uniform_type: int #corresponds to type of uniform
+var coach: AICoach #NPC
 var uni_color_1
 var uni_color_2
 var uni_color_3
@@ -79,6 +80,7 @@ var game_stats: Dictionary = {
 @onready var next_bench: Array[Player]
 var has_readied
 signal on_team_ready(id: int)
+signal pending_sub_added(sub: Substitution)
 
 func _init():
 	team_name = "Test Faces" #TODO: import from file
@@ -157,6 +159,7 @@ func update_substitute_info(temp_player: Player, other: Player):
 	
 func add_pending_substitution(sub: Substitution):
 	pending_substitutions.append(sub)
+	emit_signal("pending_sub_added", sub)
 
 func export_to_dict() -> Dictionary:
 	var data = {
