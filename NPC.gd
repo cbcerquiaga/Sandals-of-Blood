@@ -92,6 +92,13 @@ var staff_skills= {#impacts a character's ability to handle a given staff role
 	"physical_training": 10, #ability to increase speed, strength, balance
 	"technical_training": 10, #ability to increase striking, 
 	"mental_training": 10, #ability to increase reactions, toughness, or change positions
+	"eccentricity": 10, #impacts chance of making random decisions
+	"decisiveness": 10, #impacts how long it takes to make a decision
+	"flexibility": 10, #impacts how likely the coach is to change strategies to accommodate the best players
+	"reactivity": 10, #impacts how likely the coach is to make substitutions or changes early in the game
+	"matchups": 10, #impacts how likely the coach is to worry about a percieved mismatch between pitchers or a definite mismatch between G/F
+	"violence": 10, #impacts how likely the coach is to look to injure opposing players
+	"injury_tolerance": 10, #impacts how likely the coach is to pull a player with a minor inju
 	#scouting
 	"talent_eval": 10, #accuracy of scouting, ability to get elite players at tryouts
 	"talent_spotting": 10, #thoroughness of scouting, ability to get more players at tryouts

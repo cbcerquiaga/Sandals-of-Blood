@@ -114,7 +114,7 @@ func show_substitutions(pitch: int, playerTeam: Team, playerOn: Array, playerOff
 func show_side_faceoff():
 	$MainLabel.text = "JUMP BALL"
 	$PitchLabel.text = ""
-	$DetailLabel.text = "Ball oout of play at sideline"
+	$DetailLabel.text = "Ball out of play at sideline"
 	$FollowupLabel.text = "Jump ball to re-start play"
 	pop(100)
 	

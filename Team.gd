@@ -92,6 +92,7 @@ func _init():
 	RG = Guard.new()
 	LF = Forward.new()
 	RF = Forward.new()
+	coach = AICoach.new()
 	reset_subs()
 	add_players_to_roster()
 	initialize_default_strategy()
@@ -1122,3 +1123,11 @@ func sync_field_to_roster():
 			roster_match.set_all_properties(field_player)
 		else:
 			push_warning("Could not find roster match for field player: ", field_player.bio.last_name)
+			
+func check_ai_tactics(time: int):
+	var min_time = 21 - coach.staff_skills.decisiveness
+	if min_time < time:
+		if !coach.has_made_choice:
+			coach.has_made_choice = false
+			return true
+	return false

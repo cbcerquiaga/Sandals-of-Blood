@@ -642,6 +642,17 @@ func _process(delta: float) -> void:
 	if is_play_live or is_ball_pitched:
 		GlobalSettings.record_frame()
 		current_play_time += delta / Engine.time_scale
+		if aTeam.check_ai_tactics(current_play_time):
+			var a_score
+			var p_score
+			if is_player_home:
+				p_score = team_scores[0]
+				a_score = team_scores[1]
+			else:
+				p_score = team_scores[1]
+				a_score = team_scores[0]
+			var pitchCount = GlobalSettings.pitch_limit - pitches_remaining
+			aTeam.coach.make_coaching_decisions(aTeam, pTeam, a_score, p_score, pitchCount, pitches_remaining)
 		if ball.global_position.distance_squared_to(field.cpuGoal.global_position) < ball.global_position.distance_squared_to(field.playerGoal.global_position):
 			aTeam.game_stats.ball_in_half += delta / Engine.time_scale
 		else:

@@ -1,12 +1,7 @@
 extends Character
 class_name AICoach
 
-var eccentricity: float #0-1, impacts chance of making random decisions
-var flexibility: float #0-1, impacts how likely the coach is to change strategies to accommodate the best players
-var reactivity: float #0-1, impacts how likely the coach is to make substitutions or changes early in the game
-var matchups: float #0-1, impacts how likely the coach is to worry about a percieved mismatch between pitchers or a definite mismatch between G/F
-var violence: float #0-1, impacts how likely the coach is to look to injure opposing players
-var injury_tolerance: float #0-1, impacts how likely the coach is to pull a player with a minor injury
+var has_made_choice: bool = false #changes one time per play
 var defense_1: String #preferred defense strategy
 var defense_2: String #backup strategy if defense 1 is not working
 var defense_flexibility: float = 0.5 #0-1 tendency to change defenses if scored on in consecutive plays
@@ -117,7 +112,7 @@ func make_coaching_decisions(myTeam: Team, otherTeam: Team, myScore: int, otherS
 		if forward_role_changes:
 			decisions["forward_role_changes"] = forward_role_changes
 	
-	if violence > 0 and is_losing_badly(myScore, otherScore, pitches_remaining):
+	if staff_skills.violence > 0 and is_losing_badly(myScore, otherScore, pitches_remaining):
 		var violence_subs = make_violence_subs(myTeam)
 		if violence_subs and can_make_subs(violence_subs.size()):
 			decisions["substitutions"].append_array(violence_subs)
@@ -153,7 +148,7 @@ func check_guard_matchup_subs(myTeam: Team, otherTeam: Team) -> Array:
 	
 	# Check LG vs RF matchup
 	var lg_matchup_value = calculate_guard_matchup_value(myTeam.LG, otherTeam.RF)
-	if lg_matchup_value < -10 * matchups:  # Negative value means bad matchup
+	if lg_matchup_value < -10 * staff_skills.matchups:  # Negative value means bad matchup
 		var better_lg = find_best_guard_for_matchup(myTeam, "LG", otherTeam.RF)
 		if better_lg and better_lg != myTeam.LG:
 			var new_matchup_value = calculate_guard_matchup_value(better_lg, otherTeam.RF)
@@ -162,7 +157,7 @@ func check_guard_matchup_subs(myTeam: Team, otherTeam: Team) -> Array:
 	
 	# Check RG vs LF matchup
 	var rg_matchup_value = calculate_guard_matchup_value(myTeam.RG, otherTeam.LF)
-	if rg_matchup_value < -10 * matchups:
+	if rg_matchup_value < -10 * staff_skills.matchups:
 		var better_rg = find_best_guard_for_matchup(myTeam, "RG", otherTeam.LF)
 		if better_rg and better_rg != myTeam.RG and substitutions.size() < max_platoon:
 			var new_matchup_value = calculate_guard_matchup_value(better_rg, otherTeam.LF)
@@ -224,9 +219,9 @@ func get_p_mismatch(myTeam: Team, otherTeam: Team) -> float:
 	var mismatch = (opp_rating - my_rating) / 25.0  # Normalize to -1 to 1 range
 	
 	# Factor in toughness if violence-oriented
-	if violence > 0.5:
+	if staff_skills.violence > 0.5:
 		var toughness_diff = (opp_pitcher.attributes.toughness - my_pitcher.attributes.toughness) / 50.0
-		mismatch += toughness_diff * violence * 0.3
+		mismatch += toughness_diff * staff_skills.violence * 0.3
 	
 	return clamp(mismatch, -1.0, 1.0)
 
@@ -266,7 +261,7 @@ func check_need_substitution(myTeam: Team, otherTeam: Team, myScore: int, otherS
 		return substitutions
 	
 	if pitchCount < GlobalSettings.pitch_limit / 2:  # Early game
-		var sub_chance = reactivity * 0.3
+		var sub_chance = staff_skills.reactivity * 0.3
 		
 		# Prioritize injury subs if we have saved subs
 		if injury_subs_used < planned_saved_subs:
@@ -281,7 +276,7 @@ func check_need_substitution(myTeam: Team, otherTeam: Team, myScore: int, otherS
 		if pitcher_subs_used < planned_pitcher_subs and substitutions.size() < subs_remaining:
 			var p_mismatch = get_p_mismatch(myTeam, otherTeam)
 			var mismatch_severity = abs(p_mismatch)
-			var mismatch_chance = mismatch_severity * reactivity * matchups
+			var mismatch_chance = mismatch_severity * staff_skills.reactivity * staff_skills.matchups
 			
 			if mismatch_chance > randf():
 				var position_subs = address_mismatch(myTeam, otherTeam, p_mismatch)
@@ -366,13 +361,13 @@ func check_defense_change_needed(myScore: int, otherScore: int, pitchCount: int)
 		consecutive_goals_against = 0
 
 	# Random change based on eccentricity
-	if randf() < eccentricity * 0.02:  # 0-2% chance per eccentricity point
+	if randf() < staff_skills.eccentricity * 0.02:  # 0-2% chance per eccentricity point
 		return true
 
 	# Continuous reactivity - higher reactivity = more likely to change
 	if consecutive_goals_against > 0:
 		# Base chance increases with consecutive goals and reactivity
-		var base_chance = (consecutive_goals_against * 0.2) * reactivity
+		var base_chance = (consecutive_goals_against * 0.2) * staff_skills.reactivity
 		
 		# Defense flexibility modifies the chance
 		var final_chance = base_chance * defense_flexibility
@@ -409,7 +404,7 @@ func check_injury_substitutions(myTeam: Team) -> Array:
 		
 		# Weighted decision based on injury tolerance
 		# Lower tolerance = more likely to sub for same performance drop
-		var sub_probability = performance_drop * (1.0 - injury_tolerance)
+		var sub_probability = performance_drop * (1.0 - staff_skills.injury_tolerance)
 		
 		# Add small random factor
 		sub_probability += randf() * 0.1
@@ -512,7 +507,7 @@ func check_strategic_substitutions(myTeam: Team, myScore: int, otherScore: int, 
 				best_lf_offense, offensive_roles, [0.5, 0.3, 0.2]
 			)
 			# Factor in eccentricity - more eccentric coaches have lower thresholds
-			var improvement_threshold = 1.15 - (eccentricity * 0.1)  # 1.05 to 1.15
+			var improvement_threshold = 1.15 - (staff_skills.eccentricity * 0.1)  # 1.05 to 1.15
 			if bench_offense > current_lf_offense * improvement_threshold:
 				substitutions.append({"position": "LF", "player_out": myTeam.LF, "player_in": best_lf_offense})
 	
@@ -528,7 +523,7 @@ func address_mismatch(myTeam: Team, otherTeam: Team, mismatch: float) -> Array:
 	var substitutions = []
 	# Use reactivity and severity to determine substitution urgency
 	var severity = abs(mismatch)
-	var substitution_urgency = severity * reactivity
+	var substitution_urgency = severity * staff_skills.reactivity
 	
 	if mismatch > 0.7 and randf() < substitution_urgency: #their pitcher is much better/tougher
 		var tougher_pitcher = find_toughest_pitcher(myTeam)
@@ -569,7 +564,7 @@ func is_losing_badly(myScore: int, otherScore: int, pitches_remaining: int) -> b
 	
 	# Violence threshold decreases as violence rating increases
 	# High violence coaches will resort to violence with smaller deficits
-	var violence_threshold = 0.8 - (violence * 0.6)  # 0.2 to 0.8 threshold
+	var violence_threshold = 0.8 - (staff_skills.violence * 0.6)  # 0.2 to 0.8 threshold
 	
 	return overall_severity > violence_threshold
 
@@ -577,7 +572,7 @@ func make_violence_subs(myTeam: Team) -> Array:
 	var substitutions = []
 	
 	# Calculate violence urgency based on score and violence rating
-	var violence_urgency = violence * 0.8  # Base urgency
+	var violence_urgency = staff_skills.violence * 0.8  # Base urgency
 	
 	# Find players with high violence ratings
 	var violent_players = []
@@ -592,7 +587,7 @@ func make_violence_subs(myTeam: Team) -> Array:
 	var current_rf_violence = get_player_violence_rating(myTeam.RF)
 	
 	# Violence threshold decreases with higher violence rating
-	var violence_threshold = 15 - (violence * 10)  # 5 to 15 threshold
+	var violence_threshold = 15 - (staff_skills.violence * 10)  # 5 to 15 threshold
 	
 	for violent_data in violent_players:
 		var violent_player = violent_data["player"]
@@ -633,14 +628,14 @@ func adjust_forward_roles_on_subs(myTeam: Team, substitutions: Array) -> Diction
 			var rf_change_weight = calculate_role_change_weight(myTeam.RF, current_rf_role)
 			
 			# Flexibility affects the threshold for change
-			var flexibility_threshold = 0.5 - (flexibility * 0.3)  # 0.2 to 0.5
+			var flexibility_threshold = 0.5 - (staff_skills.flexibility * 0.3)  # 0.2 to 0.5
 			
-			if randf() < lf_change_weight * flexibility:
+			if randf() < lf_change_weight * staff_skills.flexibility:
 				var new_role = get_best_tactical_role_for_player(myTeam.LF)
 				role_changes["LF"] = new_role
 				current_lf_role = new_role
 			
-			if randf() < rf_change_weight * flexibility:
+			if randf() < rf_change_weight * staff_skills.flexibility:
 				var new_role = get_best_tactical_role_for_player(myTeam.RF)
 				role_changes["RF"] = new_role
 				current_rf_role = new_role
@@ -649,13 +644,13 @@ func adjust_forward_roles_on_subs(myTeam: Team, substitutions: Array) -> Diction
 			for sub in substitutions:
 				if sub["position"] == "LF":
 					var change_weight = calculate_role_change_weight(myTeam.LF, current_lf_role)
-					if randf() < change_weight * flexibility:
+					if randf() < change_weight * staff_skills.flexibility:
 						var new_role = get_best_tactical_role_for_player(myTeam.LF)
 						role_changes["LF"] = new_role
 						current_lf_role = new_role
 				elif sub["position"] == "RF":
 					var change_weight = calculate_role_change_weight(myTeam.RF, current_rf_role)
-					if randf() < change_weight * flexibility:
+					if randf() < change_weight * staff_skills.flexibility:
 						var new_role = get_best_tactical_role_for_player(myTeam.RF)
 						role_changes["RF"] = new_role
 						current_rf_role = new_role
@@ -748,10 +743,10 @@ func find_best_forward_substitute(myTeam: Team, position: String, current_player
 	
 	if position == "LF":
 		roles = [lf_role_1, lf_role_2, lf_role_3]
-		weights = [0.5 - (flexibility * 0.2), 0.35, 0.15 + (flexibility * 0.2)]  # More flexible coaches weight role 3 higher
+		weights = [0.5 - (staff_skills.flexibility * 0.2), 0.35, 0.15 + (staff_skills.flexibility * 0.2)]  # More flexible coaches weight role 3 higher
 	else: # RF
 		roles = [rf_role_1, rf_role_2, rf_role_3]
-		weights = [0.5 - (flexibility * 0.2), 0.35, 0.15 + (flexibility * 0.2)]
+		weights = [0.5 - (staff_skills.flexibility * 0.2), 0.35, 0.15 + (staff_skills.flexibility * 0.2)]
 	
 	# Factor in energy for current player's score
 	var current_energy_factor = current_player.status.energy / 100.0
@@ -774,7 +769,7 @@ func find_best_forward_substitute(myTeam: Team, position: String, current_player
 		if current_player.status.energy < 50:
 			energy_factor = 1.5  # More likely to sub tired players
 		
-		var eccentricity_factor = 1.0 + (eccentricity * 0.3)  # Eccentric coaches more likely to sub
+		var eccentricity_factor = 1.0 + (staff_skills.eccentricity * 0.3)  # Eccentric coaches more likely to sub
 		
 		var substitution_value = (bench_score * energy_factor * eccentricity_factor) - current_score
 		
@@ -821,7 +816,7 @@ func find_offensive_forward_upgrade(myTeam: Team, position: String, offensive_ro
 		var bench_score = get_weighted_forward_role_score(bench_player, offensive_roles, [0.5, 0.3, 0.2]) * bench_energy_factor
 		
 		# Factor in eccentricity - more eccentric coaches have lower thresholds
-		var improvement_threshold = 1.15 - (eccentricity * 0.1)  # 1.05 to 1.15
+		var improvement_threshold = 1.15 - (staff_skills.eccentricity * 0.1)  # 1.05 to 1.15
 		
 		if bench_score > current_score * improvement_threshold:
 			if bench_score > best_score:
@@ -856,7 +851,7 @@ func find_defensive_forward_upgrade(myTeam: Team, defensive_roles: Array) -> Dic
 			var improvement = bench_score - current_score
 			
 			# Factor in eccentricity - more eccentric coaches have lower thresholds
-			var improvement_threshold = 10 - (eccentricity * 5)  # 5 to 10
+			var improvement_threshold = 10 - (staff_skills.eccentricity * 5)  # 5 to 10
 			
 			if improvement > best_improvement and improvement > improvement_threshold:
 				best_improvement = improvement
