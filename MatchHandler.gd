@@ -581,6 +581,7 @@ func reset_match(p_offense):
 	is_faceoff = false
 	if GlobalSettings.human_always_pitch:
 		p_offense = true
+	aTeam.coach.has_made_choice = true #no decisions to be made on t
 	is_human_team_pitching = p_offense
 	pTeam.is_on_offense = p_offense
 	aTeam.is_on_offense = !p_offense
@@ -642,17 +643,7 @@ func _process(delta: float) -> void:
 	if is_play_live or is_ball_pitched:
 		GlobalSettings.record_frame()
 		current_play_time += delta / Engine.time_scale
-		if aTeam.check_ai_tactics(current_play_time):
-			var a_score
-			var p_score
-			if is_player_home:
-				p_score = team_scores[0]
-				a_score = team_scores[1]
-			else:
-				p_score = team_scores[1]
-				a_score = team_scores[0]
-			var pitchCount = GlobalSettings.pitch_limit - pitches_remaining
-			aTeam.coach.make_coaching_decisions(aTeam, pTeam, a_score, p_score, pitchCount, pitches_remaining)
+		check_ai_tactic_changes()
 		if ball.global_position.distance_squared_to(field.cpuGoal.global_position) < ball.global_position.distance_squared_to(field.playerGoal.global_position):
 			aTeam.game_stats.ball_in_half += delta / Engine.time_scale
 		else:
@@ -793,6 +784,9 @@ func next_play():
 	check_matchups()
 	emit_signal("play_ended", "next_play")
 	clear_all_sub_indicators()
+	aTeam.coach.has_made_choice = false
+	if pitches_remaining != GlobalSettings.pitch_limit:
+		check_ai_tactic_changes()
 
 func set_sub_icons():
 	just_executed_substitutions.clear()
@@ -1510,3 +1504,59 @@ func get_available_indicator(start_index: int) -> SubIndicator:
 		if indicator:
 			return indicator
 	return null
+
+func check_ai_tactic_changes():
+	if aTeam.coach.has_made_choice:
+		return
+	var a_score
+	var p_score
+	if is_player_home:
+		p_score = team_scores[0]
+		a_score = team_scores[1]
+	else:
+		p_score = team_scores[1]
+		a_score = team_scores[0]
+	var pitchCount = GlobalSettings.pitch_limit - pitches_remaining
+	var decision = aTeam.check_ai_tactics(current_play_time, a_score, p_score, pitchCount, pitches_remaining, pTeam)
+	process_ai_coach_decision(decision)
+
+func process_ai_coach_decision(decision: Dictionary):
+	var temp_tactics = TacticsSection.new()
+	if decision.has("substitutions") and decision["substitutions"].size() > 0:
+		for sub_data in decision["substitutions"]:
+			var sub_on = sub_data.get("player_in")
+			var sub_off = sub_data.get("player_out")
+			var position = sub_data.get("position")
+			if sub_on and sub_off and aTeam.subs_remaining > 0:
+				var sub = Substitution.new()
+				sub.playerOff = sub_off
+				sub.playerOn = sub_on
+				sub.sub_position = position
+				aTeam.add_pending_substitution(sub)
+				print("AI Coach: Substituting ", sub_on.bio.last_name, " for ", sub_off.bio.last_name, " at ", position)
+	
+	# Process strategy changes
+	if decision.has("strategy_changes"):
+		var strat_changes = decision["strategy_changes"]
+		if strat_changes.has("defense"):
+			var new_defense = strat_changes["defense"]
+			aTeam.strategy.tactics.D_title = new_defense
+			print("AI Coach: Changing defense strategy to ", new_defense)
+			temp_tactics.update_defense_directions(new_defense)
+			aTeam.strategy.tactics.D = temp_tactics.D_strategy.duplicate()
+
+	if decision.has("forward_role_changes"):
+		var role_changes = decision["forward_role_changes"]
+		for position in role_changes:
+			var new_role = role_changes[position]
+			if position == "LF":
+				aTeam.strategy.tactics.LF_title = new_role
+				temp_tactics.update_forward_directions(temp_tactics.LF_directions, new_role)
+				aTeam.strategy.tactics.LF = temp_tactics.LF_directions.duplicate()
+				print("AI Coach: Changing LF role to ", new_role)
+			elif position == "RF":
+				aTeam.strategy.tactics.RF_title = new_role
+				temp_tactics.update_forward_directions(temp_tactics.RF_directions, new_role)
+				aTeam.strategy.tactics.RF = temp_tactics.RF_directions.duplicate()
+				print("AI Coach: Changing RF role to ", new_role)
+	aTeam.applyTactics()

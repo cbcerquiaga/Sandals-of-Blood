@@ -1124,10 +1124,20 @@ func sync_field_to_roster():
 		else:
 			push_warning("Could not find roster match for field player: ", field_player.bio.last_name)
 			
-func check_ai_tactics(time: int):
+func check_ai_tactics(time: int, our_score, opp_score, pitchCount, pitches_remaining, opp_team):
+	var decision = {
+		"substitutions": [], #Substitution
+		"strategy_changes": {}, #defense strategy
+		"forward_role_changes": {} #LF, RF
+	}
+	if time == 0: #post play
+		var random = randi_range(0,21)
+		if coach.staff_skills.decisiveness >= random:
+			coach.has_made_choice = true
+			decision = coach.make_coaching_decisions(self, opp_team, our_score, opp_score, pitchCount, pitches_remaining)
 	var min_time = 21 - coach.staff_skills.decisiveness
 	if min_time < time:
 		if !coach.has_made_choice:
-			coach.has_made_choice = false
-			return true
-	return false
+			coach.has_made_choice = true
+			decision = coach.make_coaching_decisions(self, opp_team, our_score, opp_score, pitchCount, pitches_remaining)
+	return decision

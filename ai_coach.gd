@@ -130,6 +130,7 @@ func make_coaching_decisions(myTeam: Team, otherTeam: Team, myScore: int, otherS
 			else:
 				decisions["forward_role_changes"]["RF"] = "Roving Menace"
 	
+	has_made_choice = true
 	return decisions
 
 func can_make_subs(num_subs: int) -> bool:
