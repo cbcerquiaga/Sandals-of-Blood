@@ -40,6 +40,7 @@ var capacity_basic: int #how many people can sit in the arena
 var capacity_nice: int #how many people have comfortable seats at the arena
 var capacity_vip: int #how many people get luxury treatment at the arena
 #resources
+var trade_block = [TradeBlock] #array of TradeBlock
 var gear: Array = [] #array of Equipment
 var offer_tokens = 0 #used for signing players away from other teams
 var money_bank = 0
@@ -313,3 +314,17 @@ func determine_random_events():
 		pass
 	
 	pass
+
+func add_to_trade_block(offer: TradeBlock):
+	trade_block.append(offer)
+	
+func update_block_player_traded(player: Player):
+	var indexes = [] #need to store indexes of items to be removed, because using array.erase while iterating causes errors
+	for offer in trade_block:
+		if offer.offer_out_type == "player":
+			if offer.offer_out.has_same_name(player):
+				indexes.append(trade_block.find(offer))
+	if indexes.size() > 0:
+		for index in indexes:
+			if index >= 0:
+				trade_block.remove_at(index)
