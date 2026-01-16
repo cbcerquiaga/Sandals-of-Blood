@@ -5,11 +5,13 @@ var indicator1: Sprite2D
 var indicator2: Sprite2D
 var indicator3: Sprite2D
 var pitcher: Player
+var y: int
 
 func _ready():
 	indicator1 = $"1"
 	indicator2 = $"2"
 	indicator3 = $"3"
+	y = -120
 	
 func assign_pitcher(guy: Player):
 	pitcher = guy
@@ -33,9 +35,9 @@ func _process(delta: float) -> void:
 	indicator2.scale = Vector2(0.02, 0.02)
 	indicator3.scale = Vector2(0.02, 0.02)
 	var x = 201
-	indicator1.position = Vector2(x + pitcher.special_pitch_groove[0], -140)
-	indicator2.position = Vector2(x + pitcher.special_pitch_groove[1], -140)
-	indicator3.position = Vector2(x + pitcher.special_pitch_groove[2], -140)
+	indicator1.position = Vector2(x + pitcher.special_pitch_groove[0], y)
+	indicator2.position = Vector2(x + pitcher.special_pitch_groove[1], y)
+	indicator3.position = Vector2(x + pitcher.special_pitch_groove[2], y)
 	indicator1.z_index = 100
 	indicator2.z_index = 100
 	indicator3.z_index = 100

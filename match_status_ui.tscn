@@ -69,6 +69,58 @@ scale = Vector2(0.18, 0.18)
 layout_mode = 0
 scale = Vector2(0.18, 0.18)
 
+[node name="Control2" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -40.0
+offset_bottom = 40.0
+grow_horizontal = 0
+
+[node name="Special_Pitch_availability" type="Container" parent="Control2"]
+layout_mode = 2
+offset_right = 40.0
+offset_bottom = 40.0
+script = ExtResource("2_8plra")
+
+[node name="1" type="Sprite2D" parent="Control2/Special_Pitch_availability"]
+texture = ExtResource("3_3dorj")
+
+[node name="2" type="Sprite2D" parent="Control2/Special_Pitch_availability"]
+texture = ExtResource("4_rslfv")
+
+[node name="3" type="Sprite2D" parent="Control2/Special_Pitch_availability"]
+texture = ExtResource("5_gdw3e")
+
+[node name="LF_Container" parent="Control2" instance=ExtResource("2_s5og7")]
+layout_mode = 0
+offset_left = 160.0
+offset_right = 200.0
+scale = Vector2(0.08, 0.08)
+
+[node name="P_Container" parent="Control2" instance=ExtResource("2_s5og7")]
+layout_mode = 0
+offset_left = 320.0
+offset_right = 360.0
+scale = Vector2(0.1, 0.1)
+
+[node name="RF_Container" parent="Control2" instance=ExtResource("2_s5og7")]
+layout_mode = 0
+scale = Vector2(0.18, 0.18)
+
+[node name="LG_Container" parent="Control2" instance=ExtResource("2_s5og7")]
+layout_mode = 0
+scale = Vector2(0.18, 0.18)
+
+[node name="K_Container" parent="Control2" instance=ExtResource("2_s5og7")]
+layout_mode = 0
+scale = Vector2(0.18, 0.18)
+
+[node name="RG_Container" parent="Control2" instance=ExtResource("2_s5og7")]
+layout_mode = 0
+scale = Vector2(0.18, 0.18)
+
 [node name="Scoreboard" parent="." instance=ExtResource("7_xoicv")]
 layout_mode = 1
 anchors_preset = 0
