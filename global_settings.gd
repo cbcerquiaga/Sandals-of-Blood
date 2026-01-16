@@ -50,10 +50,15 @@ var franchise: Franchise #team, arena, staff, inventory, relationships
 var world_state: Dictionary #leagues, teams, 
 var history #player, team, league stats
 
+func _ready():
+	if resolution == Vector2.ZERO:
+		resolution = Vector2(1920, 1080)
+
 func transfer_settings(other_settings: Settings_Global):
 	brightness = other_settings.brightness
 	game_speed = other_settings.game_speed
 	resolution = other_settings.resolution
+	fullscreen = other_settings.fullscreen
 	keyboard_control_scheme = other_settings.keyboard_control_scheme
 	controller_control_scheme = other_settings.controller_control_scheme
 	target_score = other_settings.target_score

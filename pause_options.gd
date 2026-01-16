@@ -35,6 +35,17 @@ func scale_option_fonts():
 	
 func import_from_settings():
 	# Audio/Visual Settings
+	var current_res = GlobalSettings.resolution
+	if current_res == Vector2(3024, 1964):
+		$AudioVisual/VBoxContainer/Resolution.selected = 0
+	elif current_res == Vector2(3840, 2160):
+		$AudioVisual/VBoxContainer/Resolution.selected = 1
+	elif current_res == Vector2(2560, 1600):
+		$AudioVisual/VBoxContainer/Resolution.selected = 2
+	elif current_res == Vector2(1920, 1080):
+		$AudioVisual/VBoxContainer/Resolution.selected = 3
+	elif current_res == Vector2(1366, 768):
+		$AudioVisual/VBoxContainer/Resolution.selected = 4
 	$AudioVisual/VBoxContainer/MasterVolume.value = GlobalSettings.master_vol
 	$AudioVisual/VBoxContainer/MusicVolume.value = GlobalSettings.music_vol
 	$AudioVisual/VBoxContainer/SFXVolume.value = GlobalSettings.sfx_vol
@@ -185,17 +196,20 @@ func _on_master_volume_value_changed(value: float) -> void:
 
 
 func _on_resolution_item_selected(index: int) -> void:
+	var resolution: Vector2i
 	match index:
 		0: #default from testing
-			DisplayServer.window_set_size(Vector2i(3024, 1964))
+			resolution = Vector2i(3024, 1964)
 		1: #4k
-			DisplayServer.window_set_size(Vector2i(3840, 2160))
+			resolution = Vector2i(3840, 2160)
 		2: #Wide Quad Extended
-			DisplayServer.window_set_size(Vector2i(2560, 1600))
+			resolution =Vector2i(2560, 1600)
 		3: #Full High Definition
-			DisplayServer.window_set_size(Vector2i(1920, 1080))
+			resolution = Vector2i(1920, 1080)
 		4: #High Definition
-			DisplayServer.window_set_size(Vector2i(1366, 768))
+			resolution = Vector2i(1366, 768)
+	DisplayServer.window_set_size(resolution)
+	GlobalSettings.resolution = resolution
 		
 
 
