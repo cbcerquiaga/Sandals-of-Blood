@@ -8,8 +8,30 @@ var temp_gear_assignments = {}
 @onready var elbows = $"PopupMenu/V-Mannequin/Elbows"
 @onready var left = $"PopupMenu/V-Mannequin/H-Gloves/LeftGloves"
 @onready var right = $"PopupMenu/V-Mannequin/H-Gloves/RightGloves"
+@onready var filter_menu = $FilterPopup
+
+# Add new variables for filtering and pagination
+var filtered_gear = []
+var all_gear = []
+var filter_settings = {
+	"shoes": true,
+	"legs": true,
+	"elbows": true,
+	"left_glove": true,
+	"right_glove": true,
+	"show_worn": true,
+	"show_player_owned": true,
+	"weather": true,
+	"game_state": true,
+}
 
 func _ready():
+	# Center and resize the popups
+	$PopupMenu.popup_centered(Vector2(800, 600))
+	$FilterPopup.popup_centered(Vector2(700, 500))
+	$PopupMenu.hide()
+	$FilterPopup.hide()
+	
 	arrange_page_buttons()
 	arrange_gear_buttons()
 	arrange_other_stuff()
@@ -17,6 +39,12 @@ func _ready():
 	format_player_section()
 	$"PopupMenu/H-Decision/ApplyButton".pressed.connect(_on_apply_button_pressed)
 	$"PopupMenu/H-Decision/CancelButton".pressed.connect(_on_cancel_button_pressed)
+	
+	# Initialize gear list
+	all_gear = CareerFranchise.gear.duplicate()
+	filtered_gear = all_gear.duplicate()
+	calculate_num_pages()
+	show_page(1)
 
 func arrange_page_buttons():
 	var page_button_size = Vector2(80, 80)
@@ -35,6 +63,10 @@ func arrange_page_buttons():
 				var image = texture.get_image()
 				image.resize(int(page_button_size.x), int(page_button_size.y))
 				button.set(prop, ImageTexture.create_from_image(image))
+		
+		# Connect page buttons
+		if not button.is_connected("pressed", Callable(self, "_on_page_button_pressed")):
+			button.pressed.connect(_on_page_button_pressed.bind(i))
 	pass
 
 func arrange_gear_buttons():
@@ -59,6 +91,9 @@ func arrange_gear_buttons():
 				image.resize(int(assign_button_size.x), int(assign_button_size.y))
 				assign_button.set(prop, ImageTexture.create_from_image(image))
 		
+		# Connect assign buttons
+		if not assign_button.is_connected("pressed", Callable(self, "_on_assign_button_pressed")):
+			assign_button.pressed.connect(_on_assign_button_pressed.bind(i))
 	pass
 
 func arrange_other_stuff():
@@ -68,7 +103,6 @@ func arrange_other_stuff():
 	var texture_properties = ["texture_normal", "texture_pressed", "texture_hover", "texture_disabled", "texture_focused"]
 	var utility_button_size = Vector2(534, 140)
 	for button in buttons:
-		
 		for prop in texture_properties:
 			var texture = button.get(prop)
 			if texture:
@@ -82,16 +116,87 @@ func populate_team_gear():
 func pages_label():
 	$"V-MainContainer/H-PagesContainer/Label".text = "Page " + str(current_page) + " of " + str(max_pages)
 
-
 func _on_back_button_pressed() -> void:
 	get_tree().change_scene_to_file("res://manager_hub_menu.tscn")
 
 func _on_filter_button_pressed() -> void:
-	calculate_num_pages()
-	pass # Replace with function body.
+	# Update filter UI with current settings
+	$"FilterPopup/H-Main/V-Left/Shoes".set_pressed(filter_settings.shoes)
+	$"FilterPopup/H-Main/V-Left/Legs".set_pressed(filter_settings.legs)
+	$"FilterPopup/H-Main/V-Left/Elbows".set_pressed(filter_settings.elbows)
+	$"FilterPopup/H-Main/V-Left/Left Glove".set_pressed(filter_settings.left_glove)
+	$"FilterPopup/H-Main/V-Left/Right Glove".set_pressed(filter_settings.right_glove)
+	$"FilterPopup/H-Main/V-Right/Show Worn".set_pressed(filter_settings.show_worn)
+	$"FilterPopup/H-Main/V-Right/Show Player Owned".set_pressed(filter_settings.show_player_owned)
+	$"FilterPopup/H-Main/V-Right/Weather".set_pressed(filter_settings.weather)
+	$"FilterPopup/H-Main/V-Right/Game State".set_pressed(filter_settings.game_state)
+	
+	$FilterPopup.popup_centered(Vector2(700, 500))
 
 func calculate_num_pages():
-	max_pages = 10
+	# Apply filters to gear
+	apply_filters()
+	
+	# Calculate number of pages (10 items per page)
+	max_pages = ceil(float(filtered_gear.size()) / 10.0)
+	if max_pages == 0:
+		max_pages = 1
+	
+	# Update page buttons visibility
+	for i in range(1, 11):
+		var button_path = "Page" + str(i) + "Button"
+		var button: TextureButton = get_node("V-MainContainer/H-PagesContainer/" + button_path)
+		if i <= max_pages:
+			button.show()
+		else:
+			button.hide()
+
+func apply_filters():
+	filtered_gear.clear()
+	
+	for gear in all_gear:
+		# Check gear type filters
+		var type_allowed = false
+		match gear.gear_type:
+			Equipment.GearType.SHOE:
+				type_allowed = filter_settings.shoes
+			Equipment.GearType.LEG:
+				type_allowed = filter_settings.legs
+			Equipment.GearType.ELBOW:
+				type_allowed = filter_settings.elbows
+			Equipment.GearType.L_GLOVE:
+				type_allowed = filter_settings.left_glove
+			Equipment.GearType.R_GLOVE:
+				type_allowed = filter_settings.right_glove
+			_:
+				type_allowed = false
+		
+		if not type_allowed:
+			continue
+		
+		# Check show worn filter
+		if not filter_settings.show_worn and gear.assigned_player != null:
+			continue
+		
+		# Check player owned filter (assuming gear has a is_player_owned property)
+		if not filter_settings.show_player_owned and gear.is_player_owned:
+			continue
+		
+		# Check trigger filters
+		var has_weather_trigger = gear.has_weather_trigger() if gear.has_method("has_weather_trigger") else false
+		var has_game_state_trigger = gear.has_game_state_trigger() if gear.has_method("has_game_state_trigger") else false
+		var has_no_triggers = gear.has_no_triggers() if gear.has_method("has_no_triggers") else false
+		
+		if not filter_settings.weather and has_weather_trigger:
+			continue
+		
+		if not filter_settings.game_state and has_game_state_trigger:
+			continue
+		
+		if has_no_triggers:
+			continue
+		
+		filtered_gear.append(gear)
 
 func show_page(page: int):
 	if page <= 0:
@@ -100,14 +205,26 @@ func show_page(page: int):
 		current_page = max_pages
 	else:
 		current_page = page
-	#TODO: get the gear from the current page
-
-
+	
+	# Calculate start and end indices for current page
+	var start_index = (current_page - 1) * 10
+	var end_index = min(start_index + 10, filtered_gear.size())
+	
+	# Clear all containers first
+	for i in range(1, 11):
+		populate_gear_container(i, null)
+	
+	# Populate containers for current page
+	for i in range(start_index, end_index):
+		var container_index = (i - start_index) + 1
+		var gear = filtered_gear[i]
+		populate_gear_container(container_index, gear)
+	
+	pages_label()
 
 func _on_page_button_pressed(page: int) -> void:
 	print("Page pressed: " + str(page))
 	show_page(page)
-	pages_label()
 	pass # Replace with function body.
 
 func populate_gear_container(container: int, equipment: Equipment):
@@ -125,8 +242,12 @@ func populate_gear_container(container: int, equipment: Equipment):
 		type_label.text = equipment.get_type()
 		effect_label.text = equipment.get_effect()
 		assigned_label.text = equipment.get_assigned()
+		
+		# Store equipment reference in button metadata
+		assign_button.set_meta("equipment", equipment)
 	else:
 		assign_button.hide()
+		assign_button.set_meta("equipment", null)
 		rect.texture = null
 		rect_label.text = ""
 		type_label.text = ""
@@ -148,7 +269,8 @@ func format_player_section():
 				player_section.show()
 				# Connect the button to player_button_selected
 				var player = CareerFranchise.team.roster[index]
-				button.pressed.connect(_on_player_texture_button_pressed.bind(player))
+				if not button.is_connected("pressed", Callable(self, "_on_player_texture_button_pressed")):
+					button.pressed.connect(_on_player_texture_button_pressed.bind(player))
 				
 				var texture_properties = ["texture_normal", "texture_pressed", "texture_hover", "texture_disabled", "texture_focused"]
 				for prop in texture_properties:
@@ -206,7 +328,7 @@ func player_button_selected(player: Player):
 	populate_gear_dropdown(elbows, player.gear_elbow, Equipment.GearType.ELBOW)
 	populate_gear_dropdown(left, player.gear_glove_l, Equipment.GearType.L_GLOVE)
 	populate_gear_dropdown(right, player.gear_glove_r, Equipment.GearType.R_GLOVE)
-	$PopupMenu.show()
+	$PopupMenu.popup_centered(Vector2(800, 600))
 
 func populate_gear_dropdown(option_button: OptionButton, current_gear: Equipment, gear_type: Equipment.GearType):
 	option_button.clear()
@@ -234,6 +356,9 @@ func _on_apply_button_pressed():
 	apply_gear_changes()
 	$PopupMenu.hide()
 	format_player_section()
+	# Refresh the gear list in case assignments changed
+	apply_filters()
+	show_page(current_page)
 
 func _on_cancel_button_pressed():
 	temp_gear_assignments = {}
@@ -271,3 +396,72 @@ func update_player_gear_from_dropdown(option_button: OptionButton, gear_property
 						prev_player.gear_glove_r = null
 			new_gear.assigned_player = selected_player
 		selected_player.set(gear_property, new_gear)
+
+# New function to handle assign button presses
+func _on_assign_button_pressed(container_index: int):
+	var base_path = "V-MainContainer/V-GearContainer/H-GearContainer" + str(container_index)
+	var assign_button: TextureButton = get_node(base_path + "/AssignButton")
+	var equipment = assign_button.get_meta("equipment")
+	
+	if equipment != null:
+		# Find which player slot this equipment is assigned to and select that player
+		for player in CareerFranchise.team.roster:
+			if (player.gear_shoe == equipment or 
+				player.gear_leg == equipment or 
+				player.gear_elbow == equipment or 
+				player.gear_glove_l == equipment or 
+				player.gear_glove_r == equipment):
+				player_button_selected(player)
+				return
+		
+		# If not assigned to any player, show message or handle differently
+		print("Equipment not assigned to any player")
+
+# Filter button handlers (add these to your filter popup buttons in the editor)
+func _on_shoes_filter_toggled(button_pressed: bool):
+	filter_settings.shoes = button_pressed
+	calculate_num_pages()
+	show_page(1)
+
+func _on_legs_filter_toggled(button_pressed: bool):
+	filter_settings.legs = button_pressed
+	calculate_num_pages()
+	show_page(1)
+
+func _on_elbows_filter_toggled(button_pressed: bool):
+	filter_settings.elbows = button_pressed
+	calculate_num_pages()
+	show_page(1)
+
+func _on_left_glove_filter_toggled(button_pressed: bool):
+	filter_settings.left_glove = button_pressed
+	calculate_num_pages()
+	show_page(1)
+
+func _on_right_glove_filter_toggled(button_pressed: bool):
+	filter_settings.right_glove = button_pressed
+	calculate_num_pages()
+	show_page(1)
+
+func _on_show_worn_filter_toggled(button_pressed: bool):
+	filter_settings.show_worn = button_pressed
+	calculate_num_pages()
+	show_page(1)
+
+func _on_show_player_owned_filter_toggled(button_pressed: bool):
+	filter_settings.show_player_owned = button_pressed
+	calculate_num_pages()
+	show_page(1)
+
+func _on_weather_filter_toggled(button_pressed: bool):
+	filter_settings.weather = button_pressed
+	calculate_num_pages()
+	show_page(1)
+
+func _on_game_state_filter_toggled(button_pressed: bool):
+	filter_settings.game_state = button_pressed
+	calculate_num_pages()
+	show_page(1)
+
+func _on_filter_close_button_pressed():
+	$FilterPopup.hide()

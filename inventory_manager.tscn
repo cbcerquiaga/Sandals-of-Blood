@@ -1104,6 +1104,60 @@ texture_normal = ExtResource("17_x7c70")
 texture_hover = ExtResource("18_khjjo")
 texture_focused = ExtResource("18_khjjo")
 
+[node name="FilterPopup" type="PopupPanel" parent="."]
+
+[node name="H-Main" type="HBoxContainer" parent="FilterPopup"]
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="V-Left" type="VBoxContainer" parent="FilterPopup/H-Main"]
+layout_mode = 2
+
+[node name="Shoes" type="CheckBox" parent="FilterPopup/H-Main/V-Left"]
+layout_mode = 2
+text = "Shoes"
+
+[node name="Legs" type="CheckBox" parent="FilterPopup/H-Main/V-Left"]
+layout_mode = 2
+text = "Leg Pads"
+
+[node name="Elbows" type="CheckBox" parent="FilterPopup/H-Main/V-Left"]
+layout_mode = 2
+text = "Elbow Pads"
+
+[node name="Left Glove" type="CheckBox" parent="FilterPopup/H-Main/V-Left"]
+layout_mode = 2
+text = "Left Gloves"
+
+[node name="Right Glove" type="CheckBox" parent="FilterPopup/H-Main/V-Left"]
+layout_mode = 2
+text = "Right Gloves"
+
+[node name="V-Right" type="VBoxContainer" parent="FilterPopup/H-Main"]
+layout_mode = 2
+
+[node name="Show Worn" type="CheckBox" parent="FilterPopup/H-Main/V-Right"]
+layout_mode = 2
+text = "Show Worn"
+
+[node name="Show Player Owned" type="CheckBox" parent="FilterPopup/H-Main/V-Right"]
+layout_mode = 2
+text = "Show Player Owned"
+
+[node name="Weather" type="CheckBox" parent="FilterPopup/H-Main/V-Right"]
+layout_mode = 2
+text = "Weather Gear"
+
+[node name="Game State" type="CheckBox" parent="FilterPopup/H-Main/V-Right"]
+layout_mode = 2
+text = "Situational Gear"
+
+[node name="TextureButton" type="TextureButton" parent="FilterPopup/H-Main/V-Right"]
+layout_mode = 2
+texture_normal = ExtResource("8_sw7mi")
+texture_hover = ExtResource("9_y8ask")
+texture_focused = ExtResource("9_y8ask")
+
 [connection signal="pressed" from="V-MainContainer/H-PagesContainer/Page1Button" to="." method="_on_page_button_pressed" binds= [1]]
 [connection signal="pressed" from="V-MainContainer/H-PagesContainer/Page2Button" to="." method="_on_page_button_pressed" binds= [2]]
 [connection signal="pressed" from="V-MainContainer/H-PagesContainer/Page3Button" to="." method="_on_page_button_pressed" binds= [3]]
@@ -1116,3 +1170,13 @@ texture_focused = ExtResource("18_khjjo")
 [connection signal="pressed" from="V-MainContainer/H-PagesContainer/Page10Button" to="." method="_on_page_button_pressed" binds= [10]]
 [connection signal="pressed" from="V-MainContainer/H-UtilitiesContainer/FilterButton" to="." method="_on_filter_button_pressed"]
 [connection signal="pressed" from="V-MainContainer/H-UtilitiesContainer/BackButton" to="." method="_on_back_button_pressed"]
+[connection signal="toggled" from="FilterPopup/H-Main/V-Left/Shoes" to="." method="_on_shoes_filter_toggled"]
+[connection signal="toggled" from="FilterPopup/H-Main/V-Left/Legs" to="." method="_on_legs_filter_toggled"]
+[connection signal="toggled" from="FilterPopup/H-Main/V-Left/Elbows" to="." method="_on_elbows_filter_toggled"]
+[connection signal="toggled" from="FilterPopup/H-Main/V-Left/Left Glove" to="." method="_on_left_glove_filter_toggled"]
+[connection signal="toggled" from="FilterPopup/H-Main/V-Left/Right Glove" to="." method="_on_right_glove_filter_toggled"]
+[connection signal="toggled" from="FilterPopup/H-Main/V-Right/Show Worn" to="." method="_on_show_worn_filter_toggled"]
+[connection signal="toggled" from="FilterPopup/H-Main/V-Right/Show Player Owned" to="." method="_on_show_player_owned_filter_toggled"]
+[connection signal="toggled" from="FilterPopup/H-Main/V-Right/Weather" to="." method="_on_weather_filter_toggled"]
+[connection signal="toggled" from="FilterPopup/H-Main/V-Right/Game State" to="." method="_on_game_state_filter_toggled"]
+[connection signal="pressed" from="FilterPopup/H-Main/V-Right/TextureButton" to="." method="_on_filter_close_button_pressed"]
