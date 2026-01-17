@@ -1,4 +1,4 @@
-[gd_scene load_steps=19 format=3 uid="uid://cjr6jha71t8t7"]
+[gd_scene load_steps=21 format=3 uid="uid://cjr6jha71t8t7"]
 
 [ext_resource type="Texture2D" uid="uid://cmtuklr40143j" path="res://UI/GearUI/Assign_button_base.png" id="1_a83l8"]
 [ext_resource type="Script" path="res://inventory_manager.gd" id="1_r18u4"]
@@ -16,8 +16,10 @@
 [ext_resource type="Texture2D" uid="uid://df7fymkkcglp7" path="res://UI/GearUI/mannequin_left.png" id="14_2oa6y"]
 [ext_resource type="Texture2D" uid="uid://bowh16hmkdca0" path="res://UI/GearUI/mannequin_right.png" id="15_jjm4u"]
 [ext_resource type="Texture2D" uid="uid://bqie3v1jm0lxw" path="res://UI/GearUI/mannequin_elbows.png" id="16_qf4u8"]
+[ext_resource type="Texture2D" uid="uid://5rccbxmqb76a" path="res://UI/PauseUI/Save-Exit_button_base.png" id="17_5bc23"]
 [ext_resource type="Texture2D" uid="uid://c4vbfdsvhu8xr" path="res://UI/PauseUI/cancel_button_base.png" id="17_x7c70"]
 [ext_resource type="Texture2D" uid="uid://bjqn6vv5mdrcv" path="res://UI/PauseUI/cancel_button_highlighted.png" id="18_khjjo"]
+[ext_resource type="Texture2D" uid="uid://c4l1kmbq8kka5" path="res://UI/PauseUI/Save-Exit_button_highlighted.png" id="18_o3gyi"]
 
 [node name="Control" type="Control"]
 layout_mode = 3
@@ -1066,12 +1068,17 @@ offset_right = 40.0
 offset_bottom = 40.0
 texture = ExtResource("16_qf4u8")
 
-[node name="PopupMenu" type="PopupMenu" parent="."]
+[node name="PopupMenu" type="PopupPanel" parent="."]
 size = Vector2i(1000, 1000)
 
 [node name="V-Mannequin" type="VBoxContainer" parent="PopupMenu"]
 offset_right = 40.0
 offset_bottom = 40.0
+
+[node name="Label" type="Label" parent="PopupMenu/V-Mannequin"]
+layout_mode = 2
+text = "Assign Gear"
+horizontal_alignment = 1
 
 [node name="Elbows" type="OptionButton" parent="PopupMenu/V-Mannequin"]
 layout_mode = 2
@@ -1091,14 +1098,16 @@ layout_mode = 2
 [node name="Shoes" type="OptionButton" parent="PopupMenu/V-Mannequin"]
 layout_mode = 2
 
-[node name="H-Decision" type="HBoxContainer" parent="PopupMenu"]
-offset_right = 40.0
-offset_bottom = 40.0
-
-[node name="ApplyButton" type="TextureButton" parent="PopupMenu/H-Decision"]
+[node name="H-Decision" type="HBoxContainer" parent="PopupMenu/V-Mannequin"]
 layout_mode = 2
 
-[node name="CancelButton" type="TextureButton" parent="PopupMenu/H-Decision"]
+[node name="ApplyButton" type="TextureButton" parent="PopupMenu/V-Mannequin/H-Decision"]
+layout_mode = 2
+texture_normal = ExtResource("17_5bc23")
+texture_hover = ExtResource("18_o3gyi")
+texture_focused = ExtResource("18_o3gyi")
+
+[node name="CancelButton" type="TextureButton" parent="PopupMenu/V-Mannequin/H-Decision"]
 layout_mode = 2
 texture_normal = ExtResource("17_x7c70")
 texture_hover = ExtResource("18_khjjo")

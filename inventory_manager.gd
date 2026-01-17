@@ -26,7 +26,6 @@ var filter_settings = {
 }
 
 func _ready():
-	# Center and resize the popups
 	$PopupMenu.popup_centered(Vector2(800, 600))
 	$FilterPopup.popup_centered(Vector2(700, 500))
 	$PopupMenu.hide()
@@ -37,8 +36,8 @@ func _ready():
 	arrange_other_stuff()
 	populate_team_gear()
 	format_player_section()
-	$"PopupMenu/H-Decision/ApplyButton".pressed.connect(_on_apply_button_pressed)
-	$"PopupMenu/H-Decision/CancelButton".pressed.connect(_on_cancel_button_pressed)
+	$"PopupMenu/V-Mannequin/H-Decision/ApplyButton".pressed.connect(_on_apply_button_pressed)
+	$"PopupMenu/V-Mannequin/H-Decision/CancelButton".pressed.connect(_on_cancel_button_pressed)
 	
 	# Initialize gear list
 	all_gear = CareerFranchise.gear.duplicate()
@@ -109,6 +108,58 @@ func arrange_other_stuff():
 				var image = texture.get_image()
 				image.resize(int(utility_button_size.x), int(utility_button_size.y))
 				button.set(prop, ImageTexture.create_from_image(image))
+	var decision_buttons = [
+		$"PopupMenu/V-Mannequin/H-Decision/ApplyButton",
+		$"PopupMenu/V-Mannequin/H-Decision/CancelButton"
+	]
+	var decision_button_size = Vector2(400, 120)
+	for button in decision_buttons:
+		for prop in texture_properties:
+			var texture = button.get(prop)
+			if texture:
+				var image = texture.get_image()
+				image.resize(int(decision_button_size.x), int(decision_button_size.y))
+				button.set(prop, ImageTexture.create_from_image(image))
+	var dropdowns = [shoes, legs, elbows, left, right]
+	for dropdown in dropdowns:
+		dropdown.add_theme_font_size_override("font_size", 36)
+	var labels = [
+		$"PopupMenu/V-Mannequin/Label"
+	]
+	left.custom_minimum_size = Vector2(400, 40)
+	right.custom_minimum_size = Vector2(400, 40)
+	for label in labels:
+		if label:
+			label.add_theme_font_size_override("font_size", 52)
+	arrange_filter_popup()
+	
+func  arrange_filter_popup():
+	var checkbox_paths = [
+		"FilterPopup/H-Main/V-Left/Shoes",
+		"FilterPopup/H-Main/V-Left/Legs", 
+		"FilterPopup/H-Main/V-Left/Elbows",
+		"FilterPopup/H-Main/V-Left/Left Glove",
+		"FilterPopup/H-Main/V-Left/Right Glove",
+		"FilterPopup/H-Main/V-Right/Show Worn",
+		"FilterPopup/H-Main/V-Right/Show Player Owned",
+		"FilterPopup/H-Main/V-Right/Weather",
+		"FilterPopup/H-Main/V-Right/Game State"
+	]
+	for path in checkbox_paths:
+		var checkbox = get_node_or_null(path)
+		if checkbox:
+			checkbox.add_theme_font_size_override("font_size", 24)
+			checkbox.custom_minimum_size = Vector2(300, 90)
+	var filter_close_button = $"FilterPopup/H-Main/V-Right/TextureButton"
+	var texture_properties = ["texture_normal", "texture_pressed", "texture_hover", "texture_disabled", "texture_focused"]
+	var filter_close_size = Vector2(300, 90)  # Adjust size as needed
+	for prop in texture_properties:
+		var texture = filter_close_button.get(prop)
+		if texture:
+			var image = texture.get_image()
+			image.resize(int(filter_close_size.x), int(filter_close_size.y))
+			filter_close_button.set(prop, ImageTexture.create_from_image(image))
+
 
 func populate_team_gear():
 	pass
@@ -120,7 +171,6 @@ func _on_back_button_pressed() -> void:
 	get_tree().change_scene_to_file("res://manager_hub_menu.tscn")
 
 func _on_filter_button_pressed() -> void:
-	# Update filter UI with current settings
 	$"FilterPopup/H-Main/V-Left/Shoes".set_pressed(filter_settings.shoes)
 	$"FilterPopup/H-Main/V-Left/Legs".set_pressed(filter_settings.legs)
 	$"FilterPopup/H-Main/V-Left/Elbows".set_pressed(filter_settings.elbows)
@@ -134,7 +184,6 @@ func _on_filter_button_pressed() -> void:
 	$FilterPopup.popup_centered(Vector2(700, 500))
 
 func calculate_num_pages():
-	# Apply filters to gear
 	apply_filters()
 	
 	# Calculate number of pages (10 items per page)
