@@ -108,16 +108,15 @@ var name_frequency_first:= {
 	"korean": 0.5,
 	"wasp": 5,
 	"africa": 5,
-	"row": 1,
+	"pacific": 1,
 }
 
 var name_frequency_last:= {
-	"english": 31.3,
-	"irish": 5,
-	"italian": 5,
+	"common": 36.3,
+	"italian": 9,
 	"native": 0.2,
-	"apocalypse": 20,
-	"spanish": 10.5,
+	"apocalypse": 15,
+	"spanish": 11.5,
 	"french": 7,
 	"slavic": 3,
 	"nordic": 3,
@@ -128,7 +127,7 @@ var name_frequency_last:= {
 	"korean": 0.5,
 	"wasp": 5,
 	"africa": 4,
-	"row": 1,
+	"pacific": 1,
 }
 
 var mix_fix_chance:= {
@@ -137,14 +136,14 @@ var mix_fix_chance:= {
 	"afro": 0, #can't because there isn't a last name equivalent
 	"spanish": 0.4,
 	"french": 0.2,
-	"italian": 0.6,
+	"italian": 0.1,
 	"slavic": 0.6,
 	"nordic": 0.6,
 	"indian": 0.7,
 	"japanese": 0.8,
 	"chinese": 0.5,
 	"korean": 0.5,
-	"wasp": 0.9,
+	"wasp": 0.2,
 	"africa": 0.9,
 	"row": 1,
 }
@@ -306,21 +305,22 @@ const WEIGHT_CATEGORY_MODIFIERS = {
 		"balance": 20
 	}
 }
-var first_names_common_m = []
+var first_names_common_m = [] #
 var first_names_apocalypse_m = []
-var first_names_wasp_m = []
-var first_names_afro_m = []
-var first_names_acrica_m = []
-var first_names_italian_m = []
-var first_names_spanish_m = []
-var first_names_french_m = []
-var first_names_slavic_m = []
-var first_names_nordic_m = []
-var first_names_chinese_m = []
-var first_names_indian_m = []
+var first_names_wasp_m = [] #
+var first_names_afro_m = []#
+var first_names_africa_m = []#
+var first_names_italian_m = []#
+var first_names_spanish_m = []#
+var first_names_french_m = []#
+var first_names_slavic_m = []#
+var first_names_nordic_m = []#
+var first_names_chinese_m = []#
+var first_names_indian_m = []#
+var first_names_arab_m = []
 var first_names_japanese_m = []
 var first_names_korean_m = []
-var first_names_rest_of_world_m = []
+var first_names_pacific_m = []#
 
 var first_names_common_f = []
 var first_names_apocalypse_f = []
@@ -334,28 +334,29 @@ var first_names_slavic_f = []
 var first_names_nordic_f = []
 var first_names_chinese_f = []
 var first_names_indian_f = []
+var first_names_arab_f = []
 var first_names_japanese_f = []
 var first_names_korean_f = []
-var first_names_rest_of_world_f = []
+var first_names_pacific_f = []#
 
-var last_names_english = []
+var last_names_common = []#
 var last_names_native = []
 var last_names_apocalypse = []
 var last_names_wasp = []
-var last_names_acrica = []
-var last_names_spanish = []
+var last_names_africa = []#
+var last_names_spanish = []#
 var last_names_french = []
 var last_names_italian = []
-var last_names_irish = []
 var last_names_slavic_m = []
 var last_names_slavic_f = []
 var last_names_nordic_m = []
 var last_names_nordic_f = []
 var last_names_chinese = []
-var last_names_indian = []
+var last_names_indian = []#
 var last_names_japanese = []
 var last_names_korean = []
-var last_names_rest_of_world = []
+var last_names_arab = []
+var last_names_pacific = []
 
 var hometowns_urban = []
 var hometowns_rural = []
@@ -394,7 +395,7 @@ func initialize_name_lists():
 	first_names_apocalypse_m = load_csv_to_array("res://Assets/Gen Names/first_apocalypse_m.txt")
 	first_names_wasp_m = load_csv_to_array("res://Assets/Gen Names/first_wasp_m.txt")
 	first_names_afro_m = load_csv_to_array("res://Assets/Gen Names/first_afro_m.txt")
-	first_names_acrica_m = load_csv_to_array("res://Assets/Gen Names/first_acrica_m.txt")
+	first_names_africa_m = load_csv_to_array("res://Assets/Gen Names/first_africa_m.txt")
 	first_names_italian_m = load_csv_to_array("res://Assets/Gen Names/first_italian_m.txt")
 	first_names_spanish_m = load_csv_to_array("res://Assets/Gen Names/first_spanish_m.txt")
 	first_names_french_m = load_csv_to_array("res://Assets/Gen Names/first_french_m.txt")
@@ -404,7 +405,7 @@ func initialize_name_lists():
 	first_names_indian_m = load_csv_to_array("res://Assets/Gen Names/first_indian_m.txt")
 	first_names_japanese_m = load_csv_to_array("res://Assets/Gen Names/first_japanese_m.txt")
 	first_names_korean_m = load_csv_to_array("res://Assets/Gen Names/first_korean_m.txt")
-	first_names_rest_of_world_m = load_csv_to_array("res://Assets/Gen Names/first_rest_of_world_m.txt")
+	first_names_pacific_m = load_csv_to_array("res://Assets/Gen Names/first_pacific_m.txt")
 	first_names_common_f = load_csv_to_array("res://Assets/Gen Names/first_common_f.txt")
 	first_names_apocalypse_f = load_csv_to_array("res://Assets/Gen Names/first_apocalypse_f.txt")
 	first_names_wasp_f = load_csv_to_array("res://Assets/Gen Names/first_wasp_f.txt")
@@ -419,16 +420,15 @@ func initialize_name_lists():
 	first_names_indian_f = load_csv_to_array("res://Assets/Gen Names/first_indian_f.txt")
 	first_names_japanese_f = load_csv_to_array("res://Assets/Gen Names/first_japanese_f.txt")
 	first_names_korean_f = load_csv_to_array("res://Assets/Gen Names/first_korean_f.txt")
-	first_names_rest_of_world_f = load_csv_to_array("res://Assets/Gen Names/first_rest_of_world_f.txt")
-	last_names_english = load_csv_to_array("res://Assets/Gen Names/last_english.txt")
+	first_names_pacific_f = load_csv_to_array("res://Assets/Gen Names/first_pacific_f.txt")
+	last_names_common = load_csv_to_array("res://Assets/Gen Names/last_common.txt")
 	last_names_native = load_csv_to_array("res://Assets/Gen Names/last_native.txt")
 	last_names_apocalypse = load_csv_to_array("res://Assets/Gen Names/last_apocalypse.txt")
 	last_names_wasp = load_csv_to_array("res://Assets/Gen Names/last_wasp.txt")
-	last_names_acrica = load_csv_to_array("res://Assets/Gen Names/last_acrica.txt")
+	last_names_africa = load_csv_to_array("res://Assets/Gen Names/last_africa.txt")
 	last_names_spanish = load_csv_to_array("res://Assets/Gen Names/last_spanish.txt")
 	last_names_french = load_csv_to_array("res://Assets/Gen Names/last_french.txt")
 	last_names_italian = load_csv_to_array("res://Assets/Gen Names/last_italian.txt")
-	last_names_irish = load_csv_to_array("res://Assets/Gen Names/last_irish.txt")
 	last_names_slavic_m = load_csv_to_array("res://Assets/Gen Names/last_slavic_m.txt")
 	last_names_slavic_f = load_csv_to_array("res://Assets/Gen Names/last_slavic_f.txt")
 	last_names_nordic_m = load_csv_to_array("res://Assets/Gen Names/last_nordic_m.txt")
@@ -437,7 +437,7 @@ func initialize_name_lists():
 	last_names_indian = load_csv_to_array("res://Assets/Gen Names/last_indian.txt")
 	last_names_japanese = load_csv_to_array("res://Assets/Gen Names/last_japanese.txt")
 	last_names_korean = load_csv_to_array("res://Assets/Gen Names/last_korean.txt")
-	last_names_rest_of_world = load_csv_to_array("res://Assets/Gen Names/last_rest_of_world.txt")
+	last_names_pacific = load_csv_to_array("res://Assets/Gen Names/last_pacific.txt")
 	hometowns_urban = load_csv_to_array("res://Assets/Gen Names/hometowns_urban.txt")
 	hometowns_rural = load_csv_to_array("res://Assets/Gen Names/hometowns_rural.txt")
 
@@ -453,18 +453,17 @@ func generate_players(num: int):
 		new_player.bio.years = randi_range(min_age, max_age)
 		
 		# Generate name
-		var names = mix_match_names(gender)
+		var names = generate_random_names(gender)
 		new_player.bio.first_name = names[0]
 		new_player.bio.last_name = names[1]
-		
+		var rand = randf()
+		names = mix_match_names(names, gender)
+		#TODO: if rand is less than corresponding last name category for the player, choose first name from the corresponding first name array
 		# Generate height and weight
 		var physical = generate_physical_attributes(gender)
 		new_player.bio.feet = physical["feet"]
 		new_player.bio.inches = physical["inches"]
 		new_player.bio.pounds = physical["weight"]
-		new_player.weight_category = physical["category"]  # Store for reference
-		
-		# Generate hometown
 		new_player.bio.hometown = generate_hometown()
 		
 		# Generate primary position
@@ -596,38 +595,207 @@ func weighted_random_choice(weight_dict: Dictionary):
 	
 	return weight_dict.keys()[0]
 
-func mix_match_names(gender: String) -> Array:
-	# Simplified name generation - returns ["First", "Last"]
-	# In practice, you'd load name lists from files
-	
-	var first_names_m = ["Alex", "Jamie", "Jordan", "Casey", "Taylor", "Morgan", "Riley", "Quinn"]
-	var first_names_f = ["Ashley", "Jordan", "Taylor", "Morgan", "Casey", "Riley", "Quinn", "Alex"]
-	var last_names = ["Smith", "Johnson", "Williams", "Brown", "Jones", "Garcia", "Miller", "Davis"]
-	
-	var first_name: String
-	if gender == "m":
-		first_name = first_names_m[randi() % first_names_m.size()]
-	elif gender == "f":
-		first_name = first_names_f[randi() % first_names_f.size()]
-	else:
-		# Intersex can use either
-		if randf() > 0.5:
-			first_name = first_names_m[randi() % first_names_m.size()]
+func generate_random_names(passed_gender: String) -> Array:
+	var first_name_category = weighted_random_choice(name_frequency_last)
+	var first_name = ""
+	var gender = passed_gender
+	if passed_gender == "i": #intersex characters will pick one 50/50
+		if randf() < 0.5:
+			gender = "m"
 		else:
-			first_name = first_names_f[randi() % first_names_f.size()]
+			gender = "f"
+	match first_name_category:
+		"common":
+			var array = first_names_common_m if gender == "m" else first_names_common_f
+			first_name = array[randi() % array.size()] if array.size() > 0 else "Unknown"
+		"apocalypse":
+			var array = first_names_apocalypse_m if gender == "m" else first_names_apocalypse_f
+			first_name = array[randi() % array.size()] if array.size() > 0 else "Unknown"
+		"afro":
+			var array = first_names_afro_m if gender == "m" else first_names_afro_f
+			first_name = array[randi() % array.size()] if array.size() > 0 else "Unknown"
+		"spanish":
+			var array = first_names_spanish_m if gender == "m" else first_names_spanish_f
+			first_name = array[randi() % array.size()] if array.size() > 0 else "Unknown"
+		"french":
+			var array = first_names_french_m if gender == "m" else first_names_french_f
+			first_name = array[randi() % array.size()] if array.size() > 0 else "Unknown"
+		"italian":
+			var array = first_names_italian_m if gender == "m" else first_names_italian_f
+			first_name = array[randi() % array.size()] if array.size() > 0 else "Unknown"
+		"slavic":
+			var array = first_names_slavic_m if gender == "m" else first_names_slavic_f
+			first_name = array[randi() % array.size()] if array.size() > 0 else "Unknown"
+		"arab":
+			var array = first_names_arab_m if gender == "m" else first_names_arab_f
+			first_name = array[randi() % array.size()] if array.size() > 0 else "Unknown"
+		"nordic":
+			var array = first_names_nordic_m if gender == "m" else first_names_nordic_f
+			first_name = array[randi() % array.size()] if array.size() > 0 else "Unknown"
+		"indian":
+			var array = first_names_indian_m if gender == "m" else first_names_indian_f
+			first_name = array[randi() % array.size()] if array.size() > 0 else "Unknown"
+		"japanese":
+			var array = first_names_japanese_m if gender == "m" else first_names_japanese_f
+			first_name = array[randi() % array.size()] if array.size() > 0 else "Unknown"
+		"chinese":
+			var array = first_names_chinese_m if gender == "m" else first_names_chinese_f
+			first_name = array[randi() % array.size()] if array.size() > 0 else "Unknown"
+		"korean":
+			var array = first_names_korean_m if gender == "m" else first_names_korean_f
+			first_name = array[randi() % array.size()] if array.size() > 0 else "Unknown"
+		"wasp":
+			var array = first_names_wasp_m if gender == "m" else first_names_wasp_f
+			first_name = array[randi() % array.size()] if array.size() > 0 else "Unknown"
+		"africa":
+			var array = first_names_africa_m if gender == "m" else first_names_africa_f
+			first_name = array[randi() % array.size()] if array.size() > 0 else "Unknown"
+		"row":
+			var array = first_names_pacific_m if gender == "m" else first_names_pacific_f
+			first_name = array[randi() % array.size()] if array.size() > 0 else "Unknown"
 	
-	var last_name = last_names[randi() % last_names.size()]
+	var last_name_category = weighted_random_choice(name_frequency_last)
+	var last_name = ""
 	
-	return [first_name, last_name]
+	match last_name_category:
+		"common":
+			last_name = last_names_common[randi() % last_names_common.size()] if last_names_common.size() > 0 else "Unknown"
+		"italian":
+			last_name = last_names_italian[randi() % last_names_italian.size()] if last_names_italian.size() > 0 else "Unknown"
+		"native":
+			last_name = last_names_native[randi() % last_names_native.size()] if last_names_native.size() > 0 else "Unknown"
+		"apocalypse":
+			last_name = last_names_apocalypse[randi() % last_names_apocalypse.size()] if last_names_apocalypse.size() > 0 else "Unknown"
+		"spanish":
+			last_name = last_names_spanish[randi() % last_names_spanish.size()] if last_names_spanish.size() > 0 else "Unknown"
+		"french":
+			last_name = last_names_french[randi() % last_names_french.size()] if last_names_french.size() > 0 else "Unknown"
+		"slavic":
+			var array = last_names_slavic_m if gender == "m" else last_names_slavic_f
+			last_name = array[randi() % array.size()] if array.size() > 0 else "Unknown"
+		"nordic":
+			var array = last_names_nordic_m if gender == "m" else last_names_nordic_f
+			last_name = array[randi() % array.size()] if array.size() > 0 else "Unknown"
+		"indian":
+			last_name = last_names_indian[randi() % last_names_indian.size()] if last_names_indian.size() > 0 else "Unknown"
+		"arab":
+			last_name = last_names_arab[randi() % last_names_arab.size()] if last_names_arab.size() > 0 else "Unknown"
+		"japanese":
+			last_name = last_names_japanese[randi() % last_names_japanese.size()] if last_names_japanese.size() > 0 else "Unknown"
+		"chinese":
+			last_name = last_names_chinese[randi() % last_names_chinese.size()] if last_names_chinese.size() > 0 else "Unknown"
+		"korean":
+			last_name = last_names_korean[randi() % last_names_korean.size()] if last_names_korean.size() > 0 else "Unknown"
+		"wasp":
+			last_name = last_names_wasp[randi() % last_names_wasp.size()] if last_names_wasp.size() > 0 else "Unknown"
+		"africa":
+			last_name = last_names_africa[randi() % last_names_africa.size()] if last_names_africa.size() > 0 else "Unknown"
+		"row":
+			last_name = last_names_pacific[randi() % last_names_pacific.size()] if last_names_pacific.size() > 0 else "Unknown"
+	
+	return [first_name, last_name, last_name_category]
+
+func mix_match_names(names: Array, gender: String) -> Array:
+	# names[0] = first name
+	# names[1] = last name
+	# names[2] = last name category
+	
+	var last_name_category = names[2]
+	
+	# Check if we should try to match last name category with first name
+	# Map last name categories to first name categories (some don't have exact matches)
+	var category_map = {
+		"common": "common",
+		"italian": "italian",
+		"native": "common",
+		"apocalypse": "apocalypse",
+		"spanish": "spanish",
+		"french": "french",
+		"slavic": "slavic",
+		"nordic": "nordic",
+		"indian": "indian",
+		"arab": "arab",
+		"japanese": "japanese",
+		"chinese": "chinese",
+		"korean": "korean",
+		"wasp": "wasp",
+		"africa": "africa",
+		"pacific": "pacific"
+	}
+	
+	if category_map.has(last_name_category):
+		var first_name_category = category_map[last_name_category]
+		
+		# Check if this category has a mix_fix_chance
+		if mix_fix_chance.has(first_name_category):
+			var chance = mix_fix_chance[first_name_category]
+			
+			if randf() < chance:
+				# Replace first name with matching category
+				var first_name = ""
+				
+				match first_name_category:
+					"common":
+						var array = first_names_common_m if gender == "m" else first_names_common_f
+						first_name = array[randi() % array.size()] if array.size() > 0 else names[0]
+					"apocalypse":
+						var array = first_names_apocalypse_m if gender == "m" else first_names_apocalypse_f
+						first_name = array[randi() % array.size()] if array.size() > 0 else names[0]
+					"spanish":
+						var array = first_names_spanish_m if gender == "m" else first_names_spanish_f
+						first_name = array[randi() % array.size()] if array.size() > 0 else names[0]
+					"french":
+						var array = first_names_french_m if gender == "m" else first_names_french_f
+						first_name = array[randi() % array.size()] if array.size() > 0 else names[0]
+					"italian":
+						var array = first_names_italian_m if gender == "m" else first_names_italian_f
+						first_name = array[randi() % array.size()] if array.size() > 0 else names[0]
+					"slavic":
+						var array = first_names_slavic_m if gender == "m" else first_names_slavic_f
+						first_name = array[randi() % array.size()] if array.size() > 0 else names[0]
+					"nordic":
+						var array = first_names_nordic_m if gender == "m" else first_names_nordic_f
+						first_name = array[randi() % array.size()] if array.size() > 0 else names[0]
+					"indian":
+						var array = first_names_indian_m if gender == "m" else first_names_indian_f
+						first_name = array[randi() % array.size()] if array.size() > 0 else names[0]
+					"japanese":
+						var array = first_names_japanese_m if gender == "m" else first_names_japanese_f
+						first_name = array[randi() % array.size()] if array.size() > 0 else names[0]
+					"chinese":
+						var array = first_names_chinese_m if gender == "m" else first_names_chinese_f
+						first_name = array[randi() % array.size()] if array.size() > 0 else names[0]
+					"korean":
+						var array = first_names_korean_m if gender == "m" else first_names_korean_f
+						first_name = array[randi() % array.size()] if array.size() > 0 else names[0]
+					"wasp":
+						var array = first_names_wasp_m if gender == "m" else first_names_wasp_f
+						first_name = array[randi() % array.size()] if array.size() > 0 else names[0]
+					"africa":
+						var array = first_names_africa_m if gender == "m" else first_names_africa_f
+						first_name = array[randi() % array.size()] if array.size() > 0 else names[0]
+					"pacific":
+						var array = first_names_pacific_m if gender == "m" else first_names_pacific_f
+						first_name = array[randi() % array.size()] if array.size() > 0 else names[0]
+				
+				if first_name != "":
+					names[0] = first_name
+	
+	return [names[0], names[1]]
 
 func generate_hometown() -> String:
-	var urban_towns = ["New York", "Los Angeles", "Chicago", "Houston", "Phoenix"]
-	var rural_towns = ["Springfield", "Clarksville", "Georgetown", "Franklin", "Bristol"]
-	
-	if randf() < 0.54:  # 54% urbanization rate
-		return urban_towns[randi() % urban_towns.size()]
-	else:
-		return rural_towns[randi() % rural_towns.size()]
+	var town = ""
+	if randf() < town_weight_chance:#urban
+		if hometowns_urban.size() > 0:
+			town = hometowns_urban[randi() % hometowns_urban.size()]
+		else:
+			town = "Unknown"
+	else:#rural
+		if hometowns_rural.size() > 0:
+			town = hometowns_rural[randi() % hometowns_rural.size()]
+		else:
+			town = "Unknown"
+	return town
 
 func generate_playable_positions(primary: String) -> Array:
 	var positions = [primary]
