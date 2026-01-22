@@ -317,12 +317,12 @@ var first_names_slavic_m = []#
 var first_names_nordic_m = []#
 var first_names_chinese_m = []#
 var first_names_indian_m = []#
-var first_names_arab_m = []
+var first_names_arab_m = []#
 var first_names_japanese_m = []
 var first_names_korean_m = []
 var first_names_pacific_m = []#
 
-var first_names_common_f = []
+var first_names_common_f = []#
 var first_names_apocalypse_f = []
 var first_names_wasp_f = []
 var first_names_afro_f = []
