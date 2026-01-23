@@ -1072,8 +1072,10 @@ texture = ExtResource("16_qf4u8")
 size = Vector2i(1000, 1000)
 
 [node name="V-Mannequin" type="VBoxContainer" parent="PopupMenu"]
-offset_right = 40.0
-offset_bottom = 40.0
+offset_left = 4.0
+offset_top = 4.0
+offset_right = 2168.0
+offset_bottom = 996.0
 
 [node name="Label" type="Label" parent="PopupMenu/V-Mannequin"]
 layout_mode = 2
@@ -1116,8 +1118,10 @@ texture_focused = ExtResource("18_khjjo")
 [node name="FilterPopup" type="PopupPanel" parent="."]
 
 [node name="H-Main" type="HBoxContainer" parent="FilterPopup"]
-offset_right = 40.0
-offset_bottom = 40.0
+offset_left = 4.0
+offset_top = 4.0
+offset_right = 1212.0
+offset_bottom = 467.0
 
 [node name="V-Left" type="VBoxContainer" parent="FilterPopup/H-Main"]
 layout_mode = 2

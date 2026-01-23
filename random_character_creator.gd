@@ -12,6 +12,11 @@ var intersex_frequency: float = 0.017 #percentage of players and non-player char
 var min_age: int = 8 #minimum age of generated characters
 var max_age: int = 50 #maximum age of generated characters
 
+var unemployment_rate = 0.58
+var subsistence_farmer_rate = 0.3
+var gang_rate = 0.25
+var gangs = ["The Posse", "Banana Republicans", "Metalheads", "The Family", "Holy Rollers"]
+
 # Height distributions (in inches) - Post-apocalyptic setting, all heights in inches
 var height_distribution = {
 	"male": {"min": 59, "max": 84, "avg": 68, "std_dev": 3.5},  # 4'11" to 7'0"
@@ -93,10 +98,10 @@ var player_weight_frequency_adjustment = {
 }
 
 var name_frequency_first:= {
-	"common": 42,
+	"common": 40,
 	"apocalypse": 10,
 	"afro": 15,
-	"spanish": 10,
+	"spanish": 12,
 	"french": 3,
 	"italian": 2,
 	"slavic": 2,
@@ -115,8 +120,8 @@ var name_frequency_last:= {
 	"common": 36.3,
 	"italian": 9,
 	"native": 0.2,
-	"apocalypse": 15,
-	"spanish": 11.5,
+	"apocalypse": 11.5,
+	"spanish": 15,
 	"french": 7,
 	"slavic": 3,
 	"nordic": 3,
@@ -137,15 +142,15 @@ var mix_fix_chance:= {
 	"spanish": 0.4,
 	"french": 0.2,
 	"italian": 0.1,
-	"slavic": 0.6,
+	"slavic": 0.7,
 	"nordic": 0.6,
-	"indian": 0.7,
+	"indian": 0.8,
 	"japanese": 0.8,
 	"chinese": 0.5,
 	"korean": 0.5,
-	"wasp": 0.2,
+	"wasp": 0.5,
 	"africa": 0.9,
-	"row": 1,
+	"pacific": 0.2,
 }
 
 var position_frequency:= {
@@ -165,7 +170,6 @@ var multi_position_frequency:= {
 	5: 0.04,
 	6: 0.02
 }
-
 
 var pitcher_styles = {
 	"Ace": 35,
@@ -194,7 +198,6 @@ var guard_styles = {
 	"Bully": 35
 }
 
-# Physical attribute modifiers (updated per request)
 const HEIGHT_MODIFIERS = {
 	"agility": -0.8,      # Taller = less agile
 	"balance": -0.6,      # Taller = less balanced
@@ -306,7 +309,7 @@ const WEIGHT_CATEGORY_MODIFIERS = {
 	}
 }
 var first_names_common_m = [] #
-var first_names_apocalypse_m = []
+var first_names_apocalypse_m = []#
 var first_names_wasp_m = [] #
 var first_names_afro_m = []#
 var first_names_africa_m = []#
@@ -324,10 +327,10 @@ var first_names_pacific_m = []#
 
 var first_names_common_f = []#
 var first_names_apocalypse_f = []
-var first_names_wasp_f = []
-var first_names_afro_f = []
+var first_names_wasp_f = []#
+var first_names_afro_f = []#
 var first_names_africa_f = []
-var first_names_spanish_f = []
+var first_names_spanish_f = []#
 var first_names_french_f = []
 var first_names_italian_f = []
 var first_names_slavic_f = []
@@ -342,21 +345,21 @@ var first_names_pacific_f = []#
 var last_names_common = []#
 var last_names_native = []
 var last_names_apocalypse = []
-var last_names_wasp = []
+var last_names_wasp = []#
 var last_names_africa = []#
 var last_names_spanish = []#
-var last_names_french = []
-var last_names_italian = []
-var last_names_slavic_m = []
-var last_names_slavic_f = []
+var last_names_french = []#
+var last_names_italian = []#
+var last_names_slavic_m = []#
+var last_names_slavic_f = []#
 var last_names_nordic_m = []
 var last_names_nordic_f = []
 var last_names_chinese = []
 var last_names_indian = []#
-var last_names_japanese = []
+var last_names_japanese = []#
 var last_names_korean = []
 var last_names_arab = []
-var last_names_pacific = []
+var last_names_pacific = []#
 
 var hometowns_urban = []
 var hometowns_rural = []
@@ -373,21 +376,15 @@ func load_csv_to_array(path: String) -> Array:
 	if file:
 		var content = file.get_as_text()
 		file.close()
-		
-		# Check if it's RTF format (starts with {)
-		if content.begins_with("{"):
-			# Extract the content after the first } (RTF header)
+		if content.begins_with("{"):# Check if it's RTF format (starts with {)
 			var end_brace_pos = content.find("}")
 			if end_brace_pos != -1:
 				content = content.substr(end_brace_pos + 1)
-		
-		# Split by commas and clean up
 		var items = content.split(",")
 		for item in items:
 			var clean_item = item.strip_edges()
 			if clean_item != "":
 				array.append(clean_item)
-	
 	return array
 
 func initialize_name_lists():
@@ -446,13 +443,9 @@ func generate_players(num: int):
 	
 	for i in range(num):
 		var new_player = Player.new()
-		
-		# Generate basic info
 		var gender = determine_gender(true)
 		new_player.bio.leftHanded = randf() < left_hand_frequency
 		new_player.bio.years = randi_range(min_age, max_age)
-		
-		# Generate name
 		var names = generate_random_names(gender)
 		new_player.bio.first_name = names[0]
 		new_player.bio.last_name = names[1]
@@ -465,19 +458,11 @@ func generate_players(num: int):
 		new_player.bio.inches = physical["inches"]
 		new_player.bio.pounds = physical["weight"]
 		new_player.bio.hometown = generate_hometown()
-		
-		# Generate primary position
 		var primary_position = weighted_random_choice(position_frequency)
 		new_player.preferred_position = primary_position
 		new_player.field_position = primary_position
-		
-		# Generate playable positions
 		new_player.playable_positions = generate_playable_positions(primary_position)
-		
-		# Generate attributes based on physical traits and position
 		generate_attributes(new_player, gender, physical["height_inches"], physical["weight"], physical["category"])
-		
-		# Determine player type based on highest overall
 		new_player.calculate_player_type()
 		
 		characters.append(new_player)
@@ -1145,3 +1130,52 @@ func get_player_info(player: Player) -> String:
 
 func clear_players():
 	characters.clear()
+
+func generate_character_from_player(player: Player, gender: String):
+	var character = Character.new()
+	var life_experience = (player.bio.age/2 * player.bio.age/2)
+	if life_experience > 900: life_experience = 900
+	#TODO: randomly assign staff_attributes such that they sum to life_experience
+	var affiliated_gang = "none"
+	var gang_chance = randf()
+	if gang_chance < gang_rate:
+		gang_chance = randf()
+		if gang_chance < 0.2:
+			affiliated_gang = gangs[0]
+		elif gang_chance < 0.4:
+			affiliated_gang = gangs[1]
+		elif gang_chance < 0.6:
+			affiliated_gang = gangs[2]
+		elif gang_chance < 0.8:
+			affiliated_gang = gangs[3]
+		else:
+			affiliated_gang = gangs[4]
+		character.gang_affiliation = affiliated_gang
+	var employment_chance = randf()
+	if employment_chance < subsistence_farmer_rate:
+		#TODO: the character is a subsistence farmer
+		pass
+	elif employment_chance > subsistence_farmer_rate + unemployment_rate:
+		#TODO: the character has a real job
+		pass
+
+func get_day_job():
+	var industries = ["farm","trade","transport","war","hospitality","industrial","medical","public","finance"]
+	var class_rates = [100,300,200,100,50,25,1] #0 exploited, 1 poverty, 2 lower working, 3 upper working, 4 middle, 5 white collar, 6 investor
+	var job_industry = industries.pick_random()
+	#TODO: pick a class based on the rates- higher numbers more common
+	#TODO: translate industry and class into job title based on City.gd categories
+	pass
+
+func get_favorite_food():
+	var all_foods = ["bbq", "island", "casserole", "mexican", "vegetarian"]
+	return all_foods.pick_random()
+
+func export_to_csv():
+	#TODO: export into format of roster csv
+	return
+
+func give_file_report():
+	#TODO: print out ratios of name origins
+	#TODO: print out overall ranges by position:
+	pass
