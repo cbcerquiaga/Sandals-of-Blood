@@ -1,4 +1,5 @@
 extends Node
+class_name randomCharacterGenerator
 
 var characters:= []
 var min_overall: int = 30
@@ -82,7 +83,7 @@ var weight_categories = {
 	}
 }
 
-#players are more likely to be bigger, healthier people
+#players are more likely to be bigger, healthier people than the average apocalypto
 var player_weight_frequency_adjustment = {
 	"stunted": 0.3,
 	"starving": 0.5,
@@ -199,11 +200,11 @@ var guard_styles = {
 }
 
 const HEIGHT_MODIFIERS = {
-	"agility": -0.8,      # Taller = less agile
-	"balance": -0.6,      # Taller = less balanced
-	"throwing": 0.7,      # Taller = better throwing
-	"faceoffs": 0.5,      # Taller = better at faceoffs
-	"blocking": 0.3       # Taller = better blocking (removed positioning)
+	"agility": -0.8,
+	"balance": -0.6,
+	"throwing": 0.7,
+	"faceoffs": 0.5,
+	"blocking": 0.3
 }
 
 # Weight category attribute modifiers
@@ -308,6 +309,125 @@ const WEIGHT_CATEGORY_MODIFIERS = {
 		"balance": 20
 	}
 }
+#region jobs
+# Job-related data based on City.gd
+var job_rates = {
+	"farm": 30,
+	"trade": 25,
+	"transport": 15,
+	"war": 5,
+	"hospitality": 10,
+	"finance": 5,
+	"medical": 3,
+	"industrial": 4,
+	"public": 3
+}
+
+var class_distribution = {
+	"exploited": 25,
+	"poverty": 30,
+	"lower_working": 25,
+	"upper_working": 10,
+	"middle": 5,
+	"white_collar": 3,
+	"investor": 2
+}
+
+var job_titles = {
+	"farm": {
+		"exploited": "sharecropper",
+		"poverty": "subsistence",
+		"lower_working": "farmhand",
+		"upper_working": "co-op farmer",
+		"middle": "family farmer",
+		"white_collar": "veterinarian",
+		"investor": "haciendero"
+	},
+	"trade": {
+		"exploited": "sweatshopper",
+		"poverty": "home crafter",
+		"lower_working": "wage crafter",
+		"upper_working": "co-op shopkeeper",
+		"middle": "shopkeeper",
+		"white_collar": "promoter",
+		"investor": "entrepreneur"
+	},
+	"transport": {
+		"exploited": "rickshaw runner",
+		"poverty": "rickshaw biker",
+		"lower_working": "longshoreman",
+		"upper_working": "horse teamster",
+		"middle": "truck teamster",
+		"white_collar": "mechanic",
+		"investor": "warehouse owner"
+	},
+	"war": {
+		"exploited": "conscript",
+		"poverty": "garrison trooper",
+		"lower_working": "road trooper",
+		"upper_working": "driver",
+		"middle": "lower officer",
+		"white_collar": "siege engineer",
+		"investor": "warlord"
+	},
+	"hospitality": {
+		"exploited": "sex slave",
+		"poverty": "prostitute",
+		"lower_working": "cook for hire",
+		"upper_working": "escort",
+		"middle": "cart cook",
+		"white_collar": "musician",
+		"investor": "pimp"
+	},
+	"finance": {
+		"exploited": "beggar",
+		"poverty": "hawker",
+		"lower_working": "repo man",
+		"upper_working": "hitman",
+		"middle": "loan shark",
+		"white_collar": "accountant",
+		"investor": "mafioso"
+	},
+	"medical": {
+		"exploited": "blood stock",
+		"poverty": "herb grower",
+		"lower_working": "paramedic",
+		"upper_working": "nurse",
+		"middle": "medical trainer",
+		"white_collar": "surgeon",
+		"investor": "insurer"
+	},
+	"industrial": {
+		"exploited": "chain gang",
+		"poverty": "scrapper",
+		"lower_working": "apprentice",
+		"upper_working": "journeyman",
+		"middle": "master",
+		"white_collar": "artisan",
+		"investor": "baron"
+	},
+	"public": {
+		"exploited": "eunuch",
+		"poverty": "janitor",
+		"lower_working": "courier",
+		"upper_working": "firefighter",
+		"middle": "teacher",
+		"white_collar": "professor",
+		"investor": "aristocrat"
+	}
+}
+
+var job_pay_ranges = {
+	"exploited": {"min": 5, "max": 15},
+	"poverty": {"min": 10, "max": 25},
+	"lower_working": {"min": 20, "max": 40},
+	"upper_working": {"min": 35, "max": 60},
+	"middle": {"min": 50, "max": 100},
+	"white_collar": {"min": 80, "max": 150},
+	"investor": {"min": 150, "max": 500}
+}
+#endregion
+#region names
 var first_names_common_m = [] #
 var first_names_apocalypse_m = []#
 var first_names_wasp_m = [] #
@@ -322,7 +442,7 @@ var first_names_chinese_m = []#
 var first_names_indian_m = []#
 var first_names_arab_m = []#
 var first_names_japanese_m = []
-var first_names_korean_m = []
+var first_names_korean_m = []#
 var first_names_pacific_m = []#
 
 var first_names_common_f = []#
@@ -357,9 +477,10 @@ var last_names_nordic_f = []
 var last_names_chinese = []
 var last_names_indian = []#
 var last_names_japanese = []#
-var last_names_korean = []
+var last_names_korean = []#
 var last_names_arab = []
 var last_names_pacific = []#
+#endregion
 
 var hometowns_urban = []
 var hometowns_rural = []
@@ -368,6 +489,10 @@ var town_weight_chance = 0.54 #54% urbanization rate
 func _ready():
 	randomize()
 	initialize_name_lists()
+	generate_players(600)
+	give_file_report()
+	export_to_csv()
+	
 
 func load_csv_to_array(path: String) -> Array:
 	var file = FileAccess.open(path, FileAccess.READ)
@@ -434,6 +559,7 @@ func initialize_name_lists():
 	last_names_indian = load_csv_to_array("res://Assets/Gen Names/last_indian.txt")
 	last_names_japanese = load_csv_to_array("res://Assets/Gen Names/last_japanese.txt")
 	last_names_korean = load_csv_to_array("res://Assets/Gen Names/last_korean.txt")
+	last_names_arab = load_csv_to_array("res://Assets/Gen Names/last_arab.txt")
 	last_names_pacific = load_csv_to_array("res://Assets/Gen Names/last_pacific.txt")
 	hometowns_urban = load_csv_to_array("res://Assets/Gen Names/hometowns_urban.txt")
 	hometowns_rural = load_csv_to_array("res://Assets/Gen Names/hometowns_rural.txt")
@@ -442,30 +568,35 @@ func generate_players(num: int):
 	characters.clear()
 	
 	for i in range(num):
-		var new_player = Player.new()
+		var character = Character.new()
+		var player = Player.new()
 		var gender = determine_gender(true)
-		new_player.bio.leftHanded = randf() < left_hand_frequency
-		new_player.bio.years = randi_range(min_age, max_age)
-		var names = generate_random_names(gender)
-		new_player.bio.first_name = names[0]
-		new_player.bio.last_name = names[1]
-		var rand = randf()
-		names = mix_match_names(names, gender)
-		#TODO: if rand is less than corresponding last name category for the player, choose first name from the corresponding first name array
-		# Generate height and weight
-		var physical = generate_physical_attributes(gender)
-		new_player.bio.feet = physical["feet"]
-		new_player.bio.inches = physical["inches"]
-		new_player.bio.pounds = physical["weight"]
-		new_player.bio.hometown = generate_hometown()
-		var primary_position = weighted_random_choice(position_frequency)
-		new_player.preferred_position = primary_position
-		new_player.field_position = primary_position
-		new_player.playable_positions = generate_playable_positions(primary_position)
-		generate_attributes(new_player, gender, physical["height_inches"], physical["weight"], physical["category"])
-		new_player.calculate_player_type()
+		character.gender = gender
+		player.bio.leftHanded = randf() < left_hand_frequency
+		player.bio.years = randi_range(min_age, max_age)
 		
-		characters.append(new_player)
+		# Generate names
+		var names = generate_random_names(gender)
+		names = mix_match_names(names, gender)
+		player.bio.first_name = names[0]
+		player.bio.last_name = names[1]
+		
+		var physical = generate_physical_attributes(gender)
+		player.bio.feet = physical["feet"]
+		player.bio.inches = physical["inches"]
+		player.bio.pounds = physical["weight"]
+		
+		player.bio.hometown = generate_hometown()
+		
+		var primary_position = weighted_random_choice(position_frequency)
+		player.preferred_position = primary_position
+		player.field_position = primary_position
+		player.playable_positions = generate_playable_positions(primary_position)
+		
+		generate_attributes(player, gender, physical["height_inches"], physical["weight"], physical["category"])
+		player.calculate_player_type()
+		character.player = player
+		characters.append(character)
 
 func determine_gender(is_player: bool) -> String:
 	var rand_gender = randf()
@@ -486,49 +617,38 @@ func determine_gender(is_player: bool) -> String:
 			return "f"
 
 func generate_physical_attributes(gender: String) -> Dictionary:
-	# Generate height using normal distribution
 	var height_data = height_distribution["male"] if gender == "m" else height_distribution["female"]
 	var height_inches: int
 	
-	# Generate height with normal distribution (bell curve)
+	# Generate height with normal distribution
 	var attempts = 0
 	while attempts < 100:
-		# Box-Muller transform for normal distribution
 		var u1 = randf()
 		var u2 = randf()
 		var z0 = sqrt(-2.0 * log(u1)) * cos(2.0 * PI * u2)
 		
 		height_inches = int(height_data["avg"] + z0 * height_data["std_dev"])
 		
-		# Ensure within bounds
 		if height_inches >= height_data["min"] and height_inches <= height_data["max"]:
 			break
 		attempts += 1
 	
-	# Fallback to uniform distribution if normal fails
 	if attempts >= 100:
 		height_inches = randi_range(height_data["min"], height_data["max"])
 	
-	# Calculate feet and inches
 	var feet = height_inches / 12
 	var inches = height_inches % 12
 	
-	# Generate weight category (adjusted for players)
+	# Generate weight category
 	var weight_category = generate_weight_category_for_player()
 	var category_data = weight_categories[weight_category]
 	
-	# Calculate weight within category range, adjusted for height
 	var height_meters = height_inches * 0.0254
-	
-	# Calculate theoretical BMI range for height
 	var min_bmi_weight = category_data["bmi_range"]["min"] * height_meters * height_meters * 2.20462
 	var max_bmi_weight = category_data["bmi_range"]["max"] * height_meters * height_meters * 2.20462
 	
-	# Clamp to category's weight range and overall limits
 	var min_weight = max(category_data["weight_range"]["min"], min_bmi_weight, 90)
 	var max_weight = min(category_data["weight_range"]["max"], max_bmi_weight, 350)
-	
-	# Ensure min <= max
 	min_weight = min(min_weight, max_weight)
 	max_weight = max(min_weight, max_weight)
 	
@@ -543,7 +663,6 @@ func generate_physical_attributes(gender: String) -> Dictionary:
 	}
 
 func generate_weight_category_for_player() -> String:
-	# Calculate adjusted frequencies for players
 	var adjusted_frequencies = {}
 	var total_weight = 0.0
 	
@@ -554,7 +673,6 @@ func generate_weight_category_for_player() -> String:
 		adjusted_frequencies[category] = adjusted_freq
 		total_weight += adjusted_freq
 	
-	# Weighted random selection
 	var rand_value = randf() * total_weight
 	var cumulative = 0.0
 	
@@ -563,7 +681,7 @@ func generate_weight_category_for_player() -> String:
 		if rand_value <= cumulative:
 			return category
 	
-	return "old_world"  # Default fallback
+	return "old_world"
 
 func weighted_random_choice(weight_dict: Dictionary):
 	var total_weight = 0.0
@@ -581,14 +699,15 @@ func weighted_random_choice(weight_dict: Dictionary):
 	return weight_dict.keys()[0]
 
 func generate_random_names(passed_gender: String) -> Array:
-	var first_name_category = weighted_random_choice(name_frequency_last)
+	var first_name_category = weighted_random_choice(name_frequency_first)
 	var first_name = ""
 	var gender = passed_gender
-	if passed_gender == "i": #intersex characters will pick one 50/50
+	if passed_gender == "i":
 		if randf() < 0.5:
 			gender = "m"
 		else:
 			gender = "f"
+	
 	match first_name_category:
 		"common":
 			var array = first_names_common_m if gender == "m" else first_names_common_f
@@ -635,7 +754,7 @@ func generate_random_names(passed_gender: String) -> Array:
 		"africa":
 			var array = first_names_africa_m if gender == "m" else first_names_africa_f
 			first_name = array[randi() % array.size()] if array.size() > 0 else "Unknown"
-		"row":
+		"pacific":
 			var array = first_names_pacific_m if gender == "m" else first_names_pacific_f
 			first_name = array[randi() % array.size()] if array.size() > 0 else "Unknown"
 	
@@ -675,20 +794,13 @@ func generate_random_names(passed_gender: String) -> Array:
 			last_name = last_names_wasp[randi() % last_names_wasp.size()] if last_names_wasp.size() > 0 else "Unknown"
 		"africa":
 			last_name = last_names_africa[randi() % last_names_africa.size()] if last_names_africa.size() > 0 else "Unknown"
-		"row":
+		"pacific":
 			last_name = last_names_pacific[randi() % last_names_pacific.size()] if last_names_pacific.size() > 0 else "Unknown"
 	
 	return [first_name, last_name, last_name_category]
 
 func mix_match_names(names: Array, gender: String) -> Array:
-	# names[0] = first name
-	# names[1] = last name
-	# names[2] = last name category
-	
 	var last_name_category = names[2]
-	
-	# Check if we should try to match last name category with first name
-	# Map last name categories to first name categories (some don't have exact matches)
 	var category_map = {
 		"common": "common",
 		"italian": "italian",
@@ -710,15 +822,10 @@ func mix_match_names(names: Array, gender: String) -> Array:
 	
 	if category_map.has(last_name_category):
 		var first_name_category = category_map[last_name_category]
-		
-		# Check if this category has a mix_fix_chance
 		if mix_fix_chance.has(first_name_category):
 			var chance = mix_fix_chance[first_name_category]
-			
 			if randf() < chance:
-				# Replace first name with matching category
 				var first_name = ""
-				
 				match first_name_category:
 					"common":
 						var array = first_names_common_m if gender == "m" else first_names_common_f
@@ -796,14 +903,12 @@ func generate_playable_positions(primary: String) -> Array:
 			num_positions = count
 			break
 	
-	# Add secondary positions with bias toward similar positions
 	for i in range(num_positions - 1):
 		if all_positions.size() == 0:
 			break
 		var weights = {}
 		for pos in all_positions:
 			var weight = 1.0
-			# Similar positions get higher weight
 			if primary in ["LG", "RG"] and pos in ["LG", "RG"]:
 				weight = 3.0
 			elif primary in ["LF", "RF"] and pos in ["LF", "RF"]:
@@ -828,8 +933,8 @@ func generate_playable_positions(primary: String) -> Array:
 func generate_attributes(player: Player, gender: String, height_inches: int, weight: float, weight_category: String):
 	var attributes = {
 		"speedRating": randi_range(15, 85),
-		"speed": 110.0,  # Will be recalculated
-		"sprint_speed": 140.0,  # Will be recalculated
+		"speed": 110.0,
+		"sprint_speed": 140.0,
 		"blocking": randi_range(15, 85),
 		"positioning": randi_range(15, 85),
 		"aggression": randi_range(15, 85),
@@ -854,25 +959,22 @@ func generate_attributes(player: Player, gender: String, height_inches: int, wei
 	apply_style_adjustments(attributes, style, player.preferred_position)
 	scale_attributes_to_overall_with_variance(player, attributes, style)
 	for key in attributes.keys():
-		if key != "speed" and key != "sprint_speed":  # These are derived
+		if key != "speed" and key != "sprint_speed":
 			attributes[key] = clamp(int(attributes[key]), 1, 100)
 	attributes.speed = attributes.speedRating + 35
 	attributes.sprint_speed = (attributes.speedRating - 5) * 2
 	player.attributes = attributes
 
 func apply_physical_modifiers(attributes: Dictionary, height_inches: int, weight_category: String):
-	# Calculate height factor (0-1, where 0 is shortest, 1 is tallest for average gender)
-	var height_data = height_distribution["male"]  # Use male as reference
+	var height_data = height_distribution["male"]
 	var height_factor = float(height_inches - height_data["min"]) / float(height_data["max"] - height_data["min"])
 	height_factor = clamp(height_factor, 0.0, 1.0)
 	
-	# Apply height modifiers
 	for modifier in HEIGHT_MODIFIERS:
 		if attributes.has(modifier):
-			var adjustment = HEIGHT_MODIFIERS[modifier] * (height_factor * 20)  # ±20 max
+			var adjustment = HEIGHT_MODIFIERS[modifier] * (height_factor * 20)
 			attributes[modifier] += adjustment
 	
-	# Apply weight category modifiers
 	if WEIGHT_CATEGORY_MODIFIERS.has(weight_category):
 		var category_modifiers = WEIGHT_CATEGORY_MODIFIERS[weight_category]
 		for modifier in category_modifiers:
@@ -880,7 +982,6 @@ func apply_physical_modifiers(attributes: Dictionary, height_inches: int, weight
 				attributes[modifier] += category_modifiers[modifier]
 
 func apply_position_base_adjustments(attributes: Dictionary, position: String):
-	# Apply larger variance in position adjustments
 	match position:
 		"P":
 			attributes.power += randi_range(5, 20)
@@ -906,43 +1007,17 @@ func apply_position_base_adjustments(attributes: Dictionary, position: String):
 
 func generate_player_style(position: String, attributes: Dictionary) -> String:
 	match position:
-		"P": #TODO: use weights
-			var style_choices = ["Ace", "Workhorse", "Hatchet Man", "Track Hog"]
-			return style_choices[randi() % style_choices.size()]
-		"K": #TODO: use weights
-			var keeper_choices = ["Acrobatic", "Crouching", "Kneeling", "Standing"]
-			return keeper_choices[randi() % keeper_choices.size()]
+		"P":
+			return weighted_random_choice(pitcher_styles)
+		"K":
+			return weighted_random_choice(keeper_styles)
 		"LF", "RF":
-			var scores = {}
-			scores["Goal Scorer"] = (attributes.shooting + attributes.accuracy) / 2.0
-			scores["Anti-Keeper"] = (attributes.power + attributes.speedRating) / 2.0
-			scores["Support Forward"] = (attributes.positioning + attributes.reactions) / 2.0
-			scores["Skull Cracker"] = (attributes.toughness + attributes.aggression) / 2.0
-			
-			var best_style = "Goal Scorer"
-			var best_score = 0.0
-			for style in scores:
-				if scores[style] > best_score:
-					best_score = scores[style]
-					best_style = style
-			return best_style
+			return weighted_random_choice(forward_styles)
 		
 		"LG", "RG":
-			var scores = {}
-			scores["Ball Hound"] = (attributes.reactions + attributes.blocking) / 2.0
-			scores["Defender"] = (attributes.positioning + attributes.speedRating) / 2.0
-			scores["Bully"] = (attributes.power + attributes.toughness) / 2.0
-			
-			var best_style = "Ball Hound"
-			var best_score = 0.0
-			for style in scores:
-				if scores[style] > best_score:
-					best_score = scores[style]
-					best_style = style
-			
-			return best_style
+			return weighted_random_choice(guard_styles)
 	
-	return "Standing"  # Default fallback
+	return "Standing"
 
 func apply_style_adjustments(attributes: Dictionary, style: String, position: String):
 	match style:
@@ -1012,9 +1087,9 @@ func apply_style_adjustments(attributes: Dictionary, style: String, position: St
 			attributes.aggression += randi_range(5, 20)
 
 func scale_attributes_to_overall_with_variance(player: Player, attributes: Dictionary, style: String):
-	player.attributes = attributes #set attributes temporarily to calculate current overall
+	player.attributes = attributes
 	var current_overall = player.calculate_overall()
-	var target_overall = randi_range(min_overall, max_overall) #TODO: factor in age, potential, hustle
+	var target_overall = randi_range(min_overall, max_overall)
 	var key_attributes = get_key_attributes_for_role(style)
 	var all_attributes = attributes.keys()
 	var non_key_attributes = []
@@ -1052,7 +1127,6 @@ func scale_attributes_to_overall_with_variance(player: Player, attributes: Dicti
 
 func get_key_attributes_for_role(role: String) -> Array:
 	match role:
-		# Pitcher styles
 		"Ace":
 			return ["power", "throwing", "focus", "accuracy", "confidence"]
 		"Workhorse":
@@ -1061,8 +1135,6 @@ func get_key_attributes_for_role(role: String) -> Array:
 			return ["toughness", "shooting", "power", "speedRating", "durability", "balance"]
 		"Track Hog":
 			return ["reactions", "faceoffs", "accuracy", "speedRating"]
-		
-		# Keeper styles
 		"Acrobatic":
 			return ["agility", "reactions", "speedRating"]
 		"Crouching":
@@ -1071,8 +1143,6 @@ func get_key_attributes_for_role(role: String) -> Array:
 			return ["focus", "confidence", "accuracy"]
 		"Standing":
 			return ["power", "blocking", "aggression"]
-		
-		# Forward styles
 		"Goal Scorer":
 			return ["shooting", "accuracy", "speedRating"]
 		"Anti-Keeper":
@@ -1081,20 +1151,291 @@ func get_key_attributes_for_role(role: String) -> Array:
 			return ["positioning", "power", "accuracy"]
 		"Skull Cracker":
 			return ["toughness", "aggression", "power"]
-		
-		# Guard styles
 		"Ball Hound":
 			return ["reactions", "shooting", "speedRating"]
 		"Defender":
 			return ["positioning", "speedRating", "endurance"]
 		"Bully":
 			return ["power", "toughness", "aggression"]
-		
 		_:
-			# Default fallback - return a basic set of attributes
 			return ["speedRating", "power", "shooting", "accuracy"]
 
-# Public API functions
+func get_day_job() -> Dictionary:
+	if randf() < unemployment_rate:
+		return {"job": "none", "pay": 0}
+	if randf() < subsistence_farmer_rate:
+		return {"job": "farm", "pay": randi_range(5, 15)}
+	var industry = weighted_random_choice(job_rates)
+	var social_class = weighted_random_choice(class_distribution)
+	var job_title = job_titles[industry][social_class]
+	
+	var pay_range = job_pay_ranges[social_class]
+	var pay = randi_range(pay_range["min"], pay_range["max"])
+	
+	return {"job": job_title, "pay": pay}
+
+func get_favorite_food() -> String:
+	var all_foods = ["bbq", "island", "casserole", "mexican", "vegetarian"]
+	return all_foods.pick_random()
+
+func export_to_csv(file_path: String = "res://Assets/Rosters/roster_export.csv"):
+	var file = FileAccess.open(file_path, FileAccess.WRITE)
+	
+	if not file:
+		print("Error: Could not open file for writing: ", file_path)
+		return
+	
+	# Header
+	file.store_line("first_name,last_name,nickname,hometown,left_handed,feet,inches,pounds,years,speed_rating,blocking,positioning,aggression,reactions,durability,power,throwing,endurance,accuracy,balance,focus,shooting,toughness,confidence,agility,faceoffs,discipline,playable_positions,preferred_position,declared_pitcher,special_pitches,pitch_grooves,portrait,head,haircut,glove,shoe,body_type,skin_tone_primary,skin_tone_secondary,complexion,best_league,play_style,gender,attracted,gang,home_cooking,day_job,day_job_pay,spouses,children,elders,adults,positivity,negativity,influence,promiscuity,loyalty,love_of_the_game,professionalism,partying,potential,hustle,hardiness,combat,franchise_id,contract_type,seasons_left,salary,revenue_share,water,food,buyout,housing,tryout_games,preferred_job,job_roles,contract_focus_value,contract_focus_stability,contract_focus_flexibility,contract_focus_satiety,contract_focus_hydration,contract_focus_hometown,contract_focus_housing,contract_focus_house_type,contract_focus_gameday,contract_focus_travel,contract_focus_medical,contract_focus_party,contract_focus_chill,contract_focus_win_now,contract_focus_win_later,contract_focus_loyalty,contract_focus_opportunity,contract_focus_community,contract_focus_development,contract_focus_safety,contract_focus_education,contract_focus_trade,contract_focus_farming,contract_focus_day_life,contract_focus_night_life,contract_focus_welfare,physical_training,technical_training,mental_training,talent_eval,talent_spotting,scouting_speed,deescalation,anti_banditry,escorting,trauma,ortho,medicine,stretching,first_aid,rehab,attraction,sponsorship,networking,masonry,carpentry,painting,sewing,carrying,acquisitions,line_cooking,home_cooking,fine_cooking,auditing,budgeting,bidding,raging,chilling,intimacy,charisma,helpfulness,longevity")
+	
+	# Write each player
+	for character in characters:
+		var player = character.player
+		var line_parts = []
+		
+		# Basic info (fields 1-27)
+		line_parts.append(player.bio.first_name)
+		line_parts.append(player.bio.last_name)
+		line_parts.append("")  # nickname
+		line_parts.append(player.bio.hometown)
+		line_parts.append("TRUE" if player.bio.leftHanded else "FALSE")
+		line_parts.append(str(player.bio.feet))
+		line_parts.append(str(player.bio.inches))
+		line_parts.append(str(player.bio.pounds))
+		line_parts.append(str(player.bio.years))
+		line_parts.append(str(player.attributes.speedRating))
+		line_parts.append(str(player.attributes.blocking))
+		line_parts.append(str(player.attributes.positioning))
+		line_parts.append(str(player.attributes.aggression))
+		line_parts.append(str(player.attributes.reactions))
+		line_parts.append(str(player.attributes.durability))
+		line_parts.append(str(player.attributes.power))
+		line_parts.append(str(player.attributes.throwing))
+		line_parts.append(str(player.attributes.endurance))
+		line_parts.append(str(player.attributes.accuracy))
+		line_parts.append(str(player.attributes.balance))
+		line_parts.append(str(player.attributes.focus))
+		line_parts.append(str(player.attributes.shooting))
+		line_parts.append(str(player.attributes.toughness))
+		line_parts.append(str(player.attributes.confidence))
+		line_parts.append(str(player.attributes.agility))
+		line_parts.append(str(player.attributes.faceoffs))
+		line_parts.append(str(player.attributes.discipline))
+		
+		# Fields 28-32 - Wrap comma-separated positions in quotes
+		line_parts.append(csv_escape(",".join(player.playable_positions)))
+		line_parts.append(player.preferred_position)
+		line_parts.append("TRUE" if player.declared_pitcher else "FALSE")
+		line_parts.append("")  # special_pitches
+		line_parts.append("")  # pitch_grooves
+		
+		# Appearance fields 33-41 (9 fields)
+		for i in range(9):
+			line_parts.append("")
+		
+		# Character info fields 42-49 (8 fields)
+		line_parts.append("")  # best_league
+		line_parts.append(csv_escape(player.playStyle))
+		line_parts.append(character.gender)
+		line_parts.append("")  # attracted
+		
+		# Gang affiliation
+		var gang = ""
+		if randf() < gang_rate:
+			gang = gangs[randi() % gangs.size()]
+		character.gang_affiliation = gang
+		line_parts.append(csv_escape(gang))
+		
+		# Home cooking and day job (fields 50-52)
+		line_parts.append(get_favorite_food())
+		var day_job_info = get_day_job()
+		line_parts.append(csv_escape(day_job_info["job"]))
+		line_parts.append(str(day_job_info["pay"]))
+		
+		# Family counts fields 53-56 (4 fields)
+		for i in range(4):
+			line_parts.append("")
+		
+		# Off attributes fields 57-68 (12 fields)
+		for i in range(12):
+			line_parts.append("")
+		
+		# Contract and franchise info fields 69-77 (9 fields)
+		for i in range(9):
+			line_parts.append("")
+		
+		# Additional fields: preferred_job and job_roles (fields 78-79)
+		line_parts.append("")  # preferred_job
+		line_parts.append("")  # job_roles
+		
+		# Contract focuses fields 80-103 (24 fields)
+		for i in range(24):
+			line_parts.append("")
+		
+		# Staff skills fields 104-138 (35 fields)
+		for i in range(35):
+			line_parts.append("")
+		
+		# Final safety check
+		if line_parts.size() != 138:
+			print("Warning: Player %s %s has %d fields, expected 138" % [player.bio.first_name, player.bio.last_name, line_parts.size()])
+			while line_parts.size() < 138:
+				line_parts.append("")
+			if line_parts.size() > 138:
+				line_parts.resize(138)
+		
+		file.store_line(",".join(line_parts))
+	
+	file.close()
+	print("Exported ", characters.size(), " characters to ", file_path)
+
+# Add this helper function for proper CSV escaping
+func csv_escape(value: String) -> String:
+	if value.is_empty():
+		return ""
+	
+	# If the value contains comma, quote, or newline, wrap in quotes and escape internal quotes
+	if value.contains(",") or value.contains("\"") or value.contains("\n"):
+		return "\"" + value.replace("\"", "\"\"") + "\""
+	
+	return value
+
+func give_file_report():
+	print("\n=== CHARACTER GENERATION REPORT ===\n")
+	
+	if characters.size() == 0:
+		print("No characters generated yet. Run generate_players() first.")
+		return
+	
+	print("NAME ORIGIN STATISTICS:\n")
+	var first_name_origins = {}
+	for character in characters:
+		var player = character.player
+		var first_name = player.bio.first_name
+		var origin = "unknown"
+		if first_name in first_names_common_m or first_name in first_names_common_f:
+			origin = "common"
+		elif first_name in first_names_spanish_m or first_name in first_names_spanish_f:
+			origin = "spanish"
+		elif first_name in first_names_afro_m or first_name in first_names_afro_f:
+			origin = "afro"
+		elif first_name in first_names_apocalypse_m or first_name in first_names_apocalypse_f:
+			origin = "apocalypse"
+		elif first_name in first_names_wasp_m or first_name in first_names_wasp_f:
+			origin = "wasp"
+		elif first_name in first_names_africa_m or first_name in first_names_africa_f:
+			origin = "africa"
+		elif first_name in first_names_italian_m or first_name in first_names_italian_f:
+			origin = "italian"
+		elif first_name in first_names_french_m or first_name in first_names_french_f:
+			origin = "french"
+		elif first_name in first_names_slavic_m or first_name in first_names_slavic_f:
+			origin = "slavic"
+		elif first_name in first_names_nordic_m or first_name in first_names_nordic_f:
+			origin = "nordic"
+		elif first_name in first_names_chinese_m or first_name in first_names_chinese_f:
+			origin = "chinese"
+		elif first_name in first_names_indian_m or first_name in first_names_indian_f:
+			origin = "indian"
+		elif first_name in first_names_arab_m or first_name in first_names_arab_f:
+			origin = "arab"
+		elif first_name in first_names_japanese_m or first_name in first_names_japanese_f:
+			origin = "japanese"
+		elif first_name in first_names_korean_m or first_name in first_names_korean_f:
+			origin = "korean"
+		elif first_name in first_names_pacific_m or first_name in first_names_pacific_f:
+			origin = "pacific"
+		
+		first_name_origins[origin] = first_name_origins.get(origin, 0) + 1
+	
+	print("First Name Origins:")
+	for origin in first_name_origins:
+		var percentage = float(first_name_origins[origin]) / characters.size() * 100
+		print("  %-15s: %3d (%.1f%%)" % [origin, first_name_origins[origin], percentage])
+	print("OVERALL RATINGS BY POSITION:\n")
+	
+	var position_stats = {
+		"K": {"count": 0, "total": 0, "ranges": {}},
+		"LF": {"count": 0, "total": 0, "ranges": {}},
+		"RF": {"count": 0, "total": 0, "ranges": {}},
+		"LG": {"count": 0, "total": 0, "ranges": {}},
+		"RG": {"count": 0, "total": 0, "ranges": {}},
+		"P": {"count": 0, "total": 0, "ranges": {}}
+	}
+	
+	var range_names = ["Non-player (0-50)", "Fringe (50-60)", "B (61-70)", "A (71-80)", "AA (81-90)", "AAA (91+)"]
+	for pos in position_stats:
+		for range_name in range_names:
+			position_stats[pos]["ranges"][range_name] = 0
+	
+	for character in characters:
+		var player = character.player
+		var overall = player.calculate_overall()
+		var range_name = ""
+		if overall <= 50:
+			range_name = "Non-player (0-50)"
+		elif overall <= 60:
+			range_name = "Fringe (50-60)"
+		elif overall <= 70:
+			range_name = "B (61-70)"
+		elif overall <= 80:
+			range_name = "A (71-80)"
+		elif overall <= 90:
+			range_name = "AA (81-90)"
+		else:
+			range_name = "AAA (91+)"
+		
+		for position in player.playable_positions:
+			if position_stats.has(position):
+				position_stats[position]["count"] += 1
+				position_stats[position]["total"] += overall
+				position_stats[position]["ranges"][range_name] += 1
+	
+	for position in ["K", "LF", "RF", "LG", "RG", "P"]:
+		var stats = position_stats[position]
+		if stats["count"] > 0:
+			var avg = float(stats["total"]) / stats["count"]
+			print("\n%s (Total: %d, Avg: %.1f):" % [position, stats["count"], avg])
+			
+			for range_name in range_names:
+				var count = stats["ranges"][range_name]
+				if count > 0:
+					var percentage = float(count) / stats["count"] * 100
+					print("  %-20s: %3d (%.1f%%)" % [range_name, count, percentage])
+	
+	# Overall distribution
+	print("\nOVERALL DISTRIBUTION:")
+	print("\n")
+	
+	var overall_ranges = {}
+	for range_name in range_names:
+		overall_ranges[range_name] = 0
+	
+	for character in characters:
+		var player = character.player
+		var overall = player.calculate_overall()
+		
+		if overall <= 50:
+			overall_ranges["Non-player (0-50)"] += 1
+		elif overall <= 60:
+			overall_ranges["Fringe (50-60)"] += 1
+		elif overall <= 70:
+			overall_ranges["B (61-70)"] += 1
+		elif overall <= 80:
+			overall_ranges["A (71-80)"] += 1
+		elif overall <= 90:
+			overall_ranges["AA (81-90)"] += 1
+		else:
+			overall_ranges["AAA (91+)"] += 1
+	
+	for range_name in range_names:
+		var count = overall_ranges[range_name]
+		var percentage = float(count) / characters.size() * 100
+		print("%-20s: %3d (%.1f%%)" % [range_name, count, percentage])
+	
+	print("\n")
+	print("Total Characters Generated: ", characters.size())
+
 func generate_player() -> Player:
 	generate_players(1)
 	return characters[0] if characters.size() > 0 else null
@@ -1113,69 +1454,7 @@ func get_player_info(player: Player) -> String:
 	info += "Primary Position: %s, Playable Positions: %s\n" % [player.field_position, str(player.playable_positions)]
 	info += "Player Style: %s\n" % [player.playStyle]
 	info += "Overall: %d\n" % [player.calculate_overall()]
-	info += "Key Attributes:\n"
-	info += "  Speed: %d, Power: %d, Shooting: %d, Accuracy: %d\n" % [
-		player.attributes.speedRating, player.attributes.power,
-		player.attributes.shooting, player.attributes.accuracy
-	]
-	info += "  Toughness: %d, Endurance: %d, Reactions: %d, Balance: %d\n" % [
-		player.attributes.toughness, player.attributes.endurance,
-		player.attributes.reactions, player.attributes.balance
-	]
-	info += "  Throwing: %d, Faceoffs: %d, Agility: %d\n" % [
-		player.attributes.throwing, player.attributes.faceoffs,
-		player.attributes.agility
-	]
 	return info
 
 func clear_players():
 	characters.clear()
-
-func generate_character_from_player(player: Player, gender: String):
-	var character = Character.new()
-	var life_experience = (player.bio.age/2 * player.bio.age/2)
-	if life_experience > 900: life_experience = 900
-	#TODO: randomly assign staff_attributes such that they sum to life_experience
-	var affiliated_gang = "none"
-	var gang_chance = randf()
-	if gang_chance < gang_rate:
-		gang_chance = randf()
-		if gang_chance < 0.2:
-			affiliated_gang = gangs[0]
-		elif gang_chance < 0.4:
-			affiliated_gang = gangs[1]
-		elif gang_chance < 0.6:
-			affiliated_gang = gangs[2]
-		elif gang_chance < 0.8:
-			affiliated_gang = gangs[3]
-		else:
-			affiliated_gang = gangs[4]
-		character.gang_affiliation = affiliated_gang
-	var employment_chance = randf()
-	if employment_chance < subsistence_farmer_rate:
-		#TODO: the character is a subsistence farmer
-		pass
-	elif employment_chance > subsistence_farmer_rate + unemployment_rate:
-		#TODO: the character has a real job
-		pass
-
-func get_day_job():
-	var industries = ["farm","trade","transport","war","hospitality","industrial","medical","public","finance"]
-	var class_rates = [100,300,200,100,50,25,1] #0 exploited, 1 poverty, 2 lower working, 3 upper working, 4 middle, 5 white collar, 6 investor
-	var job_industry = industries.pick_random()
-	#TODO: pick a class based on the rates- higher numbers more common
-	#TODO: translate industry and class into job title based on City.gd categories
-	pass
-
-func get_favorite_food():
-	var all_foods = ["bbq", "island", "casserole", "mexican", "vegetarian"]
-	return all_foods.pick_random()
-
-func export_to_csv():
-	#TODO: export into format of roster csv
-	return
-
-func give_file_report():
-	#TODO: print out ratios of name origins
-	#TODO: print out overall ranges by position:
-	pass

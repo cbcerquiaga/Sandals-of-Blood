@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://c2okryc3xtfwq"]
+
+[ext_resource type="Script" path="res://random_character_creator.gd" id="1_pkpxw"]
+
+[node name="Node2D" type="Node2D"]
+script = ExtResource("1_pkpxw")
