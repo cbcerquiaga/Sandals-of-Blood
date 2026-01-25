@@ -26,6 +26,7 @@ var most_recent_scorer: Player
 # References
 @onready var ball = $Ball as Ball
 @onready var ref = $Referee as Referee
+var foul_diff: int = 0
 @onready var eventpopup = $UI/MatchEventPopup as MatchPopup
 @onready var sub_indicators_container = $UI/SubIndicatorsContainer
 var just_executed_substitutions: Array[Dictionary] = []  #{Team, on Player, off Player}
@@ -76,6 +77,8 @@ func _ready():
 	field.ball_exited_field.connect(_on_ball_exited_field)
 	field.player_goal.connect(_on_player_goal)
 	field.cpu_goal.connect(_on_cpu_goal)
+	ref.fault.connect(_on_fault)
+	ref.redo.connect(_on_redo)
 	fill_team_rosters()
 	load_team_strategies()
 	statusUI.assign_team(self)
@@ -1559,3 +1562,32 @@ func process_ai_coach_decision(decision: Dictionary):
 				aTeam.strategy.tactics.RF = temp_tactics.RF_directions.duplicate()
 				print("AI Coach: Changing RF role to ", new_role)
 	aTeam.applyTactics()
+
+
+func _on_fault():
+	if ref.offender.team == 1:
+		foul(-1)
+	else:
+		foul(1)
+	
+func foul(direction: int):
+	foul_diff = foul_diff + direction
+	if foul_diff < -2:
+		foul_diff = -2
+		#TODO: penalty goal
+	elif foul_diff > 2:
+		foul_diff = 2
+		#TODO: penalty goal
+	statusUI.set_fouls(foul_diff)
+	gauntlet()
+	
+func gauntlet():
+	#TODO
+	ref.offender.global_position = ref.gauntlet_start
+	if ref.offender.team == 1:
+		for player in pTeam.roster:
+			player.reset_state()
+	
+func _on_redo():
+	#TODO: redo the play
+	pass
