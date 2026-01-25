@@ -978,7 +978,6 @@ func score_goal(team: int):
 	check_match_end()
 	if !match_ended:
 		next_play()
-	
 
 func _on_play_timer_timeout():
 	# Play length expired - switch pitching team

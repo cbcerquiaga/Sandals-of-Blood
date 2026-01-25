@@ -17,6 +17,7 @@ var team: Team
 @onready var K_container2: FieldStatusContainer = $Control2/K_Container
 @onready var specials2: SpecialPitches = $Control2/Special_Pitch_availability
 @onready var scoreboard: Scoreboard = $Scoreboard
+@onready var fouls: TextureRect = $FoulIndicator
 
 func assign_team(handler: MatchHandler):
 	if !matchHandler:
@@ -75,6 +76,8 @@ func _process(delta: float) -> void:
 	specials2.y = 110
 	scoreboard.scale = Vector2(0.03, 0.03)
 	scoreboard.position = Vector2(-200, -135)
+	fouls.scale = Vector2(0.05, 0.05)
+	fouls.position = scoreboard.position + Vector2(-13, 16)
 	pass
 	
 func update_scoreboard():
@@ -92,3 +95,15 @@ func update_scoreboard():
 	
 func overtime(is_deuce: bool):
 	scoreboard.overtime(is_deuce)
+	
+func set_fouls(num: int):
+	if num <= -2:
+		fouls.texture = load("res://UI/ScorebugUI/foul_2L.png")
+	elif num == -1:
+		fouls.texture = load("res://UI/ScorebugUI/foul_1L.png")
+	elif num == 0:
+		fouls.texture = load("res://UI/ScorebugUI/foul_0.png")
+	elif num == 1:
+		fouls.texture = load("res://UI/ScorebugUI/foul_1R.png")
+	else:
+		fouls.texture = load("res://UI/ScorebugUI/foul_2R.png")
