@@ -12,6 +12,8 @@ var male_frequency_general: float = 0.44 #percentage of non-player characters wh
 var intersex_frequency: float = 0.017 #percentage of players and non-player characters who will be intersex
 var min_age: int = 8 #minimum age of generated characters
 var max_age: int = 50 #maximum age of generated characters
+var min_player_age = 13
+var max_player_age = 44
 
 var unemployment_rate = 0.58
 var subsistence_farmer_rate = 0.3
@@ -96,6 +98,89 @@ var player_weight_frequency_adjustment = {
 	"bulky": 1.0,
 	"huge": 0.5,
 	"colossal": 0.1 
+}
+
+var player_overall_rates:={
+	20: 5.0, #possibly the least athletic person you have ever seen
+	21: 5.0,
+	22: 5.0,
+	23: 5.0,
+	24: 5.0,
+	25: 5.0, #not a player
+	26: 5.0,
+	27: 5.0,
+	28: 5.0,
+	29: 5.0,
+	30: 5.0,
+	31: 5.0,
+	32: 5.0,
+	33: 5.0,
+	34: 5.0,
+	35: 5.0,
+	36: 4.9,
+	37: 4.8,
+	38: 4.8, #could get really hurt even stepping on the field
+	39: 4.7,
+	40: 4.6,
+	41: 4.6,
+	42: 4.5,
+	43: 4.5,
+	44: 4.4,
+	45: 7.0, #potentially a B player
+	46: 4.4,
+	47: 4.3,
+	48: 4.3,
+	49: 4.2,
+	50: 4.2,
+	51: 4.1,
+	52: 6.8, #low end of average B player
+	53: 4.1,
+	54: 4.0,
+	55: 4.0,
+	56: 6.6, #average bench player in B
+	57: 3.9,
+	58: 3.9,
+	59: 3.8,
+	60: 6.4, #low end bench player in A
+	61: 3.8,
+	62: 3.7,
+	63: 3.7,
+	64: 6.2, #average bench player in A
+	65: 3.6,
+	66: 5.0, #average B starter
+	67: 3.6,
+	68: 6.0, #low end bench player in AA
+	69: 3.6,
+	70: 3.5,
+	71: 3.5,
+	72: 5.8, #average bench player in AA
+	73: 3.4,
+	74: 5.6, #average starter in A
+	75: 3.4,
+	76: 3.3,
+	77: 5.4, #low end bench player in AAA
+	78: 3.3,
+	79: 3.2,
+	80: 5.2, #average bench player in AAA
+	81: 3.1,
+	82: 5.0, #average starter in AA
+	83: 3.1,
+	84: 3.0,
+	85: 3.0,
+	86: 2.9,
+	87: 2.9,
+	88: 2.8,
+	89: 2.8,
+	90: 4.8, #average starter in AAA
+	91: 2.7,
+	92: 2.7,
+	93: 2.6,
+	94: 2.6,
+	95: 2.5,
+	96: 2.4,
+	97: 2.3,
+	98: 2.2,
+	99: 0.1
 }
 
 var name_frequency_first:= {
@@ -418,10 +503,10 @@ var job_titles = {
 }
 
 var job_pay_ranges = {
-	"exploited": {"min": 5, "max": 15},
+	"exploited": {"min": 0, "max": 15},
 	"poverty": {"min": 10, "max": 25},
-	"lower_working": {"min": 20, "max": 40},
-	"upper_working": {"min": 35, "max": 60},
+	"lower_working": {"min": 20, "max": 35},
+	"upper_working": {"min": 30, "max": 60},
 	"middle": {"min": 50, "max": 100},
 	"white_collar": {"min": 80, "max": 150},
 	"investor": {"min": 150, "max": 500}
@@ -489,7 +574,7 @@ var town_weight_chance = 0.54 #54% urbanization rate
 func _ready():
 	randomize()
 	initialize_name_lists()
-	generate_players(600)
+	generate_players(2000)
 	give_file_report()
 	export_to_csv()
 	
@@ -573,7 +658,7 @@ func generate_players(num: int):
 		var gender = determine_gender(true)
 		character.gender = gender
 		player.bio.leftHanded = randf() < left_hand_frequency
-		player.bio.years = randi_range(min_age, max_age)
+		player.bio.years = randi_range(min_player_age, max_player_age)
 		
 		# Generate names
 		var names = generate_random_names(gender)
@@ -957,7 +1042,8 @@ func generate_attributes(player: Player, gender: String, height_inches: int, wei
 	apply_position_base_adjustments(attributes, player.preferred_position)
 	var style = generate_player_style(player.preferred_position, attributes)
 	apply_style_adjustments(attributes, style, player.preferred_position)
-	scale_attributes_to_overall_with_variance(player, attributes, style)
+	var overall = weighted_random_choice(player_overall_rates)
+	scale_attributes_to_overall_with_variance(player, attributes, style, overall)
 	for key in attributes.keys():
 		if key != "speed" and key != "sprint_speed":
 			attributes[key] = clamp(int(attributes[key]), 1, 100)
@@ -1086,10 +1172,9 @@ func apply_style_adjustments(attributes: Dictionary, style: String, position: St
 			attributes.toughness += randi_range(5, 20)
 			attributes.aggression += randi_range(5, 20)
 
-func scale_attributes_to_overall_with_variance(player: Player, attributes: Dictionary, style: String):
+func scale_attributes_to_overall_with_variance(player: Player, attributes: Dictionary, style: String, target_overall: int):
 	player.attributes = attributes
 	var current_overall = player.calculate_overall()
-	var target_overall = randi_range(min_overall, max_overall)
 	var key_attributes = get_key_attributes_for_role(style)
 	var all_attributes = attributes.keys()
 	var non_key_attributes = []
