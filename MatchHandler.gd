@@ -646,7 +646,19 @@ func _process(delta: float) -> void:
 			if faceoff_signal:
 				faceoff_signal.visible = false
 			execute_faceoff()
-		
+	if match_ended:
+		var result
+		if team_scores[0] > team_scores[1]:
+			result = "W"
+		elif team_scores[1] > team_scores[0]:
+			result = "L"
+		else:
+			result = "T"
+		if Input.is_anything_pressed():
+			if !over_shown:
+				overMenu.bringUp(result, self)
+				over_shown = true
+		return
 	if is_play_live or is_ball_pitched:
 		GlobalSettings.record_frame()
 		current_play_time += delta / Engine.time_scale
@@ -692,19 +704,6 @@ func _process(delta: float) -> void:
 		else:
 			reset_match(true)
 			has_started = true
-		
-	elif match_ended:
-		if Input.is_anything_pressed():
-			var result
-			if team_scores[0] > team_scores[1]:
-				result = "W"
-			elif team_scores[1] > team_scores[0]:
-				result = "L"
-			else:
-				result = "T"
-			if !over_shown:
-				overMenu.bringUp(result, self)
-				over_shown = true
 	else:
 		if pTeam.K.is_special_active() or aTeam.K.is_special_active():
 			if pTeam.K.is_maestro and !aTeam.K.is_maestro:
