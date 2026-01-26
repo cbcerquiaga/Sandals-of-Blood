@@ -456,6 +456,8 @@ func _on_player_goal():
 	reset_players_for_next_play()
 	reposition_players()
 	score_goal(1)
+	if match_ended:
+		return
 	print("Score: " + str(team_scores))
 
 func _on_cpu_goal():
@@ -569,6 +571,8 @@ func _on_cpu_goal():
 	reset_players_for_next_play()
 	reposition_players()
 	score_goal(2)
+	if match_ended:
+		return
 	print("Score: " + str(team_scores))
 
 func reset_match(p_offense):
