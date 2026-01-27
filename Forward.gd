@@ -78,6 +78,8 @@ func restore_behaviors():
 func _physics_process(delta):
 	#print("Forward behavior: " + current_behavior + ", team " + str(team) + ", fight level: " + str(get_buffed_attribute("aggression") + status.anger))
 	super._physics_process(delta)
+	if current_behavior in ["run_gauntlet", "be_gauntlet"]: #gauntlet behavior supercedes anything else
+		return
 	if !can_move:
 		velocity = Vector2.ZERO
 		return

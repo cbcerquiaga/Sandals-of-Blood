@@ -65,6 +65,8 @@ func assign_forward(forward: Forward):
 
 func _physics_process(delta):
 	super._physics_process(delta)
+	if current_behavior in ["run_gauntlet", "be_gauntlet"]: #gauntlet behavior supercedes anything else
+		return
 	should_play_zone = defense_strategy.zone
 	if not is_controlling_player and can_move:
 		check_ball_attacking_half()

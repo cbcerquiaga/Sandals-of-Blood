@@ -127,6 +127,8 @@ func restore_behaviors():
 
 func _physics_process(delta):
 	super._physics_process(delta)
+	if current_behavior in ["run_gauntlet", "be_gauntlet"]:#gauntlet behavior supercedes anything else
+		return
 	if overall_state == PlayerState.SOLO_CELEBRATION:
 		add_buff("strutting", ["speed", "sprint_speed"], [-98, -98])
 	else:

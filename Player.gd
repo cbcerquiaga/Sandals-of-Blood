@@ -14,6 +14,13 @@ var current_speed_multiplier: float = 1.0
 var sharp_turn_threshold: float
 var preferred_foul: String = "trip" #trip, elbow, gouge, crotch, collar, bite, hold
 var has_checked_false_start: bool = false
+#The Gauntlet
+var gauntlet_target: Vector2 = Vector2.ZERO
+var gauntlet_hits_taken: int = 0
+var gauntlet_ground_hits: int = 0
+var in_gauntlet: bool = false
+var gauntlet_runner_reference: Player = null  # Reference to the runner (for gauntlet defenders)
+var last_gauntlet_attack_time: float = 0.0
 # Player Attributes
 @export var attributes := {
 	"speedRating" : 75, #what's shown on the attributes screen
@@ -367,6 +374,14 @@ func _ready():
 func _physics_process(delta):
 	if !can_move:
 		velocity = Vector2.ZERO
+		return
+	if current_behavior == "run_gauntlet": #gauntlet behavior supercedes everything else
+		run_gauntlet()
+		move_and_slide()
+		return
+	elif current_behavior == "be_gauntlet":
+		be_gauntlet()
+		move_and_slide()
 		return
 	if overall_state == PlayerState.CHILD_STATE:
 		standard_behavior(delta)
@@ -2023,3 +2038,162 @@ func calculate_overall():
 		if ovr > best:
 			best = ovr
 	return best
+
+func run_gauntlet():
+	"""
+	Behavior for the player running through the gauntlet.
+	They run from gauntlet_start to gauntlet_end while being attacked.
+	"""
+	if !in_gauntlet:
+		in_gauntlet = true
+		gauntlet_hits_taken = 0
+		gauntlet_ground_hits = 0
+	
+	# Set target to gauntlet end (should be set by MatchHandler)
+	if gauntlet_target == Vector2.ZERO:
+		return
+	
+	# Check if fallen
+	if is_incapacitated or is_stunned:
+		# Can't move, just wait to see if we can get up
+		velocity = Vector2.ZERO
+		
+		# Check if we can get up based on agility
+		var getup_chance = get_buffed_attribute("agility") / 100.0
+		if randf() < getup_chance * 0.01:  # 1% of agility score per frame as chance
+			is_incapacitated = false
+			is_stunned = false
+			status.stability = get_buffed_attribute("balance") * 0.5  # Recover partial stability
+		return
+	
+	# Decide whether to sprint based on energy
+	var should_sprint = status.energy > 30 and status.boost > 20
+	var move_speed = get_buffed_attribute("sprint_speed") if should_sprint else get_buffed_attribute("speed")
+	
+	if should_sprint:
+		is_sprinting = true
+		status.boost -= 0.5  # Cost of sprinting
+	else:
+		is_sprinting = false
+	
+	# Move toward target
+	var direction = (gauntlet_target - global_position).normalized()
+	velocity = direction * move_speed
+	
+	# Energy does not regenerate during gauntlet
+
+func be_gauntlet():
+	"""
+	Behavior for players forming the gauntlet.
+	They stand in position and attack when the runner is close.
+	"""
+	# Don't move - stay in position
+	velocity = Vector2.ZERO
+	
+	if !gauntlet_runner_reference or !is_instance_valid(gauntlet_runner_reference):
+		return
+	
+	# Check distance to runner
+	var distance_to_runner = global_position.distance_to(gauntlet_runner_reference.global_position)
+	var attack_range = 60.0  # Distance at which we can attack
+	
+	# Attack if runner is close enough and we haven't attacked too recently
+	var current_time = Time.get_ticks_msec() / 1000.0
+	var attack_cooldown = 0.5  # Half second between attacks
+	
+	if distance_to_runner < attack_range and (current_time - last_gauntlet_attack_time) > attack_cooldown:
+		execute_gauntlet_attack()
+		last_gauntlet_attack_time = current_time
+
+func execute_gauntlet_attack():
+	"""
+	Execute an attack on the gauntlet runner.
+	Damage is based on attacker's power, toughness, and shooting attributes.
+	"""
+	if !gauntlet_runner_reference or !is_instance_valid(gauntlet_runner_reference):
+		return
+	
+	var runner = gauntlet_runner_reference
+	
+	# Calculate hit chance based on runner's movement speed, energy, and agility
+	var runner_speed_factor = runner.velocity.length() / 188 #max factor for 99 speed player who is sprinting
+	var runner_energy_factor = runner.status.energy / 100.0
+	var runner_agility_factor = runner.get_buffed_attribute("agility") / 100.0
+	
+	# Higher speed = harder to hit, more energy = better dodging, more agility = better evasion
+	var dodge_chance = (runner_speed_factor * 0.3 + runner_energy_factor * 0.3 + runner_agility_factor * 0.4)
+	var hit_chance = 1.0 - dodge_chance + randf_range(-0.2, 0.2)  # Add randomness
+	
+	if randf() > hit_chance:
+		# Attack missed
+		return
+	
+	# Attack hit! Calculate damage
+	var base_damage = (get_buffed_attribute("power") + get_buffed_attribute("toughness") + get_buffed_attribute("shooting")) / 3.0
+	
+	# Apply damage to runner
+	apply_gauntlet_damage(runner, base_damage)
+
+func apply_gauntlet_damage(runner: Player, damage: float):
+	"""
+	Apply damage from a gauntlet attack.
+	Damages energy, balance, and has chance to cause injury.
+	"""
+	# Energy damage
+	var energy_damage = damage * 0.5
+	runner.lose_energy(energy_damage)
+	
+	# Balance/stability damage
+	var stability_damage = damage * 0.8
+	runner.lose_stability(stability_damage)
+	
+	# Check if runner falls
+	if runner.status.stability <= 0:
+		if !runner.is_incapacitated:
+			runner.is_incapacitated = true
+			runner.is_stunned = true
+			runner.gauntlet_hits_taken += 1
+			
+			# If fallen, track ground hits
+			if runner.gauntlet_ground_hits == 0:
+				runner.gauntlet_ground_hits = 1
+	
+	# If already on ground, this is a ground hit
+	if runner.is_incapacitated or runner.is_stunned:
+		runner.gauntlet_ground_hits += 1
+		
+		# Attacks on grounded players continue based on attacker's aggression
+		# The closer the attacker, the more likely to attack again
+		var distance_factor = 1.0 - (global_position.distance_to(runner.global_position) / 100.0)
+		distance_factor = clamp(distance_factor, 0.0, 1.0)
+		
+		var ground_attack_rate = (get_buffed_attribute("aggression") / 100.0) * distance_factor
+		if randf() < ground_attack_rate * 0.5:  # Reduced chance for balance
+			# Apply additional injury chance
+			apply_gauntlet_injury(runner, damage * 1.5)
+	else:
+		# Regular injury chance
+		apply_gauntlet_injury(runner, damage)
+
+func apply_gauntlet_injury(runner: Player, impact: float):
+	"""
+	Roll for injury based on impact and runner's durability.
+	Similar to get_socked() but for gauntlet-specific injuries.
+	"""
+	if impact < 10:
+		return
+	
+	var impact_sqrt = sqrt(impact)
+	var num_injury_rolls = int(impact_sqrt * 0.5)  # Fewer rolls than normal fighting
+	
+	for i in range(num_injury_rolls):
+		var roll = randf()
+		if roll > runner.get_buffed_attribute("durability") / 100.0:
+			# Failed first roll
+			roll = randf()
+			if roll > runner.get_buffed_attribute("durability") / 100.0:
+				# Failed second roll - injury occurs
+				print("Gauntlet injury on roll ", i, " of ", num_injury_rolls)
+				# Apply health damage
+				runner.apply_health_damage(impact * 0.3)
+				# TODO: Apply specific injury debuff based on injury system
