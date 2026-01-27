@@ -1653,7 +1653,7 @@ func gauntlet():
 	# Enable gauntlet behavior for defenders
 	for player in gauntlet_participants:
 		player.current_behavior = "be_gauntlet"
-		player.gauntlet_runner_ref = gauntlet_runner
+		player.gauntlet_runner_reference = gauntlet_runner
 		player.can_move = false
 		
 func position_gauntlet_defenders(team: Team):

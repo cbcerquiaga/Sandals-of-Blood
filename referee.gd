@@ -99,6 +99,9 @@ signal redo #something went wrong with the play, re-do it
 
 
 func _physics_process(delta):
+	if Input.is_action_just_pressed("debug_foul"):
+		offender = memory.p_p[0]
+		fault.emit()
 	match current_behavior:
 		"watch_ball":
 			pass
