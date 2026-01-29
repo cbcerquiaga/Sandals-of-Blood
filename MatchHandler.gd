@@ -1593,12 +1593,23 @@ func gauntlet():
 	if !ref.offender:
 		push_error("No offender set for gauntlet")
 		return
+	var offending_team = pTeam if gauntlet_offending_team == 1 else aTeam
+	var current_pitch = GlobalSettings.pitch_limit - pitches_remaining
+	eventpopup.show_foul(current_pitch,ref.offender, offending_team, foul_diff)
+	await eventpopup.closed
 	
 	is_gauntlet_active = true
-	gauntlet_runner = ref.offender
-	gauntlet_offending_team = gauntlet_runner.team
+	gauntlet_offending_team = ref.offender.team
 	is_play_live = false
 	is_ball_pitched = false
+	if ball:
+		ball.current_state = Ball.BallState.WAITING
+		ball.freeze = true
+		ball.linear_velocity = Vector2.ZERO
+		ball.global_position = ref.gauntlet_end
+		ball.visible = true
+	if aimTarget:
+		aimTarget.visible = false
 	
 	# Stop all players
 	for player in pTeam.onfield_players + aTeam.onfield_players:
@@ -1608,19 +1619,17 @@ func gauntlet():
 			player.reset_state()
 	
 	# Position the runner at gauntlet start
-	gauntlet_runner.global_position = ref.gauntlet_start
-	gauntlet_runner.current_behavior = "run_gauntlet"
-	gauntlet_runner.gauntlet_target = ref.gauntlet_end
-	gauntlet_runner.in_gauntlet = true
-	gauntlet_runner.can_move = true
+	ref.offender.global_position = ref.gauntlet_start
+	ref.offender.current_behavior = "run_gauntlet"
+	ref.offender.gauntlet_target = ref.gauntlet_end
+	ref.offender.in_gauntlet = true
+	ref.offender.can_move = true
 	
-	# Position offending team players (go to pitch positions)
-	var offending_team = pTeam if gauntlet_offending_team == 1 else aTeam
 	var non_offending_team = aTeam if gauntlet_offending_team == 1 else pTeam
 	
 	# Move offending team to their pitch positions
 	for player in offending_team.onfield_players:
-		if player and player != gauntlet_runner:
+		if player and player != ref.offender:
 			if player.has_same_name(pTeam.K) and player.team == pTeam.K.team:
 				position_player(pTeam.K, field.human_k_spawn, field.human_orientation)
 			elif player.has_same_name(pTeam.LG) and player.team == pTeam.LG.team:
@@ -1632,7 +1641,7 @@ func gauntlet():
 			elif player.has_same_name(pTeam.RF) and player.team == pTeam.RF.team:
 				position_player(pTeam.RF, field.human_rf_spawn, field.human_orientation)
 			elif player.has_same_name(pTeam.P) and player.team == pTeam.P.team:
-				position_player(pTeam.P, field.human_pitcher_waiting, field.human_orientation)
+				position_player(pTeam.P, field.human_pitcher_waiting.global_position, field.human_orientation)
 			if player.has_same_name(aTeam.K) and player.team == aTeam.K.team:
 				position_player(aTeam.K, field.cpu_k_spawn, field.cpu_orientation)
 			elif player.has_same_name(aTeam.LG) and player.team == aTeam.LG.team:
@@ -1644,7 +1653,7 @@ func gauntlet():
 			elif player.has_same_name(aTeam.RF) and player.team == aTeam.RF.team:
 				position_player(aTeam.K, field.cpu_rf_spawn, field.cpu_orientation)
 			elif player.has_same_name(aTeam.P) and player.team == aTeam.P.team:
-				position_player(aTeam.P, field.cpu_pitcher_waiting, field.cpu_orientation)
+				position_player(aTeam.P, field.cpu_pitcher_waiting.global_position, field.cpu_orientation)
 	
 	# Position non-offending team at gauntlet positions
 	gauntlet_participants.clear()
@@ -1653,7 +1662,7 @@ func gauntlet():
 	# Enable gauntlet behavior for defenders
 	for player in gauntlet_participants:
 		player.current_behavior = "be_gauntlet"
-		player.gauntlet_runner_reference = gauntlet_runner
+		player.gauntlet_runner_reference = ref.offender
 		player.can_move = false
 		
 func position_gauntlet_defenders(team: Team):
