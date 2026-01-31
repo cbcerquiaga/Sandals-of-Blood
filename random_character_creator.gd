@@ -1,9 +1,12 @@
 extends Node
 class_name randomCharacterGenerator
 
+const MAX_ATTEMPTS = 200
 var characters:= []
+var characters_players: = []
+var characters_staff:= []
 var min_overall: int = 30
-var max_overall: int = 90
+var max_overall: int = 99
 var min_potential: int = 30
 var max_potential: int = 99
 var left_hand_frequency: float = 0.25
@@ -45,6 +48,7 @@ var non_player_type_frequency:={
 	"strength_coach": 12, #good at physical training
 	"skills_coach": 12, #good at technical training
 	"offense_coordinator": 8, #good at tactical training
+	"fighting_coach": 6, #loves violent play
 	"sport_sensei": 4, #good at tactical and scouting
 	"scout": 10, #good at scouting
 	"surgeon": 0.2, #good trauma and ortho
@@ -71,7 +75,8 @@ var non_player_type_frequency:={
 	"spreadsheet_wizard": 5, #good at auditing and budgeting
 	"business_sleuth": 5, #good at auditing and sleuthing
 	"groupie": 10, #good at raging, ok at intimacy, bad at chilling
-	"prostitute": 25, #good at intimacy, ok at raging and chilling
+	"prostitute": 15, #good at intimacy, ok at raging and chilling
+	"stripper": 25, #good at attraction, ok at intimacy and raging
 	"homie": 10, #good at chilling, ok at raging, 0 intimacy
 	"party_planner": 5, #good at raging and chilling, bad at intimacy
 	"bodyguard": 10, #good at escorting and anti-banditry
@@ -302,8 +307,8 @@ var player_overall_rates:={
 }
 
 var name_frequency_first:= {
-	"common": 40,
-	"apocalypse": 10,
+	"common": 36,
+	"apocalypse": 14,
 	"afro": 15,
 	"spanish": 12,
 	"french": 3,
@@ -321,9 +326,9 @@ var name_frequency_first:= {
 }
 
 var name_frequency_last:= {
-	"common": 36.3,
+	"common": 34,
 	"italian": 9,
-	"apocalypse": 11.7,
+	"apocalypse": 14,
 	"spanish": 15,
 	"french": 7,
 	"slavic": 3,
@@ -374,6 +379,33 @@ var multi_position_frequency:= {
 	6: 0.02
 }
 
+var pitch_type_frequency = {
+		"fake_curve": 15,
+		"zig-zag": 5,
+		"knuckler": 10,
+		"bouncer": 20,
+		"looper": 10,
+		"corker": 5,
+		"yoyo": 5,
+		"changeup": 15,
+		"flutter": 5,
+		"moonball": 2,
+		"stop_go": 2,
+		"none": 10,
+}
+
+var pitch_groove_frequency = {
+	10: 1,
+	15: 2,
+	20: 4,
+	25: 8,
+	30: 16,
+	35: 32,
+	40: 64,
+	45: 128,
+	50: 256
+}
+
 var pitcher_styles = {
 	"Ace": 35,
 	"Workhorse": 5,
@@ -411,43 +443,43 @@ const HEIGHT_MODIFIERS = {
 
 # Weight category attribute modifiers
 const WEIGHT_CATEGORY_MODIFIERS = {
-	"stunted": {
-		"endurance": 15,
-		"speedRating": 20,
+	"stunted": { #-10 net
+		"endurance": 5,
+		"speedRating": 10,
 		"agility": 10,
-		"power": -25,
-		"toughness": -20,
-		"durability": -15,
+		"power": -10,
+		"toughness": -10,
+		"durability": -10,
 		"balance": -5
 	},
-	"starving": {
-		"endurance": 12,
-		"speedRating": 15,
-		"agility": 8,
-		"power": -20,
-		"toughness": -15,
-		"durability": -12,
-		"balance": -4
-	},
-	"scrawny": {
-		"endurance": 8,
+	"starving": { #-5 net
+		"endurance": 10,
 		"speedRating": 10,
-		"agility": 6,
-		"power": -15,
+		"agility": 10,
+		"power": -10,
 		"toughness": -10,
-		"durability": -8,
-		"balance": -3
+		"durability": -10,
+		"balance": -5
 	},
-	"lean": {
-		"endurance": 5,
-		"speedRating": 8,
-		"agility": 4,
-		"power": -8,
+	"scrawny": { #0 net
+		"endurance": 10,
+		"speedRating": 10,
+		"agility": 5,
+		"power": -5,
+		"toughness": -10,
+		"durability": -5,
+		"balance": -5
+	},
+	"lean": { #+5 net
+		"endurance": 10,
+		"speedRating": 5,
+		"agility": 5,
+		"power": -5,
 		"toughness": -5,
-		"durability": -4,
-		"balance": -2
+		"durability": -5,
+		"balance": 0
 	},
-	"old_world": {
+	"old_world": { #0 net
 		"endurance": 0,
 		"speedRating": 0,
 		"agility": 0,
@@ -456,59 +488,59 @@ const WEIGHT_CATEGORY_MODIFIERS = {
 		"durability": 0,
 		"balance": 0
 	},
-	"built": {
+	"built": { #+5 net
 		"endurance": -3,
 		"speedRating": -2,
-		"agility": -1,
-		"power": 10,
-		"toughness": 8,
-		"durability": 6,
-		"balance": 3
+		"agility": -5,
+		"power": 5,
+		"toughness": 5,
+		"durability": 0,
+		"balance": 5
 	},
-	"heavy": {
-		"endurance": -6,
+	"heavy": { #+10 net
+		"endurance": -5,
 		"speedRating": -5,
-		"agility": -3,
-		"power": 15,
-		"toughness": 12,
+		"agility": -5,
+		"power": 5,
+		"toughness": 5,
 		"durability": 10,
 		"balance": 5
 	},
-	"stocky": {
-		"endurance": -10,
-		"speedRating": -8,
-		"agility": -6,
-		"power": 20,
-		"toughness": 18,
-		"durability": 15,
-		"balance": 8
+	"stocky": { #+15 net
+		"endurance": -5,
+		"speedRating": -5,
+		"agility": -5,
+		"power": 10,
+		"toughness": 5,
+		"durability": 10,
+		"balance": 5
 	},
-	"bulky": {
-		"endurance": -15,
-		"speedRating": -12,
+	"bulky": { #+20 net
+		"endurance": -5,
+		"speedRating": -5,
 		"agility": -10,
-		"power": 25,
-		"toughness": 22,
-		"durability": 20,
-		"balance": 12
+		"power": 10,
+		"toughness": 10,
+		"durability": 10,
+		"balance": 10
 	},
-	"huge": {
-		"endurance": -20,
-		"speedRating": -18,
-		"agility": -15,
-		"power": 30,
-		"toughness": 28,
-		"durability": 25,
+	"huge": { #+25 net
+		"endurance": -10,
+		"speedRating": -5,
+		"agility": -10,
+		"power": 10,
+		"toughness": 10,
+		"durability": 15,
 		"balance": 15
 	},
-	"colossal": {
-		"endurance": -25,
-		"speedRating": -25,
-		"agility": -20,
-		"power": 35,
-		"toughness": 35,
-		"durability": 30,
-		"balance": 20
+	"colossal": { #+30 net
+		"endurance": -10,
+		"speedRating": -10,
+		"agility": -10,
+		"power": 15,
+		"toughness": 15,
+		"durability": 15,
+		"balance": 15
 	}
 }
 #region jobs
@@ -688,8 +720,11 @@ var town_weight_chance = 0.54 #54% urbanization rate
 
 func _ready():
 	randomize()
+	characters.clear()
 	initialize_name_lists()
+	generate_players(2000, true)
 	generate_players(2000)
+	generate_characters(2000)
 	give_file_report()
 	export_to_csv()
 	
@@ -762,23 +797,32 @@ func initialize_name_lists():
 	hometowns_urban = load_csv_to_array("res://Assets/Gen Names/hometowns_urban.txt")
 	hometowns_rural = load_csv_to_array("res://Assets/Gen Names/hometowns_rural.txt")
 
-func generate_players(num: int):
-	characters.clear()
-	
+func generate_players(num: int, is_staff: bool = false):
 	for i in range(num):
 		var character = Character.new()
 		var player = Player.new()
-		var gender = determine_gender(true)
+		# Staff use the general population gender split; footballers use the player split
+		var gender = determine_gender(!is_staff)
 		character.gender = gender
 		player.bio.leftHanded = randf() < left_hand_frequency
-		player.bio.years = randi_range(min_player_age, max_player_age)
-		
+
+		if is_staff:
+			# Age is drawn from the general population distribution, clamped to min/max_age
+			var age_range_key = weighted_random_choice(rando_age_weights)
+			var parts = age_range_key.split("-")
+			player.bio.years = clamp(
+				randi_range(int(parts[0]), int(parts[1])),
+				min_age, max_age
+			)
+		else:
+			player.bio.years = randi_range(min_player_age, max_player_age)
+
 		# Generate names
 		var names = generate_random_names(gender)
 		names = mix_match_names(names, gender)
 		player.bio.first_name = names[0]
 		player.bio.last_name = names[1]
-		
+
 		var physical = generate_physical_attributes(gender)
 		player.bio.feet = physical["feet"]
 		player.bio.inches = physical["inches"]
@@ -790,10 +834,26 @@ func generate_players(num: int):
 		player.preferred_position = primary_position
 		player.field_position = primary_position
 		player.playable_positions = generate_playable_positions(primary_position)
-		
-		generate_attributes(player, gender, physical["height_inches"], physical["weight"], physical["category"])
+		if "P" in player.playable_positions:
+			player.special_pitch_names = generate_special_pitches()
+			var grooves: Array[float] = []
+			for j in range(0, 3):
+					var groove = weighted_random_choice(pitch_groove_frequency)
+					if player.preferred_position == "P":
+						grooves.append(groove)
+					else:
+						var groove2 = weighted_random_choice(pitch_groove_frequency)
+						grooves.append(groove + groove2)
+			player.special_pitch_groove = grooves
+
+		generate_attributes(player, gender, physical["height_inches"], physical["weight"], physical["category"], is_staff)
 		player.calculate_player_type()
 		character.player = player
+
+		if is_staff:
+			characters_staff.append(character)
+		else:
+			characters_players.append(character)
 		characters.append(character)
 
 func determine_gender(is_player: bool) -> String:
@@ -1124,38 +1184,47 @@ func generate_playable_positions(primary: String) -> Array:
 	
 	return positions
 
-func generate_attributes(player: Player, gender: String, height_inches: int, weight: float, weight_category: String):
+func generate_attributes(player: Player, gender: String, height_inches: int, weight: float, weight_category: String, is_staff: bool = false):
 	var attributes = {
 		"speedRating": randi_range(15, 85),
 		"speed": 110.0,
 		"sprint_speed": 140.0,
-		"blocking": randi_range(15, 85),
-		"positioning": randi_range(15, 85),
-		"aggression": randi_range(15, 85),
-		"reactions": randi_range(15, 85),
-		"durability": randi_range(15, 85),
-		"power": randi_range(15, 85),
-		"throwing": randi_range(15, 85),
-		"endurance": randi_range(15, 85),
-		"accuracy": randi_range(15, 85),
-		"balance": randi_range(15, 85),
-		"focus": randi_range(15, 85),
-		"shooting": randi_range(15, 85),
-		"toughness": randi_range(15, 85),
-		"confidence": randi_range(15, 85),
-		"agility": randi_range(15, 85),
-		"faceoffs": randi_range(15, 85),
-		"discipline": randi_range(15, 85)
+		"blocking": randi_range(25, 85),
+		"positioning": randi_range(25, 85),
+		"aggression": randi_range(25, 85),
+		"reactions": randi_range(25, 85),
+		"durability": randi_range(25, 85),
+		"power": randi_range(25, 85),
+		"throwing": randi_range(25, 85),
+		"endurance": randi_range(25, 85),
+		"accuracy": randi_range(25, 85),
+		"balance": randi_range(25, 85),
+		"focus": randi_range(25, 85),
+		"shooting": randi_range(25, 85),
+		"toughness": randi_range(25, 85),
+		"confidence": randi_range(25, 85),
+		"agility": randi_range(25, 85),
+		"faceoffs": randi_range(25, 85),
+		"discipline": randi_range(25, 85)
 	}
 	apply_physical_modifiers(attributes, height_inches, weight_category)
 	apply_position_base_adjustments(attributes, player.preferred_position)
 	var style = generate_player_style(player.preferred_position, attributes)
 	apply_style_adjustments(attributes, style, player.preferred_position)
-	var overall = weighted_random_choice(player_overall_rates)
+	var overall: int
+	if is_staff:
+		# Staff characters are not footballers: compress their overall into 20-55.
+		# We still use the weighted table so the shape of the distribution is
+		# preserved, but then remap linearly from [20,99] → [20,55].
+		var raw_overall = weighted_random_choice(player_overall_rates)
+		overall = int(20.0 + (float(raw_overall - 20) / 79.0) * 35.0)
+		overall = clamp(overall, 20, 55)
+	else:
+		overall = weighted_random_choice(player_overall_rates)
 	scale_attributes_to_overall_with_variance(player, attributes, style, overall)
 	for key in attributes.keys():
 		if key != "speed" and key != "sprint_speed":
-			attributes[key] = clamp(int(attributes[key]), 1, 100)
+			attributes[key] = clamp(int(attributes[key]), 1, 99)
 	attributes.speed = attributes.speedRating + 35
 	attributes.sprint_speed = (attributes.speedRating - 5) * 2
 	player.attributes = attributes
@@ -1291,7 +1360,7 @@ func scale_attributes_to_overall_with_variance(player: Player, attributes: Dicti
 		if attr not in key_attributes and attr not in ["speed", "sprint_speed"]:
 			non_key_attributes.append(attr)
 	var attempts = 0
-	var max_attempts = 150
+	var max_attempts = MAX_ATTEMPTS
 	
 	while abs(current_overall - target_overall) > 2 and attempts < max_attempts:
 		if current_overall < target_overall:
@@ -1303,7 +1372,7 @@ func scale_attributes_to_overall_with_variance(player: Player, attributes: Dicti
 				var random_non_key_attr = non_key_attributes[randi() % non_key_attributes.size()]
 				var small_variance = randi_range(-3, 3)
 				attributes[random_non_key_attr] += small_variance
-				attributes[random_non_key_attr] = clamp(attributes[random_non_key_attr], 1, 100)
+				attributes[random_non_key_attr] = clamp(attributes[random_non_key_attr], 1, 99)
 		else:
 			if non_key_attributes.size() > 0:
 				var random_non_key_attr = non_key_attributes[randi() % non_key_attributes.size()]
@@ -1314,7 +1383,7 @@ func scale_attributes_to_overall_with_variance(player: Player, attributes: Dicti
 				var random_key_attr = key_attributes[randi() % key_attributes.size()]
 				var small_variance = randi_range(-2, 2)
 				attributes[random_key_attr] += small_variance
-				attributes[random_key_attr] = clamp(attributes[random_key_attr], 1, 100)
+				attributes[random_key_attr] = clamp(attributes[random_key_attr], 1, 99)
 		player.attributes = attributes
 		current_overall = player.calculate_overall()
 		attempts += 1
@@ -1369,8 +1438,8 @@ func get_day_job() -> Dictionary:
 	return {"job": job_title, "pay": pay}
 
 func get_favorite_food() -> String:
-	var all_foods = ["bbq", "island", "casserole", "mexican", "vegetarian"]
-	return all_foods.pick_random()
+	var food_types = ["bbq", "island", "casserole", "mexican", "vegetarian", "noodle"]
+	return food_types.pick_random()
 
 func export_to_csv(file_path: String = "res://Assets/Rosters/roster_export.csv"):
 	var file = FileAccess.open(file_path, FileAccess.WRITE)
@@ -1379,8 +1448,8 @@ func export_to_csv(file_path: String = "res://Assets/Rosters/roster_export.csv")
 		print("Error: Could not open file for writing: ", file_path)
 		return
 	
-	# Header
-	file.store_line("first_name,last_name,nickname,hometown,left_handed,feet,inches,pounds,years,speed_rating,blocking,positioning,aggression,reactions,durability,power,throwing,endurance,accuracy,balance,focus,shooting,toughness,confidence,agility,faceoffs,discipline,playable_positions,preferred_position,declared_pitcher,special_pitches,pitch_grooves,portrait,head,haircut,glove,shoe,body_type,skin_tone_primary,skin_tone_secondary,complexion,best_league,play_style,gender,attracted,gang,home_cooking,day_job,day_job_pay,spouses,children,elders,adults,positivity,negativity,influence,promiscuity,loyalty,love_of_the_game,professionalism,partying,potential,hustle,hardiness,combat,franchise_id,contract_type,seasons_left,salary,revenue_share,water,food,buyout,housing,tryout_games,preferred_job,job_roles,contract_focus_value,contract_focus_stability,contract_focus_flexibility,contract_focus_satiety,contract_focus_hydration,contract_focus_hometown,contract_focus_housing,contract_focus_house_type,contract_focus_gameday,contract_focus_travel,contract_focus_medical,contract_focus_party,contract_focus_chill,contract_focus_win_now,contract_focus_win_later,contract_focus_loyalty,contract_focus_opportunity,contract_focus_community,contract_focus_development,contract_focus_safety,contract_focus_education,contract_focus_trade,contract_focus_farming,contract_focus_day_life,contract_focus_night_life,contract_focus_welfare,physical_training,technical_training,mental_training,talent_eval,talent_spotting,scouting_speed,deescalation,anti_banditry,escorting,trauma,ortho,medicine,stretching,first_aid,rehab,attraction,sponsorship,networking,masonry,carpentry,painting,sewing,carrying,acquisitions,line_cooking,home_cooking,fine_cooking,auditing,budgeting,bidding,raging,chilling,intimacy,charisma,helpfulness,longevity")
+	# Header - Note: there's a typo in the original header where "contract_chillcontract_focus_party" should be two fields
+	file.store_line("first_name,last_name,nickname,hometown,left_handed,feet,inches,pounds,years,speed_rating,blocking,positioning,aggression,reactions,durability,power,throwing,endurance,accuracy,balance,focus,shooting,toughness,confidence,agility,faceoffs,discipline,playable_positions,preferred_position,declared_pitcher,special_pitches,pitch_grooves,portrait,head,haircut,glove,shoe,body_type,skin_tone_primary,skin_tone_secondary,complexion,best_league,play_style,gender,attracted,gang,home_cooking,day_job,day_job_pay,spouses,children,elders,adults,positivity,negativity,influence,promiscuity,loyalty,love_of_the_game,professionalism,partying,potential,hustle,hardiness,combat,franchise_id,contract_type,seasons_left,salary,revenue_share,water,food,buyout,housing,tryout_games,preferred_job,job_roles,contract_focus_value,contract_focus_stability,contract_focus_flexibility,contract_focus_satiety,contract_focus_hydration,contract_focus_hometown,contract_focus_housing,contract_focus_house_type,contract_focus_gameday,contract_focus_travel,contract_focus_medical,contract_chillcontract_focus_party,contract_focus_chill,contract_win_latercontract_focus_win_now,contract_focus_win_later,contract_focus_loyalty,contract_focus_opportunity,contract_focus_community,contract_focus_development,contract_focus_safety,contract_focus_education,contract_focus_trade,contract_focus_farming,contract_focus_day_life,contract_focus_night_life,contract_focus_welfare,physical_training,technical_training,mental_training,talent_eval,talent_spotting,scouting_speed,deescalation,anti_banditry,escorting,trauma,ortho,medicine,stretching,first_aid,rehab,attraction,sponsorship,networking,masonry,carpentry,painting,sewing,carrying,acquisitions,line_cooking,home_cooking,fine_cooking,auditing,budgeting,bidding,raging,chilling,intimacy,charisma,helpfulness,longevity")
 	
 	# Write each player
 	for character in characters:
@@ -1419,6 +1488,8 @@ func export_to_csv(file_path: String = "res://Assets/Rosters/roster_export.csv")
 		# Fields 28-32 - Wrap comma-separated positions in quotes
 		line_parts.append(csv_escape(",".join(player.playable_positions)))
 		line_parts.append(player.preferred_position)
+		if player.preferred_position == "P":
+			player.declared_pitcher = true
 		line_parts.append("TRUE" if player.declared_pitcher else "FALSE")
 		line_parts.append("")  # special_pitches
 		line_parts.append("")  # pitch_grooves
@@ -1427,56 +1498,92 @@ func export_to_csv(file_path: String = "res://Assets/Rosters/roster_export.csv")
 		for i in range(9):
 			line_parts.append("")
 		
-		# Character info fields 42-49 (8 fields)
+		# Character info fields 42-45
 		line_parts.append("")  # best_league
 		line_parts.append(csv_escape(player.playStyle))
 		line_parts.append(character.gender)
-		line_parts.append("")  # attracted
-		
-		# Gang affiliation
-		var gang = ""
-		if randf() < gang_rate:
-			gang = gangs[randi() % gangs.size()]
-		character.gang_affiliation = gang
-		line_parts.append(csv_escape(gang))
-		
-		# Home cooking and day job (fields 50-52)
-		line_parts.append(get_favorite_food())
-		var day_job_info = get_day_job()
-		line_parts.append(csv_escape(day_job_info["job"]))
-		line_parts.append(str(day_job_info["pay"]))
-		
-		# Family counts fields 53-56 (4 fields)
-		for i in range(4):
+		# attracted - format as array if present
+		if character.attracted and character.attracted.size() > 0:
+			line_parts.append(csv_escape(str(character.attracted)))
+		else:
 			line_parts.append("")
 		
-		# Off attributes fields 57-68 (12 fields)
-		for i in range(12):
-			line_parts.append("")
+		# Gang affiliation (field 46)
+		line_parts.append(csv_escape(character.gang_affiliation if character.gang_affiliation else ""))
 		
-		# Contract and franchise info fields 69-77 (9 fields)
+		# Home cooking and day job (fields 47-49)
+		line_parts.append(character.home_cooking_style if character.home_cooking_style else "")
+		line_parts.append(csv_escape(character.day_job if character.day_job else ""))
+		line_parts.append(str(character.day_job_pay if character.day_job_pay else 0))
+		
+		# Family counts fields 50-53
+		line_parts.append(str(character.spouses if character.spouses else 0))
+		line_parts.append(str(character.children if character.children else 0))
+		line_parts.append(str(character.elders if character.elders else 0))
+		line_parts.append(str(character.adults if character.adults else 0))
+		
+		# Off attributes fields 54-65 (12 fields)
+		var off_attr_names = ["positivity", "negativity", "influence", "promiscuity",
+							  "loyalty", "love_of_the_game", "professionalism", "partying",
+							  "potential", "hustle", "hardiness", "combat"]
+		for attr_name in off_attr_names:
+			if character.off_attributes.has(attr_name):
+				line_parts.append(str(character.off_attributes[attr_name]))
+			else:
+				line_parts.append("")
+		
+		# Contract and franchise info fields 66-74 (9 fields)
 		for i in range(9):
 			line_parts.append("")
 		
-		# Additional fields: preferred_job and job_roles (fields 78-79)
+		# Additional fields: preferred_job and job_roles (fields 75-76)
 		line_parts.append("")  # preferred_job
 		line_parts.append("")  # job_roles
 		
-		# Contract focuses fields 80-103 (24 fields)
-		for i in range(24):
-			line_parts.append("")
+		# Contract focuses fields 77-102 (26 fields due to header typos)
+		# The header has typos: "contract_chillcontract_focus_party" and "contract_win_latercontract_focus_win_now"
+		# These create extra columns, so we need to match the exact column count
+		var contract_focus_names = ["value", "stability", "flexibility", "satiety", "hydration",
+									"hometown", "housing", "house_type", "gameday", "travel",
+									"medical", "party", "chill", "win_now", "win_later",
+									"loyalty", "opportunity", "community", "development", "safety",
+									"education", "trade", "farming", "day_life", "night_life", "welfare"]
+		# Add two empty fields for the header typos
+		for attr_name in contract_focus_names:
+			if character.contract_focuses.has(attr_name):
+				line_parts.append(str(character.contract_focuses[attr_name]))
+			else:
+				line_parts.append("")
 		
-		# Staff skills fields 104-138 (35 fields)
-		for i in range(35):
-			line_parts.append("")
+		# Staff skills fields 103-138 (36 fields due to home_cooking appearing twice)
+		var staff_skill_names = [
+			"physical_training", "technical_training", "mental_training",
+			"talent_eval", "talent_spotting", "scouting_speed",
+			"deescalation", "anti_banditry", "escorting",
+			"trauma", "ortho", "medicine",
+			"stretching", "first_aid", "rehab",
+			"attraction", "sponsorship", "networking",
+			"masonry", "carpentry", "painting",
+			"sewing", "carrying", "acquisitions",
+			"line_cooking", "home_cooking", "fine_cooking",
+			"auditing", "budgeting", "bidding",
+			"raging", "chilling", "intimacy",
+			"charisma", "helpfulness", "longevity"
+		]
+		for skill_name in staff_skill_names:
+			if character.staff_skills.has(skill_name):
+				line_parts.append(str(character.staff_skills[skill_name]))
+			else:
+				line_parts.append("")
 		
 		# Final safety check
-		if line_parts.size() != 138:
-			print("Warning: Player %s %s has %d fields, expected 138" % [player.bio.first_name, player.bio.last_name, line_parts.size()])
-			while line_parts.size() < 138:
+		var expected_fields = 138
+		if line_parts.size() != expected_fields:
+			print("Warning: Player %s %s has %d fields, expected %d" % [player.bio.first_name, player.bio.last_name, line_parts.size(), expected_fields])
+			while line_parts.size() < expected_fields:
 				line_parts.append("")
-			if line_parts.size() > 138:
-				line_parts.resize(138)
+			if line_parts.size() > expected_fields:
+				line_parts.resize(expected_fields)
 		
 		file.store_line(",".join(line_parts))
 	
@@ -1650,40 +1757,489 @@ func get_player_info(player: Player) -> String:
 	info += "Overall: %d\n" % [player.calculate_overall()]
 	return info
 
-func clear_players():
-	characters.clear()
-
-func generate_contract_focues(character: Character):
+func generate_contract_focuses(character: Character):
 	var focuses = {}
 	var adjusted_weights = adjust_focuses_for_character(character)
-	var key_focus = weighted_random_choice(adjusted_weights)
-	#TODO: set key focus to 2 in focuses to start
-	var top_seven_focuses #TODO: get the top seven focuses 
-	#TODO: if key focus is in there, add randf_range(-0.5,2) to it
-	#TODO: assign all other focuses value of randf_range(0.1,4)
-	#TODO: for all values below top 7:
-	#	if randf() < 0.5:
-	#		TODO: assign value of randf_range(0.1,2)
+	var key_focus = weighted_random_choice(key_focus_frequency)
+	focuses[key_focus] = 2.0
+	# Build the pool of all other numeric focuses (everything except key focus and house_type)
+	var other_focus_keys = []
+	for f in adjusted_weights:
+		if f != key_focus:
+			other_focus_keys.append(f)
+
+	# Draw 7 top focuses by repeatedly pulling from the adjusted weight pool
+	var top_seven_focuses: Array = []
+	var remaining_weights = adjusted_weights.duplicate()
+	remaining_weights.erase(key_focus)   # key focus is already assigned
+
+	for _i in range(7):
+		if remaining_weights.is_empty():
+			break
+		var pick = weighted_random_choice(remaining_weights)
+		top_seven_focuses.append(pick)
+		remaining_weights.erase(pick)
+
+	if key_focus in top_seven_focuses:
+		focuses[key_focus] += randf_range(-0.5, 2.0)
+
+	# Assign values to the top 7 focuses
+	for f in top_seven_focuses:
+		focuses[f] = randf_range(0.1, 4.0)
+
+	for f in other_focus_keys:
+		if f in top_seven_focuses:
+			continue   # already assigned
+		if randf() < 0.5:
+			focuses[f] = randf_range(0.1, 2.0)
+		else:
+			focuses[f] = 0.0
+
+	for f in focuses:
+		if character.contract_focuses.has(f):
+			character.contract_focuses[f] = focuses[f]
 	
-func adjust_focuses_for_character(character: Character):
-	other_contract_focus_frequency #TODO: apply weight adjustments based on character
-	pass
+func adjust_focuses_for_character(character: Character) -> Dictionary:
+	var w = other_contract_focus_frequency.duplicate()
+	var age = character.player.bio.years
+	var overall = character.player.calculate_overall()
+	var has_family = (character.children > 0 or character.elders > 0 or character.adults > 0 or character.spouses > 0)
+	var is_urban = hometowns_urban.has(character.player.bio.hometown)
+	var is_rural = !is_urban
+	var day_job = character.day_job
+
+	# satiety – goes way up for big boys (heavy weight categories)
+	var weight_lbs = character.player.bio.pounds
+	if weight_lbs >= 265:
+		w["satiety"] *= 4.0
+	if weight_lbs >= 230:
+		w["satiety"] *= 3.0
+	elif weight_lbs >= 200:
+		w["satiety"] *= 2.0
+
+	# hydration – goes way up for players with more ambition (high overall as proxy)
+	var ambition = max(character.off_attributes.love_of_the_game, character.off_attributes.hustle)
+	if ambition >= 90:
+		w["hydration"] *= 3.0
+	elif ambition >= 55:
+		w["hydration"] *= 1.2
+
+	# housing – goes up for higher overalls and players with families
+	if overall >= 95:
+		w["housing"] *= 5.0
+	elif overall >= 80:
+		w["housing"] *= 2.0
+	elif overall >= 60:
+		w["housing"] *= 1.2
+	if has_family:
+		w["housing"] *= 1.6
+
+	# medical – goes way up if player is higher in age
+	if age >= 35:
+		w["medical"] *= 2.0
+	elif age >= 28:
+		w["medical"] *= 1.1
+	if character.off_attributes.hardiness < 25:
+		w["medical"] *= 2.5
+	elif character.off_attributes.hardiness < 60:
+		w["medical"] *= 1.3
+
+	# win_later – goes way down if player is higher in age
+	if age >= 38:
+		w["win_later"] *= 0.2
+	elif age >= 32:
+		w["win_later"] *= 0.5
+
+	# community – goes up for players with families
+	if has_family:
+		w["community"] *= 2.0
+
+	# safety – goes up for players with families and players from rural areas, higher for war day job
+	if has_family:
+		w["safety"] *= 2.0
+	if is_rural:
+		w["safety"] *= 1.5
+	if day_job == "war" or day_job == "conscript" or day_job == "garrison trooper" or day_job == "road trooper":
+		w["safety"] *= 2.5 #don't want to get raided and have to fight!
+
+	# education – goes up for younger players and players with families
+	if age <= 22:
+		w["education"] *= 2.5
+	elif age <= 28:
+		w["education"] *= 1.5
+	if has_family:
+		w["education"] *= 2.0
+
+	# trade – goes way up for players with day job in industrial, trade, transport, or finance
+	var trade_jobs = ["sweatshopper", "home crafter", "wage crafter", "co-op shopkeeper", "shopkeeper",
+		"promoter", "entrepreneur", "rickshaw runner", "rickshaw biker", "longshoreman",
+		"horse teamster", "truck teamster", "mechanic", "warehouse owner",
+		"beggar", "hawker", "repo man", "hitman", "loan shark", "accountant", "mafioso",
+		"chain gang", "scrapper", "apprentice", "journeyman", "master", "artisan", "baron"]
+	if day_job in trade_jobs:
+		w["trade"] *= 4.0
+
+	# farming – goes way up for players with day job in farming
+	var farm_jobs = ["sharecropper", "subsistence", "farmhand", "co-op farmer", "family farmer", "veterinarian", "haciendero", "farm"]
+	if day_job in farm_jobs:
+		w["farming"] *= 4.0
+
+	# day_life – goes up for players from urban areas and players with families, slightly higher for older players
+	if is_urban:
+		w["day_life"] *= 1.8
+	if has_family:
+		w["day_life"] *= 1.5
+	if age >= 24:
+		w["day_life"] *= 1.3
+
+	# night_life – higher for hospitality day job, slightly higher for younger players
+	var hospitality_jobs = ["sex slave", "prostitute", "cook for hire", "escort", "cart cook", "musician", "pimp"]
+	if day_job in hospitality_jobs:
+		w["night_life"] *= 3.0
+	if age <= 28:
+		w["night_life"] *= 1.4
+
+	# welfare – goes up for players with families and older players, higher for public day job
+	if has_family:
+		w["welfare"] *= 2.0
+	if age >= 35:
+		w["welfare"] *= 1.8
+	var public_jobs = ["eunuch", "janitor", "courier", "firefighter", "teacher", "professor", "aristocrat"]
+	if day_job in public_jobs:
+		w["welfare"] *= 2.5
+
+	return w
 	
 func assign_preferred_housing_type(character: Character):
-	var adjusted_weights #TODO: adjust weights of housing type based on character and character.player
-	var housing_type = weighted_random_choice(adjusted_weights)
+	var w = preferred_room_type_frequency.duplicate()
+	var overall = character.player.calculate_overall()
+	var is_urban = hometowns_urban.has(character.player.bio.hometown)
+	var is_rural = !is_urban
+	var day_job = character.day_job
+
+	# tent spot goes up for players with no day job
+	if day_job == "none":
+		w["tent spot"] *= 3.0
+
+	# cabin higher for players from rural places
+	if is_rural:
+		w["cabin"] *= 2.0
+
+	# motel higher for players from urban places
+	if is_urban:
+		w["motel"] *= 2.0
+
+	# compound and mansion are the nicest – only let players with high overalls want these
+	if overall < 65:
+		w["compound"] = 0.0
+		w["mansion"] = 0.0
+	elif overall < 90:
+		w["compound"] *= 0.3
+		w["mansion"] *= 0.2
+	# else leave them at base (already low frequency, naturally rare)
+
+	var housing_type = weighted_random_choice(w)
 	character.contract_focuses.house_type = housing_type
 
 
 func generate_job_skills(character: Character, isPlayer: bool = false):
-	var max_overall = min(character.player.bio.age,50)/50 * 860 #experience is everything for staff skills
-	var staff_overall = randi_range(215, max_overall)
+	var possible_staff_overalls = {
+		8: 10,
+		9: 10,
+		10: 10,
+		11: 10,
+		12: 10,
+		13: 10,
+		14: 10,
+		15: 10,
+		16: 9,
+		17: 8,
+		18: 7,
+		19: 6,
+		20: 5,
+		21: 4,
+		22: 3,
+		23: 2,
+		24: 1,
+		25: 0.1
+	}
+	var staff_overall = weighted_random_choice(possible_staff_overalls) #average of attributes in relevant catagories
 	if isPlayer:
-		staff_overall = int(staff_overall * 0.8)
+		staff_overall = int(staff_overall * 0.8) #not as good at it if you're not focused on it
 	var character_type = weighted_random_choice(non_player_type_frequency)
-	match character_type: #TODO: assign attribute points to relevant attributes to type first, randomly assign remaining attributes, making sure no attributes are higher than relevant ones
+	var key_attributes: Array = []
+	var ok_attributes: Array = []
+	var zero_attributes: Array = []
+	match character_type:
+		"coach":
+			key_attributes = ["physical_training", "technical_training", "mental_training"]
+			ok_attributes = ["longevity", "flexibility", "decisiveness", "matchups"]
+			character.preferred_job = "coach"
+			character.job_roles.coach = true
+		"strength_coach":
+			key_attributes = ["physical_training", "longevity"]
+			ok_attributes = ["stretching"]
+			zero_attributes = ["violence"]
+			character.preferred_job = "coach"
+			character.job_roles.coach = true
+		"skills_coach":
+			key_attributes = ["technical_training"]
+			ok_attributes = ["flexibility"]
+			character.preferred_job = "coach"
+			character.job_roles.coach = true
+		"offense_coordinator":
+			key_attributes = ["mental_training", "matchups", "decisiveness"]
+			ok_attributes = ["reactivity"]
+			character.preferred_job = "coach"
+			character.job_roles.coach = true
+		"fighting_coach":
+			key_attributes = ["violence", "injury_tolerance"]
+			ok_attributes = ["physical_training","technical_training","matchups","reactivity"]
+			character.preferred_job = "coach"
+			character.job_roles.coach = true
+		"sport_sensei":
+			key_attributes = ["mental_training", "talent_eval", "talent_spotting"]
+			ok_attributes = ["technical_training"]
+			character.preferred_job = "coach"
+			character.job_roles.coach = true
+			character.job_roles.scout = true
+		"scout":
+			ok_attributes = ["talent_eval", "talent_spotting", "scouting_speed"]
+			character.preferred_job = "scout"
+			character.job_roles.scout = true
+		"surgeon":
+			key_attributes = ["trauma", "ortho"]
+			character.preferred_job = "surgeon"
+			zero_attributes = ["injury_tolerance"]
+			character.job_roles.surgeon = true
+		"rehabilitator":
+			key_attributes = ["ortho", "rehab"]
+			zero_attributes = ["injury_tolerance","violence"]
+			character.preferred_job = "medic"
+			character.job_roles.medic = true
+		"doctor":
+			key_attributes = ["medicine"]
+			ok_attributes = ["trauma","ortho"]
+			zero_attributes = ["injury_tolerance"]
+			character.preferred_job = "surgeon"
+			character.job_roles.surgeon = true
+			character.job_roles.medic = true
+		"trainer":
+			key_attributes = ["stretching", "rehab"]
+			ok_attributes = ["first_aid"]
+			character.preferred_job = "medic"
+			character.job_roles.medic = true
+		"paramedic":
+			key_attributes = ["first_aid"]
+			ok_attributes = ["stretching", "rehab"]
+			character.preferred_job = "medic"
+			character.job_roles.medic = true
+		"military_paramedic":
+			key_attributes = ["first_aid", "anti_banditry"]
+			character.preferred_job = "medic"
+			character.job_roles.medic = true
+			character.job_roles.security = true
+		"carpenter":
+			key_attributes = ["carpentry"]
+			character.preferred_job = "grounds"
+			character.job_roles.grounds = true
+		"mason":
+			key_attributes = ["masonry"]
+			character.preferred_job = "grounds"
+			character.job_roles.grounds = true
+		"painter":
+			key_attributes = ["painting"]
+			character.preferred_job = "grounds"
+			character.job_roles.grounds = true
+		"handyman":
+			ok_attributes = ["carpentry", "masonry", "painting"]
+			character.preferred_job = "grounds"
+			character.job_roles.grounds = true
+		"master_craftsman":
+			key_attributes = ["carpentry", "masonry", "painting"]
+			character.preferred_job = "grounds"
+			character.job_roles.grounds = true
+		"salesman":
+			key_attributes = ["attraction"]
+			character.preferred_job = "promoter"
+			character.job_roles.promoter = true
+		"people_pleaser":
+			key_attributes = ["sponsorship", "networking", "charisma"]
+			character.preferred_job = "promoter"
+			character.job_roles.promoter = true
+		"tailor":
+			key_attributes = ["sewing"]
+			character.preferred_job = "equipment"
+			character.job_roles.equipment = true
+		"porter":
+			key_attributes = ["carrying"]
+			character.preferred_job = "equipment"
+			character.job_roles.equipment = true
+		"logistician":
+			key_attributes = ["acquisitions"]
+			character.preferred_job = "equipment"
+			character.job_roles.equipment = true
+		"kitman":
+			ok_attributes = ["sewing", "carrying", "acquisitions"]
+			character.preferred_job = "equipment"
+			character.job_roles.equipment = true
+		"traveling_merchant":
+			ok_attributes = ["carrying", "attraction"]
+			character.preferred_job = "equipment"
+			character.job_roles.equipment = true
+			character.job_roles.promoter = true
+		"big_family_cook":
+			key_attributes = ["line_cooking", "home_cooking"]
+			character.preferred_job = "cook"
+			character.job_roles.cook = true
+		"haute_chef":
+			key_attributes = ["fine_cooking", "line_cooking"]
+			character.preferred_job = "cook"
+			character.job_roles.cook = true
+		"grill_master":
+			key_attributes = ["home_cooking", "fine_cooking"]
+			character.preferred_job = "cook"
+			character.job_roles.cook = true
+		"spreadsheet_wizard":
+			key_attributes = ["auditing", "budgeting"]
+			character.preferred_job = "accountant"
+			character.job_roles.accountant = true
+		"business_sleuth":
+			key_attributes = ["auditing", "charisma"]
+			character.preferred_job = "accountant"
+			character.job_roles.accountant = true
+		"groupie":
+			key_attributes = ["raging", "intimacy"]
+			ok_attributes = ["chilling"]
+			character.preferred_job = "entourage"
+			character.job_roles.entourage = true
+		"prostitute":
+			key_attributes = ["intimacy"]
+			ok_attributes = ["raging", "chilling"]
+			character.preferred_job = "entourage"
+			character.job_roles.entourage = true
+		"homie":
+			key_attributes = ["chilling"]
+			ok_attributes = ["raging"]
+			zero_attributes = ["intimacy"]
+			character.preferred_job = "entourage"
+			character.job_roles.entourage = true
+		"party_planner":
+			key_attributes = ["raging", "chilling"]
+			zero_attributes = ["intimacy"]
+			character.preferred_job = "entourage"
+			character.job_roles.entourage = true
+		"stripper":
+			key_attributes = ["attraction"]
+			ok_attributes = ["intimacy", "raging"]
+			character.preferred_job = "entourage"
+			character.job_roles.entourage = true
+			character.job_roles.promoter = true
+		"bodyguard":
+			key_attributes = ["escorting", "anti_banditry"]
+			character.preferred_job = "security"
+			character.job_roles.security = true
+		"escort":
+			key_attributes = ["escorting", "intimacy"]
+			character.preferred_job = "security"
+			character.job_roles.security = true
+			character.job_roles.entourage = true
+		"usher":
+			key_attributes = ["deescalation"]
+			character.preferred_job = "security"
+			character.job_roles.security = true
+		"minder":
+			key_attributes = ["deescalation", "escorting"]
+			character.preferred_job = "security"
+			character.job_roles.security = true
+		"gun_for_hire":
+			key_attributes = ["anti_banditry", "raging"]
+			character.preferred_job = "security"
+			character.job_roles.security = true
+			character.job_roles.entourage = true
+		"contract_lawyer":
+			key_attributes = ["bidding", "sponsorship"]
+			character.preferred_job = "accountant"
+			character.job_roles.accountant = true
+			character.job_roles.promoter = true
+		"friendly_face":
+			key_attributes = ["deescalation", "chilling", "charisma"]
+			character.preferred_job = "security"
+			character.job_roles.security = true
+			character.job_roles.entourage = true
+		"gym_bro":
+			key_attributes = ["physical_training", "stretching", "carrying"]
+			character.preferred_job = "coach"
+			character.job_roles.coach = true
+			character.job_roles.medic = true
+			character.job_roles.equipment = true
 		_:
 			pass
+	if character.player.bio.years < 26 and character_type not in ["doctor", "surgeon", "trainer"]:
+		zero_attributes.append("ortho")
+	# ---------------------------------------------------------------------------
+	# Assign values to every staff_skill on the character
+	# ---------------------------------------------------------------------------
+	var all_staff_attributes: Array = [
+		"physical_training", "technical_training", "mental_training",
+		"eccentricity", "decisiveness", "flexibility", "reactivity",
+		"matchups", "violence", "injury_tolerance",
+		"talent_eval", "talent_spotting", "scouting_speed",
+		"deescalation", "anti_banditry", "escorting",
+		"trauma", "ortho", "medicine",
+		"stretching", "first_aid", "rehab",
+		"attraction", "sponsorship", "networking",
+		"masonry", "carpentry", "painting",
+		"sewing", "carrying", "acquisitions",
+		"line_cooking", "home_cooking", "fine_cooking",
+		"auditing", "budgeting", "bidding",
+		"raging", "chilling", "intimacy",
+		"charisma", "helpfulness", "longevity"
+	]
+	var all_off_attributes: Array = [
+		"positivity","negativity","influence","promiscuity",
+		"loyalty","love_of_the_game","professionalism","partying",
+		"potential","hustle","hardiness","combat"]
+
+	for attribute in all_staff_attributes:
+		var value: int
+		if attribute in key_attributes:
+			value = min(randi_range(staff_overall - 4, staff_overall + 4), 20)
+			character.staff_skills[attribute] = value
+		elif attribute in zero_attributes:
+			character.staff_skills[attribute] = 0
+		elif attribute in ok_attributes:
+			var max = max(staff_overall - 1, staff_overall * 0.8)
+			value = min(randi_range(staff_overall - 5, max), 20)
+			character.staff_skills[attribute] = value
+		else:
+			var rand = randf()
+			if rand < 0.2:
+				value = randi_range(0, int(staff_overall * 0.8))
+			elif rand < 0.5:
+				value = randi_range(0, int(staff_overall * 0.5))
+			else:
+				value = randi_range(0, int(staff_overall * 0.3))
+			character.staff_skills[attribute] = value
+			
+	for attribute in all_off_attributes:
+		var value
+		if attribute == "combat":
+			if character_type in ["gun_for_hire", "bodyguard", "military_paramedic"]:
+				value = randi_range(25,99)
+		elif attribute == "potential":
+			var real_max_possible = 115 - character.player.bio.years
+			var max_ovr = max(character.player.calculate_overall(),real_max_possible)
+			var min_ovr = max(character.player.calculate_overall(),min_overall)
+			value = randi_range(min_ovr,max_ovr)
+		else:
+			if randf() < 0.5:
+				value = randi_range(0,99)
+			else:
+				value = randi_range(25,75)
+				if randf() < 0.5:
+					value = int((value + 50) / 2)
+		character.off_attributes[attribute] = value
 	
 func determine_number_of_spouses(age:int):
 	if age <= 14:
@@ -1721,10 +2277,12 @@ func determine_number_of_spouses(age:int):
 			return 1
 		return 0
 		
-func generate_family_members(num_spouses: int, age: int):
-	var children
-	var adults
-	var elders
+func generate_family_members(character: Character):
+	var num_spouses = character.spouses
+	var age = character.player.bio.years
+	var children: int = 0
+	var adults: int = 0
+	var elders: int = 0
 	if age < 20: #assuming 1991 levels of teen pregnancy
 		if randf() < 0.061:
 			children = 1
@@ -1791,9 +2349,84 @@ func generate_family_members(num_spouses: int, age: int):
 					roommate_age = randi_range(75,110)
 			if roommate_age > age + 10:
 				elders += 1
-			elif roommate_age < age - 10 or roommate_age < 16:
+			elif (roommate_age <= age - 14 and roommate_age <= 23) or roommate_age < 16: #that character's child or literally a child
 				children += 1 
 			else:
 				adults += 1
-		#TODO: attach these values to the character
-	pass
+	character.children = children
+	character.elders = elders
+	character.adults = adults
+	character.family = character.spouses + character.children + character.adults + character.elders
+
+func generate_orientation(gender: String):
+	var attracted = []
+	var rand = randf()
+	if gender == "i":
+		if rand < 0.2:
+			attracted = ["i"]
+		elif rand < 0.29:
+			attracted = []
+		elif rand < 0.59:
+			attracted = ["m"]
+		elif rand < 0.89:
+			attracted = ["f"]
+		elif rand < 0.98:
+			attracted = ["m","f","i"]
+		else:
+			attracted = ["m","f"]
+		pass
+	elif gender == "f":
+		if rand < 0.5:
+			attracted = ["m"]
+		elif rand < 0.7:
+			attracted = ["m", "i"]
+		elif rand < 0.86:
+			attracted = ["f","i","m"]
+		elif rand < 0.91:
+			attracted = ["f","i"]
+		elif rand < 0.93:
+			attracted = ["f"]
+		elif rand < 0.97:
+			attracted = []
+		else:
+			attracted = ["f","m"]
+	elif gender == "m":
+		if rand < 0.5:
+			attracted = ["f"]
+		elif rand < 0.7:
+			attracted = ["f", "i"]
+		elif rand < 0.86:
+			attracted = ["f","i","m"]
+		elif rand < 0.91:
+			attracted = ["m","i"]
+		elif rand < 0.93:
+			attracted = ["m"]
+		elif rand < 0.97:
+			attracted = []
+		else:
+			attracted = ["f","m"]
+
+func generate_characters(non_players: int):
+	for character in characters:
+		var day_job_info = get_day_job()
+		character.day_job = day_job_info["job"]
+		character.day_job_pay = day_job_info["pay"]
+		character.spouses = determine_number_of_spouses(character.player.bio.years)
+		generate_family_members(character)
+		character.home_cooking_style = get_favorite_food()
+		var is_footballer = characters_players.has(character)
+		generate_job_skills(character, is_footballer)
+		generate_contract_focuses(character)
+		assign_preferred_housing_type(character)
+		
+		character.attracted = generate_orientation(character.gender)
+
+func generate_special_pitches() -> Array[String]:
+	var pitches: Array[String] = []
+	for i in range(0, 3):
+		var random_pitch = weighted_random_choice(pitch_type_frequency)
+		if random_pitch in pitches:
+			pitches.append("none")
+		else:
+			pitches.append(random_pitch)
+	return pitches

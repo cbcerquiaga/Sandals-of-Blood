@@ -30,7 +30,7 @@ var children: int = 0 #children who live with the character. more likely to add 
 var elders: int = 0 #elders who live with the character. more likely to add weight to housing and welfare state in contract focuses
 var adults: int = 0 #brothers, sisters, cousins, friends who live with the character. more likely to add weight to farming and economic contract focuses
 var family: int #sum of spouses, children, elders, adults
-var possible_cooking_styles = ["bbq", "island", "casserole", "mexican", "vegetarian"]
+var possible_cooking_styles = ["bbq", "island", "casserole", "mexican", "vegetarian", "noodle"]
 var gender = "m"
 var genders = ["m", "f", "i"] #male, female, intersex
 var attracted={ #for use with fuck tent
@@ -98,7 +98,7 @@ var staff_skills= {#impacts a character's ability to handle a given staff role
 	"reactivity": 10, #impacts how likely the coach is to make substitutions or changes early in the game
 	"matchups": 10, #impacts how likely the coach is to worry about a percieved mismatch between pitchers or a definite mismatch between G/F
 	"violence": 10, #impacts how likely the coach is to look to injure opposing players
-	"injury_tolerance": 10, #impacts how likely the coach is to pull a player with a minor inju
+	"injury_tolerance": 10, #impacts how likely the coach is to pull a player with a minor injury
 	#scouting
 	"talent_eval": 10, #accuracy of scouting, ability to get elite players at tryouts
 	"talent_spotting": 10, #thoroughness of scouting, ability to get more players at tryouts
