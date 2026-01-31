@@ -20,6 +20,105 @@ var subsistence_farmer_rate = 0.3
 var gang_rate = 0.25
 var gangs = ["The Posse", "Banana Republicans", "Metalheads", "The Family", "Holy Rollers"]
 
+
+var non_player_type_frequency:={
+	"coach": 10, #good at coaching in general
+	"strength_coach": 12, #good at physical training
+	"skills_coach": 12, #good at technical training
+	"offense_coordinator": 8, #good at tactical training
+	"sport_sensei": 4, #good at tactical and scouting
+	"scout": 10, #good at scouting
+	"surgeon": 0.2, #good trauma and ortho
+	"rehabilitator": 0.2, #good ortho and rehab
+	"doctor": 2, #good medicine
+	"trainer": 5, #good stretching, ok first aid and rehab
+	"paramedic": 3, #good first aid, ok stretching and rehab
+	"military_paramedic": 1, #good first aid and anti-banditry
+	"carpenter": 1, #good carpentry, bad masonry and painting
+	"mason": 1, #good masonry, bad carpentry and painting
+	"painter": 2, #good painting, bad carpentry and masonry
+	"handyman": 4, #ok at caprentry, masonry, and painting
+	"master_craftsman": 0.2, #good at carpentry, masonry, and painting
+	"salesman": 20, #good at attraction
+	"people_pleaser": 10, #good at sponsorship and networking
+	"tailor": 2, #good at sewing
+	"porter": 15, #good at carrying
+	"logistician": 4, #good at acquisitions
+	"kitman":1, #ok at tailoring, carrying, and acquisitions
+	"traveling_merchant": 4, #good at carrying and attraction
+	"big_family_cook": 8, #good at line cooking and home cooking
+	"haute_chef": 1, #good at fine cooking and line cooking
+	"grill_master": 5, #good at home cooking and fine cooking
+	"spreadsheet_wizard": 5, #good at auditing and budgeting
+	"business_sleuth": 5, #good at auditing and sleuthing
+	"groupie": 10, #good at raging, ok at intimacy, bad at chilling
+	"prostitute": 25, #good at intimacy, ok at raging and chilling
+	"homie": 10, #good at chilling, ok at raging, 0 intimacy
+	"party_planner": 5, #good at raging and chilling, bad at intimacy
+	"bodyguard": 10, #good at escorting and anti-banditry
+	"escort": 5, #good at escorting and intimacy
+	"usher": 8, #good at de-escalation
+	"minder": 4, #good at de-escalation and escorting
+	"contract_lawyer": 0.5, #good at bidding and sponsorship
+	"gun_for_hire": 25, #good at anti-banditry and raging
+	"friendly_face": 1, #good at de-escalation and chilling, very high charisma
+	"gym_bro": 1, #good at physical training, stretching, and carrying
+}
+
+var key_focus_frequency := {
+	"value": 4.0,
+	"flexibility": 1.0,
+	"stability": 3.0
+}
+
+var other_contract_focus_frequency:= {
+	#primary focuses
+	"value": 1.0,
+	"stability": 1.0,
+	"flexibility": 1.0, 
+	"satiety": 1.0, #goes way up for big boys
+	"hydration": 1.0, #goes way up for players with more ambition
+	"hometown": 2.0,
+	"housing": 2.0, #goes up for playuers with higher overalls and players with families
+	"gameday": 1.0,
+	"travel": 1.0,
+	"medical": 0.5, #goes way up if player is higher in age
+	"party": 2.0,
+	"chill": 1.0, 
+	"win_now": 2.0, 
+	"win_later": 1.0, #goes way down if player is higher in age
+	"loyalty": 2.0,
+	"opportunity": 2.0,
+	"community": 1.0, #goes up for players with families and players with 
+	"development": 1.0, 
+	"safety": 0.5, #goes up for players with families and players from rural areas, higher for war day job
+	"education": 0.5, #goes up for younger players and players with families
+	"trade": 1.0, #goes way up for players with day job  in industrial, trade,transport, or finance
+	"farming": 1.0, #goes way up for players with day job in farming
+	"day_life": 1.0, #goes up for players from urban areas and players with families, slightly higher for younger players
+	"night_life": 1.0, #higher for hospitality day job, slightly higher for older players
+	"welfare": 1.0 #goes up for players with families and older players, higher for public day job
+}
+
+var preferred_room_type_frequency:={
+	"tent spot":  0.5, #goes up for players with no day job
+	"encampment":  1,
+	"crash pad":  1.5,
+	"bunk house":  2,
+	"cabin":  2.5, #higher or players from rural places
+	"camper":  2.5,
+	"motel":  2.5,#higher for players from urban places
+	"bungalow":  2.5,
+	"stationary car":  2,
+	"room":  3,
+	"bus":  3,
+	"farmhouse":  4,
+	"shanty":  1,
+	"mobile car":  4,
+	"compound":  0.5,#obviously the nicest houses are the most desirable, but only let players with high overalls want these
+	"mansion":  0.5,
+}
+
 # Height distributions (in inches) - Post-apocalyptic setting, all heights in inches
 var height_distribution = {
 	"male": {"min": 59, "max": 84, "avg": 68, "std_dev": 3.5},  # 4'11" to 7'0"
@@ -205,8 +304,7 @@ var name_frequency_first:= {
 var name_frequency_last:= {
 	"common": 36.3,
 	"italian": 9,
-	"native": 0.2,
-	"apocalypse": 11.5,
+	"apocalypse": 11.7,
 	"spanish": 15,
 	"french": 7,
 	"slavic": 3,
@@ -234,8 +332,8 @@ var mix_fix_chance:= {
 	"japanese": 0.8,
 	"chinese": 0.5,
 	"korean": 0.5,
-	"wasp": 0.5,
-	"africa": 0.9,
+	"wasp": 0.6,
+	"africa": 0.8,
 	"pacific": 0.2,
 }
 
@@ -526,30 +624,29 @@ var first_names_nordic_m = []#
 var first_names_chinese_m = []#
 var first_names_indian_m = []#
 var first_names_arab_m = []#
-var first_names_japanese_m = []
+var first_names_japanese_m = []#
 var first_names_korean_m = []#
 var first_names_pacific_m = []#
 
 var first_names_common_f = []#
-var first_names_apocalypse_f = []
+var first_names_apocalypse_f = []#
 var first_names_wasp_f = []#
 var first_names_afro_f = []#
 var first_names_africa_f = []
 var first_names_spanish_f = []#
-var first_names_french_f = []
-var first_names_italian_f = []
-var first_names_slavic_f = []
-var first_names_nordic_f = []
-var first_names_chinese_f = []
-var first_names_indian_f = []
-var first_names_arab_f = []
-var first_names_japanese_f = []
-var first_names_korean_f = []
+var first_names_french_f = []#
+var first_names_italian_f = []#
+var first_names_slavic_f = []#
+var first_names_nordic_f = []#
+var first_names_chinese_f = []#
+var first_names_indian_f = []#
+var first_names_arab_f = []#
+var first_names_japanese_f = []#
+var first_names_korean_f = []#
 var first_names_pacific_f = []#
 
 var last_names_common = []#
-var last_names_native = []
-var last_names_apocalypse = []
+var last_names_apocalypse = []#
 var last_names_wasp = []#
 var last_names_africa = []#
 var last_names_spanish = []#
@@ -557,13 +654,12 @@ var last_names_french = []#
 var last_names_italian = []#
 var last_names_slavic_m = []#
 var last_names_slavic_f = []#
-var last_names_nordic_m = []
-var last_names_nordic_f = []
-var last_names_chinese = []
+var last_names_nordic = []#
+var last_names_chinese = []#
 var last_names_indian = []#
 var last_names_japanese = []#
 var last_names_korean = []#
-var last_names_arab = []
+var last_names_arab = []#
 var last_names_pacific = []#
 #endregion
 
@@ -629,7 +725,6 @@ func initialize_name_lists():
 	first_names_korean_f = load_csv_to_array("res://Assets/Gen Names/first_korean_f.txt")
 	first_names_pacific_f = load_csv_to_array("res://Assets/Gen Names/first_pacific_f.txt")
 	last_names_common = load_csv_to_array("res://Assets/Gen Names/last_common.txt")
-	last_names_native = load_csv_to_array("res://Assets/Gen Names/last_native.txt")
 	last_names_apocalypse = load_csv_to_array("res://Assets/Gen Names/last_apocalypse.txt")
 	last_names_wasp = load_csv_to_array("res://Assets/Gen Names/last_wasp.txt")
 	last_names_africa = load_csv_to_array("res://Assets/Gen Names/last_africa.txt")
@@ -638,8 +733,7 @@ func initialize_name_lists():
 	last_names_italian = load_csv_to_array("res://Assets/Gen Names/last_italian.txt")
 	last_names_slavic_m = load_csv_to_array("res://Assets/Gen Names/last_slavic_m.txt")
 	last_names_slavic_f = load_csv_to_array("res://Assets/Gen Names/last_slavic_f.txt")
-	last_names_nordic_m = load_csv_to_array("res://Assets/Gen Names/last_nordic_m.txt")
-	last_names_nordic_f = load_csv_to_array("res://Assets/Gen Names/last_nordic_f.txt")
+	last_names_nordic = load_csv_to_array("res://Assets/Gen Names/last_nordic.txt")
 	last_names_chinese = load_csv_to_array("res://Assets/Gen Names/last_chinese.txt")
 	last_names_indian = load_csv_to_array("res://Assets/Gen Names/last_indian.txt")
 	last_names_japanese = load_csv_to_array("res://Assets/Gen Names/last_japanese.txt")
@@ -851,8 +945,6 @@ func generate_random_names(passed_gender: String) -> Array:
 			last_name = last_names_common[randi() % last_names_common.size()] if last_names_common.size() > 0 else "Unknown"
 		"italian":
 			last_name = last_names_italian[randi() % last_names_italian.size()] if last_names_italian.size() > 0 else "Unknown"
-		"native":
-			last_name = last_names_native[randi() % last_names_native.size()] if last_names_native.size() > 0 else "Unknown"
 		"apocalypse":
 			last_name = last_names_apocalypse[randi() % last_names_apocalypse.size()] if last_names_apocalypse.size() > 0 else "Unknown"
 		"spanish":
@@ -863,8 +955,7 @@ func generate_random_names(passed_gender: String) -> Array:
 			var array = last_names_slavic_m if gender == "m" else last_names_slavic_f
 			last_name = array[randi() % array.size()] if array.size() > 0 else "Unknown"
 		"nordic":
-			var array = last_names_nordic_m if gender == "m" else last_names_nordic_f
-			last_name = array[randi() % array.size()] if array.size() > 0 else "Unknown"
+			var array = last_names_nordic
 		"indian":
 			last_name = last_names_indian[randi() % last_names_indian.size()] if last_names_indian.size() > 0 else "Unknown"
 		"arab":
@@ -889,7 +980,6 @@ func mix_match_names(names: Array, gender: String) -> Array:
 	var category_map = {
 		"common": "common",
 		"italian": "italian",
-		"native": "common",
 		"apocalypse": "apocalypse",
 		"spanish": "spanish",
 		"french": "french",
@@ -1543,3 +1633,24 @@ func get_player_info(player: Player) -> String:
 
 func clear_players():
 	characters.clear()
+
+func generate_contract_focues(character: Character):
+	var focuses = {}
+	var adjusted_weights = adjust_focuses_for_character(character)
+	var key_focus = weighted_random_choice(adjusted_weights)
+	#TODO: set key focus to 2 in focuses to start
+	var top_seven_focuses #TODO: get the top seven focuses 
+	#TODO: if key focus is in there, add randf_range(-0.5,2) to it
+	#TODO: assign all other focuses value of randf_range(0.1,4)
+	#TODO: for all values below top 7:
+	#	if randf() < 0.5:
+	#		TODO: assign value of randf_range(0.1,2)
+	
+func adjust_focuses_for_character(character: Character):
+	other_contract_focus_frequency #TODO: apply weight adjustments based on character
+	pass
+	
+func assign_preferred_housing_type(character: Character):
+	var adjusted_weights #TODO: adjust weights of housing type based on character and character.player
+	var housing_type = weighted_random_choice(adjusted_weights)
+	character.contract_focuses.house_type = housing_type
