@@ -15,11 +15,30 @@ var max_age: int = 50 #maximum age of generated characters
 var min_player_age = 13
 var max_player_age = 44
 
+
 var unemployment_rate = 0.58
 var subsistence_farmer_rate = 0.3
 var gang_rate = 0.25
 var gangs = ["The Posse", "Banana Republicans", "Metalheads", "The Family", "Holy Rollers"]
 
+var rando_age_weights := {
+	"0-4": 14,
+	"5-9": 13,
+	"10-14": 11,
+	"15-19": 9,
+	"20-24": 10,
+	"25-39": 8,
+	"30-34": 7,
+	"35-39": 6,
+	"40-44": 5,
+	"45-49": 4,
+	"50-54": 3.75,
+	"55-59": 2,
+	"60-64": 2.1,
+	"65-69": 1.5,
+	"70-74": 1,
+	"75-110": 0.5
+}
 
 var non_player_type_frequency:={
 	"coach": 10, #good at coaching in general
@@ -1654,3 +1673,127 @@ func assign_preferred_housing_type(character: Character):
 	var adjusted_weights #TODO: adjust weights of housing type based on character and character.player
 	var housing_type = weighted_random_choice(adjusted_weights)
 	character.contract_focuses.house_type = housing_type
+
+
+func generate_job_skills(character: Character, isPlayer: bool = false):
+	var max_overall = min(character.player.bio.age,50)/50 * 860 #experience is everything for staff skills
+	var staff_overall = randi_range(215, max_overall)
+	if isPlayer:
+		staff_overall = int(staff_overall * 0.8)
+	var character_type = weighted_random_choice(non_player_type_frequency)
+	match character_type: #TODO: assign attribute points to relevant attributes to type first, randomly assign remaining attributes, making sure no attributes are higher than relevant ones
+		_:
+			pass
+	
+func determine_number_of_spouses(age:int):
+	if age <= 14:
+		return 0 #even in the apocalypse we're not doing child marriages
+	elif age in [15,16,17]:
+		if randf() < 0.05:
+			return 1
+		else:
+			return 0
+	elif age <= 25:
+		if randf() < 0.01:
+			return 2
+		elif randf() < 0.23:
+			return 1
+		else:
+			return 0
+	elif age <= 30:
+		if randf() < 0.53:
+			if randf() < 0.146:
+				if randf() < 0.146:
+					return 3
+				return 2
+			return 1
+		return 0
+	elif age <= 45:
+		if randf() < 0.61:
+			if randf() < 0.146:
+				if randf() < 0.146:
+					return 3
+				return 2
+			return 1
+		return 0
+	else:
+		if randf() <= 0.5: #by this age you're lucky to have a spouse living at all in this world
+			return 1
+		return 0
+		
+func generate_family_members(num_spouses: int, age: int):
+	var children
+	var adults
+	var elders
+	if age < 20: #assuming 1991 levels of teen pregnancy
+		if randf() < 0.061:
+			children = 1
+		else:
+			children = 0
+	else:
+		var child_odds = {1: 3, 2:1, 0: 1, 3: 0.5, 4: 0.5}
+		if num_spouses == 0:
+			if randf() < 0.15: #factoring in child mortality and 25% chance of having kid but no spouse
+				children += weighted_random_choice(child_odds)
+		elif num_spouses == 1:
+			if randf() < 0.7: #factor in child mortality
+				children += weighted_random_choice(child_odds)
+		else:
+			for spouse in num_spouses:
+				if age <= 25:
+					if randf() < 0.7:
+						children += weighted_random_choice(child_odds)
+				elif age <= 30:
+					if randf() < 0.6:
+						var children_with_spouse = weighted_random_choice(child_odds) * 2
+						children+= children_with_spouse
+				else:
+					if randf() < 0.5:
+						var children_with_spouse = weighted_random_choice(child_odds) * 3
+						children+= children_with_spouse
+	var num_roommates = 0
+	for i in range(0,4): #up to 3 tag alongs
+		if randf() < 0.2:
+			var roommate_age_range = weighted_random_choice(rando_age_weights)
+			var roommate_age
+			match roommate_age_range:
+				"0-4":
+					roommate_age = randi_range(0,4)
+				"5-9":
+					roommate_age = randi_range(5,9)
+				"10-14":
+					roommate_age = randi_range(10,14)
+				"15-19":
+					roommate_age = randi_range(15,19)
+				"20-24":
+					roommate_age = randi_range(20,24)
+				"25-39":
+					roommate_age = randi_range(25,39)
+				"30-34":
+					roommate_age = randi_range(30,34)
+				"35-39":
+					roommate_age = randi_range(35,39)
+				"40-44":
+					roommate_age = randi_range(40,44)
+				"45-49":
+					roommate_age = randi_range(45,49)
+				"50-54":
+					roommate_age = randi_range(50,54)
+				"55-59":
+					roommate_age = randi_range(55,59)
+				"60-64":
+					roommate_age = randi_range(60,64)
+				"65-69":
+					roommate_age = randi_range(65,69)
+				"70-74":
+					roommate_age = randi_range(70,74)
+				"75-110":
+					roommate_age = randi_range(75,110)
+			if roommate_age > age + 10:
+				elders += 1
+			elif roommate_age < age - 10 or roommate_age < 16:
+				children += 1 
+			else:
+				adults += 1
+		#TODO: attach these values to the character
+	pass
