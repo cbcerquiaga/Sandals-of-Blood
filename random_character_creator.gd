@@ -1,7 +1,7 @@
 extends Node
 class_name randomCharacterGenerator
 
-const MAX_ATTEMPTS = 200
+const MAX_ATTEMPTS = 400
 var characters:= []
 var characters_players: = []
 var characters_staff:= []
@@ -13,8 +13,6 @@ var left_hand_frequency: float = 0.25
 var male_frequency_players: float = 0.93 #percentage of player gens who are going to be male
 var male_frequency_general: float = 0.44 #percentage of non-player characters who are going to be male
 var intersex_frequency: float = 0.017 #percentage of players and non-player characters who will be intersex
-var min_age: int = 8 #minimum age of generated characters
-var max_age: int = 50 #maximum age of generated characters
 var min_player_age = 13
 var max_player_age = 44
 
@@ -722,7 +720,6 @@ func _ready():
 	randomize()
 	characters.clear()
 	initialize_name_lists()
-	generate_players(2000, true)
 	generate_players(2000)
 	generate_characters(2000)
 	give_file_report()
@@ -744,6 +741,8 @@ func load_csv_to_array(path: String) -> Array:
 		for item in items:
 			var clean_item = item.strip_edges()
 			if clean_item != "":
+				# Replace escaped apostrophes \' with actual apostrophes '
+				clean_item = clean_item.replace("\\'", "'")
 				array.append(clean_item)
 	return array
 
@@ -807,19 +806,24 @@ func generate_players(num: int, is_staff: bool = false):
 		player.bio.leftHanded = randf() < left_hand_frequency
 
 		if is_staff:
-			# Age is drawn from the general population distribution, clamped to min/max_age
+			# Age is drawn from the general population distribution
 			var age_range_key = weighted_random_choice(rando_age_weights)
 			var parts = age_range_key.split("-")
-			player.bio.years = clamp(
-				randi_range(int(parts[0]), int(parts[1])),
-				min_age, max_age
-			)
+			player.bio.years = randi_range(int(parts[0]), int(parts[1]))
 		else:
 			player.bio.years = randi_range(min_player_age, max_player_age)
 
-		# Generate names
-		var names = generate_random_names(gender)
-		names = mix_match_names(names, gender)
+		# Generate names with up to 3 retries to avoid "Unknown" or blank names
+		var names = []
+		var attempts = 0
+		while attempts < 3:
+			names = generate_random_names(gender)
+			names = mix_match_names(names, gender)
+			# Check if the names are valid (not "Unknown" or blank)
+			if names[0] != "Unknown" and names[0] != "" and names[1] != "Unknown" and names[1] != "":
+				break
+			attempts += 1
+		
 		player.bio.first_name = names[0]
 		player.bio.last_name = names[1]
 
@@ -1364,21 +1368,37 @@ func scale_attributes_to_overall_with_variance(player: Player, attributes: Dicti
 	
 	while abs(current_overall - target_overall) > 2 and attempts < max_attempts:
 		if current_overall < target_overall:
-			var random_key_attr = key_attributes[randi() % key_attributes.size()]
-			var boost_amount = randi_range(2, 10)
-			attributes[random_key_attr] += boost_amount
-			attributes[random_key_attr] = min(attributes[random_key_attr], 100)
-			if non_key_attributes.size() > 0 and randf() < 0.3:
+			# Check if we can still boost key attributes
+			var can_boost_key = false
+			for attr in key_attributes:
+				if attributes[attr] < 100:
+					can_boost_key = true
+					break
+			
+			if can_boost_key:
+				# Find a key attribute that isn't maxed
+				var random_key_attr = key_attributes[randi() % key_attributes.size()]
+				var boost_tries = 0
+				while attributes[random_key_attr] >= 100 and boost_tries < 10:
+					random_key_attr = key_attributes[randi() % key_attributes.size()]
+					boost_tries += 1
+				
+				var boost_amount = randi_range(2, 10)
+				attributes[random_key_attr] += boost_amount
+				attributes[random_key_attr] = min(attributes[random_key_attr], 99)
+			
+			# Also boost non-key attributes more frequently and with larger amounts
+			if non_key_attributes.size() > 0 and (randf() < 0.6 or not can_boost_key):
 				var random_non_key_attr = non_key_attributes[randi() % non_key_attributes.size()]
-				var small_variance = randi_range(-3, 3)
-				attributes[random_non_key_attr] += small_variance
+				var boost_variance = randi_range(1, 8)
+				attributes[random_non_key_attr] += boost_variance
 				attributes[random_non_key_attr] = clamp(attributes[random_non_key_attr], 1, 99)
 		else:
 			if non_key_attributes.size() > 0:
 				var random_non_key_attr = non_key_attributes[randi() % non_key_attributes.size()]
 				var reduce_amount = randi_range(2, 10)
 				attributes[random_non_key_attr] -= reduce_amount
-				attributes[random_non_key_attr] = max(attributes[random_non_key_attr], 1)
+				attributes[random_non_key_attr] = max(attributes[random_non_key_attr], 20)
 			if randf() < 0.2:
 				var random_key_attr = key_attributes[randi() % key_attributes.size()]
 				var small_variance = randi_range(-2, 2)
@@ -1387,6 +1407,9 @@ func scale_attributes_to_overall_with_variance(player: Player, attributes: Dicti
 		player.attributes = attributes
 		current_overall = player.calculate_overall()
 		attempts += 1
+	
+	if abs(current_overall - target_overall) > 2:
+		print("Warning: Could not reach target overall %d, achieved %d after %d attempts" % [target_overall, current_overall, attempts])
 
 func get_key_attributes_for_role(role: String) -> Array:
 	match role:
@@ -1537,8 +1560,13 @@ func export_to_csv(file_path: String = "res://Assets/Rosters/roster_export.csv")
 			line_parts.append("")
 		
 		# Additional fields: preferred_job and job_roles (fields 75-76)
-		line_parts.append("")  # preferred_job
-		line_parts.append("")  # job_roles
+		line_parts.append(character.preferred_job if character.preferred_job else "")
+		# Export job_roles as a JSON string (dictionary of booleans)
+		if character.job_roles:
+			var job_roles_str = JSON.stringify(character.job_roles)
+			line_parts.append(csv_escape(job_roles_str))
+		else:
+			line_parts.append("")
 		
 		# Contract focuses fields 77-102 (26 fields due to header typos)
 		# The header has typos: "contract_chillcontract_focus_party" and "contract_win_latercontract_focus_win_now"
@@ -2227,6 +2255,9 @@ func generate_job_skills(character: Character, isPlayer: bool = false):
 		if attribute == "combat":
 			if character_type in ["gun_for_hire", "bodyguard", "military_paramedic"]:
 				value = randi_range(25,99)
+			else:
+				# Default combat value for all other characters
+				value = randi_range(1,50)
 		elif attribute == "potential":
 			var real_max_possible = 115 - character.player.bio.years
 			var max_ovr = max(character.player.calculate_overall(),real_max_possible)
@@ -2374,7 +2405,6 @@ func generate_orientation(gender: String):
 			attracted = ["m","f","i"]
 		else:
 			attracted = ["m","f"]
-		pass
 	elif gender == "f":
 		if rand < 0.5:
 			attracted = ["m"]
@@ -2405,8 +2435,17 @@ func generate_orientation(gender: String):
 			attracted = []
 		else:
 			attracted = ["f","m"]
+	
+	return attracted
 
 func generate_characters(non_players: int):
+	if characters_players.size() <= 0:
+		generate_players(characters_players.size() if characters_players.size() > 0 else 2000, false)
+
+	# Generate the staff pool with compressed overalls and general-population demographics
+	characters_staff.clear()
+	generate_players(non_players, true)
+
 	for character in characters:
 		var day_job_info = get_day_job()
 		character.day_job = day_job_info["job"]
@@ -2420,6 +2459,12 @@ func generate_characters(non_players: int):
 		assign_preferred_housing_type(character)
 		
 		character.attracted = generate_orientation(character.gender)
+		
+		# Assign gang affiliation based on gang_rate
+		if randf() < gang_rate:
+			character.gang_affiliation = gangs[randi() % gangs.size()]
+		else:
+			character.gang_affiliation = ""
 
 func generate_special_pitches() -> Array[String]:
 	var pitches: Array[String] = []
