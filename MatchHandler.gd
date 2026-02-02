@@ -1111,7 +1111,7 @@ func enlighten_referee():
 	ref.gauntletSW = field.g_sw
 	ref.gauntletNW = field.g_nw
 	ref.gauntlet_start = field.r_fo
-	ref.gauntlet_start = field.l_fo
+	ref.gauntlet_end = field.l_fo
 	ref.memory.p_p =  [pTeam.P, 0, 0] #player team pitcher. Player object, minor violations, foul plays
 	ref.memory.p_lf = [pTeam.LF, 0, 0]
 	ref.memory.p_rf = [pTeam.RF, 0, 0]
@@ -1619,6 +1619,7 @@ func gauntlet():
 			player.reset_state()
 	
 	# Position the runner at gauntlet start
+	gauntlet_runner = ref.offender
 	ref.offender.global_position = ref.gauntlet_start
 	ref.offender.current_behavior = "run_gauntlet"
 	ref.offender.gauntlet_target = ref.gauntlet_end
