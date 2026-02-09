@@ -17,10 +17,13 @@ func set_container_sizes():
 	$PlayerScrollContainer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	$PlayerScrollContainer.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	var scroll = teamStatsContainer.get_parent()
-	print("\nScrollContainer:")
-	print("  size: ", scroll.size)
-	print("\nteamStatsContainer:")
-	print("  size: ", teamStatsContainer.size)
+	scroll.size = Vector2(2330.61, 1212)
+	scroll = playerStatsContainer.get_parent()
+	scroll.size = Vector2(3119, 1275)
+	#print("\nScrollContainer:")
+	#print("  size: ", scroll.size)
+	#print("\nteamStatsContainer:")
+	#print("  size: ", teamStatsContainer.size)
 
 func open_menu():
 	set_container_sizes()
