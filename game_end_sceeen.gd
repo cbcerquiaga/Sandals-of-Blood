@@ -49,7 +49,9 @@ func bringUp(state, match_handler: MatchHandler):
 	three_stars_screen.set_score(matchHandler.pTeam.game_stats.goals, matchHandler.aTeam.game_stats.goals)
 
 func show_stats_menu():
+	#print("game over stats menu called")
 	if matchHandler:
+		#print("game over match handler valid")
 		if matchHandler.is_player_home:
 			stats_screen.homeTeam = matchHandler.pTeam
 			stats_screen.awayTeam = matchHandler.aTeam
@@ -90,14 +92,15 @@ func _unhandled_input(event):
 			get_viewport().set_input_as_handled()
 
 func _on_stats_button_pressed():
+	stats_screen.custom_minimum_size = Vector2(2330.61, 1212)
+	stats_screen.position = Vector2(300, 400)
 	show_stats_menu()
 	starsButton.hide()
 	statsButton.hide()
 	exportButton.hide()
 	exitButton.hide()
 	result.hide()
-	submenu = "stats"
-	stats_screen.show()
+	submenu = "statistics"
 
 
 func _on_stars_button_pressed() -> void:

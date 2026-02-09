@@ -7,9 +7,28 @@ var awayTeam: Team
 
 signal menu_closed
 
+func set_container_sizes():
+	teamStatsContainer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	teamStatsContainer.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	playerStatsContainer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	playerStatsContainer.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	$TeamScrollContainer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	$TeamScrollContainer.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	$PlayerScrollContainer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	$PlayerScrollContainer.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	var scroll = teamStatsContainer.get_parent()
+	print("\nScrollContainer:")
+	print("  size: ", scroll.size)
+	print("\nteamStatsContainer:")
+	print("  size: ", teamStatsContainer.size)
+
 func open_menu():
+	set_container_sizes()
 	show()
 	$HBoxContainer/TeamButton.grab_focus()
+	$TeamScrollContainer.show()
+	$PlayerScrollContainer.show()
+	await get_tree().process_frame
 	_on_team_button_pressed()
 
 func clear_container(container: BoxContainer):

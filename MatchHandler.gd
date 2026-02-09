@@ -1005,7 +1005,6 @@ func _on_play_timer_timeout():
 	next_play()
 	
 func on_ball_out_of_bounds():
-	# This function seems incomplete in original - implementing based on _on_ball_exited_field logic
 	_on_ball_exited_field()
 
 func check_match_end():
