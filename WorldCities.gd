@@ -57,3 +57,7 @@ var oceania: City #downtown aquarium turned city
 var cahokia: City #ancient mound building area
 
 var san_myra: City #old Spanish fort
+
+func initialize_cities():
+	newBeach
+	pass

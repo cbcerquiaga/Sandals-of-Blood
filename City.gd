@@ -5,6 +5,7 @@ var city_name: String
 var map_location: Vector2
 var franchises: Array #N,S,E,W
 var population: int
+var emigrants: int #other cities can pull population from this
 const min_population = 144 #bare minimum population a city can have. Never goes below this for gameplay purposes. This would be 36 people per neighborhood
 var capacity: int #how much food and water the city has puts an upper limit on its population
 var education_level: int #how educated people are improves outcomes
@@ -539,23 +540,41 @@ func get_focus_value(focus, neighborhood):
 		_:
 			return 0.0
 
-func plague(mortality: int = 10, vector: int = 2):
+func plague(mortality: int = 10, vector: int = 2): #1 month of plague
 	#TODO: base mortality on the mortality rate (1 in X people die) and vector rate (1 person spreads to X people)
 	#TODO: reduce base mortality on plague preparedness
 	# coffee, distillery, aqueduct, 
 	#TODO: apply randomness
 	pass
 
-func famine(output: int):
+func famine(output: int): #1 month of famine
 	#TODO: determine mortality based on reduced food production vs necessary food production
 	#TODO: mitigate mortality with welfare
 	pass
 
-func raid(attack_val: int):
-	#TODO: determine mortality based on 
-	pass
+func raid(attack_val: int): #1 day of raid
+	var defense_bonus = 0.0
+	for i in range(4):
+		if amenities["Defensive Structures"][i]:
+			defense_bonus += 0.12
+		if amenities["Neighborhood Watch"][i]:
+			defense_bonus += 0.06
+	defense_bonus += prosperity_modifiers["defemse"]
+	defense_bonus = min(defense_bonus, 0.99)
+	var effective_attack = attack_val * (1.0 - defense_bonus)
+	var bloodiness_randomness= randi_range(0.25, 0.75)
+	var casualties = int(effective_attack * bloodiness_randomness)
+	casualties = min(casualties, int(population * 0.05))
+	population = max(min_population, population - casualties)
+	var flee_rate
+	if casualties > 0.05 * population:
+		flee_rate = 2
+	else:
+		flee_rate = randi_range(0,1)
+	emigrants += int(casualties * flee_rate)
+	population = population - casualties
 	
-func get_econ_output(industry: String):
+func get_econ_output(industry: String): #1 day of econ output
 	#TODO: use quantity and class of workers in the given industry
 	#TODO: apply prosperity modifiers
 	#TODO: apply modifiers based on amenities built in each neighborhood
@@ -563,28 +582,82 @@ func get_econ_output(industry: String):
 
 #region census
 func get_all_exploited():
-	#TODO
-	return 0
+	var total = 0
+	total += farm_workers["sharecropper"]
+	total += trade_workers["sweatshopper"]
+	total += transport_workers["rickshaw runner"]
+	total += war_workers["conscript"]
+	total += hospitality_workers["sex slave"]
+	total += finance_workers["beggar"]
+	total += medical_workers["blood stock"]
+	total += industrial_workers["chain gang"]
+	total += public_workers["eunuch"]
+	return total
 
 func get_all_lower_working():
-	#TODO
-	return 0
+	var total = 0
+	total += farm_workers["farmhand"]
+	total += trade_workers["wage crafter"]
+	total += transport_workers["longshoreman"]
+	total += war_workers["road trooper"]
+	total += hospitality_workers["cook for hire"]
+	total += finance_workers["repo man"]
+	total += medical_workers["paramedic"]
+	total += industrial_workers["apprentice"]
+	total += public_workers["courier"]
+	return total
 	
 func get_all_upper_working():
-	#TODO
-	return 0
+	var total = 0
+	total += farm_workers["co-op farmer"]
+	total += trade_workers["co-op shopkeeper"]
+	total += transport_workers["horse teamster"]
+	total += war_workers["driver"]
+	total += hospitality_workers["escort"]
+	total += finance_workers["hitman"]
+	total += medical_workers["nurse"]
+	total += industrial_workers["journeyman"]
+	total += public_workers["firefighter"]
+	return total
 
 func get_all_middle():
-	#TODO
-	return 0
+	var total = 0
+	total += farm_workers["family farmer"]
+	total += trade_workers["shopkeeper"]
+	total += transport_workers["truck teamster"]
+	total += war_workers["lower oficer"]
+	total += hospitality_workers["cart cook"]
+	total += finance_workers["loan shark"]
+	total += medical_workers["medical trainer"]
+	total += industrial_workers["master"]
+	total += public_workers["teacher"]
+	return total
 
 func get_all_white_collar():
-	#TODO:
-	return 0
+	var total = 0
+	total += farm_workers["veterinarian"]
+	total += trade_workers["promoter"]
+	total += transport_workers["mechanic"]
+	total += war_workers["siege engineer"]
+	total += hospitality_workers["musician"]
+	total += finance_workers["accountant"]
+	total += medical_workers["surgeon"]
+	total += industrial_workers["artisan"]
+	total += public_workers["professor"]
+	return total
 
 func get_all_investor():
-	#TODO
-	return 0
+	var total = 0
+	total += farm_workers["haciendero"]
+	total += trade_workers["entrepreneur"]
+	total += transport_workers["warehouse owner"]
+	total += war_workers["warlord"]
+	total += hospitality_workers["pimp"]
+	total += finance_workers["mafioso"]
+	total += medical_workers["insurer"]
+	total += industrial_workers["baron"]
+	total += public_workers["aristocrat"]
+	return total
 
 #endregion
 
@@ -607,7 +680,7 @@ func calculate_pop_gain():
 	
 func calculate_pop_loss():
 	#TODO: determine base mortality
-	#TODO: if the city is over capacity, lose emmigrants
+	#TODO: if the city is over capacity, lose population and add it to emigrants
 	pass
 	
 func get_amenity_description(amenity: String):
@@ -759,7 +832,7 @@ func get_amenity_description(amenity: String):
 		"Flop Houses":
 			return "Gives people a place to stay short term if they need"
 		"Firehouse":
-			return "Stores fire fightting equipment and gives fire brigades a place to sleep where they are always ready for a fire"
+			return "Stores fire fighting equipment and gives fire brigades a place to sleep where they are always ready for a fire"
 		"Public Bookcase":
 			return "Tiny bookcases where people can give or take books at their liesure"
 		"Public housing Tower":
