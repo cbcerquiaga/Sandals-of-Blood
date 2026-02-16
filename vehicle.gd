@@ -15,6 +15,7 @@ var passengers:= [] #NPC
 var max_combatants: int = 0 #number of Combatants that can dismount
 var combatants:= [] #Combatant
 var ram_attack: int = 0 #power to attack in flee state
+var combat_gas_capacity: int = 0 #maximum amount of combat gas when refuelling
 var combat_gas: int = 0# number of turns under gas power
 var gas_speed: int = 50 #speed under gas power
 var gas_agility: int = 50 #maneuverability under gas power
@@ -34,3 +35,16 @@ func resupply_combatants():
 		weapon.ammo = weapon.max_ammo
 	for combatant in combatants:
 		combatant.ammo = combatant.max_ammo
+
+func resupply_ally_vehicle(vehicle: Vehicle):
+	if resupplies > 0:
+		vehicle.resupply_combatants()
+		resupplies -= 1
+	
+func refuel():
+	combat_gas = combat_gas_capacity
+	
+func refuel_ally_vehicle(vehicle: Vehicle):
+	if refuels > 0:
+		vehicle.refuel()
+		refuels -= 1

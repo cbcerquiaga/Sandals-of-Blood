@@ -9,6 +9,10 @@ var emigrants: int #other cities can pull population from this
 const min_population = 144 #bare minimum population a city can have. Never goes below this for gameplay purposes. This would be 36 people per neighborhood
 var capacity: int #how much food and water the city has puts an upper limit on its population
 var education_level: int #how educated people are improves outcomes
+var water_capacity: int #maximum water that can be stored for later
+var water_generation: int #amount of new water each week from rain, rivers, etc
+var current_water: int #how much water is in the resovoirs, lakes, wells, and storage tanks
+var food_stored: int
 var prosperity_modifiers :={
 	"food": 0, #proxy for quality soil, growing conditions, land
 	"water": 0, #proxy for running water, distillation, rains
@@ -150,7 +154,7 @@ var war_workers := {
 	"garrison trooper": 0, #poverty class
 	"road trooper": 0, #lower working class
 	"driver": 0, #upper working class
-	"lower oficer": 0, #middle class
+	"officer": 0, #middle class
 	"siege engineer": 0, #white collar working class
 	"warlord": 0, #investor class
 }
@@ -593,6 +597,19 @@ func get_all_exploited():
 	total += industrial_workers["chain gang"]
 	total += public_workers["eunuch"]
 	return total
+	
+func get_all_poverty():
+	var total = 0
+	total += farm_workers["subsistence"]
+	total += trade_workers["home crafter"]
+	total += transport_workers["rickshaw biker"]
+	total += war_workers["garrison trooper"]
+	total += hospitality_workers["prostitute"]
+	total += finance_workers["hawker"]
+	total += medical_workers["herb grower"]
+	total += industrial_workers["scrapper"]
+	total += public_workers["janitor"]
+	return total
 
 func get_all_lower_working():
 	var total = 0
@@ -658,6 +675,14 @@ func get_all_investor():
 	total += industrial_workers["baron"]
 	total += public_workers["aristocrat"]
 	return total
+	
+func get_all_employed():
+	return get_all_exploited() + get_all_investor() + get_all_lower_working() + get_all_upper_working() + get_all_middle() + get_all_white_collar() + get_all_poverty()
+	
+func get_all_unemployed():
+	var unemployed =  population - get_all_employed()
+	if unemployed < 0: unemployed = 0
+	return unemployed
 
 #endregion
 
@@ -844,3 +869,78 @@ func _ready():
 	#TODO: DEBUG only
 	city_name = "Big Fields Eastward"
 	
+func farm(percent: int):
+	var quant = (current_water) * percent
+	var farm_power = get_farm_power()
+	var output = farm_power * quant
+	var max_consumption #TODO: determine maximum consumption based on class position
+	var food_diff = output - max_consumption
+	if food_diff < 0:
+		if abs(food_diff) > abs(food_stored):
+			#TODO: kill some citizens from starvation
+			pass
+		else:
+			food_stored += food_diff
+	else:
+		return output - max_consumption #excess food production 
+	
+func get_farm_power():
+	var farm_power = 1
+	var unemployed = get_all_unemployed()
+	var peasant_power = unemployed * prosperity_modifiers.food
+	farm_power += farm_workers.sharecropper * (0.5 * farm_workers["haciendero"] + 0.1)
+	farm_power += farm_workers.subsitence
+	farm_power += farm_workers.farmhand * (1 + prosperity_modifiers.food/2)
+	farm_power += farm_workers["co-op farmer"] * (1 + prosperity_modifiers.food/2)
+	farm_power += farm_workers["family farmer"] * (1 + prosperity_modifiers.food)
+	farm_power += farm_workers.veterinarian * 100
+	return farm_power
+	
+func get_economic_output():
+	var value = get_all_exploited() * randi_range(0,15)
+	value += get_all_poverty() * randi_range(10, 25)
+	value += get_all_lower_working() * randi_range(20, 35)
+	value += get_all_upper_working() * randi_range(30, 60)
+	value += get_all_middle() * randi_range(50, 100)
+	value += get_all_white_collar() * randi_range(80, 150)
+	for i in range(get_all_investor()):
+		value = (value * 9 + 5000)/10 #moves towards 5000
+	return value
+	
+func get_transport_power():
+	var transport_percent #TODO: sum all transport workers, divide by population
+	var transport_modifier = transport_percent
+	transport_modifier = transport_modifier + (transport_workers["rickshaw runner"] * 0.02 + transport_workers["rickshaw biker"] * 0.04 + transport_workers["horse teamster"] * 0.06)
+	var motorization_rate = transport_workers["truck teamster"]/(transport_workers["horse teamster"] + transport_workers["truck teamster"])
+	transport_modifier = transport_modifier * (1.5 + motorization_rate)
+	var reliability_rate = transport_workers["mechanic"] / transport_workers["truck teamster"]
+	var reliability_value
+	if reliability_rate >= 0.12:
+		reliability_value = 1
+	else:
+		reliability_value = reliability_rate/0.12
+	transport_modifier += transport_workers["truck teamster"] * reliability_rate
+	for i in range(transport_workers["warehouse owner"] + 1):
+		transport_modifier +=  transport_workers["longshoreman"]/100
+	for i in range(transport_workers["warehouse owner"]):
+		transport_modifier = (transport_modifier + 2 + transport_modifier)/3
+	return transport_modifier
+		
+	
+func economy(percent: int):
+	var industrial_output = 0
+	
+	
+	pass
+	
+func heavy_industry(percent: int):
+	var quant = (current_water) * percent
+	var heavy_power = get_heavy_power()
+	var output = heavy_power * quant
+	pass
+
+func get_heavy_power():
+	pass
+
+func generate_sellable_events():
+	pass
