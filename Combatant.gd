@@ -14,6 +14,7 @@ var armor: int = 0
 var long_att: int = 1 #damage at long range
 var short_att: int = 1 #damage at short range
 var melee_att: int = 1 #damage at melee range
+var chase_att: int = 1 #damage when chasing down enemies
 var piercing: int = 1 #how much armor is bypassed
 var pierce_dist: String = "m" #m for melee, s for short, l for long, determines at what distance the piercing value is applied
 var concussion: int = 1 #how much armor is destroyed with each attack

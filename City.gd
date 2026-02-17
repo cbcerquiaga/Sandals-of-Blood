@@ -888,12 +888,12 @@ func get_farm_power():
 	var farm_power = 1
 	var unemployed = get_all_unemployed()
 	var peasant_power = unemployed * prosperity_modifiers.food
-	farm_power += farm_workers.sharecropper * (0.5 * farm_workers["haciendero"] + 0.1)
-	farm_power += farm_workers.subsitence
-	farm_power += farm_workers.farmhand * (1 + prosperity_modifiers.food/2)
+	farm_power += farm_workers["sharecropper"] * (0.5 * farm_workers["haciendero"] + 0.1)
+	farm_power += farm_workers["subsitence"]
+	farm_power += farm_workers["farmhand"] * (1 + prosperity_modifiers.food/2)
 	farm_power += farm_workers["co-op farmer"] * (1 + prosperity_modifiers.food/2)
 	farm_power += farm_workers["family farmer"] * (1 + prosperity_modifiers.food)
-	farm_power += farm_workers.veterinarian * 100
+	farm_power += farm_workers["veterninarian"] * 100
 	return farm_power
 	
 func get_economic_output():
@@ -928,19 +928,60 @@ func get_transport_power():
 		
 	
 func economy(percent: int):
-	var industrial_output = 0
-	
-	
+	var quant = (current_water) * percent
+	var labor_value = get_economic_output()
+	current_water = current_water - quant
+	return labor_value * quant
 	pass
 	
 func heavy_industry(percent: int):
 	var quant = (current_water) * percent
 	var heavy_power = get_heavy_power()
+	current_water = current_water - quant
 	var output = heavy_power * quant
 	pass
 
 func get_heavy_power():
-	pass
+	var value = 0
+	value = value + industrial_workers["chain gang"] * (0.5 * industrial_workers["baron"] + 0.1)
+	value = value + industrial_workers["scrapper"] * 0.5
+	value = value + industrial_workers["apprentice"] * 0.75
+	value = value + industrial_workers["journeyman"]
+	value = value + industrial_workers["master"] * 1.25
+	value = value + industrial_workers["artisan"] * 1.5
+	return value
 
 func generate_sellable_events():
 	pass
+
+func guillotine(sector: String):
+	match sector:
+		"farm":
+			population -= farm_workers["haciendero"]
+			farm_workers["haciendero"] = 0
+		"trade":
+			population -= trade_workers["entrepreneur"]
+			trade_workers["entrepreneur"] = 0
+		"transport":
+			population -= transport_workers["warehouse owner"]
+			transport_workers["warehouse owner"] = 0
+		"war":
+			population -= war_workers["warlord"]
+			war_workers["warlord"] = 0
+		"hospitality":
+			population -= hospitality_workers["pimp"]
+			hospitality_workers["pimp"] = 0
+		"finance":
+			population -= finance_workers["mafioso"]
+			finance_workers["mafioso"] = 0
+		"medical":
+			population -= medical_workers["insurer"]
+			medical_workers["insurer"] = 0
+		"industrial":
+			population -= industrial_workers["baron"]
+			industrial_workers["baron"] = 0
+		"public":
+			population -= public_workers["aristocrat"]
+			public_workers["aristocrat"] = 0
+		_:
+			pass
