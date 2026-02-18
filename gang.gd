@@ -33,6 +33,7 @@ var alignment_hedonism = 0 #-10 (square) to 10 (hedonistic)
 var alignment_morality = 0 #-10 (amoral) to 10 (moral)
 var main_convoy: Convoy #mahanian main fleet, used for raiding
 var secondary_convoy: Convoy #used for transporting supplies and troops between cities
+var siege_force: SiegeForce #sent to defend cities attacked by enemy gangs, may not get there before those cities' base defenses fall
 
 var political_policies:= {
 	"slavery_farm": false,
@@ -87,6 +88,13 @@ var war_doctrine := {
 	"siege_defensiveness": 1, #how likely a siege engineer is to be put on defense of a city rather than in the convoy
 	"border_priority": 1, #how much garrison it put onto border as opposed to interior
 	"range": 1, #priority of range over other factors in convoy
+	"hp": 1, #priority of hp over other factors in convoy
+	"armor": 1, #priority of armor over other factors in convoy
+	"long_att": 1, #priority of long attack
+	"short_att": 1, #priority of short attack
+	"melee_att": 1, #priority of melee attack
+	"chase_att": 1, #priority of chase attack, only in convoys not in siege force
+	"ammo": 1, #priority of ammo
 	"visibility_main": 1, #priority of stealth over other factors in convoy
 	"spotting_main": 1, #priority of spotting over other factors in main convoy
 	"speed_main": 1, #priority of max speed in main convoy
@@ -161,6 +169,72 @@ var war_doctrine := {
 	"a_scavenger": 1
 }
 
+var unit_costs := { #cost to buy/train various troopers, weapons, and vehicles
+	#trooper weapons
+	"archer": 25,
+	"musketeer": 15,
+	"rifleman": 50,
+	"pistolier": 35,
+	"shotgunner": 50,
+	"pollaxe": 30,
+	"grenadier": 35,
+	"sniper": 100,
+	"spearman": 10,
+	#armors
+	"no_armor": 0,
+	"metal_armor": 200,
+	"kevlar_armor": 300,
+	"crash_armor": 60,
+	"camo_armor": 75,
+	"scavenger_armor": 100,
+	#vehicles
+	"bike": 75,
+	"tricycle": 90,
+	"ebike": 120,
+	"moped": 120,
+	"dirtbike": 150,
+	"e-dirtbike": 180,
+	"hog": 200,
+	"race_cycle": 500,
+	"horse": 300,
+	"wagon": 350,
+	"chariot": 360,
+	"armor_chariot": 400,
+	"dune_buggy": 375,
+	"camel_buggy": 420,
+	"e-buggy": 450,
+	"rocket_buggy": 650,
+	"beater_car": 500,
+	"bull_car": 600,
+	"cheetah_car": 700,
+	"hatchback_car": 600,
+	"rusty_truck": 600,
+	"jungler_truck": 750,
+	"hauler_truck": 750,
+	"technical_truck": 750,
+	"circler_van": 850,
+	"armored_van": 950,
+	"surveilance_van": 1200,
+	"bang_bus": 1000,
+	"safari_bus": 1100,
+	"max_carrier_bus": 950,
+	"balloon_bus": 1300,
+	"monster_truck": 2000,
+	"pain_train_truck": 1500,
+	"tow_truck": 1400,
+	"supply_truck": 1250,
+	#medium weapons
+	"machine_gun": 250,
+	"blunderbuss": 100,
+	"harpoon_gun": 80,
+	"mortar": 180,
+	"heavy_rifle": 200,
+	#heavy weapons
+	"trebuchet": 300,
+	"heavy_mortar": 400,
+	"howitzer": 500
+}
+
 func make_weekly_decisions():
 	#TODO: each week, the gang can make up to 3 decisions based on economic, military, user, and internal weights
 	pass
@@ -177,6 +251,12 @@ func execute_decision():
 			guillotine("farm")
 		"guillotine_industrial":
 			guillotine("industrial")
+		"guillotine_medical":
+			guillotine("medical")
+		#TODO: all the other guillotines
+		"buy_food":
+			#TODO: make a trade arrangement
+			pass
 
 func get_controlled_population():
 	var population = 0
@@ -190,6 +270,17 @@ func collect_taxes():
 		revenue += output * political_policies["vat"]
 		#TODO: income taxes by worker class
 		
+func determine_political_power():
+	match ideology_name:
+		"Machiavellian":
+			political_power = int(int(0 - alignment_hedonism) + int(0 - alignment_morality))/5 + 1 #1 to 5
+		"Hedonistic":
+			political_power = int(int(alignment_hedonism) + int(0 - alignment_morality))/5 + 1 #1 to 5
+		"Righteous":
+			political_power = int(int(0 - alignment_hedonism) + int(alignment_morality))/5 + 1 #1 to 5
+		"Open":
+			political_power = int(int(alignment_hedonism) + int(alignment_morality))/5 + 1 #1 to 5
+
 func consolidate_power():
 	match ideology_name:
 		"Machiavellian":
@@ -218,13 +309,36 @@ func consolidate_power():
 func guillotine(sector: String):
 	for city in owned_cities:
 		city.guillotine(sector)
-	pass
 
 func redistribute_food():
-	#TODO: collect food from cities
-	#TODO: if possible, assign food to cities with negative output first, then distribute some to everywhere else
-	#TODO: evenly distribute the leftovers
-	pass
+	var total_surplus = 0
+	for city in owned_cities:
+		var surplus = max(0, city.food_stored - city.population * 3)
+		if surplus > 0:
+			city.food_stored -= surplus
+			food_pool += surplus
+			total_surplus += surplus
+	var deficits = []  # array of dictionaries {city, deficit}
+	for city in owned_cities:
+		var deficit = max(0, city.population - city.food_stored)
+		if deficit > 0:
+			deficits.append({"city": city, "deficit": deficit})
+	if deficits.size() > 0 and food_pool > 0: #cover deficits using the central pool, starting with the largest deficit.
+		deficits.sort_custom(func(a, b): return a.deficit > b.deficit)
+		for item in deficits:
+			var give = min(item.deficit, food_pool)
+			item.city.food_stored += give
+			food_pool -= give
+			if food_pool <= 0:
+				break
+	if food_pool > 0 and owned_cities.size() > 0: #onc edeficits are covered, just split food evenly
+		var share = floor(food_pool / owned_cities.size())
+		var remainder = food_pool % owned_cities.size()
+		for city in owned_cities:
+			city.food_stored += share
+		for i in range(remainder):
+			owned_cities[i].food_stored += 1
+		food_pool = 0
 
 func recruit_combatant(type: String, isDriver: bool = false):
 	var new_combatant = Combatant.new()
@@ -324,10 +438,34 @@ func recruit_combatant(type: String, isDriver: bool = false):
 	#TODO: take away a driver from an owned city if isDriver is true, otherwise take a road trooper. If no road troopers or drivers are available, take a conscript and set hp to 50
 			
 func build_vehicle(type: String):
-	var new_vehicle
-	#TODO: bsased on the weights of policy, choose attributes to favor
+	var new_vehicle: Vehicle
+	var preferred_type = ""
+	#TODO: bsased on the weights of policy and current convoy composition, choose attributes to favor
 	#TODO: based on favored attributes and favored vehicles types, pick a vehicle type
-	#TODO: assign vehicle attributes based on vehicle type
+	new_vehicle.assign_type(preferred_type)
 	#TODO: if that vehicle type has passengers, loop and do recruit_combatant() to fill those seats
 	#TODO: if vehicle has slots for medium or heavy weapons, pick based on policy preferences
+	return new_vehicle
+	
+func generate_offer_to_user():
+	#TODO: pick type of offer
+	pass
+	
+func generate_buy_share_offer():
+	pass
+
+func generate_loan_offer():
+	pass
+	
+func generate_buy_tickets_offer():
+	pass
+
+func generate_sign_player_offer():
+	pass
+	
+func generate_sell_share_offer():
+	pass
+
+func generate_protection_racket_offer():
+	pass
 	

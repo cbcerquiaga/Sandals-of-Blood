@@ -5,9 +5,9 @@ var max_speed: float = 0.0 #mph
 var visibility: float = 0.0
 var spottijg: float = 0.0
 
-var escorts: Array = []
-var transports: Array = []
-var support: Array = []
+var escorts: Array[Vehicle] = []
+var transports: Array[Vehicle] = []
+var support: Array[Vehicle] = []
 
 func get_max_speed():
 	if escorts.size() == 0 and transports.size() == 0 and support.size() == 0:
