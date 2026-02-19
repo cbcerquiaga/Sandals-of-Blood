@@ -24,9 +24,10 @@ var leader_policies_open: String
 var leader_name_righteous: String #moral and square
 var leader_image_righteous: String
 var leader_policies_righteous: String
-var food_pool: int
-var water_pool: int
-var money_pool: int
+var food_pool: int #people need food to eat
+var water_pool: int #used for farming and economic activity
+var money_pool: int #traded for anything
+var heavy_industry_pool: int #used to build buildings and military equipment
 var political_power: int = 0 #number of actions available this turn
 var current_action: String = ""
 var alignment_hedonism = 0 #-10 (square) to 10 (hedonistic)
@@ -437,14 +438,140 @@ func recruit_combatant(type: String, isDriver: bool = false):
 	#TODO: get weighted decision to decide what kind of armor to buy from available
 	#TODO: take away a driver from an owned city if isDriver is true, otherwise take a road trooper. If no road troopers or drivers are available, take a conscript and set hp to 50
 			
-func build_vehicle(type: String):
-	var new_vehicle: Vehicle
-	var preferred_type = ""
-	#TODO: bsased on the weights of policy and current convoy composition, choose attributes to favor
-	#TODO: based on favored attributes and favored vehicles types, pick a vehicle type
-	new_vehicle.assign_type(preferred_type)
-	#TODO: if that vehicle type has passengers, loop and do recruit_combatant() to fill those seats
-	#TODO: if vehicle has slots for medium or heavy weapons, pick based on policy preferences
+func build_vehicle():
+	var weighted_random = func(weights: Dictionary):
+		var total = 0.0
+		for w in weights.values():
+			total += w
+		var r = randf() * total
+		var cum = 0.0
+		for key in weights:
+			cum += weights[key]
+			if r < cum:
+				return key
+		return weights.keys()[0]
+	var to_camel_case = func(s: String) -> String:
+		var parts = s.split("_")
+		var result = parts[0]
+		for i in range(1, parts.size()):
+			result += parts[i].capitalize()
+		return result
+	var vehicle_types = [
+		"bike", "tricycle", "ebike", "moped", "dirtbike", "e-dirtbike", "hog",
+		"race_cycle", "horse", "wagon", "chariot", "armor_chariot", "dune_buggy",
+		"camel_buggy", "e-buggy", "rocket_buggy", "beater_car", "bull_car",
+		"cheetah_car", "hatchback_car", "rusty_truck", "jungler_truck",
+		"hauler_truck", "technical_truck", "circler_van", "armored_van",
+		"surveilance_van", "bang_bus", "safari_bus", "max_carrier_bus",
+		"balloon_bus", "monster_truck", "pain_train_truck", "tow_truck", "supply_truck"
+	]
+
+	var vehicle_weights = {}
+	for vt in vehicle_types:
+		var key = to_camel_case.call(vt)
+		# Handle special cases
+		if vt == "armor_chariot":
+			key = "armoredChariot"
+		elif vt == "race_cycle":
+			key = "racebike"
+		elif vt == "e-buggy":
+			key = "e-buggy"
+		elif vt == "e-dirtbike":
+			key = "e-dirtbike"
+		vehicle_weights[vt] = war_doctrine.get(key, 1)
+
+	var chosen_type = weighted_random.call(vehicle_weights)
+
+	# ---- 2. Create vehicle ----
+	var new_vehicle = Vehicle.new()
+	new_vehicle.assign_type(chosen_type)
+
+	# ---- 3. Deduct vehicle cost ----
+	if unit_costs.has(chosen_type):
+		money_pool -= unit_costs[chosen_type]
+	else:
+		push_warning("No cost defined for vehicle type: ", chosen_type)
+
+	# ---- 4. Fill combatant slots ----
+	var combatant_types = [
+		"musketeer", "rifleman", "sniper", "archer", "spearman",
+		"pistolier", "shotgunner", "grenadier", "pollaxe"
+	]
+	var combatant_key_map = {
+		"musketeer": "musket",
+		"rifleman": "rifle",
+		"sniper": "sniper",
+		"archer": "archer",
+		"spearman": "spear",
+		"pistolier": "pistol",
+		"shotgunner": "shotgun",
+		"grenadier": "grenade",
+		"pollaxe": "axe"
+	}
+
+	for i in range(new_vehicle.max_combatants):
+		# Choose combatant type
+		var c_weights = {}
+		for ct in combatant_types:
+			var key = "att_" + combatant_key_map[ct]
+			c_weights[ct] = war_doctrine.get(key, 1)
+		var chosen_combatant = weighted_random.call(c_weights)
+
+		# Create combatant
+		var combatant = recruit_combatant(chosen_combatant)
+		# Deduct combatant cost
+		if unit_costs.has(chosen_combatant):
+			money_pool -= unit_costs[chosen_combatant]
+
+		# Choose armor type
+		var armor_types = ["none", "metal", "kevlar", "crash", "camo", "scavenger"]
+		var a_weights = {}
+		for at in armor_types:
+			var key = "a_" + at
+			a_weights[at] = war_doctrine.get(key, 1)
+		var chosen_armor = weighted_random.call(a_weights)
+
+		# Create Armor instance and build it
+		var armor_instance = Armor.new()
+		armor_instance.build_armor(chosen_armor)
+		combatant.armor = armor_instance
+
+		# Deduct armor cost
+		var armor_cost_key = chosen_armor + "_armor"
+		if unit_costs.has(armor_cost_key):
+			money_pool -= unit_costs[armor_cost_key]
+
+		new_vehicle.combatants.append(combatant)
+	# Medium weapons
+	var medium_weapons = ["machine_gun", "blunderbuss", "harpoon_gun", "mortar", "heavy_rifle"]
+	var med_weights = {}
+	for mw in medium_weapons:
+		var key = "m_" + mw.replace("_", "")
+		med_weights[mw] = war_doctrine.get(key, 1)
+
+	for i in range(new_vehicle.med_weapon_slots):
+		var chosen_med = weighted_random.call(med_weights)
+		var weapon = Mounted_Weapon.new()
+		weapon.configure_weapon(chosen_med)
+		if unit_costs.has(chosen_med):
+			money_pool -= unit_costs[chosen_med]
+		new_vehicle.weapons.append(weapon)
+
+	# Heavy weapons
+	var heavy_weapons = ["trebuchet", "heavy_mortar", "howitzer"]
+	var heavy_weights = {}
+	for hw in heavy_weapons:
+		var key = "h_" + hw.replace("_", "")
+		heavy_weights[hw] = war_doctrine.get(key, 1)
+
+	for i in range(new_vehicle.heavy_weapon_slots):
+		var chosen_heavy = weighted_random.call(heavy_weights)
+		var weapon = Mounted_Weapon.new()
+		weapon.configure_weapon(chosen_heavy)
+		if unit_costs.has(chosen_heavy):
+			money_pool -= unit_costs[chosen_heavy]
+		new_vehicle.weapons.append(weapon)
+
 	return new_vehicle
 	
 func generate_offer_to_user():
