@@ -779,6 +779,10 @@ func next_play():
 	is_ball_pitched = false
 	current_play_time = 0.0
 	out_of_bounds_frames = 0
+	var executed_subs: Array[Dictionary] = []
+	executed_subs += pTeam.execute_pending_substitutions()
+	executed_subs += aTeam.execute_pending_substitutions()
+	just_executed_substitutions = executed_subs
 	reset_players_for_next_play()
 	pTeam.nextPlayStatus()
 	aTeam.nextPlayStatus()
@@ -1543,6 +1547,8 @@ func process_ai_coach_decision(decision: Dictionary):
 				sub.sub_position = position
 				aTeam.add_pending_substitution(sub)
 				print("AI Coach: Substituting ", sub_on.bio.last_name, " for ", sub_off.bio.last_name, " at ", position)
+	aTeam.applyTactics()
+	statusUI.assign_team(self)
 	
 	# Process strategy changes
 	if decision.has("strategy_changes"):

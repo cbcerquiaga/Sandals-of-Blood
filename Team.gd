@@ -1021,20 +1021,29 @@ func get_time_in_half():
 	returnString += str(seconds)
 	return returnString
 	
-func execute_pending_substitutions():
+func execute_pending_substitutions() -> Array[Dictionary]:
+	var executed: Array[Dictionary] = []
 	if pending_substitutions.is_empty():
-		return
-		
+		return executed
+	
 	for sub in pending_substitutions:
 		var on_index = next_onfield_players.find(sub.playerOff)
 		var off_index = next_bench.find(sub.playerOn)
 		if on_index != -1 and off_index != -1:
-			var temp = Player.new()
-			temp.set_all_properties(next_onfield_players[on_index])
-			next_onfield_players[on_index].set_all_properties(next_bench[off_index])
-			next_bench[off_index].set_all_properties(temp)
+			# Swap the players
+			var temp = next_onfield_players[on_index]
+			next_onfield_players[on_index] = next_bench[off_index]
+			next_bench[off_index] = temp
 			subs_remaining -= 1
-	pending_substitutions = []
+			# Store for UI
+			executed.append({
+				"team": self,
+				"on": sub.playerOn,
+				"off": sub.playerOff
+			})
+	
+	pending_substitutions.clear()
+	return executed
 	
 func validate_players():
 	for player in roster:

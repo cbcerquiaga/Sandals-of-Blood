@@ -85,6 +85,16 @@ func _ready():
 	current_defense = defense_1
 	current_lf_role = lf_role_1
 	current_rf_role = rf_role_1
+	if staff_skills == null:
+		staff_skills = {
+			"decisiveness": 10,
+			"reactivity": 10,
+			"eccentricity": 10,
+			"matchups": 10,
+			"violence": 10,
+			"injury_tolerance": 10,
+			"flexibility": 10
+		}
 
 func make_coaching_decisions(myTeam: Team, otherTeam: Team, myScore: int, otherScore: int, pitchCount: int, pitches_remaining: int) -> Dictionary:
 	var decisions = {
