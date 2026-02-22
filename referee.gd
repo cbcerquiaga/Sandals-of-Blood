@@ -33,6 +33,7 @@ var biases := { #-10 to +10
 	"back_front": 0, #-more likely to favor backcourt, + more likely to favor frontcourt
 	"run_look": 0 #- more likely to run away after a faceoff, + more likely to stay and observe after a faceoff
 }
+const MAX_VISIBILITY_DISTANCE = 300 #maximum possible length of a field
 var north_point: Vector2
 var south_point: Vector2
 var ball: Ball
@@ -199,14 +200,70 @@ func police_offside(player: Player):
 	#TODO: trigger when a player is on the wrong side of the field; guards/keepers in offensive half or forwards in defensive half
 	#TODO: correct for the player's assigned side- human defensive half y < 0, cpu defensive half y > 0
 	var offense = 0
-	#TODO: offense goes up depending on how long the player is offside
+	var is_in_wrong_half = false
+	if player.team == 1:
+		match player.position_type:
+			"guard", "keeper":
+				is_in_wrong_half = player.global_position.y > 0
+			"forward":
+				is_in_wrong_half = player.global_position.y < 0
+	else:
+		match player.position_type:
+			"guard", "keeper":
+				is_in_wrong_half = player.global_position.y < 0
+			"forward":
+				is_in_wrong_half = player.global_position.y > 0
+
+	if !is_in_wrong_half:
+		player.is_offside = false
+		return
+
+	player.is_offside = true
+
+	#offense goes down when the player moves towards on-side
+	var toward_onside = false
+	if player.team == 1:
+		match player.position_type:
+			"guard", "keeper":
+				toward_onside = player.velocity.y < 0
+			"forward":
+				toward_onside = player.velocity.y > 0
+	else:
+		match player.position_type:
+			"guard", "keeper":
+				toward_onside = player.velocity.y > 0
+			"forward":
+				toward_onside = player.velocity.y < 0
+
+	if toward_onside:
+		offense -= 1
+	else:
+		#offense goes up depending on how long the player is offside
+		#offense doesn't go up if the player is incapacitated
+		if !player.check_is_incapacitated():
+			offense += 1
+
 	#it goes way up if the player touches the ball or an opponent, bigger contact is a bigger deal than little contact
-	#it goes down when the player moves towards on-side
-	#offense doesn't go up if the player is incapacitated
+	if player.offside_contact.is_connected(_on_offside_player_contact):
+		pass
+	else:
+		player.offside_contact.connect(_on_offside_player_contact.bind(player))
+
 	if offense > 100 - attributes.strictness:
 		#that's offside
-		pass
-	pass
+		offender = player
+		player.is_offside = false
+		if player.offside_contact.is_connected(_on_offside_player_contact):
+			player.offside_contact.disconnect(_on_offside_player_contact)
+		fault.emit()
+
+func _on_offside_player_contact(force: float, player: Player):
+	#it goes way up if the player touches the ball or an opponent, bigger contact is a bigger deal than little contact
+	offender = player
+	player.is_offside = false
+	if player.offside_contact.is_connected(_on_offside_player_contact):
+		player.offside_contact.disconnect(_on_offside_player_contact)
+	fault.emit()
 
 func police_interference(player: Reworked_Pitcher):
 	#TODO: trigger when a pitcher is on the field of play
@@ -304,7 +361,7 @@ func officiate():
 		pass
 
 func watch_normal():
-	var visibility = calculate_visibility(ball.global_position)
+	var visibility = get_visibility(ball.global_position)
 	if visibility < 0.5:
 		move_open()
 
@@ -333,37 +390,25 @@ func scan_right():
 	#TODO: look to the right
 	pass
 
-func calculate_visibility(place: Vector2) -> float:
-	var space_state = get_world_2d().direct_space_state
-	var query = PhysicsRayQueryParameters2D.create(global_position, place)
-	query.exclude = [self]
-	
-	var result = space_state.intersect_ray(query)
-	
-	if result:
-		var distance_to_obstacle = global_position.distance_to(result.position)
-		var total_distance = global_position.distance_to(place)
-		return distance_to_obstacle / total_distance
-	return 1.0
 
 func move_open():
 	var best_position = global_position
 	var best_visibility = -INF
-	var current_visibility = calculate_visibility(ball.global_position)
+	var current_visibility = get_visibility(ball.global_position)
 	for i in range(10):
 		var t = i / 9.0
 		var test_point = north_point.lerp(south_point, t)
-		var test_visibility = calculate_visibility_from_point(test_point, ball.global_position)
+		var test_visibility = get_visibility_from_point(test_point, ball.global_position)
 		if test_visibility > best_visibility:
 			best_visibility = test_visibility
 			best_position = test_point
 	if best_position != global_position and best_visibility > current_visibility * 2 :
 		target_position = best_position
 
-func calculate_visibility_from_point(from: Vector2, to: Vector2) -> float:
+func get_visibility_from_point(from: Vector2, to: Vector2) -> float:
 	var original_position = global_position
 	global_position = from
-	var visibility = calculate_visibility(to)
+	var visibility = get_visibility(to)
 	global_position = original_position
 	return visibility
 
@@ -436,3 +481,43 @@ func _on_attack_area_body_entered(body: Node2D):
 func position_for_pitch():
 	global_position = Vector2(north_point.x, ball.global_position.y)
 	current_behavior = "watch_normal"
+
+func get_visibility(target_position: Vector2) -> float:
+	var visibility_value = 1.0
+	var dist = global_position.distance_to(target_position)
+	var dist_factor = 1.0 - (dist / MAX_VISIBILITY_DISTANCE)
+	if dist_factor <= 0:
+		return 0.0
+	visibility_value = dist_factor
+
+	var space_state = get_world_2d().direct_space_state
+	var segment = SegmentShape2D.new()
+	segment.a = global_position
+	segment.b = target_position
+	var query = PhysicsShapeQueryParameters2D.new()
+	query.shape = segment
+	query.collision_mask = 0b0110
+	query.exclude = [self, ball]
+	query.collide_with_bodies = true
+	query.collide_with_areas = false
+	var results = space_state.intersect_shape(query)
+	results.sort_custom(func(a, b):
+		return global_position.distance_squared_to(a.point) < global_position.distance_squared_to(b.point)
+	)
+	for result in results:
+		var hit_point = result.point
+		var dist_to_hit = global_position.distance_to(hit_point)
+		var dist_sq = dist_to_hit * dist_to_hit
+		var impact_quotient = 0.0
+		if dist_sq < 140:
+			impact_quotient = 0.8
+		elif dist_sq < 250:
+			impact_quotient = 0.5
+		else:
+			impact_quotient = 0.2
+		visibility_value *= (1.0 - impact_quotient)
+		if visibility_value <= 0:
+			break
+
+	visibility_value *= attributes.vision / 99.0
+	return clamp(visibility_value, 0.0, 1.0)

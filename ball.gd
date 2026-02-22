@@ -45,6 +45,7 @@ signal area_entered(area: Area2D)
 signal shot_at_goal(ball_position: Vector2, shot_direction: Vector2, shooter_team: int)
 signal pitch_side(side: String)
 signal ball_pitched
+signal ball_touched_by_offside_player(player: Player)
 
 func _ready():
 	collision_layer = 0b0001  # Layer 1 (balls)
@@ -161,6 +162,8 @@ func handle_player_collision(player: Player):
 	player.game_stats.touches += 1
 	last_touched_time = 0
 	bounciness += 180 #3 seconds of bounce
+	if player.is_offside:
+		emit_signal("ball_touched_by_offside_player", player)
 	
 	match player.position_type:
 		"keeper", "guard":

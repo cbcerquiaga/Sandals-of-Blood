@@ -14,6 +14,8 @@ var current_speed_multiplier: float = 1.0
 var sharp_turn_threshold: float
 var preferred_foul: String = "trip" #trip, elbow, gouge, crotch, collar, bite, hold
 var has_checked_false_start: bool = false
+var is_offside: bool = false
+signal offside_contact(force)
 #The Gauntlet
 var gauntlet_target: Vector2 = Vector2.ZERO
 var gauntlet_hits_taken: int = 0
@@ -921,6 +923,8 @@ func _on_attack_area_body_entered(body: Node2D):
 			scrum(body)
 			return
 		# Apply bounce impulse to opponent
+		if is_offside:
+			offside_contact.emit(attackPower)
 		body.take_hit(self, attackPower)
 		# If opponent was moving toward us, roll for durability using buffed attribute
 		if oppAttackPower > 0:
