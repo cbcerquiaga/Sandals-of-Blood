@@ -242,11 +242,17 @@ func lineup_faceoff(already_set_position: bool = false):
 	var human_pitcher_pos = Vector2(faceoff_ball_position.x, faceoff_ball_position.y + offset_distance)
 	position_player(pTeam.P, human_pitcher_pos, field.human_orientation)
 	pTeam.P.current_behavior = "faceoff"
+	pTeam.P.has_pitched = false
+	pTeam.P.faceoff_exit_direction = Vector2.ZERO
+	pTeam.P.faceoff_recover_timer = 0.0
 	pTeam.P.can_move = false
 	pTeam.P.velocity = Vector2.ZERO
 	var cpu_pitcher_pos = Vector2(faceoff_ball_position.x, faceoff_ball_position.y - offset_distance)
 	position_player(aTeam.P, cpu_pitcher_pos, field.cpu_orientation)
 	aTeam.P.current_behavior = "faceoff"
+	aTeam.P.has_pitched = false
+	aTeam.P.faceoff_exit_direction = Vector2.ZERO
+	aTeam.P.faceoff_recover_timer = 0.0
 	aTeam.P.can_move = false
 	aTeam.P.velocity = Vector2.ZERO
 	position_player(pTeam.K, field.human_k_spawn, field.human_orientation)

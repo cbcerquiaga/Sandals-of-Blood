@@ -93,6 +93,8 @@ var has_made_first_move: bool = false
 var legal_first_moves: Array
 var is_faceoff_recover: bool = false
 var faceoff_waiting_for_ball: bool = false
+var faceoff_exit_direction: Vector2 = Vector2.ZERO
+var faceoff_recover_timer: float = 0.0
 var must_go_to_rest_first: bool = true
 # Cheating behavior
 var cheating_start_time: float = 0.0
@@ -155,9 +157,10 @@ func _physics_process(delta):
 	if global_position.distance_squared_to(rest_position) < 100:
 		has_arrived = true
 	# Safety check - if pitcher has pitched but hasn't transitioned to going_away
-	if has_pitched and current_behavior != "going_away" and current_behavior != "going_to_track" and current_behavior != "deciding" and current_behavior != "fighting" and current_behavior != "chasing" and current_behavior != "fleeing" and current_behavior != "chilling" and current_behavior != "tracking" and current_behavior != "faceoff_recover" and current_behavior != "faceoff":
+	if has_pitched and current_behavior != "going_away" and current_behavior != "going_to_track" and current_behavior != "deciding" and current_behavior != "fighting" and current_behavior != "chasing" and current_behavior != "fleeing" and current_behavior != "chilling" and current_behavior != "tracking" and current_behavior != "faceoff_recover" and current_behavior != "faceoff" and current_behavior != "cheating":
 		print(bio.last_name + " forgot to go away! Forcing transition.")
 		go_away()
+		return
 	
 	if Input.is_action_pressed("pitch"):
 		human_ready = true
@@ -389,37 +392,40 @@ func faceoff_recover():
 	is_faceoff_recover = true
 	can_move = true
 	
-	#check discipline to decide if the player will cheat after the faceoff
-	var discipline_check = randi_range(0, 100)
-	var discipline_threshold = get_buffed_attribute("discipline")
-	
-	if discipline_check > discipline_threshold:
-		discipline_check = randi_range(0, 100)
+	if faceoff_exit_direction == Vector2.ZERO:
+		var discipline_check = randi_range(0, 100)
+		var discipline_threshold = get_buffed_attribute("discipline")
+		var faceoff_pos = ball.global_position if ball else global_position
+		var is_left_faceoff = faceoff_pos.x < 0
+		var rand_y = randf_range(-0.2, 0.2)
 		if discipline_check > discipline_threshold:
-			print(bio.last_name + " failed discipline twice! Going for the ball later")
-				#start_cheating()
-	var faceoff_pos = ball.global_position if ball else global_position
-	var exit_direction: Vector2 = Vector2.ZERO
+			discipline_check = randi_range(0, 100)
+			if discipline_check > discipline_threshold:
+				print(bio.last_name + " failed discipline twice! Going for the ball later")
+		else:
+			rand_y = 0
+		if is_left_faceoff:
+			faceoff_exit_direction = Vector2(-1, rand_y)
+		else:
+			faceoff_exit_direction = Vector2(1, rand_y)
+		faceoff_recover_timer = 0.0
 	
-	# Check if it's a side faceoff or centered offensive faceoff
-	var is_left_faceoff = faceoff_pos.x < 0  # Near left sideline
-	var rand_y = randi_range(-0.2, 0.2) #some variance instead of just going straight left or right
-	if randi_range(0,100) < get_buffed_attribute("positioning"):
-		rand_y = 0 #if we have good positioning, just get the hell off
-	if is_left_faceoff:
-		exit_direction = Vector2(-1, rand_y)
-	else: # is_right_faceoff:
-		exit_direction = Vector2(1, rand_y)
+	faceoff_recover_timer += get_process_delta_time()
+	if faceoff_recover_timer >= 1.0:
+		var faceoff_pos = ball.global_position if ball else global_position
+		faceoff_exit_direction = Vector2(-1, 0) if faceoff_pos.x < 0 else Vector2(1, 0)
+	
 	var speed = get_buffed_attribute("sprint_speed") if status.boost > 0 else get_buffed_attribute("speed")
 	if status.boost > 0:
 		speed = get_buffed_attribute("sprint_speed")
 		status.boost = max(0, status.boost - 0.5)
-	velocity = exit_direction * speed
+	velocity = faceoff_exit_direction * speed
 	move_and_slide()
 	
-
 	if is_off_field():
 		is_faceoff_recover = false
+		faceoff_exit_direction = Vector2.ZERO
+		faceoff_recover_timer = 0.0
 		var behavior_roll = randf_range(0, 100)
 		var flee_threshold = scrapping["flee"]
 		var chill_threshold = flee_threshold + scrapping["chill"]
@@ -435,18 +441,11 @@ func faceoff_recover():
 		else:
 			chosen_behavior = "tracking"
 		
-		# AFTER getting off field, always go to track first before fighting
-		# Store the intended behavior for later
 		if chosen_behavior == "chasing":
-			# Set a flag to chase after reaching track
 			wants_to_cheat = false
 			current_behavior = "going_to_track"
 			going_to_track = true
-			
-			# Store chase intent
 			pending_behavior_change = "chasing"
-			
-			# Initialize track movement
 			decide_initial_direction()
 			var closest_index = find_closest_position_index(global_position)
 			current_path_index = closest_index

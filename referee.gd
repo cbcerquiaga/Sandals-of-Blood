@@ -105,6 +105,7 @@ func _physics_process(delta):
 		fault.emit()
 	match current_behavior:
 		"watch_ball":
+			watch_normal()
 			pass
 		"watch-focus":
 			pass
@@ -117,10 +118,18 @@ func _physics_process(delta):
 				target_position = global_position
 			else:
 				faceoff_evade()
-		"grab-njured":
-			pass
+		"grab-injured":
+			if rescuing_player and is_instance_valid(rescuing_player):
+				collect_player(rescuing_player)
+			else:
+				rescuing_player = null
+				current_behavior = "watch_ball"
 		"injured-evade":
-			pass
+			if rescuing_player and is_instance_valid(rescuing_player):
+				drag_player(rescuing_player)
+			else:
+				rescuing_player = null
+				current_behavior = "watch_ball"
 		"brawl-breakup":
 			pass
 		"hand-signal":
@@ -413,19 +422,60 @@ func get_visibility_from_point(from: Vector2, to: Vector2) -> float:
 	return visibility
 
 func save_player(player: Player):
-	#TODO: figure out when to collect player and when to drag them
+	if rescuing_player == player:
+		return
+	if not player.check_is_incapacitated(): #I'm not dead yet!
+		return
+	if randi_range(0,100) > attributes.intervention:
+		return
+	rescuing_player = player
+	current_behavior = "grab-injured"
 	collect_player(player)
-	drag_player(player)
 
 func collect_player(player: Player):
-	#TODO: move around the outside of the field to find an open path to the player
-	#TODO: move to the player
-	pass
+	if global_position.distance_squared_to(player.global_position) <= 50: #collection done, drag the player to safety
+		current_behavior = "injured-evade"
+		drag_player(player)
+		return
+	var sideline_waypoint = Vector2(north_point.x, player.global_position.y)
+	
+	var at_sideline = abs(global_position.x - north_point.x) <= 3
+	if at_sideline:
+		target_position = player.global_position
+	else:
+		target_position = sideline_waypoint
 
 func drag_player(player: Player):
 	player.can_move = false
-	#TODO: assign player's position to wherever the referee just was
-	#TODO: when the player is off the field of play, drop them and return to another behavior
+	
+	var exit_candidates = [
+		field.leftWall.global_position,
+		field.rightWall.global_position,
+		field.frontWall.global_position,
+		field.backWall.global_position
+	]
+	var exit_point = exit_candidates[0]
+	var closest_dist = global_position.distance_squared_to(exit_candidates[0])
+	for candidate in exit_candidates.slice(1):
+		var d = global_position.distance_squared_to(candidate)
+		if d < closest_dist:
+			closest_dist = d
+			exit_point = candidate
+	target_position = exit_point
+	
+	var direction = (target_position - global_position).normalized()
+	player.global_position = global_position - direction * 20.0
+	
+	if not field.is_position_in_bounds(global_position):
+		player.can_move = false
+		rescuing_player = null
+		current_behavior = "watch_ball"
+		target_position = global_position
+		return
+	
+	var drag_speed = attributes.speed * (attributes.strength / 100.0)
+	velocity = direction * drag_speed
+	move_and_slide()
 
 func triage_save(injured_players: Array):
 	var worst_injured: Player
@@ -505,7 +555,7 @@ func get_visibility(target_position: Vector2) -> float:
 		return global_position.distance_squared_to(a.point) < global_position.distance_squared_to(b.point)
 	)
 	for result in results:
-		var hit_point = result.point
+		var hit_point = result.collider.global_position
 		var dist_to_hit = global_position.distance_to(hit_point)
 		var dist_sq = dist_to_hit * dist_to_hit
 		var impact_quotient = 0.0
