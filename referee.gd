@@ -72,6 +72,7 @@ var has_checked_start: bool = false #if the character has enforced a false start
 var current_behavior: String
 var target_position: Vector2
 var wait_timer: int = 0
+var brawl_level: int = 0
 """
 watch-normal; looks at the ball, but also scans to the other side
 watch-focus; moving and fixates on a particular player
@@ -109,7 +110,7 @@ func _physics_process(delta):
 			watch_normal()
 			pass
 		"watch-focus":
-			pass
+			watch_focus()
 		"faceoff-toss":
 			pass
 		"faceoff-evade":
@@ -132,7 +133,7 @@ func _physics_process(delta):
 				rescuing_player = null
 				current_behavior = "watch_ball"
 		"brawl-breakup":
-			pass
+			brawl_breakup()
 		"hand-signal":
 			pass
 	var direction = (target_position - global_position).normalized()
@@ -276,14 +277,62 @@ func _on_offside_player_contact(force: float, player: Player):
 	fault.emit()
 
 func police_interference(player: Reworked_Pitcher):
-	#TODO: trigger when a pitcher is on the field of play
-	var offense = 0
-	#TODO: offense goes up if the pitcher touches any non-pitchers or the ball
-	#TODO: bigger contact is more of a big deal
-	if offense > 100 - attributes.strictness:
-		#that's interference
-		pass
-	pass
+	if not is_play_live:
+		return
+	if not field.is_position_in_bounds(player.global_position):
+		return
+	
+	if player.current_behavior == "going_away" or player.current_behavior == "faceoff_recover":
+		var grace_key = ("p" if player.team == 1 else "c") + "_p"
+		if memory.has(grace_key) and memory[grace_key].size() >= 4:
+			memory[grace_key][3] = 0.0
+		return
+	
+	var visibility = get_visibility(player.global_position)
+	if visibility <= 0.0:
+		return
+	
+	var memory_key = ("p" if player.team == 1 else "c") + "_p"
+	if not memory.has(memory_key) or memory[memory_key].size() == 0:
+		push_error("Referee.police_interference: pitcher not in memory under key " + memory_key)
+		return
+	
+	var player_record = memory[memory_key]
+	while player_record.size() < 4:
+		player_record.append(0.0)
+	var interference_offense: float = player_record[3]
+	
+	var t = clamp((attributes.strictness - 50.0) / 49.0, 0.0, 1.0)
+	var call_threshold_seconds: float = lerp(2.0, 0.4, t)
+	
+	var delta = get_process_delta_time()
+	var presence_rate: float = 3.0 if player.current_behavior == "cheating" else 1.0
+	interference_offense += presence_rate * visibility * delta
+	
+	var ball_contact_range = 12.0
+	if player.global_position.distance_to(ball.global_position) <= ball_contact_range:
+		interference_offense += call_threshold_seconds + 0.2
+	
+	for other in spotted_players:
+		if other == player:
+			continue
+		if other.position_type == "pitcher":
+			continue
+		var contact_dist = player.global_position.distance_to(other.global_position)
+		if contact_dist <= 18.0:
+			var closing_velocity = (player.velocity - other.velocity).dot(
+				(other.global_position - player.global_position).normalized()
+			)
+			closing_velocity = max(0.0, closing_velocity)
+			var contact_spike = lerp(0.1, 0.6, clamp(closing_velocity / 200.0, 0.0, 1.0))
+			interference_offense += contact_spike * visibility
+	
+	player_record[3] = interference_offense
+	
+	if interference_offense >= call_threshold_seconds:
+		offender = player
+		player_record[3] = 0.0
+		fault.emit()
 	
 func police_foul(player: Player):
 	#TODO: trigger when a player commits an intentional foul action
@@ -366,26 +415,33 @@ func officiate():
 		#TODO: see if the player is on-side
 		#TODO: see if the player has false started
 		#TODO: see if the player has committed a foul
-		#TODO: see if the player has committed interference
 		#TODO: if the player is fallen and injured, consider saving them
-		pass
+		if player is Reworked_Pitcher:
+			police_interference(player as Reworked_Pitcher)
 
 func watch_normal():
 	var visibility = get_visibility(ball.global_position)
 	if visibility < 0.5:
 		move_open()
+	
+	var ball_dir = (ball.global_position - global_position)
+	if ball_dir.length_squared() > 0.01:
+		look(ball_dir)
+	
+	see()
+	officiate()
+	
+	var scan_chance = (attributes.awareness / 99.0) * 0.05
+	if randf() < scan_chance:
+		scan()
 
 func scan():
-	#TODO: if looking left, scan right
-	#TODO: if looking right, scan left
-	#TODO: if looking at the middle, scan both left and right
-	var look_point = look_direction * 20
-	if look_point.global_postion.y < global_position.y - 20: #looking left
+	if look_direction.y < -0.2:
 		scan_right()
-	elif look_point.global_position.y > global_position.y + 20: #looking right
+	elif look_direction.y > 0.2:
 		scan_left()
-	else: #looking middle
-		if look_point.global_postion.y <= global_position.y:
+	else:
+		if look_direction.y <= 0.0:
 			scan_left()
 			scan_right()
 		else:
@@ -393,12 +449,32 @@ func scan():
 			scan_left()
 
 func scan_left():
-	#TODO: look to the left
-	pass
+	var north_goal_dir = (north_point - global_position)
+	if north_goal_dir.length_squared() < 0.01:
+		return
+	var saved_look = look_direction
+	var saved_left = vision_left
+	var saved_right = vision_right
+	look(north_goal_dir)
+	see()
+	officiate()
+	look_direction = saved_look
+	vision_left = saved_left
+	vision_right = saved_right
 
 func scan_right():
-	#TODO: look to the right
-	pass
+	var south_goal_dir = (south_point - global_position)
+	if south_goal_dir.length_squared() < 0.01:
+		return
+	var saved_look = look_direction
+	var saved_left = vision_left
+	var saved_right = vision_right
+	look(south_goal_dir)
+	see()
+	officiate()
+	look_direction = saved_look
+	vision_left = saved_left
+	vision_right = saved_right
 
 
 func move_open():
@@ -572,3 +648,133 @@ func get_visibility(target_position: Vector2) -> float:
 
 	visibility_value *= attributes.vision / 99.0
 	return clamp(visibility_value, 0.0, 1.0)
+	
+func brawl_breakup():
+	see()
+	var brawlers: Array = []
+	for player in spotted_players:
+		if player.is_in_brawl or player.current_behavior == "brawling":
+			brawlers.append(player)
+	
+	if brawlers.size() > 0:
+		brawl_level = min(100, brawl_level + brawlers.size())
+	else:
+		brawl_level = max(0, brawl_level - 2)
+		if brawl_level == 0:
+			current_behavior = "watch_ball"
+		return
+	
+	var intervention_threshold = 100 - attributes.intervention
+	if brawl_level < intervention_threshold:
+		var centroid = Vector2.ZERO
+		for p in brawlers:
+			centroid += p.global_position
+		centroid /= brawlers.size()
+		var brawl_dir = (centroid - global_position)
+		if brawl_dir.length_squared() > 0.01:
+			look(brawl_dir)
+		officiate()
+		return
+	
+	var best_target: Player = null
+	var best_score: float = -INF
+	
+	for player in brawlers:
+		var score: float = 0.0
+		var dist = global_position.distance_to(player.global_position)
+		score -= dist
+		if biases.away_home > 0:
+			if player.team == 2:
+				score += abs(biases.away_home) * 5.0
+		elif biases.away_home < 0:
+			if player.team == 1:
+				score += abs(biases.away_home) * 5.0
+		match player.position_type:
+			"forward":
+				score += biases.back_front * 3.0
+			"guard", "keeper":
+				score -= biases.back_front * 3.0
+		if score > best_score:
+			best_score = score
+			best_target = player
+	
+	if not best_target:
+		return
+	
+	target_position = best_target.global_position
+	var approach_dir = (best_target.global_position - global_position)
+	if approach_dir.length_squared() > 0.01:
+		look(approach_dir)
+	
+	if global_position.distance_to(best_target.global_position) <= 30.0:
+		_referee_separate_player(best_target)
+		var intimidation = best_target.get_buffed_attribute("power") / 100.0
+		var bravery_roll  = attributes.bravery / 99.0
+		if randf() + intimidation * 0.4 > bravery_roll:
+			brawl_level = max(0, brawl_level - 20)
+			target_position = global_position
+
+func _referee_separate_player(player: Player):
+	var ref_strength  = attributes.strength
+	var player_power  = player.get_buffed_attribute("power")
+	var ref_roll   = ref_strength  + randf_range(-10.0, 10.0)
+	var play_roll  = player_power  + randf_range(-10.0, 10.0)
+	var margin     = ref_roll - play_roll
+	var push_dir   = (player.global_position - global_position).normalized()
+	
+	if margin >= 15.0:
+		var toss_speed = 180.0 + margin * 2.0
+		var toss_units = int(clamp(margin / 3.0, 5, 20))
+		player.get_tossed(push_dir, toss_units, toss_speed)
+		var stun_time = (445.0 - 4.0 * player.get_buffed_attribute("toughness")) / 49.0 * 0.75
+		player.enter_stunned_state(stun_time)
+		player.stop_brawling()
+		player.is_in_brawl = false
+		player.overall_state = Player.PlayerState.IDLE
+		brawl_level = max(0, brawl_level - 25)
+	
+	elif margin >= 0.0:
+		var bump_speed = 80.0 + margin
+		var bump_units = int(clamp(margin / 5.0, 2, 10))
+		player.get_tossed(push_dir, bump_units, bump_speed)
+		player.lose_stability(margin * 1.5)
+		if player.status.stability <= 0:
+			var stun_time = (445.0 - 4.0 * player.get_buffed_attribute("toughness")) / 49.0 * 0.75
+			player.enter_stunned_state(stun_time)
+			player.stop_brawling()
+			player.is_in_brawl = false
+			player.overall_state = Player.PlayerState.IDLE
+		player.status.anger = max(0, player.status.anger - 10)
+		brawl_level = max(0, brawl_level - 10)
+	
+	else:
+		velocity = -push_dir * 80.0
+		brawl_level = max(0, brawl_level - 3)
+
+
+func watch_focus():
+	if not focused_player or not is_instance_valid(focused_player):
+		focused_player = null
+		current_behavior = "watch_ball"
+		return
+	
+	var visibility = get_visibility(focused_player.global_position)
+	if visibility < 0.5:
+		move_open()
+	
+	var focus_dir = (focused_player.global_position - global_position)
+	if focus_dir.length_squared() > 0.01:
+		look(focus_dir)
+	
+	see()
+	
+	officiate()
+	if focused_player in spotted_players:
+		var full_spotted = spotted_players.duplicate()
+		spotted_players = [focused_player]
+		officiate()
+		spotted_players = full_spotted
+	
+	var scan_chance = (attributes.awareness / 99.0) * 0.02
+	if randf() < scan_chance:
+		scan()
