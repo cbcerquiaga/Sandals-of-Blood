@@ -31,6 +31,8 @@ var is_gauntlet_active: bool = false
 var gauntlet_runner: Player = null
 var gauntlet_offending_team: int = -1
 var gauntlet_participants: Array[Player] = []
+var _pending_penalty_goal_team: int = -1
+var gauntlet_elapsed_time: float = 0.0
 @onready var eventpopup = $UI/MatchEventPopup as MatchPopup
 @onready var sub_indicators_container = $UI/SubIndicatorsContainer
 var just_executed_substitutions: Array[Dictionary] = []  #{Team, on Player, off Player}
@@ -158,6 +160,8 @@ func _on_ball_crossed_midfield():
 		pTeam.K.current_behavior = "pitch_defense"
 
 func _on_ball_exited_field():
+	if is_gauntlet_active:
+		return  # Ball is parked at gauntlet_end during gauntlet, ignore out-of-bounds
 	if is_faceoff:
 		if ball.global_position != faceoff_ball_position:
 			ball.global_position = faceoff_ball_position
@@ -362,6 +366,8 @@ func determine_tie_faceoff(human_target: Vector2, cpu_target: Vector2) -> Vector
 func _on_player_goal():
 	if match_ended or not is_instance_valid(ball):
 		return
+	if is_gauntlet_active:
+		return  # Ignore goals during gauntlet
 	var current_pitch = GlobalSettings.pitch_limit - pitches_remaining
 	var scorer = ball.last_hit_by
 	var passer = ball.assist_by
@@ -472,6 +478,8 @@ func _on_player_goal():
 func _on_cpu_goal():
 	if match_ended or not is_instance_valid(ball):
 		return
+	if is_gauntlet_active:
+		return  # Ignore goals during gauntlet
 	var current_pitch = GlobalSettings.pitch_limit - pitches_remaining
 	var scorer = ball.last_hit_by
 	var passer
@@ -631,6 +639,7 @@ func _process(delta: float) -> void:
 	if is_faceoff:
 		print("DEBUG _process: In faceoff - has_started=" + str(has_started))
 	elif is_gauntlet_active:
+		gauntlet_elapsed_time += delta
 		check_gauntlet_complete()
 	if Input.is_action_just_pressed("pause") and !match_ended:
 		get_tree().paused = true
@@ -681,12 +690,15 @@ func _process(delta: float) -> void:
 		if current_play_time >= 5 and !is_play_live: #TODO: balance time before players are free
 			_on_ball_crossed_midfield()
 		if current_play_time > max_play_time:
-			print("time's up!")
-			pitch_returned()
-			is_human_team_pitching = !is_human_team_pitching
-			pTeam.is_on_offense = !pTeam.is_on_offense
-			aTeam.is_on_offense = !aTeam.is_on_offense
-			next_play()
+			if is_gauntlet_active:
+				pass  # Don't interrupt the gauntlet
+			else:
+				print("time's up!")
+				pitch_returned()
+				is_human_team_pitching = !is_human_team_pitching
+				pTeam.is_on_offense = !pTeam.is_on_offense
+				aTeam.is_on_offense = !aTeam.is_on_offense
+				next_play()
 			
 	if Input.is_action_just_pressed("debug_reset"):
 		GlobalSettings.record_event(str(GlobalSettings.pitch_limit - pitches_remaining) + ", Play Debug Skipped)")
@@ -775,6 +787,9 @@ func _process(delta: float) -> void:
 			pTeam.RG.add_energy(100)
 		
 func next_play():
+	if is_gauntlet_active:
+		push_error("next_play() called during active gauntlet - ignoring")
+		return
 	if pTeam.K.is_workhorse:
 		pTeam.fire_up_bench()
 	if aTeam.K.is_workhorse:
@@ -800,6 +815,7 @@ func next_play():
 
 	statusUI.assign_team(self)
 	set_sub_icons()
+	statusUI.set_fouls(foul_diff)
 	play_timer.start(GlobalSettings.play_time if GlobalSettings.play_time > 0 else 9999)
 	fighting_frame = 0
 	check_matchups()
@@ -1001,6 +1017,8 @@ func score_goal(team: int):
 		next_play()
 
 func _on_play_timer_timeout():
+	if is_gauntlet_active:
+		return  # Don't interrupt the gauntlet
 	# Play length expired - switch pitching team
 	GlobalSettings.record_event(str(GlobalSettings.pitch_limit - pitches_remaining) + ", Play Timed Out)")
 	print("Play timer expired - switching pitching team")
@@ -1591,22 +1609,24 @@ func _on_fault():
 	
 func foul(direction: int):
 	foul_diff = foul_diff + direction
-	if foul_diff < -2:
+	var penalty_goal_team = -1
+	if foul_diff <= -2:
 		foul_diff = -2
-		#TODO: penalty goal
-	elif foul_diff > 2:
+		penalty_goal_team = 2  # team 1 offended (diff went negative) → team 2 gets the penalty goal
+	elif foul_diff >= 2:
 		foul_diff = 2
-		#TODO: penalty goal
+		penalty_goal_team = 1  # team 2 offended (diff went positive) → team 1 gets the penalty goal
 	statusUI.set_fouls(foul_diff)
-	gauntlet()
+	gauntlet(penalty_goal_team)
 	
-func gauntlet():
+func gauntlet(penalty_goal_team: int = -1):
 	if !ref.offender:
 		push_error("No offender set for gauntlet")
 		return
-	var offending_team = pTeam if gauntlet_offending_team == 1 else aTeam
+	var offending_team = pTeam if ref.offender.team == 1 else aTeam
+	var non_offending_team = aTeam if ref.offender.team == 1 else pTeam
 	var current_pitch = GlobalSettings.pitch_limit - pitches_remaining
-	eventpopup.show_foul(current_pitch,ref.offender, offending_team, foul_diff)
+	eventpopup.show_foul(current_pitch, ref.offender, offending_team, foul_diff)
 	await eventpopup.closed
 	
 	is_gauntlet_active = true
@@ -1636,8 +1656,6 @@ func gauntlet():
 	ref.offender.gauntlet_target = ref.gauntlet_end
 	ref.offender.in_gauntlet = true
 	ref.offender.can_move = true
-	
-	var non_offending_team = aTeam if gauntlet_offending_team == 1 else pTeam
 	
 	# Move offending team to their pitch positions
 	for player in offending_team.onfield_players:
@@ -1672,10 +1690,20 @@ func gauntlet():
 	position_gauntlet_defenders(non_offending_team)
 	
 	# Enable gauntlet behavior for defenders
+	# Enable gauntlet behavior for defenders — they must be able to move to attack
 	for player in gauntlet_participants:
 		player.current_behavior = "be_gauntlet"
 		player.gauntlet_runner_reference = ref.offender
 		player.can_move = false
+	
+	# If the foul differential reached ±2, flag that a penalty goal should follow the gauntlet
+	if penalty_goal_team != -1:
+		_pending_penalty_goal_team = penalty_goal_team
+	
+	# Stop the play timer so it can't fire next_play() mid-gauntlet
+	play_timer.stop()
+	gauntlet_elapsed_time = 0.0
+	print("GAUNTLET: setup complete. runner=", gauntlet_runner.bio.last_name, " start=", ref.gauntlet_start, " end=", ref.gauntlet_end, " defenders=", gauntlet_participants.size())
 		
 func position_gauntlet_defenders(team: Team):
 	# Position non-offending team at gauntlet positions
@@ -1724,16 +1752,24 @@ func check_gauntlet_complete():
 	if !is_gauntlet_active or !gauntlet_runner:
 		return
 		
+	# Require at least 1 second before the gauntlet can end, so setup frame jitter can't trigger it
+	if gauntlet_elapsed_time < 1.0:
+		return
 	var ref_dist = (100 - ref.attributes.strictness)/10 #5 to 0.1
-	if gauntlet_runner.global_position.distance_to(ref.gauntlet_end) < ref_dist:
+	var dist_to_end = gauntlet_runner.global_position.distance_to(ref.gauntlet_end)
+	print("GAUNTLET: runner at ", gauntlet_runner.global_position, " end at ", ref.gauntlet_end, " dist=", dist_to_end, " threshold=", ref_dist, " ground_hits=", gauntlet_runner.gauntlet_ground_hits)
+	if dist_to_end < ref_dist:
+		print("GAUNTLET: ending - runner reached end")
 		end_gauntlet()
 		return
 	var ref_hits = (100 - ref.attributes.intervention)/10 + 8# 8 to 13
 	if gauntlet_runner.gauntlet_ground_hits >= ref_hits:
+		print("GAUNTLET: ending - enough hits taken")
 		end_gauntlet()
 		return
 		
 func end_gauntlet():
+	print("GAUNTLET: end_gauntlet() called. pending_penalty=", _pending_penalty_goal_team)
 	is_gauntlet_active = false
 	
 	# Reset runner state
@@ -1751,11 +1787,79 @@ func end_gauntlet():
 			player.reset_state()
 			player.can_move = false
 			player.gauntlet_runner_reference = null
-	is_human_team_pitching = (gauntlet_offending_team != 1) #non-offending team gets to pitch
-	gauntlet_offending_team = -1
-	#TODO: don't incement the pitch count
-	next_play()
 	
+	is_human_team_pitching = (gauntlet_offending_team != 1) # non-offending team gets to pitch
+	var pitch_team_after: Team = pTeam if is_human_team_pitching else aTeam
+	
+	# Snapshot and clear penalty state before any awaits
+	var penalty_team = _pending_penalty_goal_team
+	_pending_penalty_goal_team = -1
+	var scored_victim = ref.victim
+	ref.victim = null
+	gauntlet_offending_team = -1
+	
+	if penalty_team != -1:
+		var scoring_team_node = pTeam if penalty_team == 1 else aTeam
+		var conceding_team = aTeam if penalty_team == 1 else pTeam
+		
+		# Credit goal to victim if there is one
+		if scored_victim:
+			scored_victim.game_stats.goals += 1
+			most_recent_scorer = scored_victim
+			if scored_victim.status.starter:
+				scoring_team_node.game_stats.starter_goals += 1
+			else:
+				scoring_team_node.game_stats.bench_goals += 1
+		
+		# Update team-level goals_for / goals_against
+		for player in scoring_team_node.onfield_players:
+			if player:
+				player.game_stats.goals_for += 1
+		for player in conceding_team.onfield_players:
+			if player:
+				player.game_stats.goals_against += 1
+		
+		scoring_team_node.game_stats.goals += 1
+		
+		eventpopup.after_gauntlet(foul_diff, pitch_team_after, scoring_team_node, scored_victim)
+		await eventpopup.closed
+		
+		foul_diff = 0
+		statusUI.set_fouls(foul_diff)
+		
+		reset_players_for_next_play()
+		reposition_players()
+		score_goal(penalty_team)
+	else:
+		eventpopup.after_gauntlet(foul_diff, pitch_team_after, null, null)
+		await eventpopup.closed
+		next_play()
+
 func _on_redo():
-	#TODO: redo the play
-	pass
+	# Lesser violation: stop play and restart from the pitch without advancing pitch count
+	is_play_live = false
+	is_ball_pitched = false
+	if ball:
+		ball.current_state = Ball.BallState.WAITING
+		ball.freeze = true
+		ball.linear_velocity = Vector2.ZERO
+	if aimTarget:
+		aimTarget.visible = false
+	for player in pTeam.onfield_players + aTeam.onfield_players:
+		if player:
+			player.velocity = Vector2.ZERO
+			player.can_move = false
+			player.reset_state()
+	# Restart the same pitch: same team pitches, pitch count does not change
+	reset_players_for_next_play()
+	reposition_players()
+	setup_pitching_team()
+	reset_ball_and_field()
+	var current_pitch = GlobalSettings.pitch_limit - pitches_remaining
+	GlobalSettings.record_event(str(current_pitch) + ", Redo Play - violation")
+	var pitching_team = pTeam if is_human_team_pitching else aTeam
+	eventpopup.show_redo(current_pitch, pitching_team)
+	await eventpopup.closed
+	# Resume play (pitchers are already set up, let next pitch begin)
+	pTeam.P.can_move = true if is_human_team_pitching else pTeam.P.can_move
+	aTeam.P.can_move = true if !is_human_team_pitching else aTeam.P.can_move

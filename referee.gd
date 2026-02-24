@@ -94,6 +94,7 @@ warning; notices a violation but doesn't call a stoppage in play
 lost sight of ball; ball is not anywhere visible on the screen for too long
 """
 var offender: Player
+var victim: Player  # the player who was fouled against (null if no direct victim)
 signal fault #adds differential to fouls. If a team reaches +2 fault, a penalty goal is awarded and fault resets
 signal gauntlet #for foul play, the non-offending team gets to beat up the offending player
 signal redo #something went wrong with the play, re-do it

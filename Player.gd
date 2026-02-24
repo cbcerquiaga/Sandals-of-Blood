@@ -2064,7 +2064,7 @@ func run_gauntlet():
 		
 		# Check if we can get up based on agility
 		var getup_chance = get_buffed_attribute("agility") / 100.0
-		if randf() < getup_chance * 0.01:  # 1% of agility score per frame as chance
+		if randf() < getup_chance * 0.03:
 			is_incapacitated = false
 			is_stunned = false
 			status.stability = get_buffed_attribute("balance") * 0.5  # Recover partial stability
@@ -2110,6 +2110,7 @@ func be_gauntlet():
 		last_gauntlet_attack_time = current_time
 
 func execute_gauntlet_attack():
+	print("I'm gonna gaunt you")
 	"""
 	Execute an attack on the gauntlet runner.
 	Damage is based on attacker's power, toughness, and shooting attributes.
@@ -2157,23 +2158,15 @@ func apply_gauntlet_damage(runner: Player, damage: float):
 			runner.is_incapacitated = true
 			runner.is_stunned = true
 			runner.gauntlet_hits_taken += 1
-			
-			# If fallen, track ground hits
-			if runner.gauntlet_ground_hits == 0:
-				runner.gauntlet_ground_hits = 1
+			runner.gauntlet_ground_hits += 1  # Count each knockdown once, here only
 	
-	# If already on ground, this is a ground hit
+	# If already on ground, apply additional injury chance but do NOT increment ground_hits again
 	if runner.is_incapacitated or runner.is_stunned:
-		runner.gauntlet_ground_hits += 1
-		
 		# Attacks on grounded players continue based on attacker's aggression
-		# The closer the attacker, the more likely to attack again
 		var distance_factor = 1.0 - (global_position.distance_to(runner.global_position) / 100.0)
 		distance_factor = clamp(distance_factor, 0.0, 1.0)
-		
 		var ground_attack_rate = (get_buffed_attribute("aggression") / 100.0) * distance_factor
-		if randf() < ground_attack_rate * 0.5:  # Reduced chance for balance
-			# Apply additional injury chance
+		if randf() < ground_attack_rate * 0.5:
 			apply_gauntlet_injury(runner, damage * 1.5)
 	else:
 		# Regular injury chance

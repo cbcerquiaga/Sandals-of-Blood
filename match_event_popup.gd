@@ -147,11 +147,14 @@ func show_foul(pitch: int, offender: Player, team: Team, fault: int):
 	$MainLabel.text = "FOUL PLAY"
 	violation(pitch, offender, team, fault)
 	
-func after_gauntlet(fault: int, pitchTeam: Team):
+func after_gauntlet(fault: int, pitchTeam: Team, scoringTeam: Team = null, victim: Player = null):
 	$PitchLabel.text = ""
-	if fault == 2:
+	if scoringTeam != null:
 		$MainLabel.text = "PENALTY GOAL"
-		$DetailLabel.text = pitchTeam.team_name + " score a penalty goal"
+		var detail = scoringTeam.team_name + " score a penalty goal"
+		if victim != null:
+			detail += "\nScorer: " + victim.bio.first_name[0] + ". " + victim.bio.last_name
+		$DetailLabel.text = detail
 		$FollowupLabel.text = pitchTeam.team_name + " will pitch"
 	else:
 		$MainLabel.text = "PLAY ON"
@@ -159,6 +162,13 @@ func after_gauntlet(fault: int, pitchTeam: Team):
 		$FollowupLabel.text = pitchTeam.team_name + " will pitch"
 	pop(180)
 	
+func show_redo(pitch: int, pitchTeam: Team):
+	$MainLabel.text = "REDO PLAY"
+	set_pitch_label(pitch)
+	$DetailLabel.text = "A violation has been called"
+	$FollowupLabel.text = pitchTeam.team_name + " to re-pitch"
+	pop(100)
+
 func violation(pitch: int, offender: Player, team: Team, fault: int):
 	set_pitch_label(pitch)
 	var fault_text = ""
