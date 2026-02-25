@@ -13,6 +13,8 @@ var turn_debuff_timer: float = 0.0
 var current_speed_multiplier: float = 1.0
 var sharp_turn_threshold: float
 var preferred_foul: String = "trip" #trip, elbow, gouge, crotch, collar, bite, hold
+var wants_to_foul: bool = false
+var foul_target_modifier: Array = [0,0,0,0] # where the player wants to be to do their foul relative to their opponent. Min distance, max distance, minimum rotation (0 to 180 degrees), maximum rotation (0 to 180 degrees)
 var has_checked_false_start: bool = false
 var is_offside: bool = false
 signal offside_contact(force)
@@ -2194,3 +2196,97 @@ func apply_gauntlet_injury(runner: Player, impact: float):
 				# Apply health damage
 				runner.apply_health_damage(impact * 0.3)
 				# TODO: Apply specific injury debuff based on injury system
+
+func decide_to_foul():
+	var score_effect = get_score_effect()
+	var foul_diff #TODO: get the foul differential from match handler  #more likely to foul when at a positive differential, much less likely to foul when doing so leads to a goal against
+	var discipline_effect = get_buffed_attribute("discipline")
+	var foul_target: Player #TODO: get closest opponent for keepers and pitchers, use opposite position for forwards and guards (LF:RG, RF:LG)
+	var target_attribute_diff #used to decide if it's worth doing the foul to make up ground
+	match preferred_foul:
+		"trip":
+			foul_target_modifier = [10, 35, 45, 180] #relatively far, not from the frount
+			target_attribute_diff = get_buffed_attribute("speedRating") - foul_target.get_buffed_attribute("speedRating") + get_buffed_attribute("agility") - foul_target.get_buffed_attribute("agility")
+		"elbow":
+			foul_target_modifier = [0, 0, 0, 180] #get up in there, get them from anywhere
+		"gouge":
+			foul_target_modifier = [0, 0, 0, 30] #up in there and just from the frount
+			target_attribute_diff = get_buffed_attribute("toughness") - foul_target.get_buffed_attribute("toughness")
+		"crotch":
+			foul_target_modifier = [0, 10, 0, 45] #wide variety of ways to strike the nuts
+			target_attribute_diff = get_buffed_attribute("power") - foul_target.get_buffed_attribute("power")
+		"collar":
+			foul_target_modifier = [0, 10, 90, 180] #sneak up on and grab them down by the collar
+			
+		"bite":
+			foul_target_modifier = [0, 0, 0, 180] #psychotic behavior
+			target_attribute_diff = get_buffed_attribute("aggression") - foul_target.get_buffed_attribute("aggression")
+		"hold":
+			foul_target_modifier = [0, 15, 0, 180]
+			target_attribute_diff = get_buffed_attribute("speedRating") - foul_target.get_buffed_attribute("speedRating") + get_buffed_attribute("power") - foul_target.get_buffed_attribute("power")
+	var is_opponent_reachable #TODO: determine if the position is reachable based on the player and the target's positions and speeds
+	if is_opponent_reachable:
+		var foul_value #TODO: determine if it's worth it
+		if foul_value > 100 - get_buffed_attribute("discipline"):
+			wants_to_foul = true
+			
+func get_score_effect():
+	var score_diff #TODO: get from match handler
+	var pitches_remaining #TODO: get from match handler #players can be more undisciplined with more time left in the game.
+	#Players will be much more undisciplined if the game is unwinnable based on score and pitches remaining
+	var is_overtime #TODO: get from match handler #players are much more careful in overtime
+	#TODO: calculate a score effect impact on foul chance from 0 (no chance) to 2 (twice as likely) 
+
+func execute_foul(targetPlayer):
+	var possible_positions #TODO: find all possible positions within the diameter, distance, and angle rules
+	if global_position.distance_squared_to(targetPlayer + foul_target_modifier) == 0: #TODO: if the position is within the donut/circle formed by the foul target modifier #it's fouling time
+		var foul_success_chance = 0.0 #0 to 1
+		match preferred_foul:
+			"trip":
+				#TODO: play tripping animation
+				foul_success_chance = (get_buffed_attribute("agility") + get_buffed_attribute("aggression") - targetPlayer.get_buffed_attribute("balance"))/100
+				if foul_success_chance > randf():
+					print(bio.last_name + " sticks a leg out and trips " + targetPlayer.bio.last_name)
+					targetPlayer.balance -= 80
+					#TODO: roll for injury
+					
+				else:
+					print(bio.last_name + " sticks a leg out and tries to trip " + targetPlayer.bio.last_name + " but looks foolish")
+				pass
+			"elbow":
+				#TODO: play flying elbow animation
+				foul_success_chance = (get_buffed_attribute("power") + get_buffed_attribute("aggression") - targetPlayer.get_buffed_attribute("agility"))/100
+				if foul_success_chance > randf():
+					print(bio.last_name + " throws a nasty elbow at " + targetPlayer.bio.last_name)
+					#TODO: apply force like it's a regular hit
+					roll_injury_from_foul()
+					targetPlayer.roll_injury_from_foul()
+				else:
+					print(bio.last_name + " throws a chicken wing at " + targetPlayer.bio.last_name + " but misses wildly")
+				pass
+				#TODO: play elbowing animation
+				pass
+			"gouge":
+				#TODO: play eye gouging animation
+				pass
+			"crotch":
+				#TODO: play crotch-kicking animation
+				pass
+			"collar":
+				#TODO: play collar-tackling animation
+				pass
+			"bite":
+				#TODO: play biting animation
+				pass
+			"hold":
+				#TODO: play holding animation
+				pass
+			
+func roll_injury_from_foul(possible_injuries):
+	var rand = randi_range(0, 100)
+	if rand > get_buffed_attribute("durability"): #roll failed
+		rand = randi_range(0, 100) #roll again
+		if rand > get_buffed_attribute("durability"): #roll failed twice, bad luck
+				#get hurt
+			var injury = possible_injuries.pick_random() #TODO: instead of array, use a dictionary with weights and assign weights to each
+			pass
