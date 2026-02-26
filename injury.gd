@@ -265,10 +265,10 @@ func create_injury(injury_name):
 			player_debuffs.endurance -= 25
 			player_debuffs.agility -= 25
 			player_debuffs.durability -= 25
-			player_debuffs.faceoffs -= 25
-			player_debuffs.blocking -= 25
-			player_debuffs.agility -= 25
-			player_debuffs.power -= 25
+			player_debuffs.faceoffs -= 20
+			player_debuffs.blocking -= 20
+			player_debuffs.agility -= 20
+			player_debuffs.power -= 20
 			permanent_player_debuffs.speedRating -= 10
 			permanent_player_debuffs.balance -= 10
 			permanent_player_debuffs.durability -= 10
@@ -284,67 +284,483 @@ func create_injury(injury_name):
 			player_debuffs.agility -= 7
 			player_debuffs.power -= 7
 		"sprained_LCL_major":
-			
+			title = "Sprained LCL"
+			duration_weeks = 30
+			player_debuffs.speedRating -= 10
+			player_debuffs.endurance -= 10
+			player_debuffs.agility -= 10
+			player_debuffs.durability -= 10
+			player_debuffs.faceoffs -= 15
+			player_debuffs.blocking -= 15
+			player_debuffs.agility -= 15
+			player_debuffs.power -= 15
 		"torn_LCL":
+			title = "Torn LCL"
+			duration_weeks = 40
+			player_debuffs.speedRating -= 20
+			player_debuffs.endurance -= 20
+			player_debuffs.agility -= 20
+			player_debuffs.durability -= 20
+			player_debuffs.faceoffs -= 25
+			player_debuffs.blocking -= 25
+			player_debuffs.agility -= 25
+			player_debuffs.power -= 25
+			permanent_player_debuffs.agility -= 10
+			permanent_player_debuffs.balance -= 10
+			permanent_player_debuffs.durability -= 10
 		"dislocated_knee":
+			title = "Dislocated knee"
+			duration_weeks = 1
+			player_debuffs.speedRating -= 15
+			player_debuffs.endurance -= 15
+			player_debuffs.agility -= 15
+			player_debuffs.durability -= 15
+			player_debuffs.faceoffs -= 15
+			player_debuffs.blocking -= 15
+			player_debuffs.agility -= 15
+			player_debuffs.power -= 15
+			permanent_player_debuffs.durability -= 3
+		"inverted_knee":
+			title = "Knee bent backwards"
+			duration_weeks = 65
+			player_debuffs.speedRating -= 55
+			player_debuffs.endurance -= 55
+			player_debuffs.agility -= 75
+			player_debuffs.durability -= 90
+			player_debuffs.faceoffs -= 40
+			player_debuffs.blocking -= 55
+			player_debuffs.agility -= 55
+			player_debuffs.power -= 55
+			permanent_player_debuffs.durability -= 9
 		"torn_meniscus":
-		"bruised_thign_minor":
+			title = "Torn meniscus"
+			duration_weeks = 22
+			player_debuffs.agility -= 8
+			player_debuffs.blocking -= 12
+			player_debuffs.power -= 6
+			player_debuffs.endurance -= 6
+			permanent_player_debuffs.durability -= 5
+		"bruised_thigh_minor":
+			title = "Bruised thigh"
+			duration_weeks = 1
+			player_debuffs.power -= 5
+			player_debuffs.endurance -= 5
 		"bruised_thigh_major":
+			title = "Severely bruised thigh"
+			duration_weeks = 3
+			player_debuffs.power -= 10
+			player_debuffs.endurance -= 10
 		"broken_thigh":
+			title = "Broken femur"
+			duration_weeks = 18
+			death_chance = 0.1
+			player_debuffs.power -= 65
+			player_debuffs.endurance -= 25
+			player_debuffs.toughness -= 40
+			permanent_player_debuffs.durability -= 3
 		"dislocated_hip":
+			title = "Dislocated hip"
+			duration_weeks = 1
+			player_debuffs.speedRating -= 15
+			player_debuffs.endurance -= 15
+			player_debuffs.agility -= 15
+			player_debuffs.durability -= 15
+			player_debuffs.toughness -= 15
+			player_debuffs.blocking -= 15
+			player_debuffs.agility -= 15
+			player_debuffs.power -= 15
+			permanent_player_debuffs.durability -= 3
 		"torn_labrum":
+			title = "Torn labrum"
+			duration_weeks = 34
+			player_debuffs.blocking -= 30
+			player_debuffs.power -= 10
+			player_debuffs.endurance -= 30
+			permanent_player_debuffs.blocking -= 5
 		"pulled_groin_minor":
+			duration_weeks = 5
+			title = "Lightly pulled groin"
+			player_debuffs.blocking -= 30
+			player_debuffs.agility -= 10
+			player_debuffs.reactions -= 30
+			permanent_player_debuffs.blocking -= 2
 		"pulled_groin_major":
+			duration_weeks = 15
+			title = "Lightly pulled groin"
+			player_debuffs.blocking -= 30
+			player_debuffs.agility -= 10
+			player_debuffs.reactions -= 30
+			permanent_player_debuffs.blocking -= 4
+			permanent_player_debuffs.durability -= 5
 		"bruised_crotch_minor":
+			title = "Bruised genitals"
+			duration_weeks = 1
+			player_debuffs.confidence -= 5
+			player_debuffs.durability -= 5
+			player_debuffs.positioning -= 5
+			player_debuffs.blocking -= 5
+			player_debuffs.toughness -= 5
+			character_debuffs.promiscuity -= 100 #nobody boning with crotch bruise
+			character_ebuffs.negativity += 10
 		"bruised_crotch_major":
+			title = "Severely bruised genitals"
+			duration_weeks = 3
+			player_debuffs.confidence -= 10
+			player_debuffs.durability -= 10
+			player_debuffs.positioning -= 10
+			player_debuffs.blocking -= 10
+			player_debuffs.toughness -= 10
+			character_debuffs.promiscuity -= 100 #nobody boning with crotch bruise
+			character_ebuffs.negativity += 10
 		"destroyed_crotch":
+			title = "Mutilated genitals"
+			duration_weeks = 20
+			player_debuffs.confidence -= 20
+			player_debuffs.durability -= 20
+			player_debuffs.positioning -= 20
+			player_debuffs.blocking -= 20
+			player_debuffs.toughness -= 20
+			character_ebuffs.negativity += 20
+			permanent_character_debuffs.promiscuity -= 100 #nobody boning with no crotch
+			permanent_character_ebuffs.negativity += 10
 		"bruised_rib_minor":
+			title = "Bruised ribs"
+			duration_weeks = 1
+			player_debuffs.endurance -= 10
+			player_debuffs.throwing -= 10
+			player_debuffs.toughness -= 10
 		"bruised_rib_major":
+			title = "Severely bruised ribs"
+			duration_weeks = 3
+			player_debuffs.endurance -= 15
+			player_debuffs.throwing -= 15
+			player_debuffs.toughness -= 15
 		"broken_rib":
-		"lung_puncture":
+			title = "Broken ribs"
+			death_chance = 0.05
+			duration_weeks = 12
+			player_debuffs.endurance -= 20
+			player_debuffs.throwing -= 20
+			player_debuffs.toughness -= 20
+			character_debuffs.hardiness -= 10
+			permanent_player_debuffs.durability -= 3
+		"chest_trauma":
+			title = "Chest trauma"
+			death_chance = 0.05
+			duration_weeks = 1
+			player_debuffs.endurance -= 20
+			player_debuffs.power -= 10
 		"leg_cut_minor":
+			title = "Minor cut on the leg"
+			death_chance = 0.01
+			duration_weeks = 2
+			player_debuffs.aggression -= 3
+			player_debuffs.durability -= 3
 		"leg_cut_major":
+			title = "Major cut on the leg"
+			death_chance = 0.02
+			duration_weeks = 6
+			player_debuffs.aggression -= 9
+			player_debuffs.durability -= 9
 		"bruised_shoulder_minor":
+			title = "Bruised shoulder"
+			duration_weeks = 1
+			player_debuffs.throwing -= 5
+			player_debuffs.shooting -= 5
+			player_debuffs.faceoffs -= 5
+			player_debuffs.power -= 5
+			player_debuffs.player_debuff.focus -= 5
 		"bruised_shoulder_major":
+			title = "Severely bruised shoulder"
+			duration_weeks = 3
+			player_debuffs.throwing -= 10
+			player_debuffs.shooting -= 10
+			player_debuffs.faceoffs -= 10
+			player_debuffs.power -= 10
+			player_debuffs.player_debuff.focus -= 10
 		"disclocated_shoulder":
+			title = "Dislocated shoulder"
+			duration_weeks = 1
+			player_debuffs.throwing -= 15
+			player_debuffs.shooting -= 15
+			player_debuffs.faceoffs -= 15
+			player_debuffs.power -= 15
+			player_debuffs.player_debuff.focus -= 15
+			permanent_player_debuffs.durability -= 5
 		"torn_rotator_cuff":
+			title = "Torn shoulder rotator"
+			duration_weeks = 17
+			player_debuffs.throwing -= 15
+			player_debuffs.shooting -= 15
+			player_debuffs.faceoffs -= 15
+			player_debuffs.power -= 15
+			player_debuffs.player_debuff.focus -= 15
+			permanent_player_debuffs.durability -= 5
 		"broken_collarbone":
+			title = "Broken collarbone"
+			duration_weeks = 14
+			player_debuffs.throwing -= 20
+			player_debuffs.toughness -= 25
+			player_debuffs.faceoffs -= 20
+			player_debuffs.power -= 25
+			player_debuffs.durability -= 30
+			player_debuffs.player_debuff.faceoffs -= 5
+			permanent_player_debuffs.durability -= 5
+			permanent_player_debuffs.faceoffs -= 5
 		"broken_upper_arm":
+			title = "Broken shoulder"
+			duration_weeks = 10
+			player_debuffs.throwing -= 10
+			player_debuffs.power -= 10
+			player_debuffs.shooting -= 10
+			player_debuffs.blocking -= 10
+			permanent_player_debuffs.durability -= 3
 		"bruised_arm_minor":
+			title = "Bruised arm"
+			duration_weeks = 1
+			player_debuffs.throwing -= 2
+			player_debuffs.toughness -= 2
+			player_debuffs.durability -= 2
 		"bruised_arm_major":
+			title = "Severely bruised arm"
+			duration_weeks = 3
+			player_debuffs.throwing -= 4
+			player_debuffs.toughness -= 4
+			player_debuffs.durability -= 4
 		"bruised_elbow_minor":
+			title = "Bruised elbow"
+			duration_weeks = 1
+			player_debuffs.throwing -= 10
+			player_debuffs.focus -= 10
+			player_debuffs.shooting -= 10
+		"bruised_elbow_major":
+			title = "Severely bruised elbow"
+			duration_weeks = 3
+			player_debuffs.throwing -= 15
+			player_debuffs.focus -= 15
+			player_debuffs.shooting -= 15
 		"dislocated_elbow":
+			title = "Dislocated elbow"
+			duration_weeks = 1
+			player_debuffs.throwing -= 20
+			player_debuffs.focus -= 20
+			player_debuffs.shooting -= 20
+		"broken_elbow":
+			title = "Broken elbow"
+			duration_weeks = 11
+			player_debuffs.throwing -= 20
+			player_debuffs.focus -= 20
+			player_debuffs.shooting -= 20
+			permanent_player_debuffs.durability -= 3
+			permanent_player_debuffs.throwing -= 3
 		"torn_elbow_ligament":
+			title = "Torn elbow ligament"
+			duration_weeks = 36
+			player_debuffs.throwing -= 35
+			player_debuffs.shooting -= 25
+			player_debuffs.power -= 25
+			permanent_player_debuffs.throwing -= 10
 		"bruised_wrist_minor_dominant":
+			title = "Bruised strong-hand wrist"
+			duration_weeks = 1
+			player_debuffs.throwing -= 10
+			player_debuffs.blocking -= 10
+			player_debuffs.power -= 10
 		"bruised_wrist_major_dominant":
+			title = "Severely bruised strong-hand wrist"
+			duration_weeks = 3
+			player_debuffs.throwing -= 15
+			player_debuffs.blocking -= 15
+			player_debuffs.power -= 15
 		"broken_wrist_dominant":
+			title = "Broken strong-hand wrist"
+			duration_weeks = 9
+			player_debuffs.throwing -= 20
+			player_debuffs.power -= 20
+			permanent_player_debuffs.throwing -= 3
+			permanent_player_debuffs.durability -= 3
 		"bruised_wrist_minor_weak":
+			title = "Bruised weak-hand wrist"
+			duration_weeks = 1
+			player_debuffs.power -= 5
+			player_debuffs.blocking -= 5
 		"bruised_wrist_major_weak":
+			title = "Severely bruised weak-hand wrist"
+			duration_weeks = 3
+			player_debuffs.blocking -= 10
+			player_debuffs.power -= 10
 		"broken_wrist_weak":
+			title = "Broken weak-hand wrist"
+			duration_weeks = 9
+			player_debuffs.power -= 20
+			permanent_player_debuffs.durability -= 3
 		"bruised_finger_minor_dominant":
+			title = "Bruised strong-hand finger"
+			duration_weeks = 1
+			player_debuffs.throwing -= 5
+			player_debuffs.focus -= 5
+			player_debuffs.shooting -= 5
+			player_debuffs.blocking -= 5
 		"bruised_finger_major_dominant":
+			title = "Severely bruised strong-hand finger"
+			duration_weeks = 3
+			player_debuffs.throwing -= 9
+			player_debuffs.focus -= 9
+			player_debuffs.shooting -= 9
+			player_debuffs.blocking -= 9
 		"broken_finger_dominant":
-		"torn_thumb_ligament_dominant":
+			title = "Broken strong-hand finger"
+			duration_weeks = 7
+			player_debuffs.throwing -= 18
+			player_debuffs.focus -= 18
+			player_debuffs.shooting -= 18
+			player_debuffs.blocking -= 18
+			permanent_player_debuffs.focus -= 3
+		"sprain_thumb_dominant":
+			title = "Sprained strong-hand thumb"
+			duration_weeks = 20
+			player_debuffs.power -= 5
+			player_debuffs.durability -= 5
 		"mangled_hand_dominant":
+			title = "Destroyed strong hand"
+			duration_weeks = 20
+			player_debuffs.throwing -= 5
+			player_debuffs.focus -= 5
+			player_debuffs.shooting -= 5
+			player_debuffs.blocking -= 5
+			permanent_player_debuffs.throwing -= 50
+			permanent_character_debuffs.focus -= 50
+			permanent_character_debuffs.shooting -= 10
+			permanent_character_debuffs.blocking -= 10
 		"bruised_finger_minor_weak":
+			title = "Bruised weak-hand finger"
+			duration_weeks = 1
+			player_debuffs.shooting -= 5
+			player_debuffs.blocking -= 5
 		"bruised_finger_major_weak":
+			title = "Severely bruised weak-hand finger"
+			duration_weeks = 3
+			player_debuffs.shooting -= 9
+			player_debuffs.blocking -= 9
 		"broken_finger_weak":
-		"torn_thumb_ligament_weak":
+			title = "Broken weak-hand finger"
+			duration_weeks = 7
+			player_debuffs.shooting -= 18
+			player_debuffs.blocking -= 18
 		"mangled_hand_weak":
-		"sprained_finger_dominant":
-		"sprained_finger_weak":
+			title = "Destroyed weak hand"
+			duration_weeks = 20
+			player_debuffs.shooting -= 5
+			player_debuffs.blocking -= 5
+			permanent_character_debuffs.shooting -= 10
+			permanent_character_debuffs.blocking -= 10
 		"chest_bruise_minor":
+			title = "Bruised chest"
+			duration_weeks = 1
+			player_debuffs.endurance -= 5
+			player_debuffs.power -= 5
 		"chest_bruise_major":
+			title = "Severely bruised chest"
+			death_chance = 0.001
+			duration_weeks = 3
+			player_debuffs.endurance -= 10
+			player_debuffs.power -= 10
 		"broken_sternum":
+			title = "Broken sternum"
+			duration_weeks = 10
+			death_chance = 0.03
+			player_debuffs.endurance -= 5
+			player_debuffs.power -= 5
+			permanent_character_debuffs.durability -= 5
 		"pinched_nerve":
+			title = "Pinched nerve"
+			duration_weeks = 2
+			player_debuffs.focus -= 5
+			player_debuffs.aggression -= 5
+			player_debuffs.reactions -= 5
 		"spine_damage_minor":
+			title = "Slipped spinal disc"
+			duration_weeks = 45
+			player_debuffs.speedRating -= 10
+			player_debuffs.power -= 10
+			player_debuffs.durability -= 20
+			player_debuffs.reactions -= 10
+			player_debuffs.toughness -= 10
+			player_debuffs.throwing -= 10
+			player_debuffs.blocking -= 10
 		"spine_damage_major":
+			title = "Broken spine"
+			death_chance = 0.06
+			duration_weeks = 21
+			player_debuffs.speedRating -= 20
+			player_debuffs.power -= 20
+			player_debuffs.durability -= 20
+			player_debuffs.reactions -= 20
+			player_debuffs.toughness -= 20
+			player_debuffs.throwing -= 20
+			player_debuffs.blocking -= 20
+			permanent_player_debuffs.agility -= 20
+			permanent_player_debuffs.durability -= 25
 		"nose_bleed":
+			title = "Bloody nose"
+			duration_weeks = 1
+			player_debuffs.positioning -= 5
+			player_debuffs.reactions -= 5
+			player_debuffs.aggression -= 5
+			player_debuffs.toughness -= 5
 		"nose_broken":
+			title = "Broken nose"
+			death_chance = 0.01
+			duration_weeks = 8
+			player_debuffs.positioning -= 8
+			player_debuffs.reactions -= 8
+			player_debuffs.aggression -= 8
+			player_debuffs.toughness -= 8
+			character_debuffs.positivity -= 5
+			permanent_character_debuffs.toughness += 5 #makes you hard nosed
 		"eyes_scratched":
-		"eyes_swollen":
+			title = "Scratched cornea"
+			duration_weeks = 8
+			player_debuffs.positioning -= 12
+			player_debuffs.reactions -= 12
+			player_debuffs.accuracy -= 12
+			character_debuffs.positivity -= 5
+			permanent_character_debuffs.reactions -= 5
+			permanent_character_debuffs.positioning -= 5
+			permanent_character_debuffs.blocking -= 5
+			permanent_player_debuffs.accuracy -= 5
+		"eyes_bruised":
+			title = "Black eye"
+			duration_weeks = 4
+			player_debuffs.durability -= 5
+			player_debuffs.positioning -= 5
+			player_debuffs.toughness -= 5
+			player_debuffs.accuracy -= 5
+			permanent_character_debuffs.toughness += 1
 		"eyes_bloodied":
+			title = "Blood in eyes"
+			duration_weeks = 1
+			player_debuffs.positioning -= 15
+			player_debuffs.reactions -= 15
+			player_debuffs.blocking -= 15
+			player_debuffs.accuracy -= 15
+			permanent_character_debuffs.reactions -= 1
 		"eyes_destroyed":
+			title = "Blinded"
+			duration_weeks = 52 #takes a year to get used to being blind
+			player_debuffs.positioning -= 95
+			player_debuffs.reactions -= 95
+			player_debuffs.blocking -= 95
+			player_debuffs.shooting -= 95
+			player_debuffs.accuracy -= 95
+			player_debuffs.faceoffs -= 95
+			character_debuffs.combat -= 20
+			permanent_player_debuffs.accuracy -= 75
+			permanent_player_debuffs.reactions -= 75
+			permanent_player_debuffs.blocking -= 75
+			permanent_player_debuffs.shooting -= 10
+			permanent_player_debuffs.faceoffs -= 10
+			permanent_player_debuffs.positioning -= 15
 		"lip_bloodied":
 		"lip_split":
 		"chipped_tooth":
@@ -354,9 +770,12 @@ func create_injury(injury_name):
 		"broken_skull":
 		"concussion_minor":
 		"concussion_major":
+		"brain_front_trauma":
+		"brain_back_trauma":
 		"tongue_bitten":
 		"tongue_bitten_off":
 		"head_hematoma":
+		"lead_poisoning":
 
 func apply_debuffs(player: Player):
 	#TODO: apply the debuff attributes to the player
@@ -364,5 +783,24 @@ func apply_debuffs(player: Player):
 
 func get_minor_injury():
 	pass
+	
+func get_weighted_choice(dictionary):
+	#TODO: take a dictionary with key string injury type and value float
+	#TODO: based on the values, make a weighted ce
+	pass
 
 func get_major_injury()
+
+func roll_collision_injury()
+
+func roll_fight_injury()
+
+func roll_noncontact_injury()
+
+func roll_trip_injury()
+
+func roll_gauntlet_injury()
+
+func roll_croth_attack_injury()
+
+func roll_
