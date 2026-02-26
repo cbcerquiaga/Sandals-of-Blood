@@ -292,6 +292,7 @@ var is_maestro: bool = false #slows down time
 var is_spin_doctor: bool = false #curving shots
 var is_workhorse: bool = false #infinite boost for self, max boost and confidence for teammates
 var active_buffs: Dictionary = {} #buff structure: { "buff_name": { "attributes": ["speed", "power"], "values": [10, 5] } }
+var active_injuries: Array = [] #each entry: { "buff_key": String, "injury_name": String, "weeks_remaining": int }
 var starting_position: Vector2
 
 
@@ -939,15 +940,25 @@ func _on_attack_area_body_entered(body: Node2D):
 		body.take_hit(self, attackPower)
 		# If opponent was moving toward us, roll for durability using buffed attribute
 		if oppAttackPower > 0:
+			# Determine where we were hit relative to our facing direction
+			# angle_to_hit is 0 = from front, PI = from behind, ±PI/2 = from sides
+			var my_facing = velocity.normalized() if velocity.length() > 1.0 else Vector2.UP
+			var hit_from_dir = (global_position - body.global_position).normalized()
+			var angle_to_hit = my_facing.angle_to(hit_from_dir) # radians, -PI to PI
 			var rand = randi_range(0, 100)
 			if rand > get_buffed_attribute("durability"): #roll failed
 				rand = randi_range(0, 100) #roll again
 				if rand > get_buffed_attribute("durability"): #roll failed twice, bad luck
-					#get hurt
-					print("ouchie!")
-					#TODO: implement injury debuffs
-					#TODO: determine severity of injury debuff based on attackpower
-					#TODO: apply health damage
+					var roller = Injury.new()
+					var injury_name: String
+					if abs(angle_to_hit) < PI / 4.0: # hit from front
+						injury_name = roller.roll_collision_injury()
+					elif abs(angle_to_hit) > 3.0 * PI / 4.0: # hit from behind
+						injury_name = roller.roll_targeted_back_injury()
+					else: # hit from the side
+						injury_name = roller.roll_collision_injury()
+					add_injury(injury_name)
+					apply_health_damage(oppAttackPower * 0.15)
 	elif  body != self and body is Player and body.team == team:
 		if current_behavior == "mob_celly":
 			celebrations_star = body
@@ -1125,6 +1136,29 @@ func apply_health_damage(amount: float):
 	status.health = status.health - amount
 	pass
 
+func add_injury(injury_name: String):
+	var injury = Injury.new()
+	injury.create_injury(injury_name)
+	# Injuries are buffs — build the attribute/value arrays and register via add_buff
+	var attrs: Array = []
+	var vals: Array = []
+	for key in injury.player_debuffs:
+		var v = injury.player_debuffs[key]
+		if v != 0:
+			attrs.append(key)
+			vals.append(v) # values are already negative in the debuff dict
+	var buff_key = "injury_" + injury_name
+	if attrs.size() > 0:
+		add_buff(buff_key, attrs, vals)
+	# Permanent debuffs write directly onto base attributes and survive healing
+	injury.apply_debuffs_to_player(self)
+	active_injuries.append({"buff_key": buff_key, "injury_name": injury_name, "weeks_remaining": injury.duration_weeks})
+	print(bio.last_name, " suffered: ", injury.title, " (", injury.duration_weeks, " weeks)")
+
+func remove_injury(injury_entry: Dictionary):
+	remove_buff(injury_entry["buff_key"])
+	active_injuries.erase(injury_entry)
+
 func _on_stun_timer_timeout():
 	#if position_type == "keeper":
 		#print("should be able to move now")
@@ -1290,8 +1324,9 @@ func get_socked(impact: float):
 		if roll > get_buffed_attribute("durability")/100.0: #not looking good
 			roll = randf()
 			if roll > get_buffed_attribute("durability")/100.0:
-				print("injury acquired on roll ", i, " of ", num_injury_rolls) #taking some kind of injury here
-				#TODO: decide injury and apply buff
+				print("injury acquired on roll ", i, " of ", num_injury_rolls)
+				var roller = Injury.new()
+				add_injury(roller.roll_fight_injury())
 
 func export_to_dict() -> Dictionary:
 	return {
@@ -2204,7 +2239,8 @@ func apply_gauntlet_injury(runner: Player, impact: float):
 				print("Gauntlet injury on roll ", i, " of ", num_injury_rolls)
 				# Apply health damage
 				runner.apply_health_damage(impact * 0.3)
-				# TODO: Apply specific injury debuff based on injury system
+				var roller = Injury.new()
+				runner.add_injury(roller.roll_gauntlet_injury())
 
 func decide_to_foul():
 	var score_effect = get_score_effect()
@@ -2257,7 +2293,8 @@ func execute_foul(targetPlayer):
 				if foul_success_chance > randf():
 					print(bio.last_name + " sticks a leg out and trips " + targetPlayer.bio.last_name)
 					targetPlayer.balance -= 80
-					#TODO: roll for injury
+					targetPlayer.roll_injury_from_foul("trip_victim")
+					roll_injury_from_foul("trip_attacker")
 					
 				else:
 					print(bio.last_name + " sticks a leg out and tries to trip " + targetPlayer.bio.last_name + " but looks foolish")
@@ -2268,8 +2305,8 @@ func execute_foul(targetPlayer):
 				if foul_success_chance > randf():
 					print(bio.last_name + " throws a nasty elbow at " + targetPlayer.bio.last_name)
 					#TODO: apply force like it's a regular hit
-					roll_injury_from_foul()
-					targetPlayer.roll_injury_from_foul()
+					roll_injury_from_foul("elbow_attacker")
+					targetPlayer.roll_injury_from_foul("elbow_victim")
 				else:
 					print(bio.last_name + " throws a chicken wing at " + targetPlayer.bio.last_name + " but misses wildly")
 				pass
@@ -2291,11 +2328,22 @@ func execute_foul(targetPlayer):
 				#TODO: play holding animation
 				pass
 			
-func roll_injury_from_foul(possible_injuries):
+func roll_injury_from_foul(context: String = "collision"):
 	var rand = randi_range(0, 100)
 	if rand > get_buffed_attribute("durability"): #roll failed
 		rand = randi_range(0, 100) #roll again
 		if rand > get_buffed_attribute("durability"): #roll failed twice, bad luck
-				#get hurt
-			var injury = possible_injuries.pick_random() #TODO: instead of array, use a dictionary with weights and assign weights to each
-			pass
+			var roller = Injury.new()
+			var injury_name: String
+			match context:
+				"trip_victim":
+					injury_name = roller.roll_trip_injury()
+				"trip_attacker":
+					injury_name = roller.roll_trip_attack_injury()
+				"elbow_attacker":
+					injury_name = roller.roll_elbow_attack_injury()
+				"elbow_victim":
+					injury_name = roller.roll_collision_injury()
+				_:
+					injury_name = roller.roll_collision_injury()
+			add_injury(injury_name)
