@@ -25,6 +25,15 @@ var gauntlet_ground_hits: int = 0
 var in_gauntlet: bool = false
 var gauntlet_runner_reference: Player = null  # Reference to the runner (for gauntlet defenders)
 var last_gauntlet_attack_time: float = 0.0
+#CTE
+var cte_chance: float = 0.0 #CTE points / 9555
+var brain_damage :={
+	"effective_hits": 0.0, #cumulative number of hits, 0-1 for giving hit depending on impact, 0.5-2 for getting hit depending on impact
+	"concussions": 0, #each concussion increases chance of instant CTE. 1 concussion is 1/800 roll, then 1/400,  1/250, 1/200, 1/100, 1/50, 1/25, 1/12, 1/6, and finally 1/3 from 10+
+	"knockouts": 0 #each knockout increases chance of instant death
+}
+var cte_level: int = 0 #0 no CTE, 1 post concussion syndrome, 2 mood swings, 3 neuropathy, 4 dementia, 5 death
+var has_pcs: bool = false #if has pcs, starts games at half energy
 # Player Attributes
 @export var attributes := {
 	"speedRating" : 75, #what's shown on the attributes screen

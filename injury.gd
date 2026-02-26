@@ -4,6 +4,8 @@ class_name Injury
 var title: String
 var duration_weeks: int = 0
 var death_chance: float = 0 #0 to 1
+var cte_points: int = 0 #applies to player cte_value
+var adds_brain_injury: bool = false
 var character_debuffs := {
 	"positivity": 0, #morale increase from good stuff
 	"negativity": 0, #morale decrease from bad stuff
@@ -79,6 +81,7 @@ var permanent_player_debuffs :={ #debuffs that stay with a player even after the
 
 func create_injury(injury_name):
 	match injury_name:
+		#foot injuries
 		"toenail_off":
 			title = "Toenail fell off"
 			duration_weeks = 6
@@ -133,6 +136,7 @@ func create_injury(injury_name):
 			permanent_player_debuffss.speedRating -= 20
 			permanent_player_debuffs.shooting -= 15
 			player_debuffs.durability -= 20
+		#leg injuries
 		"ankle_bruise_minor":
 			title = "Bruised ankle"
 			duration_weeks = 1
@@ -358,6 +362,19 @@ func create_injury(injury_name):
 			player_debuffs.endurance -= 25
 			player_debuffs.toughness -= 40
 			permanent_player_debuffs.durability -= 3
+		"leg_cut_minor":
+			title = "Minor cut on the leg"
+			death_chance = 0.01
+			duration_weeks = 2
+			player_debuffs.aggression -= 3
+			player_debuffs.durability -= 3
+		"leg_cut_major":
+			title = "Major cut on the leg"
+			death_chance = 0.02
+			duration_weeks = 6
+			player_debuffs.aggression -= 9
+			player_debuffs.durability -= 9
+		#groin injuries
 		"dislocated_hip":
 			title = "Dislocated hip"
 			duration_weeks = 1
@@ -423,45 +440,7 @@ func create_injury(injury_name):
 			character_ebuffs.negativity += 20
 			permanent_character_debuffs.promiscuity -= 100 #nobody boning with no crotch
 			permanent_character_ebuffs.negativity += 10
-		"bruised_rib_minor":
-			title = "Bruised ribs"
-			duration_weeks = 1
-			player_debuffs.endurance -= 10
-			player_debuffs.throwing -= 10
-			player_debuffs.toughness -= 10
-		"bruised_rib_major":
-			title = "Severely bruised ribs"
-			duration_weeks = 3
-			player_debuffs.endurance -= 15
-			player_debuffs.throwing -= 15
-			player_debuffs.toughness -= 15
-		"broken_rib":
-			title = "Broken ribs"
-			death_chance = 0.05
-			duration_weeks = 12
-			player_debuffs.endurance -= 20
-			player_debuffs.throwing -= 20
-			player_debuffs.toughness -= 20
-			character_debuffs.hardiness -= 10
-			permanent_player_debuffs.durability -= 3
-		"chest_trauma":
-			title = "Chest trauma"
-			death_chance = 0.05
-			duration_weeks = 1
-			player_debuffs.endurance -= 20
-			player_debuffs.power -= 10
-		"leg_cut_minor":
-			title = "Minor cut on the leg"
-			death_chance = 0.01
-			duration_weeks = 2
-			player_debuffs.aggression -= 3
-			player_debuffs.durability -= 3
-		"leg_cut_major":
-			title = "Major cut on the leg"
-			death_chance = 0.02
-			duration_weeks = 6
-			player_debuffs.aggression -= 9
-			player_debuffs.durability -= 9
+		#shoulder injuries
 		"bruised_shoulder_minor":
 			title = "Bruised shoulder"
 			duration_weeks = 1
@@ -515,6 +494,7 @@ func create_injury(injury_name):
 			player_debuffs.shooting -= 10
 			player_debuffs.blocking -= 10
 			permanent_player_debuffs.durability -= 3
+		#arm injuries
 		"bruised_arm_minor":
 			title = "Bruised arm"
 			duration_weeks = 1
@@ -594,6 +574,7 @@ func create_injury(injury_name):
 			duration_weeks = 9
 			player_debuffs.power -= 20
 			permanent_player_debuffs.durability -= 3
+		#hand injuries
 		"bruised_finger_minor_dominant":
 			title = "Bruised strong-hand finger"
 			duration_weeks = 1
@@ -654,6 +635,7 @@ func create_injury(injury_name):
 			player_debuffs.blocking -= 5
 			permanent_character_debuffs.shooting -= 10
 			permanent_character_debuffs.blocking -= 10
+		#torso injuries
 		"chest_bruise_minor":
 			title = "Bruised chest"
 			duration_weeks = 1
@@ -701,6 +683,34 @@ func create_injury(injury_name):
 			player_debuffs.blocking -= 20
 			permanent_player_debuffs.agility -= 20
 			permanent_player_debuffs.durability -= 25
+		"bruised_rib_minor":
+			title = "Bruised ribs"
+			duration_weeks = 1
+			player_debuffs.endurance -= 10
+			player_debuffs.throwing -= 10
+			player_debuffs.toughness -= 10
+		"bruised_rib_major":
+			title = "Severely bruised ribs"
+			duration_weeks = 3
+			player_debuffs.endurance -= 15
+			player_debuffs.throwing -= 15
+			player_debuffs.toughness -= 15
+		"broken_rib":
+			title = "Broken ribs"
+			death_chance = 0.05
+			duration_weeks = 12
+			player_debuffs.endurance -= 20
+			player_debuffs.throwing -= 20
+			player_debuffs.toughness -= 20
+			character_debuffs.hardiness -= 10
+			permanent_player_debuffs.durability -= 3
+		"chest_trauma":
+			title = "Chest trauma"
+			death_chance = 0.05
+			duration_weeks = 1
+			player_debuffs.endurance -= 20
+			player_debuffs.power -= 10
+		#head injuries
 		"nose_bleed":
 			title = "Bloody nose"
 			duration_weeks = 1
@@ -762,45 +772,221 @@ func create_injury(injury_name):
 			permanent_player_debuffs.faceoffs -= 10
 			permanent_player_debuffs.positioning -= 15
 		"lip_bloodied":
+			title = "Bloodied lip"
+			duration_weeks = 1
+			player_debuffs.reactions -= 2
+			player_debuffs.positioning -= 2
+			player_debuffs.toughness -= 6
 		"lip_split":
+			title = "Split lip"
+			duration_weeks = 4
+			player_debuffs.reactions -= 6
+			player_debuffs.positioning -= 6
+			player_debuffs.toughness -= 12
 		"chipped_tooth":
+			title = "Chipped tooth"
+			duration_weeks = 1
+			player_debuffs.toughness -= 6
+			player_debuffs.durability -= 5
+			permanent_player_debuffs.durability -= 1
+			permanent_player_debuffs.toughness += 1
 		"lost_tooth":
+			title = "Lost tooth"
+			duration_weeks = 1
+			player_debuffs.toughness -= 4
+			player_debuffs.durability -= 4
+			permanent_player_debuffs.durability -= 1
+			permanent_player_debuffs.toughness += 1
+			permanent_character_debuffs.hardiness -= 2
 		"broken_jaw":
+			title = "Broken jaw"
+			duration_weeks = 12
+			player_debuffs.toughness -= 4
+			player_debuffs.endurance -= 6
+			player_debuffs.durability -= 15
+			permanent_player_debuffs.durability -= 4
+			permanent_character_debuffs.hardiness -= 4
 		"broken_cheek":
+			title = "Broken cheekbone"
+			duration_weeks = 12
+			death_chance = 0.01
+			player_debuffs.toughness -= 4
+			player_debuffs.endurance -= 6
+			player_debuffs.durability -= 15
+			permanent_player_debuffs.durability -= 4
 		"broken_skull":
+			title = "Fractured skull"
+			death_chance = 0.16
+			duration_weeks = 14
+			player_debuffs.toughness -= 10
+			player_debuffs.endurance -= 10
+			player_debuffs.durability -= 25
+			player_debuffs.reactions -= 20
+			player_debuffs.accuracy -= 10
+			player_debuffs.balance -= 10
+			player_debuffs.positioning -= 10
+			permanent_player_debuffs.durability -= 5
+			character_debuffs.hardiness -= 6
+			adds_brain_injury = true
 		"concussion_minor":
+			title = "Concussion"
+			death_chance = 0.01
+			duration_weeks = 8
+			player_debuffs.toughness -= 15
+			player_debuffs.endurance -= 15
+			player_debuffs.durability -= 25
+			player_debuffs.balance -= 15
+			player_debuffs.power -= 15
+			player_debuffs.shooting -= 15
+			player_debuffs.reactions -= 15
+			player_debuffs.accuracy -= 15
+			player_debuffs.balance -= 15
+			player_debuffs.positioning -= 15
+			permanent_player_debuffs.durability -= 5
+			character_debuffs.hardiness -= 2
+			character_debuffs.positivity -= 4
+			character_debuffs.negativity -= 4
+			character_debuffs.combat -= 5
+			adds_brain_injury = true
 		"concussion_major":
+			title = "Severe concussion"
+			death_chance = 0.02
+			duration_weeks = 12
+			player_debuffs.toughness -= 15
+			player_debuffs.endurance -= 15
+			player_debuffs.durability -= 25
+			player_debuffs.balance -= 15
+			player_debuffs.power -= 15
+			player_debuffs.shooting -= 15
+			player_debuffs.reactions -= 15
+			player_debuffs.accuracy -= 15
+			player_debuffs.balance -= 15
+			player_debuffs.positioning -= 15
+			permanent_player_debuffs.durability -= 5
+			character_debuffs.hardiness -= 2
+			character_debuffs.positivity -= 4
+			character_debuffs.negativity -= 4
+			character_debuffs.combat -= 5
+			adds_brain_injury = true
 		"brain_front_trauma":
+			title = "Frontal lobe trauma"
+			death_chance = 0.1
+			adds_brain_injury = true
+			duration_weeks = 36
+			character_debuffs.professionalism -= 10
+			character_debuffs.hustle -= 10
+			player_debuffs.positioning -= 20
+			player_debuffs.durability -= 20
+			player_debuffs.speedRating -= 10
+			player_debuffs.aggression += 15
+			permanent_player_debuffs.aggression += 5
+			permanent_player_debuffs.durability -= 5
+			permanent_character_debuffs.professionalism -= 2
 		"brain_back_trauma":
+			title = "Occipital lobe trauma"
+			death_chance = 0.1
+			adds_brain_injury = true
+			duration_weeks = 36
+			player_debuffs.accuracy -= 20
+			player_debuffs.reactions -= 10
+			player_debuffs.positioning -= 20
+			player_debuffs.durability -= 20
+			player_debuffs.shooting -= 10
+			player_debuffs.blocking -= 10
+			permanent_player_debuffs.accuracy -= 5
+			permanent_player_debuffs.durability -= 5
 		"tongue_bitten":
+			title = "Bit tongue"
+			duration_weeks = 1
+			player_debuffs.aggression -= 2
+			player_debuffs.endurance -= 2
+			player_debuffs.reactions -= 1
 		"tongue_bitten_off":
+			title = "Bit tongue off"
+			death_chance = 0.05
+			duration_weeks = 3
+			character_debuffs.influence -= 50 #takes time to figure out how to communicate again
+			permanent_character_debuffs.influence -= 5
+			player_debuffs.aggression -= 8
+			player_debuffs.endurance -= 5
+			player_debuffs.reactions -= 3
 		"head_hematoma":
+			title = "Intracranial hematoma"
+			death_chance = 0.3
+			duration_weeks = 5
+			player_debuffs.balance -= 20
+			player_debuffs.endurance -= 65 #ranging from very tired to literally in a coma
+			player_debuffs.speedRating -= 65
+			player_debuffs.accuracy -= 20
+			adds_brain_injury = true
+		#illnesses and ailments
 		"lead_poisoning":
+			title = "Lead poisoning"
+			death_chance = 0.02
+			player_debuffs.endurance -= 10
+			player_debuffs.power -= 10
+			permanent_player_debuffs.aggression += 7
+		"lung_dust":
+			title = "Dust inhalation"
+			death_chance = 0.01
+			player_debuffs.endurance -= 20
+			permanent_player_debuffs.endurance -= 5
+		"lung_smoke":
+			title = "Smoke inhalation"
+			death_chance = 0.01
+			player_debuffs.endurance -= 15
+			permanent_player_debuffs.endurance -= 10
 
-func apply_debuffs(player: Player):
-	#TODO: apply the debuff attributes to the player
-	pass
-
-func get_minor_injury():
-	pass
 	
 func get_weighted_choice(dictionary):
 	#TODO: take a dictionary with key string injury type and value float
 	#TODO: based on the values, make a weighted ce
 	pass
 
-func get_major_injury()
+func roll_collision_injury():
+	pass
+	
+func roll_targeted_head_injury(): #when players are hit specifically in the head or fall headfirst
+	pass
+	
+func roll_targeted_back_injury(): #when playersare hit specifically in the back
+	pass
 
-func roll_collision_injury()
+func roll_fight_injury(): #from being punched
+	pass
 
-func roll_fight_injury()
+func roll_fight_attack_injury(): #from punching
+	pass
 
-func roll_noncontact_injury()
+func roll_noncontact_injury():
+	pass
 
-func roll_trip_injury()
+func roll_trip_injury():
+	pass
+	
+func roll_trip_attack_injury(): #for the player who attempts to trip an opponent
+	pass
 
-func roll_gauntlet_injury()
+func roll_elbow_attack_injury(): #for the player who attacks another with their elbow
+	pass
 
-func roll_croth_attack_injury()
+func roll_gauntlet_attack_injury():
+	pass
 
-func roll_
+func roll_gauntlet_injury():
+	pass
+
+func roll_crotch_injury():
+	pass
+
+func roll_crotch_attack_injury():
+	pass
+	
+func roll_grab_attack_injury():
+	pass
+
+func apply_debuffs_to_player(player: Player):
+	pass
+	
+func apply_debuffs_to_character(character: Character):
+	pass
