@@ -2314,18 +2314,53 @@ func execute_foul(targetPlayer):
 				pass
 			"gouge":
 				#TODO: play eye gouging animation
+				foul_success_chance = (get_buffed_attribute("shooting") + get_buffed_attribute("toughness") - targetPlayer.get_buffed_attribute("reactions"))/100
+				if foul_success_chance > randf():
+					print(bio.last_name + " goes for the eyes of " + targetPlayer.bio.last_name)
+					roll_injury_from_foul("gouge_attacker")
+					targetPlayer.roll_injury_from_foul("gouge_victim")
+				else:
+					print(bio.last_name + " tries to gouge " + targetPlayer.bio.last_name + " but gets shoved away")
 				pass
 			"crotch":
 				#TODO: play crotch-kicking animation
+				foul_success_chance = (get_buffed_attribute("shooting") + get_buffed_attribute("power") - targetPlayer.get_buffed_attribute("agility"))/100
+				if foul_success_chance > randf():
+					print(bio.last_name + " kicks " + targetPlayer.bio.last_name + " square in the crotch")
+					roll_injury_from_foul("crotch_attacker")
+					targetPlayer.roll_injury_from_foul("crotch_victim")
+				else:
+					print(bio.last_name + " swings a leg at " + targetPlayer.bio.last_name + "'s crotch and misses")
 				pass
 			"collar":
 				#TODO: play collar-tackling animation
+				foul_success_chance = (get_buffed_attribute("power") + get_buffed_attribute("aggression") - targetPlayer.get_buffed_attribute("balance"))/100
+				if foul_success_chance > randf():
+					print(bio.last_name + " grabs " + targetPlayer.bio.last_name + " by the collar")
+					roll_injury_from_foul("collar_attacker")
+					targetPlayer.roll_injury_from_foul("collar_victim")
+				else:
+					print(bio.last_name + " reaches for " + targetPlayer.bio.last_name + "'s collar but can't get a grip")
 				pass
 			"bite":
 				#TODO: play biting animation
+				foul_success_chance = (get_buffed_attribute("aggression")*2 - targetPlayer.get_buffed_attribute("reactions"))/100
+				if foul_success_chance > randf():
+					print(bio.last_name + " bites " + targetPlayer.bio.last_name)
+					roll_injury_from_foul("bite_attacker")
+					targetPlayer.roll_injury_from_foul("bite_victim")
+				else:
+					print(bio.last_name + " tries to bite " + targetPlayer.bio.last_name + " but gets an elbow in the face")
 				pass
 			"hold":
 				#TODO: play holding animation
+				foul_success_chance = (get_buffed_attribute("power") + get_buffed_attribute("endurance") - targetPlayer.get_buffed_attribute("power"))/100
+				if foul_success_chance > randf():
+					print(bio.last_name + " grabs and holds " + targetPlayer.bio.last_name)
+					roll_injury_from_foul("hold_attacker")
+					targetPlayer.roll_injury_from_foul("hold_victim")
+				else:
+					print(bio.last_name + " tries to hold " + targetPlayer.bio.last_name + " but gets thrown off")
 				pass
 			
 func roll_injury_from_foul(context: String = "collision"):
@@ -2344,6 +2379,32 @@ func roll_injury_from_foul(context: String = "collision"):
 					injury_name = roller.roll_elbow_attack_injury()
 				"elbow_victim":
 					injury_name = roller.roll_collision_injury()
+				"gouge_attacker":
+					injury_name = roller.roll_gouge_attack_injury()
+				"gouge_victim":
+					injury_name = roller.roll_gouge_injury()
+				"crotch_attacker":
+					injury_name = roller.roll_crotch_attack_injury()
+				"crotch_victim":
+					injury_name = roller.roll_crotch_injury()
+				"collar_attacker":
+					injury_name = roller.roll_grab_attack_injury()
+				"collar_victim":
+					injury_name = roller.roll_targeted_head_injury()
+				"bite_attacker":
+					injury_name = roller.roll_bite_attack_injury()
+				"bite_victim":
+					injury_name = roller.roll_bite_injury()
+				"hold_victim":
+					injury_name = roller.roll_grab_injury()
+				"hold_attacker":
+					injury_name = roller.roll_grab_attack_injury()
+				"fight_attacker":
+					injury_name = roller.roll_fight_attack_injury()
+				"fight_victim":
+					injury_name = roller.roll_fight_injury()
+				"fall":
+					injury_name = roller.roll_diving_injury()
 				_:
 					injury_name = roller.roll_collision_injury()
 			add_injury(injury_name)

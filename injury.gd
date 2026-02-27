@@ -1004,6 +1004,17 @@ func create_injury(injury_name):
 			death_chance = 0.01
 			player_debuffs.endurance -= 15
 			permanent_player_debuffs.endurance -= 10
+		"scrappers_disease":
+			title = "Scrapper's disease"
+			death_chance = 0.01
+			duration_weeks = 2
+			player_debuffs.endurance -= 10
+		#mild things
+		"shaken_up":
+			title = "Shaken up"
+			duration_weeks = 1
+			player_debuffs.aggression -= 2
+			player_debuffs.confidence -= 2
 
 	
 func get_weighted_choice(dictionary: Dictionary) -> String:
@@ -1022,7 +1033,9 @@ func get_weighted_choice(dictionary: Dictionary) -> String:
 
 func roll_collision_injury(): #from tackling — any body part can be hurt in a collision
 	var possible_injuries = {
-		# Foot (new additions at 1.0)
+		# mild injury
+		"shaken_up": 5.0,
+		# Foot
 		"toenail_off": 1.0,
 		"toe_bruise_minor": 1.0,
 		"toe_bruise_major": 1.0,
@@ -1031,21 +1044,21 @@ func roll_collision_injury(): #from tackling — any body part can be hurt in a 
 		"foot_bruise_major": 1.0,
 		"broken_foot": 1.0,
 		"mangled_foot": 1.0,
-		# Ankle (broken_ankle, sprain_ankle_minor/major were original; ankle_bruise_minor/major new)
+		# Ankle
 		"ankle_bruise_minor": 1.0,
 		"ankle_bruise_major": 1.0,
 		"broken_ankle": 0.02,
 		"sprain_ankle_minor": 2.0,
 		"sprain_ankle_major": 0.2,
 		"torn_achilles": 1.0,
-		# Shin / leg (bruised/broken_shin original; shattered_shin, leg_cut new)
+		# Shin / leg
 		"bruised_shin_minor": 5.0,
 		"bruised_shin_major": 1.6,
 		"broken_shin": 0.5,
 		"shattered_shin": 1.0,
 		"leg_cut_minor": 1.0,
 		"leg_cut_major": 1.0,
-		# Knee (all original except inverted_knee)
+		# Knee
 		"bruised_knee_minor": 5.0,
 		"bruised_knee_major": 2.0,
 		"broken_kneecap": 0.5,
@@ -1058,7 +1071,7 @@ func roll_collision_injury(): #from tackling — any body part can be hurt in a 
 		"dislocated_knee": 1.0,
 		"inverted_knee": 1.0,
 		"torn_meniscus": 0.18,
-		# Thigh / muscle (bruised_thigh original; broken_thigh original; rest new)
+		# Thigh / muscle
 		"bruised_thigh_minor": 6.0,
 		"bruised_thigh_major": 2.0,
 		"broken_thigh": 0.05,
@@ -1068,7 +1081,7 @@ func roll_collision_injury(): #from tackling — any body part can be hurt in a 
 		"ham_pull_major": 1.0,
 		"calf_pull_minor": 1.0,
 		"calf_pull_major": 1.0,
-		# Groin / hip (all new)
+		# Groin / hip 
 		"dislocated_hip": 1.0,
 		"torn_labrum": 1.0,
 		"pulled_groin_minor": 1.0,
@@ -1076,7 +1089,7 @@ func roll_collision_injury(): #from tackling — any body part can be hurt in a 
 		"bruised_crotch_minor": 1.0,
 		"bruised_crotch_major": 1.0,
 		"destroyed_crotch": 1.0,
-		# Ribs / torso (bruised_rib, broken_rib, chest_bruise, chest_trauma, broken_sternum original)
+		# Ribs / torso
 		"bruised_rib_minor": 5.0,
 		"bruised_rib_major": 2.0,
 		"broken_rib": 0.08,
@@ -1087,14 +1100,14 @@ func roll_collision_injury(): #from tackling — any body part can be hurt in a 
 		"pinched_nerve": 1.0,
 		"spine_damage_minor": 1.0,
 		"spine_damage_major": 1.0,
-		# Shoulder / collarbone (bruised_shoulder, dislocated_shoulder original; rest new)
+		# Shoulder / collarbone
 		"bruised_shoulder_minor": 8.0,
 		"bruised_shoulder_major": 4.0,
 		"disclocated_shoulder": 2.0,
 		"torn_rotator_cuff": 1.0,
 		"broken_collarbone": 1.0,
 		"broken_upper_arm": 1.0,
-		# Arm / elbow (all new)
+		# Arm / elbow
 		"bruised_arm_minor": 1.0,
 		"bruised_arm_major": 1.0,
 		"bruised_elbow_minor": 1.0,
@@ -1102,7 +1115,7 @@ func roll_collision_injury(): #from tackling — any body part can be hurt in a 
 		"dislocated_elbow": 1.0,
 		"broken_elbow": 1.0,
 		"torn_elbow_ligament": 1.0,
-		# Wrist / hand / finger (all new)
+		# Wrist / hand / finger
 		"bruised_wrist_minor_dominant": 1.0,
 		"bruised_wrist_major_dominant": 1.0,
 		"broken_wrist_dominant": 1.0,
@@ -1122,7 +1135,7 @@ func roll_collision_injury(): #from tackling — any body part can be hurt in a 
 		"bicep_pull_major": 1.0,
 		"tricep_pull_minor": 1.0,
 		"tricep_pull_major": 1.0,
-		# Head / face (all original except eyes_scratched, eyes_destroyed, tongue entries, illnesses)
+		# Head / face
 		"nose_bleed": 2.0,
 		"nose_broken": 0.5,
 		"eyes_bruised": 0.4,
@@ -1143,10 +1156,6 @@ func roll_collision_injury(): #from tackling — any body part can be hurt in a 
 		"brain_back_trauma": 0.02,
 		"tongue_bitten": 1.0,
 		"tongue_bitten_off": 1.0,
-		# Illnesses (all new)
-		"lead_poisoning": 1.0,
-		"lung_dust": 1.0,
-		"lung_smoke": 1.0,
 	}
 	return get_weighted_choice(possible_injuries)
 
@@ -1287,6 +1296,7 @@ func roll_ball_kicking_injury(): #from kicking the ball
 		"ankle_bruise_minor": 1.0,
 		"ankle_bruise_major": 1.0,
 		"sprain_ankle_minor": 1.0,
+		"sprain_ankle_major": 1.0,
 		"bruised_shin_minor": 1.0,
 		"bruised_shin_major": 1.0,
 		"quad_pull_minor": 1.0,
@@ -1350,9 +1360,11 @@ func roll_ball_block_injury(): #from being hit with the ball in the crotch, tors
 
 func roll_trip_injury(): #from being tripped
 	var possible_injuries = {
-		"ankle_bruise_minor": 1.0,
-		"ankle_bruise_major": 1.0,
-		"sprain_ankle_minor": 1.0,
+		"shaken_up": 10.0,
+		"ankle_bruise_minor": 8.0,
+		"ankle_bruise_major": 6.0,
+		"sprain_ankle_minor": 4.0,
+		"sprain_ankle_major": 2.0,
 		"broken_ankle": 1.0,
 		"bruised_knee_minor": 1.0,
 		"bruised_knee_major": 1.0,
@@ -1464,6 +1476,104 @@ func roll_grab_attack_injury(): #from grabbing, holding, or throwing opponent
 		"peck_pull_minor": 1.0,
 		"torn_labrum": 1.0,
 		"dislocated_hip": 1.0,
+	}
+	return get_weighted_choice(possible_injuries)
+
+func roll_bite_injury(): #from being bitten
+	var possible_injuries = {
+		"lip_bloodied": 1.0,
+		"lip_split": 1.0,
+		"chipped_tooth": 1.0,
+		"lost_tooth": 1.0,
+		"tongue_bitten": 1.0,
+		"tongue_bitten_off": 1.0,
+		"eyes_bloodied": 1.0,
+		"nose_bleed": 1.0,
+		"nose_broken": 1.0,
+		"eyes_scratched": 1.0,
+		"leg_cut_minor": 1.0,
+		"leg_cut_major": 1.0,
+	}
+	return get_weighted_choice(possible_injuries)
+
+func roll_bite_attack_injury(): #from doing the biting
+	var possible_injuries = {
+		"chipped_tooth": 1.0,
+		"lost_tooth": 1.0,
+		"broken_jaw": 1.0,
+		"broken_cheek": 1.0,
+	}
+	return get_weighted_choice(possible_injuries)
+
+func roll_gouge_injury(): #from being eye gouged
+	var possible_injuries = {
+		"eyes_bruised": 1.0,
+		"eyes_bloodied": 1.0,
+		"eyes_scratched": 1.0,
+		"eyes_destroyed": 1.0,
+	}
+	return get_weighted_choice(possible_injuries)
+
+func roll_gouge_attack_injury(): #from doing the eye gouging
+	var possible_injuries = {
+		"bruised_finger_minor_dominant": 1.0,
+		"bruised_finger_major_dominant": 1.0,
+		"broken_finger_dominant": 1.0,
+		"sprain_thumb_dominant": 1.0,
+	}
+	return get_weighted_choice(possible_injuries)
+
+func roll_grab_injury(): #from being grabbed, held, or thrown — bruising, dislocations, ligament/meniscus/muscle tears
+	var possible_injuries = {
+		# Bruising
+		"bruised_arm_minor": 1.0,
+		"bruised_arm_major": 1.0,
+		"bruised_shoulder_minor": 1.0,
+		"bruised_shoulder_major": 1.0,
+		"bruised_wrist_minor_dominant": 1.0,
+		"bruised_wrist_major_dominant": 1.0,
+		"bruised_wrist_minor_weak": 1.0,
+		"bruised_wrist_major_weak": 1.0,
+		"bruised_finger_minor_dominant": 1.0,
+		"bruised_finger_major_dominant": 1.0,
+		"bruised_finger_minor_weak": 1.0,
+		"bruised_finger_major_weak": 1.0,
+		"bruised_knee_minor": 1.0,
+		"bruised_knee_major": 1.0,
+		"bruised_thigh_minor": 1.0,
+		"bruised_thigh_major": 1.0,
+		# Dislocations
+		"disclocated_shoulder": 1.0,
+		"dislocated_elbow": 1.0,
+		"dislocated_knee": 1.0,
+		"dislocated_hip": 1.0,
+		# Ligaments and muscles
+		"sprained_ACL_minor": 1.0,
+		"sprained_ACL_major": 1.0,
+		"torn_ACL": 1.0,
+		"sprained_LCL_minor": 1.0,
+		"sprained_LCL_major": 1.0,
+		"torn_LCL": 1.0,
+		"torn_rotator_cuff": 1.0,
+		"torn_elbow_ligament": 1.0,
+		"torn_labrum": 1.0,
+		"sprain_ankle_minor": 1.0,
+		"sprain_ankle_major": 1.0,
+		"torn_meniscus": 1.0,
+		"quad_pull_minor": 1.0,
+		"quad_pull_major": 1.0,
+		"ham_pull_minor": 1.0,
+		"ham_pull_major": 1.0,
+		"calf_pull_minor": 1.0,
+		"calf_pull_major": 1.0,
+		"bicep_pull_minor": 1.0,
+		"bicep_pull_major": 1.0,
+		"tricep_pull_minor": 1.0,
+		"tricep_pull_major": 1.0,
+		"peck_pull_minor": 1.0,
+		"peck_pull_major": 1.0,
+		"pulled_groin_minor": 1.0,
+		"pulled_groin_major": 1.0,
 	}
 	return get_weighted_choice(possible_injuries)
 

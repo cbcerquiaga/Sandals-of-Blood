@@ -1226,16 +1226,24 @@ func pitchers_fight():
 		#take stability damage, roll for injury
 		pTeam.P.get_socked(a_punch_power - p_chin)
 		pTeam.P.lose_stability(sqrt(a_punch_power)/5)#between 2.8 and 4.5, relatively minor stability loss
+		pTeam.P.roll_injury_from_foul("fight_victim")
+		aTeam.P.roll_injury_from_foul("fight_attacker")
 		aTeam.P.get_socked(p_punch_power - a_chin)
 		aTeam.P.lose_stability(sqrt(p_punch_power)/5)
+		aTeam.P.roll_injury_from_foul("fight_victim")
+		pTeam.P.roll_injury_from_foul("fight_attacker")
 	elif p_roll < p_hit_chance:
 		aTeam.P.get_socked(p_punch_power - a_chin)
 		pTeam.P.lose_stability(1)  #almost no stability loss
 		aTeam.P.lose_stability(sqrt(p_punch_power)/5)
+		aTeam.P.roll_injury_from_foul("fight_victim")
+		pTeam.P.roll_injury_from_foul("fight_attacker")
 	elif a_roll < a_hit_chance:
 		pTeam.P.get_socked(a_punch_power - p_chin)
 		aTeam.P.lose_stability(1)  #almost no stability loss
 		pTeam.P.lose_stability(sqrt(a_punch_power)/5)
+		pTeam.P.roll_injury_from_foul("fight_victim")
+		aTeam.P.roll_injury_from_foul("fight_attacker")
 	else:
 		#between 2 and 296
 		var rastle = pTeam.P.get_buffed_attribute("power") + aTeam.P.get_buffed_attribute("power") + pTeam.P.get_buffed_attribute("toughness") + aTeam.P.get_buffed_attribute("toughness") -pTeam.P.get_buffed_attribute("balance") -aTeam.P.get_buffed_attribute("balance")
@@ -1253,7 +1261,6 @@ func pitchers_fight():
 		cpu_team_wins_fight()
 	elif aTeam.P.status.stability <= 0:
 		human_team_wins_fight()
-		
 #brawling is mostly similar to pitcher fighting, but has potentially different outcomes. It also has to factor in that players need to worry about additional fighters and the ball
 func players_fight(p1: Player, p2: Player):
 	var tough_diff = p1.get_buffed_attribute("toughness") - p2.get_buffed_attribute("toughness")
@@ -1271,19 +1278,27 @@ func players_fight(p1: Player, p2: Player):
 		#take stability damage, roll for injury
 		p1.get_socked(p2_punch_power - p1_chin)
 		p1.lose_stability(sqrt(p2_punch_power)/5)#between 2.8 and 4.5, relatively minor stability loss
+		p1.roll_injury_from_foul("fight_victim")
+		p2.roll_injury_from_foul("fight_attacker")
 		p2.get_socked(p1_punch_power - p2_chin)
 		p2.lose_stability(sqrt(p1_punch_power)/5)
+		p2.roll_injury_from_foul("fight_victim")
+		p1.roll_injury_from_foul("fight_attacker")
 		p1_aggMod += 2
 		p2_aggMod += 2
 	elif p1_roll < p1_hit_chance:
 		p2.get_socked(p1_punch_power - p2_chin)
 		p1.lose_stability(1)  #almost no stability loss
 		p2.lose_stability(sqrt(p1_punch_power)/5)
+		p2.roll_injury_from_foul("fight_victim")
+		p1.roll_injury_from_foul("fight_attacker")
 		p2_aggMod += 5
 	elif p2_roll < p2_hit_chance:
 		p1.get_socked(p2_punch_power - p1_chin)
 		p2.lose_stability(1)  #almost no stability loss
 		p1.lose_stability(sqrt(p2_punch_power)/5)
+		p1.roll_injury_from_foul("fight_victim")
+		p2.roll_injury_from_foul("fight_attacker")
 		p1_aggMod += 5
 	else: #no wrestling, just whiff
 		print("whiff")
@@ -1299,11 +1314,14 @@ func players_fight(p1: Player, p2: Player):
 	if p1.status.stability <= 0 and p2.status.stability <= 0:
 		p1.enter_stunned_state(10)#TODO: balance
 		p2.enter_stunned_state(10)
-		#TODO: injuries
+		p1.roll_injury_from_foul("fall")
+		p2.roll_injury_from_foul("fall")
 	elif p1.status.stability <= 0:
 		p1.enter_stunned_state(10)
+		p1.roll_injury_from_foul("fall")
 	elif p2.status.stability <= 0:
 		p2.enter_stunned_state(10)
+		p2.roll_injury_from_foul("fall")
 	else:#check if anybody wants to stop
 		var desire_1 = p1.get_buffed_attribute("aggression") - p1_aggMod
 		var desire_2 = p2.get_buffed_attribute("aggression") - p2_aggMod
@@ -1338,6 +1356,7 @@ func human_team_wins_fight():
 	aTeam.P.lose_groove(groove_loss)
 	aTeam.P.lose_energy(20)
 	#aTeam.P. injury chance
+	aTeam.P.roll_injury_from_foul("fall")
 	pTeam.fire_up_bench()
 	aTeam.P.current_behavior = "fallen"
 	aTeam.P.can_move = false
@@ -1354,6 +1373,7 @@ func cpu_team_wins_fight():
 	pTeam.P.lose_groove(groove_loss)
 	pTeam.P.lose_energy(20)
 	#pTeam.P. injury chance
+	pTeam.P.roll_injury_from_foul("fall")
 	aTeam.fire_up_bench()
 	pTeam.P.current_behavior = "fallen"
 	pTeam.P.can_move = false
@@ -1366,7 +1386,8 @@ func fight_fall_over():
 	pTeam.P.current_behavior = "fallen"
 	aTeam.P.add_groove(GlobalSettings.special_pitch_frequency)
 	pTeam.P.add_groove(GlobalSettings.special_pitch_frequency)
-	#injury chance for both
+	aTeam.P.roll_injury_from_foul("fall")
+	pTeam.P.roll_injury_from_foul("fall")
 	
 func update_team_strategy(team: Team):
 	pTeam.strategy.tactics = team.strategy.tactics.duplicate(true)
