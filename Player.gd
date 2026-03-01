@@ -1565,6 +1565,7 @@ func set_all_properties(old_player: Player) -> void:
 	is_workhorse = old_player.is_workhorse
 	is_spin_doctor = old_player.is_spin_doctor
 	active_buffs = old_player.active_buffs.duplicate(true)
+	active_injuries = old_player.active_injuries.duplicate(true)
 	starting_position = old_player.starting_position
 	debug = old_player.debug
 	debug_frames = old_player.debug_frames
@@ -2558,4 +2559,4 @@ func _injury_pulse_scale(popup: RichTextLabel) -> void:
 func _injury_bw_alternate(popup: RichTextLabel) -> void:
 	var tw := create_tween().set_loops(0)
 	tw.tween_property(popup, "modulate", Color.BLACK, 0.08)
-	tw.tween_property(popup, "modulate", Color.WHITE, 0.08) 
+	tw.tween_property(popup, "modulate", Color.WHITE, 0.08)

@@ -494,7 +494,7 @@ func create_injury(injury_name):
 			player_debuffs.shooting -= 10
 			player_debuffs.faceoffs -= 10
 			player_debuffs.power -= 10
-			player_debuffs.player_debuff.focus -= 10
+			player_debuffs.focus -= 10
 		"disclocated_shoulder":
 			title = "Dislocated shoulder"
 			duration_weeks = 1
@@ -502,7 +502,7 @@ func create_injury(injury_name):
 			player_debuffs.shooting -= 15
 			player_debuffs.faceoffs -= 15
 			player_debuffs.power -= 15
-			player_debuffs.player_debuff.focus -= 15
+			player_debuffs.focus -= 15
 			permanent_player_debuffs.durability -= 5
 		"torn_rotator_cuff":
 			title = "Torn shoulder rotator"
@@ -511,7 +511,7 @@ func create_injury(injury_name):
 			player_debuffs.shooting -= 15
 			player_debuffs.faceoffs -= 15
 			player_debuffs.power -= 15
-			player_debuffs.player_debuff.focus -= 15
+			player_debuffs.focus -= 15
 			permanent_player_debuffs.durability -= 5
 		"broken_collarbone":
 			title = "Broken collarbone"
@@ -521,7 +521,7 @@ func create_injury(injury_name):
 			player_debuffs.faceoffs -= 20
 			player_debuffs.power -= 25
 			player_debuffs.durability -= 30
-			player_debuffs.player_debuff.faceoffs -= 5
+			player_debuffs.faceoffs -= 5
 			permanent_player_debuffs.durability -= 5
 			permanent_player_debuffs.faceoffs -= 5
 		"broken_upper_arm":

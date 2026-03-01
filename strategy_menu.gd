@@ -650,6 +650,24 @@ func populate_player_info(player: Player):
 	attributes_label.text = print_player_attributes(player)
 	attributes_label2.text = print_player_attributes2(player)
 	stats_label.text = print_player_stats(player)
+	# Injuries column — always recreate so size flags apply fresh
+	var bottom_row = $"InfoPopup/VBoxContainer/Bottom Row"
+	var stale = bottom_row.get_node_or_null("Injuries")
+	if stale:
+		stale.queue_free()
+	var injuries_text = print_player_injuries(player)
+	if injuries_text != "":
+		var injuries_label := Label.new()
+		injuries_label.name = "Injuries"
+		injuries_label.text = injuries_text
+		injuries_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		injuries_label.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		injuries_label.vertical_alignment = VERTICAL_ALIGNMENT_TOP
+		injuries_label.custom_minimum_size = Vector2(200, 0)
+		injuries_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		injuries_label.add_theme_font_size_override("font_size", 30)
+		bottom_row.add_child(injuries_label)
+		print("[Injuries] label added, text: ", injuries_text)
 			
 func print_player_bio(player: Player):
 	var string: String
@@ -663,31 +681,50 @@ func print_player_bio(player: Player):
 	string = string + "Throws: " + hand
 	return string
 	
+func _attr_suffix(player: Player, attr: String) -> String:
+	var base = player.attributes.get(attr, 0)
+	var buffed = player.get_buffed_attribute(attr)
+	if buffed < base:
+		return " (-)"
+	elif buffed > base:
+		return " (+)"
+	return ""
+
 func print_player_attributes(player: Player):
 	var string: String
-	string = string + "Speed: " + str(player.get_buffed_attribute("speedRating")) + "\n"
-	string = string + "Endurance: " + str(player.get_buffed_attribute("endurance")) + "\n"
-	string = string + "Striking: " + str(player.get_buffed_attribute("shooting")) +  "\n"
-	string = string + "Blocking: " + str(player.get_buffed_attribute("blocking")) +  "\n"
-	string = string + "Throwing: " + str(player.get_buffed_attribute("throwing")) + "\n"
-	string = string + "Aggression: " + str(player.get_buffed_attribute("aggression"))  + "\n"
-	string = string + "Toughness: " + str(player.get_buffed_attribute("toughness")) + "\n"
-	string = string + "Durability: " + str(player.get_buffed_attribute("durability")) + "\n"
-	string = string + "Faceoffs: " + str(player.get_buffed_attribute("faceoffs"))
+	string = string + "Speed: " + str(int(player.get_buffed_attribute("speedRating"))) + _attr_suffix(player, "speedRating") + "\n"
+	string = string + "Endurance: " + str(int(player.get_buffed_attribute("endurance"))) + _attr_suffix(player, "endurance") + "\n"
+	string = string + "Striking: " + str(int(player.get_buffed_attribute("shooting"))) + _attr_suffix(player, "shooting") + "\n"
+	string = string + "Blocking: " + str(int(player.get_buffed_attribute("blocking"))) + _attr_suffix(player, "blocking") + "\n"
+	string = string + "Throwing: " + str(int(player.get_buffed_attribute("throwing"))) + _attr_suffix(player, "throwing") + "\n"
+	string = string + "Aggression: " + str(int(player.get_buffed_attribute("aggression"))) + _attr_suffix(player, "aggression") + "\n"
+	string = string + "Toughness: " + str(int(player.get_buffed_attribute("toughness"))) + _attr_suffix(player, "toughness") + "\n"
+	string = string + "Durability: " + str(int(player.get_buffed_attribute("durability"))) + _attr_suffix(player, "durability") + "\n"
+	string = string + "Faceoffs: " + str(int(player.get_buffed_attribute("faceoffs"))) + _attr_suffix(player, "faceoffs")
 	return string
 	
 func print_player_attributes2(player: Player):
 	var string: String
-	string = string + "Strength: " + str(player.get_buffed_attribute("power")) + "\n"
-	string = string + "Balance: " + str(player.get_buffed_attribute("balance")) + "\n"
-	string = string + "Accuracy: " + str(player.get_buffed_attribute("accuracy")) + "\n"
-	string = string + "Reactions: " + str(player.get_buffed_attribute("reactions")) + "\n"
-	string = string + "Curve: " + str(player.get_buffed_attribute("focus")) + "\n"
-	string = string + "Positioning: " + str(player.get_buffed_attribute("positioning")) + "\n"
-	string = string + "Confidence: " + str(player.get_buffed_attribute("confidence")) + "\n"
-	string = string + "Agility: " + str(player.get_buffed_attribute("agility")) + "\n"
-	string = string + "Discipline: " + str(player.get_buffed_attribute("durability"))
+	string = string + "Strength: " + str(int(player.get_buffed_attribute("power"))) + _attr_suffix(player, "power") + "\n"
+	string = string + "Balance: " + str(int(player.get_buffed_attribute("balance"))) + _attr_suffix(player, "balance") + "\n"
+	string = string + "Accuracy: " + str(int(player.get_buffed_attribute("accuracy"))) + _attr_suffix(player, "accuracy") + "\n"
+	string = string + "Reactions: " + str(int(player.get_buffed_attribute("reactions"))) + _attr_suffix(player, "reactions") + "\n"
+	string = string + "Curve: " + str(int(player.get_buffed_attribute("focus"))) + _attr_suffix(player, "focus") + "\n"
+	string = string + "Positioning: " + str(int(player.get_buffed_attribute("positioning"))) + _attr_suffix(player, "positioning") + "\n"
+	string = string + "Confidence: " + str(int(player.get_buffed_attribute("confidence"))) + _attr_suffix(player, "confidence") + "\n"
+	string = string + "Agility: " + str(int(player.get_buffed_attribute("agility"))) + _attr_suffix(player, "agility") + "\n"
+	string = string + "Discipline: " + str(int(player.get_buffed_attribute("discipline"))) + _attr_suffix(player, "discipline")
 	return string
+
+func print_player_injuries(player: Player) -> String:
+	if player.active_injuries.is_empty():
+		return ""
+	var string: String = "Injuries\n"
+	for entry in player.active_injuries:
+		var injury = Injury.new()
+		injury.create_injury(entry["injury_name"])
+		string = string + injury.title + " (" + str(entry["weeks_remaining"]) + "w)\n"
+	return string.strip_edges()
 	
 func print_player_stats(player: Player):
 	var string: String

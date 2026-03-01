@@ -388,8 +388,8 @@ func see():
 			
 			# Add to memory if not already there
 			var memory_key = str(player.team) + "_" + player.position_type
-			if not player in memory[memory_key]:
-				memory[memory_key].append(player)
+			#if not player in memory[memory_key]:
+				#memory[memory_key].append(player)
 
 func is_point_in_triangle(point: Vector2, a: Vector2, b: Vector2, c: Vector2) -> bool:
 	#Barycentric coordinate method
