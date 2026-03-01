@@ -387,7 +387,7 @@ func see():
 			spotted_players.append(player)
 			
 			# Add to memory if not already there
-			var memory_key = player.team[0] + "_" + player.player_type
+			var memory_key = str(player.team) + "_" + player.position_type
 			if not player in memory[memory_key]:
 				memory[memory_key].append(player)
 

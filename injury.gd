@@ -486,7 +486,7 @@ func create_injury(injury_name):
 			player_debuffs.shooting -= 5
 			player_debuffs.faceoffs -= 5
 			player_debuffs.power -= 5
-			player_debuffs.player_debuff.focus -= 5
+			player_debuffs.focus -= 5
 		"bruised_shoulder_major":
 			title = "Severely bruised shoulder"
 			duration_weeks = 3
@@ -795,7 +795,7 @@ func create_injury(injury_name):
 			player_debuffs.aggression -= 8
 			player_debuffs.toughness -= 8
 			character_debuffs.positivity -= 5
-			permanent_character_debuffs.toughness += 5 #makes you hard nosed
+			permanent_player_debuffs.toughness += 5 #makes you hard nosed
 		"eyes_scratched":
 			title = "Scratched cornea"
 			duration_weeks = 8
@@ -803,9 +803,9 @@ func create_injury(injury_name):
 			player_debuffs.reactions -= 12
 			player_debuffs.accuracy -= 12
 			character_debuffs.positivity -= 5
-			permanent_character_debuffs.reactions -= 5
-			permanent_character_debuffs.positioning -= 5
-			permanent_character_debuffs.blocking -= 5
+			permanent_player_debuffs.reactions -= 5
+			permanent_player_debuffs.positioning -= 5
+			permanent_player_debuffs.blocking -= 5
 			permanent_player_debuffs.accuracy -= 5
 		"eyes_bruised":
 			title = "Black eye"
@@ -814,7 +814,7 @@ func create_injury(injury_name):
 			player_debuffs.positioning -= 5
 			player_debuffs.toughness -= 5
 			player_debuffs.accuracy -= 5
-			permanent_character_debuffs.toughness += 1
+			permanent_player_debuffs.toughness += 1
 		"eyes_bloodied":
 			title = "Blood in eyes"
 			duration_weeks = 1
@@ -822,7 +822,7 @@ func create_injury(injury_name):
 			player_debuffs.reactions -= 15
 			player_debuffs.blocking -= 15
 			player_debuffs.accuracy -= 15
-			permanent_character_debuffs.reactions -= 1
+			permanent_player_debuffs.reactions -= 1
 		"eyes_destroyed":
 			title = "Blinded"
 			duration_weeks = 52 #takes a year to get used to being blind

@@ -293,6 +293,7 @@ var is_spin_doctor: bool = false #curving shots
 var is_workhorse: bool = false #infinite boost for self, max boost and confidence for teammates
 var active_buffs: Dictionary = {} #buff structure: { "buff_name": { "attributes": ["speed", "power"], "values": [10, 5] } }
 var active_injuries: Array = [] #each entry: { "buff_key": String, "injury_name": String, "weeks_remaining": int }
+var last_injury_time_ms: int = -10000 # tracks when last injury was applied; -10000 so the first injury is never blocked
 var starting_position: Vector2
 
 
@@ -1137,6 +1138,12 @@ func apply_health_damage(amount: float):
 	pass
 
 func add_injury(injury_name: String):
+	# Prevent multiple injuries being applied from a single injury check event
+	var now_ms: int = Time.get_ticks_msec()
+	if now_ms - last_injury_time_ms < 1000:
+		return
+	last_injury_time_ms = now_ms
+	
 	var injury = Injury.new()
 	injury.create_injury(injury_name)
 	# Injuries are buffs — build the attribute/value arrays and register via add_buff
@@ -1154,6 +1161,7 @@ func add_injury(injury_name: String):
 	injury.apply_debuffs_to_player(self)
 	active_injuries.append({"buff_key": buff_key, "injury_name": injury_name, "weeks_remaining": injury.duration_weeks})
 	print(bio.last_name, " suffered: ", injury.title, " (", injury.duration_weeks, " weeks)")
+	show_injury_text(injury.title)
 
 func remove_injury(injury_entry: Dictionary):
 	remove_buff(injury_entry["buff_key"])
@@ -2408,3 +2416,146 @@ func roll_injury_from_foul(context: String = "collision"):
 				_:
 					injury_name = roller.roll_collision_injury()
 			add_injury(injury_name)
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Injury Text Popup
+# ─────────────────────────────────────────────────────────────────────────────
+
+func show_injury_text(injury_title: String) -> void:
+	# Build the popup label
+	var popup := RichTextLabel.new()
+	popup.bbcode_enabled = true
+	popup.autowrap_mode = TextServer.AUTOWRAP_OFF
+	popup.fit_content = true
+	popup.custom_minimum_size = Vector2(120, 40)
+	popup.size = Vector2(120, 40)
+	popup.add_theme_font_size_override("normal_font_size", 10)
+	popup.add_theme_color_override("default_color", Color.WHITE)
+	popup.add_theme_color_override("font_shadow_color", Color.BLACK)
+	popup.add_theme_constant_override("shadow_offset_x", 1)
+	popup.add_theme_constant_override("shadow_offset_y", 1)
+
+	# Offset above the player's sprite with a little horizontal jitter
+	popup.position = Vector2(randf_range(-30, 10) - popup.custom_minimum_size.x * 0.5,
+							 randf_range(-36, -14))
+	# Counter the player's own rotation so the text is always legible in world space,
+	# then add a small decorative jitter on top.
+	var base_rot_deg: float = -rad_to_deg(global_rotation) + randf_range(-30.0, 30.0)
+	popup.rotation_degrees = base_rot_deg
+	popup.z_index = 100
+	popup.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(popup)
+
+	# Pick one of 9 random behaviors
+	var behavior: int = randi_range(0, 8)
+	match behavior:
+		0: # Oscillating rotation with increasing speed each direction-switch
+			popup.text = injury_title
+			_injury_oscillate(popup, base_rot_deg)
+		1: # Scale up while slowly rotating
+			popup.text = injury_title
+			var tw := create_tween().set_parallel(true)
+			tw.tween_property(popup, "scale", Vector2(2.2, 2.2), 1.0).set_ease(Tween.EASE_OUT)
+			tw.tween_property(popup, "rotation_degrees", base_rot_deg + 160.0, 1.0).set_ease(Tween.EASE_IN_OUT)
+		2: # Shake left/right while fading in and out
+			popup.text = injury_title
+			_injury_shake_fade(popup)
+		3: # Screensaver bounce
+			popup.text = injury_title
+			_injury_bounce(popup)
+		4: # Rainbow – each letter cycles through different hues (built-in BBCode)
+			popup.text = "[rainbow freq=3.0 sat=1.0 val=1.0]" + injury_title + "[/rainbow]"
+		5: # Wave – letters jump up and fall in sequence (built-in BBCode)
+			popup.text = "[wave amp=12 freq=4.0]" + injury_title + "[/wave]"
+		6: # Spin 360° then stop
+			popup.text = injury_title
+			var tw := create_tween()
+			tw.tween_property(popup, "rotation_degrees", base_rot_deg + 360.0, 0.65)\
+			  .set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
+		7: # Rapid scale pulse
+			popup.text = injury_title
+			_injury_pulse_scale(popup)
+		8: # Alternate black / white
+			popup.text = injury_title
+			_injury_bw_alternate(popup)
+
+	# After 1 second the label fades out and frees itself
+	await get_tree().create_timer(1.0).timeout
+	if not is_instance_valid(popup):
+		return
+	var fade := create_tween()
+	fade.tween_property(popup, "modulate:a", 0.0, 0.25)
+	await fade.finished
+	if is_instance_valid(popup):
+		popup.queue_free()
+
+
+# Behavior 0 – oscillate back and forth, each swing faster than the last
+func _injury_oscillate(popup: RichTextLabel, base_rot: float) -> void:
+	var tw := create_tween()
+	var direction: float = 1.0
+	var swing_time: float = 0.22   # seconds for first half-swing
+	var elapsed: float = 0.0
+	while elapsed < 0.95:
+		var target: float = base_rot + direction * 15.0
+		tw.tween_property(popup, "rotation_degrees", target, swing_time)\
+		  .set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_SINE)
+		elapsed += swing_time
+		direction = -direction
+		swing_time = maxf(swing_time * 0.78, 0.04)  # accelerate each swing
+
+
+# Behavior 2 – shake horizontally while pulsing alpha
+func _injury_shake_fade(popup: RichTextLabel) -> void:
+	var tw := create_tween().set_loops(0)  # infinite – we free the node at 1 s anyway
+	var origin_x: float = popup.position.x
+	var shake_dist: float = 6.0
+	tw.tween_property(popup, "position:x", origin_x + shake_dist, 0.05)
+	tw.tween_property(popup, "position:x", origin_x - shake_dist, 0.05)
+	tw.tween_property(popup, "position:x", origin_x, 0.04)
+
+	var fade_tw := create_tween().set_loops(0)
+	fade_tw.tween_property(popup, "modulate:a", 0.25, 0.18)
+	fade_tw.tween_property(popup, "modulate:a", 1.0, 0.18)
+
+
+# Behavior 3 – bouncing screensaver (per-frame coroutine)
+func _injury_bounce(popup: RichTextLabel) -> void:
+	var vel := Vector2(randf_range(50.0, 120.0) * (1.0 if randf() > 0.5 else -1.0),
+					   randf_range(-100.0, -50.0)) 
+	# Bounds in local space relative to player origin
+	var bounds := Rect2(-20.0, -20.0, 20.0, 20.0)
+	var elapsed: float = 0.0
+
+	while is_instance_valid(popup) and elapsed < 1.0:
+		await get_tree().process_frame
+		var delta: float = get_process_delta_time()
+		elapsed += delta
+		popup.position += vel * delta
+		if popup.position.x < bounds.position.x or \
+		   popup.position.x + popup.size.x > bounds.end.x:
+			vel.x = -vel.x
+			popup.position.x = clampf(popup.position.x, bounds.position.x,
+									  bounds.end.x - popup.size.x)
+		if popup.position.y < bounds.position.y or \
+		   popup.position.y + popup.size.y > bounds.end.y:
+			vel.y = -vel.y
+			popup.position.y = clampf(popup.position.y, bounds.position.y,
+									  bounds.end.y - popup.size.y)
+
+
+# Behavior 7 – rapid scale pulse
+func _injury_pulse_scale(popup: RichTextLabel) -> void:
+	var tw := create_tween().set_loops(0)
+	tw.tween_property(popup, "scale", Vector2(1.5, 1.5), 0.07)\
+	  .set_ease(Tween.EASE_OUT)
+	tw.tween_property(popup, "scale", Vector2(0.85, 0.85), 0.07)\
+	  .set_ease(Tween.EASE_IN)
+	tw.tween_property(popup, "scale", Vector2(1.0, 1.0), 0.06)
+
+
+# Behavior 8 – alternate black and white
+func _injury_bw_alternate(popup: RichTextLabel) -> void:
+	var tw := create_tween().set_loops(0)
+	tw.tween_property(popup, "modulate", Color.BLACK, 0.08)
+	tw.tween_property(popup, "modulate", Color.WHITE, 0.08) 
