@@ -392,32 +392,63 @@ func faceoff_recover():
 	is_faceoff_recover = true
 	can_move = true
 	
+	# Initialize exit direction and delay once per recovery sequence.
+	# faceoff_exit_direction == ZERO means we haven't set up yet this sequence.
 	if faceoff_exit_direction == Vector2.ZERO:
-		var discipline_check = randi_range(0, 100)
 		var discipline_threshold = get_buffed_attribute("discipline")
 		var faceoff_pos = ball.global_position if ball else global_position
 		var is_left_faceoff = faceoff_pos.x < 0
-		var rand_y = randf_range(-0.2, 0.2)
-		if discipline_check > discipline_threshold:
-			discipline_check = randi_range(0, 100)
-			if discipline_check > discipline_threshold:
-				print(bio.last_name + " failed discipline twice! Going for the ball later")
-		else:
-			rand_y = 0
-		if is_left_faceoff:
-			faceoff_exit_direction = Vector2(-1, rand_y)
-		else:
-			faceoff_exit_direction = Vector2(1, rand_y)
-		faceoff_recover_timer = 0.0
+		
+		# Two-strike discipline check. Track how badly each roll fails.
+		var roll1 = randi_range(0, 100)
+		var failed_once = roll1 > discipline_threshold
+		var failed_twice = false
+		var failure_margin = 0
+		
+		if failed_once:
+			failure_margin += roll1 - discipline_threshold
+			var roll2 = randi_range(0, 100)
+			failed_twice = roll2 > discipline_threshold
+			if failed_twice:
+				failure_margin += roll2 - discipline_threshold
+				print(bio.last_name + " failed both discipline checks!")
+				# Double failure: tempted to cheat. Chance scales with aggression.
+				var cheat_roll = randf_range(0, 100)
+				if wants_to_cheat or cheat_roll < get_buffed_attribute("aggression") * 0.5:
+					print(bio.last_name + " decided to cheat and go for the ball!")
+					# Set a placeholder so we don't re-init next frame.
+					faceoff_exit_direction = Vector2.RIGHT
+					faceoff_recover_timer = 0.0
+					start_cheating()
+					return
+			else:
+				print(bio.last_name + " hesitated at the faceoff.")
+		
+		# Delay: scales with failure severity, up to 3 seconds.
+		# Max possible margin when both rolls fail hard against a low-discipline player.
+		var max_possible_margin = max(1, 200 - discipline_threshold)
+		var delay_seconds = clamp(failure_margin / float(max_possible_margin) * 3.0, 0.0, 3.0)
+		
+		# Exit direction variance scales with how undisciplined the pitcher is.
+		# A disciplined pitcher exits almost straight; a sloppy one can veer up to ±45°.
+		var max_angle = deg_to_rad(45.0 * (1.0 - discipline_threshold / 100.0))
+		var angle_offset = randf_range(-max_angle, max_angle)
+		var base_angle = PI if is_left_faceoff else 0.0
+		faceoff_exit_direction = Vector2(cos(base_angle + angle_offset), sin(base_angle + angle_offset))
+		
+		# Use a negative starting timer as a delay: counts up to 0 before moving.
+		faceoff_recover_timer = -delay_seconds
 	
 	faceoff_recover_timer += get_process_delta_time()
-	if faceoff_recover_timer >= 1.0:
-		var faceoff_pos = ball.global_position if ball else global_position
-		faceoff_exit_direction = Vector2(-1, 0) if faceoff_pos.x < 0 else Vector2(1, 0)
 	
+	# Still waiting out the discipline delay — stand still.
+	if faceoff_recover_timer < 0.0:
+		velocity = Vector2.ZERO
+		return
+	
+	# Move toward the exit at full speed.
 	var speed = get_buffed_attribute("sprint_speed") if status.boost > 0 else get_buffed_attribute("speed")
 	if status.boost > 0:
-		speed = get_buffed_attribute("sprint_speed")
 		status.boost = max(0, status.boost - 0.5)
 	velocity = faceoff_exit_direction * speed
 	move_and_slide()

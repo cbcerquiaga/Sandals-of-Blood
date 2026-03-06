@@ -629,7 +629,7 @@ func get_visibility(target_position: Vector2) -> float:
 	query.collide_with_areas = false
 	var results = space_state.intersect_shape(query)
 	results.sort_custom(func(a, b):
-		return global_position.distance_squared_to(a.point) < global_position.distance_squared_to(b.point)
+		return global_position.distance_squared_to(a.collider.global_position) < global_position.distance_squared_to(b.collider.global_position)
 	)
 	for result in results:
 		var hit_point = result.collider.global_position
