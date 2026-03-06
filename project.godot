@@ -10,9 +10,10 @@ config_version=5
 
 [application]
 
-config/name="Sands of Blood"
+config/name="Sandals of Blood"
 run/main_scene="res://test_match_scene.tscn"
 config/features=PackedStringArray("4.3", "Forward Plus")
+boot_splash/bg_color=Color(0.288499, 0.00661341, 0.0378884, 1)
 config/icon="res://icon.svg"
 
 [autoload]
