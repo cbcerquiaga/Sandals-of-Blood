@@ -206,3 +206,86 @@ func sum_focus_values():
 		var focus = get_nth_focus(i)
 		sum += contract_focuses[focus]
 	return sum
+
+func export_to_dict() -> Dictionary:
+	var data = {}
+	data["id"] = id
+	data["preferred_job"] = preferred_job
+	data["job_roles"] = job_roles.duplicate()
+	data["home_cooking_style"] = home_cooking_style
+	data["day_job"] = day_job
+	data["day_job_pay"] = day_job_pay
+	data["spouses"] = spouses
+	data["children"] = children
+	data["elders"] = elders
+	data["adults"] = adults
+	data["gender"] = gender
+	data["attracted"] = attracted.duplicate()
+	data["gang_affiliation"] = gang_affiliation
+	data["off_attributes"] = off_attributes.duplicate()
+	data["contract_focuses"] = contract_focuses.duplicate()
+	data["top_focuses"] = top_focuses.duplicate()
+	data["staff_skills"] = staff_skills.duplicate()
+	data["best_league"] = best_league
+	data["last_contract_offer_value"] = last_contract_offer_value
+	data["negotiation_willingness"] = negotiation_willingness
+	if player:
+		data["player"] = player.export_to_dict()
+	if contract:
+		data["contract"] = {
+			"type": contract.type,
+			"seasons_left": contract.seasons_left,
+			"tryout_games_left": contract.tryout_games_left,
+			"current_salary": contract.current_salary,
+			"current_share": contract.current_share,
+			"current_water": contract.current_water,
+			"current_food": contract.current_food,
+			"current_buyout": contract.current_buyout,
+			"current_housing": contract.current_housing,
+			"current_promise": contract.current_promise,
+			"current_bonus_type": contract.current_bonus_type,
+			"current_bonus_prize": contract.current_bonus_prize,
+			"current_bonus_value": contract.current_bonus_value
+		}
+	return data
+
+func import_from_dict(data: Dictionary):
+	id = data.get("id", "")
+	preferred_job = data.get("preferred_job", "player")
+	job_roles = data.get("job_roles", job_roles).duplicate()
+	home_cooking_style = data.get("home_cooking_style", "bbq")
+	day_job = data.get("day_job", "none")
+	day_job_pay = data.get("day_job_pay", 25)
+	spouses = data.get("spouses", 0)
+	children = data.get("children", 0)
+	elders = data.get("elders", 0)
+	adults = data.get("adults", 0)
+	gender = data.get("gender", "m")
+	attracted = data.get("attracted", attracted).duplicate()
+	gang_affiliation = data.get("gang_affiliation", "none")
+	off_attributes = data.get("off_attributes", off_attributes).duplicate()
+	contract_focuses = data.get("contract_focuses", contract_focuses).duplicate()
+	top_focuses = data.get("top_focuses", []).duplicate()
+	staff_skills = data.get("staff_skills", staff_skills).duplicate()
+	best_league = data.get("best_league", 0)
+	last_contract_offer_value = data.get("last_contract_offer_value", 0)
+	negotiation_willingness = data.get("negotiation_willingness", 100)
+	if data.has("player"):
+		player = Player.new()
+		player.import_from_dict(data["player"])
+	if data.has("contract"):
+		var cd = data["contract"]
+		contract = Contract.new()
+		contract.type = cd.get("type", "free_agent")
+		contract.seasons_left = cd.get("seasons_left", 1)
+		contract.tryout_games_left = cd.get("tryout_games_left", 0)
+		contract.current_salary = cd.get("current_salary", 0)
+		contract.current_share = cd.get("current_share", 0)
+		contract.current_water = cd.get("current_water", 0)
+		contract.current_food = cd.get("current_food", 0)
+		contract.current_buyout = cd.get("current_buyout", "free")
+		contract.current_housing = cd.get("current_housing", "none")
+		contract.current_promise = cd.get("current_promise", "none")
+		contract.current_bonus_type = cd.get("current_bonus_type", "gp")
+		contract.current_bonus_prize = cd.get("current_bonus_prize", "salary_raise")
+		contract.current_bonus_value = cd.get("current_bonus_value", 1)

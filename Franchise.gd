@@ -1,6 +1,8 @@
 extends Node
 class_name Franchise
 
+const SAVE_PATH = "res://Save Data/career_franchise.json"
+
 var city: City
 var team: Team
 var neighborhood: String #N,S,E,W
@@ -139,7 +141,8 @@ var amenities = {
 }
 
 func _ready():
-	default_team() #TODO: load from save
+	if not load_from_file():
+		default_team() #TODO: load from save
 
 func default_team():
 	team = Team.new()
@@ -328,3 +331,128 @@ func update_block_player_traded(player: Player):
 		for index in indexes:
 			if index >= 0:
 				trade_block.remove_at(index)
+
+func sign_player(npc: Character):
+	if contracts.has(npc.id):
+		return
+	contracts[npc.id] = npc
+	npc.player.team = team.team_id
+	team.add_player(npc.player)
+	save_to_file()
+
+func release_player(npc_id: String):
+	if not contracts.has(npc_id):
+		return
+	var npc: Character = contracts[npc_id]
+	npc.contract.type = "free_agent"
+	npc.player.team = -1
+	for i in range(team.roster.size() - 1, -1, -1):
+		if team.roster[i].bio.first_name == npc.player.bio.first_name and team.roster[i].bio.last_name == npc.player.bio.last_name:
+			team.roster.remove_at(i)
+			break
+	for i in range(team.bench.size() - 1, -1, -1):
+		if team.bench[i].bio.first_name == npc.player.bio.first_name and team.bench[i].bio.last_name == npc.player.bio.last_name:
+			team.bench.remove_at(i)
+			break
+	contracts.erase(npc_id)
+	save_to_file()
+
+func update_player_in_roster(updated_player: Player):
+	for roster_player in team.roster:
+		if roster_player.bio.first_name == updated_player.bio.first_name and roster_player.bio.last_name == updated_player.bio.last_name:
+			roster_player.set_all_properties(updated_player)
+			break
+	for npc_id in contracts:
+		var npc: Character = contracts[npc_id]
+		if npc.player.bio.first_name == updated_player.bio.first_name and npc.player.bio.last_name == updated_player.bio.last_name:
+			npc.player.set_all_properties(updated_player)
+			break
+	save_to_file()
+
+func relink_contracts_to_roster():
+	for npc_id in contracts:
+		var npc: Character = contracts[npc_id]
+		for roster_player in team.roster:
+			if roster_player.bio.first_name == npc.player.bio.first_name and roster_player.bio.last_name == npc.player.bio.last_name:
+				npc.player = roster_player
+				break
+
+func save_to_file():
+	var data = {}
+	data["team"] = team.export_to_dict()
+	data["contracts"] = {}
+	for npc_id in contracts:
+		var npc: Character = contracts[npc_id]
+		data["contracts"][npc_id] = npc.export_to_dict()
+	data["money_bank"] = money_bank
+	data["water_bank"] = water_bank
+	data["food_bank"] = food_bank
+	data["offer_tokens"] = offer_tokens
+	data["fan_rep"] = fan_rep
+	data["bana_rep"] = bana_rep
+	data["holy_rep"] = holy_rep
+	data["fam_rep"] = fam_rep
+	data["poss_rep"] = poss_rep
+	data["punk_rep"] = punk_rep
+	data["wins"] = wins
+	data["losses"] = losses
+	data["ties"] = ties
+	data["games_played"] = games_played
+	data["goal_diff"] = goal_diff
+	data["morale"] = morale
+	data["amenities"] = amenities.duplicate()
+	data["hours_tactical"] = hours_tactical
+	data["hours_technical"] = hours_technical
+	data["hours_physical"] = hours_physical
+	data["hours_communal"] = hours_communal
+	data["weekly_expenses"] = weekly_expenses.duplicate()
+	data["coach"] = CareerCoach.export_to_dict()
+	var file = FileAccess.open(SAVE_PATH, FileAccess.WRITE)
+	if file:
+		file.store_string(JSON.stringify(data, "\t"))
+		file.close()
+
+func load_from_file() -> bool:
+	if not FileAccess.file_exists(SAVE_PATH):
+		return false
+	var file = FileAccess.open(SAVE_PATH, FileAccess.READ)
+	if not file:
+		return false
+	var data = JSON.parse_string(file.get_as_text())
+	file.close()
+	if not data:
+		return false
+	team = Team.new()
+	team._init()
+	team.import_from_dict(data["team"])
+	contracts.clear()
+	for npc_id in data["contracts"]:
+		var npc = Character.new()
+		npc.import_from_dict(data["contracts"][npc_id])
+		contracts[npc_id] = npc
+	relink_contracts_to_roster()
+	money_bank = data.get("money_bank", 0)
+	water_bank = data.get("water_bank", 0)
+	food_bank = data.get("food_bank", 0)
+	offer_tokens = data.get("offer_tokens", 0)
+	fan_rep = data.get("fan_rep", 0)
+	bana_rep = data.get("bana_rep", 0)
+	holy_rep = data.get("holy_rep", 0)
+	fam_rep = data.get("fam_rep", 0)
+	poss_rep = data.get("poss_rep", 0)
+	punk_rep = data.get("punk_rep", 0)
+	wins = data.get("wins", 0)
+	losses = data.get("losses", 0)
+	ties = data.get("ties", 0)
+	games_played = data.get("games_played", 0)
+	goal_diff = data.get("goal_diff", 0)
+	morale = data.get("morale", 50)
+	amenities = data.get("amenities", amenities).duplicate()
+	hours_tactical = data.get("hours_tactical", 0)
+	hours_technical = data.get("hours_technical", 0)
+	hours_physical = data.get("hours_physical", 0)
+	hours_communal = data.get("hours_communal", 0)
+	weekly_expenses = data.get("weekly_expenses", weekly_expenses).duplicate()
+	if data.has("coach"):
+		CareerCoach.import_from_dict(data["coach"])
+	return true

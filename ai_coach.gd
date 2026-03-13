@@ -922,3 +922,76 @@ func get_position_sub_frequency(position_type: String) -> float:
 			return sub_frequency_k
 		_:
 			return 0.5
+
+func export_to_dict() -> Dictionary:
+	var data = {}
+	data["staff_skills"] = staff_skills.duplicate()
+	data["defense_1"] = defense_1
+	data["defense_2"] = defense_2
+	data["defense_flexibility"] = defense_flexibility
+	data["lf_role_1"] = lf_role_1
+	data["lf_role_2"] = lf_role_2
+	data["lf_role_3"] = lf_role_3
+	data["rf_role_1"] = rf_role_1
+	data["rf_role_2"] = rf_role_2
+	data["rf_role_3"] = rf_role_3
+	data["fav_type_k"] = fav_type_k
+	data["fav_weight_k"] = fav_weight_k
+	data["fav_type_lg"] = fav_type_lg
+	data["fav_weight_lg"] = fav_weight_lg
+	data["fav_type_rg"] = fav_type_rg
+	data["fav_weight_rg"] = fav_weight_rg
+	data["mix_f_roles"] = mix_f_roles
+	data["max_platoon"] = max_platoon
+	data["sub_frequency_p"] = sub_frequency_p
+	data["sub_frequency_g"] = sub_frequency_g
+	data["sub_frequency_f"] = sub_frequency_f
+	data["sub_frequency_k"] = sub_frequency_k
+	data["planned_pitcher_subs"] = planned_pitcher_subs
+	data["planned_tactical_subs"] = planned_tactical_subs
+	data["planned_saved_subs"] = planned_saved_subs
+	data["pitcher_matchup_weights"] = pitcher_matchup_weights.duplicate()
+	data["endurance_sub"] = endurance_sub
+	data["total_subs_available"] = total_subs_available
+	return data
+
+func import_from_dict(data: Dictionary):
+	staff_skills = data.get("staff_skills", staff_skills).duplicate()
+	defense_1 = data.get("defense_1", defense_1)
+	defense_2 = data.get("defense_2", defense_2)
+	defense_flexibility = data.get("defense_flexibility", defense_flexibility)
+	lf_role_1 = data.get("lf_role_1", lf_role_1)
+	lf_role_2 = data.get("lf_role_2", lf_role_2)
+	lf_role_3 = data.get("lf_role_3", lf_role_3)
+	rf_role_1 = data.get("rf_role_1", rf_role_1)
+	rf_role_2 = data.get("rf_role_2", rf_role_2)
+	rf_role_3 = data.get("rf_role_3", rf_role_3)
+	fav_type_k = data.get("fav_type_k", fav_type_k)
+	fav_weight_k = data.get("fav_weight_k", fav_weight_k)
+	fav_type_lg = data.get("fav_type_lg", fav_type_lg)
+	fav_weight_lg = data.get("fav_weight_lg", fav_weight_lg)
+	fav_type_rg = data.get("fav_type_rg", fav_type_rg)
+	fav_weight_rg = data.get("fav_weight_rg", fav_weight_rg)
+	mix_f_roles = data.get("mix_f_roles", mix_f_roles)
+	max_platoon = data.get("max_platoon", max_platoon)
+	sub_frequency_p = data.get("sub_frequency_p", sub_frequency_p)
+	sub_frequency_g = data.get("sub_frequency_g", sub_frequency_g)
+	sub_frequency_f = data.get("sub_frequency_f", sub_frequency_f)
+	sub_frequency_k = data.get("sub_frequency_k", sub_frequency_k)
+	planned_pitcher_subs = data.get("planned_pitcher_subs", planned_pitcher_subs)
+	planned_tactical_subs = data.get("planned_tactical_subs", planned_tactical_subs)
+	planned_saved_subs = data.get("planned_saved_subs", planned_saved_subs)
+	pitcher_matchup_weights = data.get("pitcher_matchup_weights", pitcher_matchup_weights).duplicate()
+	endurance_sub = data.get("endurance_sub", endurance_sub)
+	total_subs_available = data.get("total_subs_available", total_subs_available)
+	#reset transient in-match state
+	has_made_choice = false
+	consecutive_goals_against = 0
+	last_goal_pitch = -1
+	subs_used = 0
+	pitcher_subs_used = 0
+	tactical_subs_used = 0
+	injury_subs_used = 0
+	current_defense = defense_1
+	current_lf_role = lf_role_1
+	current_rf_role = rf_role_1

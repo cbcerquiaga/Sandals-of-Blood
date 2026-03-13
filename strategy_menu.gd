@@ -271,6 +271,8 @@ func _on_save_pressed():
 		emit_signal("new_sub")
 	else:
 		apply_next_roster()
+		apply_strategy_changes()
+		CareerFranchise.save_to_file()
 		save_strategy(current_team, "user://player_team_strategy.json")
 	emit_signal("menu_closed")
 	hide()

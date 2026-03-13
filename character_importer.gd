@@ -310,3 +310,16 @@ func get_imported_npcs() -> Array[Character]:
 
 func clear_imported_npcs() -> void:
 	imported_npcs.clear()
+
+func get_free_agents() -> Array[Character]:
+	var free_agents: Array[Character] = []
+	for npc in imported_npcs:
+		if not CareerFranchise.contracts.has(npc.id):
+			free_agents.append(npc)
+	return free_agents
+
+func find_npc_by_id(id: String) -> Character:
+	for npc in imported_npcs:
+		if npc.id == id:
+			return npc
+	return null

@@ -166,7 +166,16 @@ func add_pending_substitution(sub: Substitution):
 func export_to_dict() -> Dictionary:
 	var data = {
 		"roster": [],
-		"strategy": strategy.duplicate(true)
+		"strategy": strategy.duplicate(true),
+		"field_positions": {
+			"K": (K.bio.first_name + "|" + K.bio.last_name) if K and K.bio else "",
+			"P": (P.bio.first_name + "|" + P.bio.last_name) if P and P.bio else "",
+			"LG": (LG.bio.first_name + "|" + LG.bio.last_name) if LG and LG.bio else "",
+			"RG": (RG.bio.first_name + "|" + RG.bio.last_name) if RG and RG.bio else "",
+			"LF": (LF.bio.first_name + "|" + LF.bio.last_name) if LF and LF.bio else "",
+			"RF": (RF.bio.first_name + "|" + RF.bio.last_name) if RF and RF.bio else "",
+		},
+		"coach": coach.export_to_dict() if coach else {}
 	}
 	for player in roster:
 		data["roster"].append(player.export_to_dict())
@@ -176,10 +185,32 @@ func import_from_dict(data: Dictionary):
 	strategy = data["strategy"].duplicate(true)
 	roster.clear()
 	bench.clear()
+	var field_positions = data.get("field_positions", {})
 	for player_data in data["roster"]:
 		var player = Player.new()
 		player.import_from_dict(player_data)
-		add_player(player)
+		roster.append(player)
+		player.team_node = self
+		apply_team_buffs(player)
+		var name_key = player.bio.first_name + "|" + player.bio.last_name
+		var placed_on_field = false
+		for pos in field_positions:
+			if field_positions[pos] == name_key:
+				match pos:
+					"K": K.set_all_properties(player)
+					"P": P.set_all_properties(player)
+					"LG": LG.set_all_properties(player)
+					"RG": RG.set_all_properties(player)
+					"LF": LF.set_all_properties(player)
+					"RF": RF.set_all_properties(player)
+				placed_on_field = true
+				break
+		if not placed_on_field:
+			bench.append(player)
+	onfield_players = [LG, RG, LF, RF, K, P]
+	next_roster_no_subs()
+	if data.has("coach") and data["coach"].size() > 0:
+		coach.import_from_dict(data["coach"])
 
 func initialize_default_strategy():
 	strategy.position_aggression = {

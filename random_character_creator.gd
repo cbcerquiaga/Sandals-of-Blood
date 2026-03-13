@@ -2475,3 +2475,17 @@ func generate_special_pitches() -> Array[String]:
 		else:
 			pitches.append(random_pitch)
 	return pitches
+
+func get_unsigned_players() -> Array[Character]:
+	var unsigned: Array[Character] = []
+	for character in characters_players:
+		if not CareerFranchise.contracts.has(character.id):
+			unsigned.append(character)
+	return unsigned
+
+func get_unsigned_staff() -> Array[Character]:
+	var unsigned: Array[Character] = []
+	for character in characters_staff:
+		if not CareerFranchise.contracts.has(character.id):
+			unsigned.append(character)
+	return unsigned

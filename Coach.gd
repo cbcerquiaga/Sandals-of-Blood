@@ -29,3 +29,19 @@ var perks := {
 	"bulk": false, #allows spending food to increase player weight and speed up strength development
 	"cut": false, #allows spending water to reduce player weight and speed up speed development
 }
+
+func export_to_dict() -> Dictionary:
+	return {
+		"level": level,
+		"xp": xp,
+		"charisma_attributes": charisma_attributes.duplicate(),
+		"training_attributes": training_attributes.duplicate(),
+		"perks": perks.duplicate()
+	}
+
+func import_from_dict(data: Dictionary):
+	level = data.get("level", 1)
+	xp = data.get("xp", 0)
+	charisma_attributes = data.get("charisma_attributes", charisma_attributes).duplicate()
+	training_attributes = data.get("training_attributes", training_attributes).duplicate()
+	perks = data.get("perks", perks).duplicate()
