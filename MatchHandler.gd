@@ -21,6 +21,8 @@ var team2Ready:bool
 var out_of_bounds_frames: int = 0
 var too_much_out_of_bounds: int = 6
 var fighting_frame = 0
+var _record_accum: float = 0.0
+const RECORD_INTERVAL: float = 1.0 / 24.0
 var max_fighting_frame = 15 #TODO: update based on refresh rate
 var most_recent_scorer: Player
 # References
@@ -680,7 +682,10 @@ func _process(delta: float) -> void:
 				over_shown = true
 		return
 	if is_play_live or is_ball_pitched:
-		GlobalSettings.record_frame()
+		_record_accum += delta
+		if _record_accum >= RECORD_INTERVAL:
+			_record_accum -= RECORD_INTERVAL
+			_capture_frame()
 		current_play_time += delta / Engine.time_scale
 		check_ai_tactic_changes()
 		if ball.global_position.distance_squared_to(field.cpuGoal.global_position) < ball.global_position.distance_squared_to(field.playerGoal.global_position):
@@ -766,13 +771,14 @@ func _process(delta: float) -> void:
 			pairs.shuffle()
 			var already_fought = []
 			for pair in pairs:
-				if already_fought.size() > 0:
-					for fight in already_fought:
-						if (fight[0].has_same_name(pair[1]) and fight[1].has_same_name(pair[0])) or (fight[0].has_same_name(pair[0]) and fight[1].has_same_name(pair[1])):
-							continue
-						else:
-							players_fight(pair[0], pair[1])
-							already_fought.append(pair)
+				var already_done = false
+				for fight in already_fought:
+					if (fight[0].has_same_name(pair[1]) and fight[1].has_same_name(pair[0])) or (fight[0].has_same_name(pair[0]) and fight[1].has_same_name(pair[1])):
+						already_done = true
+						break
+				if not already_done:
+					players_fight(pair[0], pair[1])
+					already_fought.append(pair)
 		if pTeam.K.is_workhorse:
 			pTeam.P.add_energy(100)
 			pTeam.LF.add_energy(100)
@@ -786,6 +792,10 @@ func _process(delta: float) -> void:
 			pTeam.LG.add_energy(100)
 			pTeam.RG.add_energy(100)
 		
+func _capture_frame():
+	await RenderingServer.frame_post_draw
+	GlobalSettings.recording.append(get_viewport().get_texture().get_image())
+
 func next_play():
 	if is_gauntlet_active:
 		push_error("next_play() called during active gauntlet - ignoring")
@@ -1698,11 +1708,11 @@ func gauntlet(penalty_goal_team: int = -1):
 			elif player.has_same_name(aTeam.LG) and player.team == aTeam.LG.team:
 				position_player(aTeam.LG, field.cpu_lg_spawn, field.cpu_orientation)
 			elif player.has_same_name(aTeam.RG) and player.team == aTeam.RG.team:
-				position_player(aTeam.K, field.cpu_rg_spawn, field.cpu_orientation)
+				position_player(aTeam.RG, field.cpu_rg_spawn, field.cpu_orientation)
 			elif player.has_same_name(aTeam.LF) and player.team == aTeam.LF.team:
-				position_player(aTeam.K, field.cpu_lf_spawn, field.cpu_orientation)
+				position_player(aTeam.LF, field.cpu_lf_spawn, field.cpu_orientation)
 			elif player.has_same_name(aTeam.RF) and player.team == aTeam.RF.team:
-				position_player(aTeam.K, field.cpu_rf_spawn, field.cpu_orientation)
+				position_player(aTeam.RF, field.cpu_rf_spawn, field.cpu_orientation)
 			elif player.has_same_name(aTeam.P) and player.team == aTeam.P.team:
 				position_player(aTeam.P, field.cpu_pitcher_waiting.global_position, field.cpu_orientation)
 	
